@@ -1,36 +1,32 @@
 # ruoyi_vue_midwayjs
 
-#### Description
-【Midwayjs】🎉 基于RuoYi-Vue3的Midwayjs框架版本
+#### 介绍
 
-#### Software Architecture
-Software architecture description
+【Midwayjs】🎉 基于 RuoYi-Vue3 的 Midwayjs 框架版本
 
-#### Installation
+## QuickStart
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+<!-- add docs here for user -->
 
-#### Instructions
+see [midway docs][midway] for more detail.
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+### Development
 
-#### Contribution
+```bash
+$ npm i
+$ npm run dev
+$ open http://localhost:7001/
+```
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+### Deploy
 
+```bash
+$ npm start
+```
 
-#### Gitee Feature
+### npm scripts
 
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+- Use `npm run lint` to check code style.
+- Use `npm test` to run unit test.
+
+[midway]: https://midwayjs.org
