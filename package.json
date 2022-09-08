@@ -17,7 +17,8 @@
     "@midwayjs/redis": "^3.0.0",
     "typeorm": "^0.3.0",
     "mysql2": "^2.0.0",
-    "nanoid": "^3.0.0"
+    "nanoid": "^3.0.0",
+    "svg-captcha": "^1.4.0"
   },
   "devDependencies": {
     "@midwayjs/cli": "^1.0.0",
