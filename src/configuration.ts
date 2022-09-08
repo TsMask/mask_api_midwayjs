@@ -1,7 +1,7 @@
 import { Configuration, App } from '@midwayjs/decorator';
 import * as koa from '@midwayjs/koa';
 import * as task from '@midwayjs/task';
-import * as orm from '@midwayjs/typeorm';
+import * as typeorm from '@midwayjs/typeorm';
 import * as staticFile from '@midwayjs/static-file';
 import * as info from '@midwayjs/info';
 import * as swagger from '@midwayjs/swagger';
@@ -17,7 +17,7 @@ import { UnauthorizedFilter } from './filter/unauthorized.filter';
     koa, // 核心程序服务
     task, // 任务调度
     staticFile, // 静态文件
-    orm, // 数据库ORM
+    typeorm, // 数据库ORM
     {
       component: info, // 程序部署信息 /_info
       enabledEnvironment: ['local'], // 声明使用环境

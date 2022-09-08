@@ -7,53 +7,38 @@ import { SUCCESS, ERROR } from '../constant/http_status';
  */
 
 const MSG_SUCCESS = '成功';
-const MSG_SUCCESS_QUERY = '查询成功';
 const MSG_ERROR = '失败';
 
 /**
  * 结果数据结构体类型
  * @param code 定义 http_status 状态码
  * @param msg 信息描述
- * @param data 数据对象，可选
- * @param rows 数据列表，可选
- * @param total 数据总数，可选
+ * @param key 自定义数据字段
  */
-export type R<T> = {
+export type R = {
   code: number;
   msg: string;
-  data?: T;
-  rows?: T[];
-  total?: number;
+  [key: string]: any;
 };
 
-export function R<T>(
-  data: T,
-  code: number = SUCCESS,
-  msg: string = MSG_SUCCESS,
-  rows?: T[],
-  total?: number
-): R<T> {
-  return {
-    code,
-    msg,
-    data,
-    rows,
-    total,
-  };
+export function R(data: R): R {
+  return data;
 }
 
 /**
  * 成功结果结构体
+ * @param opt 额外参数 {key:1}
+ * @returns R
  */
-export function R_OK(msg: string = MSG_SUCCESS): R<object> {
-  return { code: SUCCESS, msg };
+export function R_OK(args?: Record<string, any>): R {
+  return { code: SUCCESS, msg: MSG_SUCCESS, ...args };
 }
 
 /**
  * 成功结果数据结构体
  * @param data 数据对象
  */
-export function R_Ok_DATA<T>(data: T): R<T> {
+export function R_Ok_DATA<T>(data: T): R {
   return {
     code: SUCCESS,
     msg: MSG_SUCCESS,
@@ -62,30 +47,17 @@ export function R_Ok_DATA<T>(data: T): R<T> {
 }
 
 /**
- * 成功结果数据结构体
- * @param rows 数据对象
- */
-export function R_OK_ROWS<T>(rows: T[], total: number): R<T> {
-  return {
-    code: SUCCESS,
-    msg: MSG_SUCCESS_QUERY,
-    rows,
-    total,
-  };
-}
-
-/**
  * 失败结果结构体
  */
-export function R_ERR(msg: string = MSG_ERROR): R<object> {
-  return { code: ERROR, msg };
+export function R_ERR(args?: Record<string, any>): R {
+  return { code: ERROR, msg: MSG_ERROR, ...args };
 }
 
 /**
  * 失败结果数据结构体
  * @param data 数据对象
  */
-export function R_ERR_DATA<T>(data: T): R<T> {
+export function R_ERR_DATA<T>(data: T): R {
   return {
     code: ERROR,
     msg: MSG_ERROR,

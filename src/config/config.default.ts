@@ -5,12 +5,61 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     // use for cookie sign key, should change to your own and keep security
     keys: '1662290627179_89234',
 
-    // 核心服务配置
-    koa: {
-      port: 7001, // 服务端口
+    // 项目相关配置
+    project: {
+      // 名称
+      name: 'RuoYi-Midwayjs',
+      // 版本
+      version: '3.8.3',
+      // 版权年份
+      copyrightYear: 2022,
+      // 实例演示开关
+      demoEnabled: true,
+      // 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
+      profile: 'D:/ruoyi/uploadPath',
+      // 获取ip地址开关
+      addressEnabled: false,
+      // 验证码类型 math 数组计算 char 字符验证
+      captchaType: 'math',
     },
 
-    // 请求数据解析大小限制
+    /**char 字符验证码配置 */
+    charCaptcha: {
+      /**干扰线条的数量 */
+      noise: 4,
+      /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
+      color: true,
+      // 验证码图片背景颜色
+      background: '#f5f5f5',
+      /**验证码长度 */
+      size: 4,
+      /**验证码字符中排除 0o1i */
+      ignoreChars: '0o1i',
+    },
+
+    // math 数组计算码配置
+    mathCaptcha: {
+      /**干扰线条的数量 */
+      noise: 4,
+      /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
+      color: true,
+      // 验证码图片背景颜色
+      background: '#f5f5f5',
+      /**计算式，默认"+"，可选"+", "-" or "+/-" */
+      mathOperator: '+',
+      /**算数值最小值，默认1 */
+      mathMin: 1,
+      /**算数值最大值，默认9 */
+      mathMax: 9,
+    },
+
+    /**核心服务配置 */
+    koa: {
+      /**服务端口 */
+      port: 7001,
+    },
+
+    /**请求数据解析大小限制 */
     bodyParser: {
       enableTypes: ['json', 'form', 'text', 'xml'],
       formLimit: '1mb',
@@ -44,20 +93,24 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       },
     },
 
-    // 数据源
+    /**TypeORM 数据源 */
     typeorm: {
       dataSource: {
-        // 单数据库实例
+        // 默认数据库实例
         default: {
+          /**数据库类型 */
           type: 'mysql',
           host: '',
           port: 3306,
           username: '',
           password: '',
-          database: undefined,
-          synchronize: false, // 如果第一次使用，不存在表，有同步的需求可以写 true
-          logging: false, // 输出sql日志
-          dateStrings: true, // 输出时间字段转字符串 yyyy-MM-dd hh:mm:ss
+          database: '',
+          /**用于同步表结构 */
+          synchronize: false,
+          /**输出sql日志 */
+          logging: false,
+          /** 输出时间字段转字符串格式 yyyy-MM-dd hh:mm:ss */
+          dateStrings: true,
         },
       },
     },

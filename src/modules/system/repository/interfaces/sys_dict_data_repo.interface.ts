@@ -1,4 +1,4 @@
-type SysDictData = object;
+import { SysDictData } from '../../model/sys_dict_data';
 
 /**
  * 字典表 数据层接口
@@ -37,7 +37,7 @@ export interface SysDictDataRepoInterface {
    * @param dictCode 字典数据ID
    * @return 字典数据
    */
-  select_dict_data_by_id(dict_code: string): Promise<SysDictData[]>;
+  select_dict_data_by_id(dict_code: string): Promise<SysDictData>;
 
   /**
    * 查询字典数据
