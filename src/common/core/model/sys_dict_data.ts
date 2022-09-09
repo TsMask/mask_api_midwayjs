@@ -1,7 +1,13 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
+/**
+ * 字典数据表 sys_dict_data
+ *
+ * @author TsMask <340112800@qq.com>
+ */
 @Entity('sys_dict_data')
 export class SysDictData {
+  /**字典编码 */
   @PrimaryGeneratedColumn({
     type: 'bigint',
     name: 'dict_code',
@@ -9,6 +15,7 @@ export class SysDictData {
   })
   dict_code: string;
 
+  /**字典排序 */
   @Column('int', {
     name: 'dict_sort',
     nullable: true,
@@ -17,6 +24,7 @@ export class SysDictData {
   })
   dict_sort: number | null;
 
+  /**字典标签 */
   @Column('varchar', {
     name: 'dict_label',
     nullable: true,
@@ -25,6 +33,7 @@ export class SysDictData {
   })
   dict_label: string | null;
 
+  /**字典键值 */
   @Column('varchar', {
     name: 'dict_value',
     nullable: true,
@@ -33,6 +42,7 @@ export class SysDictData {
   })
   dict_value: string | null;
 
+  /**字典类型 */
   @Column('varchar', {
     name: 'dict_type',
     nullable: true,
@@ -41,6 +51,7 @@ export class SysDictData {
   })
   dict_type: string | null;
 
+  /**样式属性（其他样式扩展） */
   @Column('varchar', {
     name: 'css_class',
     nullable: true,
@@ -49,6 +60,7 @@ export class SysDictData {
   })
   css_class: string | null;
 
+  /**表格回显样式 */
   @Column('varchar', {
     name: 'list_class',
     nullable: true,
@@ -57,6 +69,7 @@ export class SysDictData {
   })
   list_class: string | null;
 
+  /**是否默认（Y是 N否） */
   @Column('char', {
     name: 'is_default',
     nullable: true,
@@ -66,6 +79,7 @@ export class SysDictData {
   })
   is_default: string | null;
 
+  /**状态（0正常 1停用） */
   @Column('char', {
     name: 'status',
     nullable: true,
@@ -75,6 +89,7 @@ export class SysDictData {
   })
   status: string | null;
 
+  /**创建者 */
   @Column('varchar', {
     name: 'create_by',
     nullable: true,
@@ -83,6 +98,7 @@ export class SysDictData {
   })
   create_by: string | null;
 
+  /**创建时间 */
   @Column('datetime', {
     name: 'create_time',
     nullable: true,
@@ -90,6 +106,7 @@ export class SysDictData {
   })
   create_time: Date | null;
 
+  /**更新者 */
   @Column('varchar', {
     name: 'update_by',
     nullable: true,
@@ -98,6 +115,7 @@ export class SysDictData {
   })
   update_by: string | null;
 
+  /**更新时间 */
   @Column('datetime', {
     name: 'update_time',
     nullable: true,
@@ -105,6 +123,7 @@ export class SysDictData {
   })
   update_time: Date | null;
 
+  /**备注 */
   @Column('varchar', {
     name: 'remark',
     nullable: true,

@@ -1,7 +1,13 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
+/**
+ * 用户对象 sys_user
+ *
+ * @author TsMask <340112800@qq.com>
+ */
 @Entity('sys_user')
 export class SysUser {
+  /**用户ID */
   @PrimaryGeneratedColumn({
     type: 'bigint',
     name: 'user_id',
@@ -9,15 +15,19 @@ export class SysUser {
   })
   user_id: string;
 
+  /**部门ID */
   @Column('bigint', { name: 'dept_id', nullable: true, comment: '部门ID' })
   dept_id: string | null;
 
+  /**用户账号 */
   @Column('varchar', { name: 'user_name', comment: '用户账号', length: 30 })
   user_name: string;
 
+  /**用户昵称 */
   @Column('varchar', { name: 'nick_name', comment: '用户昵称', length: 30 })
   nick_name: string;
 
+  /**用户类型（00系统用户） */
   @Column('varchar', {
     name: 'user_type',
     nullable: true,
@@ -27,6 +37,7 @@ export class SysUser {
   })
   user_type: string | null;
 
+  /**用户邮箱 */
   @Column('varchar', {
     name: 'email',
     nullable: true,
@@ -35,6 +46,7 @@ export class SysUser {
   })
   email: string | null;
 
+  /**手机号码 */
   @Column('varchar', {
     name: 'phonenumber',
     nullable: true,
@@ -43,6 +55,7 @@ export class SysUser {
   })
   phonenumber: string | null;
 
+  /**用户性别（0男 1女 2未知） */
   @Column('char', {
     name: 'sex',
     nullable: true,
@@ -52,6 +65,7 @@ export class SysUser {
   })
   sex: string | null;
 
+  /**头像地址 */
   @Column('varchar', {
     name: 'avatar',
     nullable: true,
@@ -60,6 +74,7 @@ export class SysUser {
   })
   avatar: string | null;
 
+  /**密码 */
   @Column('varchar', {
     name: 'password',
     nullable: true,
@@ -68,6 +83,7 @@ export class SysUser {
   })
   password: string | null;
 
+  /**帐号状态（0正常 1停用） */
   @Column('char', {
     name: 'status',
     nullable: true,
@@ -77,6 +93,7 @@ export class SysUser {
   })
   status: string | null;
 
+  /**删除标志（0代表存在 2代表删除） */
   @Column('char', {
     name: 'del_flag',
     nullable: true,
@@ -86,6 +103,7 @@ export class SysUser {
   })
   del_flag: string | null;
 
+  /**最后登录IP */
   @Column('varchar', {
     name: 'login_ip',
     nullable: true,
@@ -94,6 +112,7 @@ export class SysUser {
   })
   login_ip: string | null;
 
+  /**最后登录时间 */
   @Column('datetime', {
     name: 'login_date',
     nullable: true,
@@ -101,6 +120,7 @@ export class SysUser {
   })
   login_date: Date | null;
 
+  /**创建者 */
   @Column('varchar', {
     name: 'create_by',
     nullable: true,
@@ -109,6 +129,7 @@ export class SysUser {
   })
   create_by: string | null;
 
+  /**创建时间 */
   @Column('datetime', {
     name: 'create_time',
     nullable: true,
@@ -116,6 +137,7 @@ export class SysUser {
   })
   create_time: Date | null;
 
+  /**更新者 */
   @Column('varchar', {
     name: 'update_by',
     nullable: true,
@@ -124,6 +146,7 @@ export class SysUser {
   })
   update_by: string | null;
 
+  /**更新时间 */
   @Column('datetime', {
     name: 'update_time',
     nullable: true,
@@ -131,6 +154,7 @@ export class SysUser {
   })
   update_time: Date | null;
 
+  /**备注 */
   @Column('varchar', {
     name: 'remark',
     nullable: true,

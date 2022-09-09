@@ -1,7 +1,7 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { DataSource } from 'typeorm';
-import { SysDictData } from '../model/sys_dict_data';
+import { SysDictData } from '../../../common/core/model/sys_dict_data';
 import { SysDictDataRepoInterface } from './interfaces/sys_dict_data_repo.interface';
 
 const SELECT_DICT_DATA_VO = `
@@ -20,7 +20,11 @@ export class SysDictDataRepo implements SysDictDataRepoInterface {
   @Inject()
   dataSourceManager: TypeORMDataSourceManager;
 
-  // 数据源
+  /**
+   * 数据源
+   * @param source 数据库连接
+   * @returns 连接实例
+   */
   dataSource(source: string = 'default'): DataSource {
     return this.dataSourceManager.getDataSource(source);
   }

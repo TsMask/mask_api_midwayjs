@@ -1,6 +1,6 @@
 import { Provide, Inject } from '@midwayjs/decorator';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
-import { SysUser } from '../model/sys_user';
+import { SysUser } from '../../../common/core/model/sys_user';
 import { SysUserServiceInterface } from './interfaces/sys_user_service.interface';
 
 /**

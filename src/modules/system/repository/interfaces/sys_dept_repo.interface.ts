@@ -1,4 +1,4 @@
-type SysDept = object;
+import { SysDept } from '../../../../common/core/model/sys_dept';
 
 /**
  * 部门管理 数据层接口

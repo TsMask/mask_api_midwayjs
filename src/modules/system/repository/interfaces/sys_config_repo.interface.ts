@@ -1,4 +1,4 @@
-type SysConfig = object;
+import { SysConfig } from '../../model/sys_config';
 
 /**
  * 参数配置 数据层接口
@@ -44,7 +44,7 @@ export interface SysConfigRepoInterface {
    * @param sys_config 参数配置信息
    * @return 结果
    */
-  updateConfig(sys_config: SysConfig): Promise<number>;
+  update_config(sys_config: SysConfig): Promise<number>;
 
   /**
    * 删除参数配置
@@ -52,7 +52,7 @@ export interface SysConfigRepoInterface {
    * @param config_id 参数ID
    * @return 结果
    */
-  deleteConfigById(config_id: string): Promise<number>;
+  delete_config_by_id(config_id: string): Promise<number>;
 
   /**
    * 批量删除参数信息
@@ -60,5 +60,5 @@ export interface SysConfigRepoInterface {
    * @param config_ids 需要删除的参数ID
    * @return 结果
    */
-  deleteConfigByIds(config_ids: string[]): Promise<number>;
+  delete_config_by_ids(config_ids: string[]): Promise<number>;
 }

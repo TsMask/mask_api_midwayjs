@@ -1,4 +1,4 @@
-import { SysUser } from '../../model/sys_user';
+import { SysUser } from '../../../../common/core/model/sys_user';
 
 /**
  * 用户表 数据层接口
@@ -49,7 +49,7 @@ export interface SysUserRepoInterface {
   /**
    * 新增用户信息
    *
-   * @param user 用户信息
+   * @param sys_user 用户信息
    * @return 结果
    */
   insert_user(sys_user: SysUser): Promise<number>;
@@ -57,7 +57,7 @@ export interface SysUserRepoInterface {
   /**
    * 修改用户信息
    *
-   * @param user 用户信息
+   * @param sys_user 用户信息
    * @return 结果
    */
   update_user(sys_user: SysUser): Promise<number>;

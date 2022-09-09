@@ -1,4 +1,4 @@
-import { SysUser } from '../../model/sys_user';
+import { SysUser } from '../../../../common/core/model/sys_user';
 
 /**
  * 用户 业务层接口

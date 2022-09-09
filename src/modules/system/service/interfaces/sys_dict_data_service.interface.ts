@@ -1,7 +1,7 @@
-import { SysDictData } from '../../model/sys_dict_data';
+import { SysDictData } from '../../../../common/core/model/sys_dict_data';
 
 /**
- * 字典 业务层接口
+ * 字典类型数据 服务层接口
  *
  * @author TsMask <340112800@qq.com>
  */
