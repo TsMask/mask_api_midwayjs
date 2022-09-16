@@ -5,7 +5,7 @@ import { SysUser } from '../model/sys_user';
  *
  * @author TsMask <340112800@qq.com>
  */
-export type LoginBody = {
+export type LoginUser = {
   /**用户ID */
   user_id: string;
 

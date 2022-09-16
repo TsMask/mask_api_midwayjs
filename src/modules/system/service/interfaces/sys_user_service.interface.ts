@@ -1,7 +1,7 @@
 import { SysUser } from '../../../../common/core/model/sys_user';
 
 /**
- * 用户 业务层接口
+ * 用户 服务层接口
  *
  * @author TsMask <340112800@qq.com>
  */
