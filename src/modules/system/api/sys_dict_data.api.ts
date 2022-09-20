@@ -1,7 +1,7 @@
 import { Controller, Get, Inject, Param } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { SysDictDataService } from '../service/sys_dict_data.service';
-import { R, R_Ok_DATA } from '../../../common/core/r';
+import { R, R_Ok_DATA } from '../../../framework/core/result';
 
 /**
  * 数据字典信息

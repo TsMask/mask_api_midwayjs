@@ -1,7 +1,7 @@
 import { Controller, Get, HttpCode, Inject } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { create, createMathExpr } from 'svg-captcha';
-import { R, R_OK } from '../../../common/core/r';
+import { R, R_OK } from '../../../framework/core/result';
 
 /**
  * 验证码操作处理

@@ -1,4 +1,4 @@
-import { SysDictData } from '../../../../common/core/model/sys_dict_data';
+import { SysDictData } from '../../../../framework/core/model/sys_dict_data';
 
 /**
  * 字典类型数据 服务层接口

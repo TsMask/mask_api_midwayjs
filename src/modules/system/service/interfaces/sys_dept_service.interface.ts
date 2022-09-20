@@ -1,5 +1,5 @@
-import { SysDept } from '../../../../common/core/model/sys_dept';
-import { TreeSelect } from '../../../../common/core/tree_select';
+import { SysDept } from '../../../../framework/core/model/sys_dept';
+import { TreeSelect } from '../../../../framework/core/tree_select';
 
 /**
  * 部门管理 服务层接口

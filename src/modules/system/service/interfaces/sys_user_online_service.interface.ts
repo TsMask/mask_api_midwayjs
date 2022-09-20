@@ -1,4 +1,4 @@
-import { LoginUser } from '../../../../common/core/types/login_user';
+import { LoginUser } from '../../../../framework/core/types/login_user';
 import { SysUserOnline } from '../../model/sys_user_online';
 
 /**

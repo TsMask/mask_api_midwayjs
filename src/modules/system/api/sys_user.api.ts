@@ -1,8 +1,8 @@
 import { Controller, Get, Inject, Body } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { SysUserService } from '../service/sys_user.service';
-import { SysUser } from '../model/sys_user';
-import { R_OK } from '../../../common/core/r';
+import { R_OK } from '../../../framework/core/result';
+import { SysUser } from '../../../framework/core/model/sys_user';
 
 @Controller('/system/user')
 export class SysUserApi {

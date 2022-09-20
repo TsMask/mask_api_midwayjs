@@ -1,4 +1,4 @@
-import { SysUser } from '../../../../common/core/model/sys_user';
+import { SysUser } from '../../../../framework/core/model/sys_user';
 
 /**
  * 用户表 数据层接口

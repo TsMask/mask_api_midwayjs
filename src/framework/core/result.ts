@@ -1,4 +1,4 @@
-import { SUCCESS, ERROR } from '../constant/http_status';
+import { SUCCESS, ERROR } from '../../common/constant/http_status';
 
 /**
  * 响应信息主体
@@ -27,7 +27,7 @@ export function R(data: R): R {
 
 /**
  * 成功结果结构体
- * @param opt 额外参数 {key:1}
+ * @param args 额外参数 {key:1}
  * @returns R
  */
 export function R_OK(args?: Record<string, any>): R {

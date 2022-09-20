@@ -1,7 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
-import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
-import { DataSource } from 'typeorm';
-import { SysDictData } from '../../../common/core/model/sys_dict_data';
+import { SysDictData } from '../../../framework/core/model/sys_dict_data';
+import { MysqlManager } from '../../../framework/data_source/mysql_manager';
 import { SysDictDataRepoInterface } from './interfaces/sys_dict_data_repo.interface';
 
 const SELECT_DICT_DATA_VO = `
@@ -18,16 +17,7 @@ from sys_dict_data
 @Scope(ScopeEnum.Singleton)
 export class SysDictDataRepo implements SysDictDataRepoInterface {
   @Inject()
-  dataSourceManager: TypeORMDataSourceManager;
-
-  /**
-   * 数据源
-   * @param source 数据库连接
-   * @returns 连接实例
-   */
-  dataSource(source: string = 'default'): DataSource {
-    return this.dataSourceManager.getDataSource(source);
-  }
+  db: MysqlManager;
 
   select_dict_data_list(sys_dict_data: SysDictData): Promise<SysDictData[]> {
     throw new Error('Method not implemented.');
@@ -41,7 +31,7 @@ export class SysDictDataRepo implements SysDictDataRepoInterface {
 
   select_dict_data_by_id(dict_code: string): Promise<SysDictData> {
     const sql = `${SELECT_DICT_DATA_VO} where dict_code = ?`;
-    return this.dataSource().query(sql, [dict_code]);
+    return this.db.execute(sql, [dict_code]);
   }
 
   count_dict_data_by_type(dict_type: string): Promise<number> {

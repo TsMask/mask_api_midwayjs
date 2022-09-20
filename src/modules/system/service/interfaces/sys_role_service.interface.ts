@@ -1,4 +1,4 @@
-import { SysRole } from '../../../../common/core/model/sys_role';
+import { SysRole } from '../../../../framework/core/model/sys_role';
 import { SysUserRole } from '../../model/sys_user_role';
 
 /**

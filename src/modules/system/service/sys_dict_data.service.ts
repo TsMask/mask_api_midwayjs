@@ -1,6 +1,6 @@
 import { Provide, Inject } from '@midwayjs/decorator';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
-import { SysDictData } from '../../../common/core/model/sys_dict_data';
+import { SysDictData } from '../../../framework/core/model/sys_dict_data';
 import { SysDictDataRepo } from '../repository/sys_dict_data.repo';
 import { SysDictDataServiceInterface } from './interfaces/sys_dict_data_service.interface';
 

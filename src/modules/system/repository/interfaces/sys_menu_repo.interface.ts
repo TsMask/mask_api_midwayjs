@@ -1,4 +1,4 @@
-import { SysMenu } from '../../../../common/core/model/sys_menu';
+import { SysMenu } from '../../../../framework/core/model/sys_menu';
 
 /**
  * 菜单表 数据层接口

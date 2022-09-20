@@ -1,5 +1,5 @@
-import { SysDictData } from '../../../../common/core/model/sys_dict_data';
-import { SysDictType } from '../../../../common/core/model/sys_dict_type';
+import { SysDictData } from '../../../../framework/core/model/sys_dict_data';
+import { SysDictType } from '../../../../framework/core/model/sys_dict_type';
 
 /**
  * 字典类型 服务层接口

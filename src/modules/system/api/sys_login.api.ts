@@ -1,8 +1,8 @@
 import { Controller, Body, Post, Get, Inject } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { TOKEN } from '../../../common/constant/some';
-import { R, R_OK, R_Ok_DATA } from '../../../common/core/r';
-import { LoginBody } from '../../../common/core/types/login_body';
+import { R, R_OK, R_Ok_DATA } from '../../../framework/core/result';
+import { LoginBody } from '../../../framework/core/types/login_body';
 /**
  * 登录验证
  *

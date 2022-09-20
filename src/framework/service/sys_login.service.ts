@@ -1,9 +1,8 @@
-import { Provide, Inject, Logger } from '@midwayjs/decorator';
-// import { ILogger } from '@midwayjs/logger';
-import { SysUser } from '../../modules/system/model/sys_user';
+import { Provide, Inject } from '@midwayjs/decorator';
 import { SysUserService } from '../../modules/system/service/sys_user.service';
-import { LoginBody } from '../../common/core/types/login_body';
+import { LoginBody } from '../core/types/login_body';
 import { Context } from '@midwayjs/koa';
+import { SysUser } from '../core/model/sys_user';
 
 /**
  * 登录校验方法
@@ -12,8 +11,6 @@ import { Context } from '@midwayjs/koa';
  */
 @Provide()
 export class SysLoginService {
-  @Logger()
-  //   private logger: ILogger;
   @Inject()
   private ctx: Context;
 

@@ -1,4 +1,4 @@
-import { SysDictType } from '../../../../common/core/model/sys_dict_type';
+import { SysDictType } from '../../../../framework/core/model/sys_dict_type';
 
 /**
  * 字典表 数据层接口

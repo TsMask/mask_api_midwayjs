@@ -1,5 +1,5 @@
 import { Provide } from '@midwayjs/decorator';
-import { SysUser } from '../../../common/core/model/sys_user';
+import { SysUser } from '../../../framework/core/model/sys_user';
 import { SysUserRepoInterface } from './interfaces/sys_user_repo.interface';
 
 /**
