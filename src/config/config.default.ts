@@ -10,7 +10,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       // 名称
       name: 'RuoYi-Midwayjs',
       // 版本
-      version: '3.8.3',
+      version: '0.0.2',
       // 版权年份
       copyrightYear: 2022,
       // 实例演示开关
@@ -112,6 +112,16 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
           /** 输出时间字段转字符串格式 yyyy-MM-dd hh:mm:ss */
           dateStrings: true,
         },
+      },
+    },
+
+    /**Redis 缓存数据 */
+    redis: {
+      client: {
+        port: 6379, // Redis port
+        host: "127.0.0.1", // Redis host
+        password: "",
+        db: 1,
       },
     },
 

@@ -1,3 +1,5 @@
+import { PageBody } from '../../../../framework/core/page_body';
+import { PageData } from '../../../../framework/core/page_data';
 import { SysConfig } from '../../model/sys_config';
 
 /**
@@ -7,12 +9,14 @@ import { SysConfig } from '../../model/sys_config';
  */
 export interface SysConfigRepoInterface {
   /**
-   * 查询参数配置信息
+   * 查询参数配置列表数据
    *
-   * @param sys_config 参数配置信息
-   * @return 参数配置信息
+   * @param page_body 请求参数
+   * @return 列表数据结果
    */
-  select_config(sys_config: SysConfig): Promise<SysConfig>;
+  select_config_page(
+    page_body: PageBody<SysConfig>
+  ): Promise<PageData<SysConfig>>;
 
   /**
    * 查询参数配置列表
@@ -21,6 +25,14 @@ export interface SysConfigRepoInterface {
    * @return 参数配置集合
    */
   select_config_list(sys_config: SysConfig): Promise<SysConfig[]>;
+
+  /**
+   * 查询参数配置信息
+   *
+   * @param sys_config 参数配置信息
+   * @return 参数配置信息
+   */
+  select_config(sys_config: SysConfig): Promise<SysConfig>;
 
   /**
    * 根据键名查询参数配置信息
@@ -52,13 +64,5 @@ export interface SysConfigRepoInterface {
    * @param config_id 参数ID
    * @return 结果
    */
-  delete_config_by_id(config_id: string): Promise<number>;
-
-  /**
-   * 批量删除参数信息
-   *
-   * @param config_ids 需要删除的参数ID
-   * @return 结果
-   */
-  delete_config_by_ids(config_ids: string[]): Promise<number>;
+  delete_config_by_id(config_id: number): Promise<boolean>;
 }

@@ -54,7 +54,7 @@ export class MysqlManager {
    * @param source 数据源 默认'default'
    * @returns 查询结果或异常错误
    */
-  public executeRunner(source: string = 'default'): QueryRunner {
+  public execute_runner(source: string = 'default'): QueryRunner {
     return this.data_source(source).createQueryRunner();
   }
 }

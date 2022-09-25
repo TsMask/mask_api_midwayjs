@@ -1,7 +1,7 @@
 import { Controller, Get, Inject, Param } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { SysDictDataService } from '../service/sys_dict_data.service';
-import { R, R_Ok_DATA } from '../../../framework/core/result';
+import { Result } from '../../../framework/core/result';
 
 /**
  * 数据字典信息
@@ -39,11 +39,11 @@ export class SysDictDataApi {
    * 查询字典数据详细
    */
   @Get('/:dictCode')
-  async get_info(@Param('dictCode') dict_code: string): Promise<R> {
+  async get_info(@Param('dictCode') dict_code: string): Promise<Result> {
     const data = await this.sys_dict_data_server.select_dict_data_by_id(
       dict_code
     );
-    return R_Ok_DATA(data);
+    return Result.ok_data(data);
   }
   // // @PreAuthorize("@ss.hasPermi('system:dict:query')")
   // @GetMapping(value = "/{dictCode}")

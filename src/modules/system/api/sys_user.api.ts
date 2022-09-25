@@ -1,7 +1,7 @@
 import { Controller, Get, Inject, Body } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { SysUserService } from '../service/sys_user.service';
-import { R_OK } from '../../../framework/core/result';
+import { Result } from '../../../framework/core/result';
 import { SysUser } from '../../../framework/core/model/sys_user';
 
 @Controller('/system/user')
@@ -31,6 +31,6 @@ export class SysUserApi {
   async list(@Body('sys_user') sys_user: SysUser) {
     //  startPage();
     const [rows, total] = await this.user_service.select_user_List(sys_user);
-    return R_OK({rows, total});
+    return Result.ok({ rows, total });
   }
 }

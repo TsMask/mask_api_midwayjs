@@ -1,7 +1,7 @@
 import { Controller, Get, HttpCode, Inject } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { create, createMathExpr } from 'svg-captcha';
-import { R, R_OK } from '../../../framework/core/result';
+import { Result } from '../../../framework/core/result';
 
 /**
  * 验证码操作处理
@@ -18,7 +18,7 @@ export class CaptchaApi {
    */
   @Get('/captchaImage')
   @HttpCode(200)
-  async captcha_image(): Promise<R> {
+  async captcha_image(): Promise<Result> {
     const { captchaType } = this.ctx.app.getConfig('project');
 
     const captcha =
@@ -28,7 +28,7 @@ export class CaptchaApi {
     console.log('验证码 %s', captcha.text);
     this.ctx.cookies.set('captcha', captcha.text, { encrypt: true });
 
-    return R_OK({
+    return Result.ok({
       img: captcha.data,
       uuid: 'osndfnxnv=',
       captchaEnabled: true,

@@ -1,7 +1,7 @@
 import { Controller, Body, Post, Get, Inject } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { TOKEN } from '../../../common/constant/some';
-import { R, R_OK, R_Ok_DATA } from '../../../framework/core/result';
+import { Result } from '../../../framework/core/result';
 import { LoginBody } from '../../../framework/core/types/login_body';
 /**
  * 登录验证
@@ -20,8 +20,8 @@ export class SysLoginApi {
    * @return 结果
    */
   @Post('/login')
-  async login(@Body() loginBody: LoginBody): Promise<R> {
-    return R_OK({
+  async login(@Body() loginBody: LoginBody): Promise<Result> {
+    return Result.ok({
       [TOKEN]: 'log',
     });
   }
@@ -32,8 +32,8 @@ export class SysLoginApi {
    * @return 用户信息
    */
   @Get('/getInfo')
-  async get_info(): Promise<R> {
-    return R_OK({
+  async get_info(): Promise<Result> {
+    return Result.ok({
       permissions: ['*:*:*'],
       roles: ['admin'],
       user: {
@@ -118,8 +118,8 @@ export class SysLoginApi {
    * @return 路由信息
    */
   @Get('/getRouters')
-  async get_routers(): Promise<R> {
-    return R_Ok_DATA<object>([
+  async get_routers(): Promise<Result> {
+    return Result.ok_data([
       {
         name: 'System',
         path: '/system',

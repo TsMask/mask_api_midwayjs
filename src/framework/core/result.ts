@@ -5,62 +5,84 @@ import { SUCCESS, ERROR } from '../../common/constant/http_status';
  *
  * @author TsMask <340112800@qq.com>
  */
-
-const MSG_SUCCESS = '成功';
-const MSG_ERROR = '失败';
-
-/**
- * 结果数据结构体类型
- * @param code 定义 http_status 状态码
- * @param msg 信息描述
- * @param key 自定义数据字段
- */
-export type R = {
+export class Result {
+  /**响应状态码 */
   code: number;
+  /**响应信息 */
   msg: string;
+  /**其余自定义属性 */
   [key: string]: any;
-};
 
-export function R(data: R): R {
-  return data;
-}
+  /**
+   * 成功结果
+   * @param args 额外参数 {value:1}
+   * @return 响应结果对象
+   */
+  public static ok(args?: Record<string, any>) {
+    return this.rest(SUCCESS, '成功', args);
+  }
 
-/**
- * 成功结果结构体
- * @param args 额外参数 {key:1}
- * @returns R
- */
-export function R_OK(args?: Record<string, any>): R {
-  return { code: SUCCESS, msg: MSG_SUCCESS, ...args };
-}
+  /**
+   * 成功结果信息
+   * @param msg 响应信息
+   * @param code 响应状态码
+   * @return 响应结果对象
+   */
+  public static ok_msg(msg: string, code: number = SUCCESS) {
+    return this.rest(code, msg);
+  }
 
-/**
- * 成功结果数据结构体
- * @param data 数据对象
- */
-export function R_Ok_DATA<T>(data: T): R {
-  return {
-    code: SUCCESS,
-    msg: MSG_SUCCESS,
-    data,
-  };
-}
+  /**
+   * 成功结果数据
+   * @param data 数据值
+   * @return 响应结果对象
+   */
+  public static ok_data<T>(data: T) {
+    return this.rest(SUCCESS, '成功', { data });
+  }
 
-/**
- * 失败结果结构体
- */
-export function R_ERR(args?: Record<string, any>): R {
-  return { code: ERROR, msg: MSG_ERROR, ...args };
-}
+  /**
+   * 失败结果
+   * @param args 额外参数 {value:1}
+   * @return 响应结果对象
+   */
+  public static err(args?: Record<string, any>) {
+    return this.rest(ERROR, '失败', args);
+  }
 
-/**
- * 失败结果数据结构体
- * @param data 数据对象
- */
-export function R_ERR_DATA<T>(data: T): R {
-  return {
-    code: ERROR,
-    msg: MSG_ERROR,
-    data,
-  };
+  /**
+   * 失败结果信息
+   * @param msg 响应信息
+   * @param code 响应状态码
+   * @return 响应结果对象
+   */
+  public static err_msg(msg: string, code: number = ERROR) {
+    return this.rest(code, msg);
+  }
+
+  /**
+   * 失败结果数据
+   * @param data 数据值
+   * @return 响应结果对象
+   */
+  public static err_data<T>(data: T) {
+    return this.rest(ERROR, '失败', { data });
+  }
+
+  /**
+   * 定义响应结果对象
+   * @param code 状态码
+   * @param msg 响应信息
+   * @param args 可展开的参数对象
+   * @returns
+   */
+  public static rest(code: number, msg: string, args?: Record<string, any>) {
+    const res = new Result();
+    res.code = code;
+    res.msg = msg;
+    for (const key of Object.keys(args)) {
+      res[key] = args[key];
+    }
+    return res;
+  }
 }

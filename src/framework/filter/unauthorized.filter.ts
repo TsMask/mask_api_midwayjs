@@ -1,7 +1,7 @@
 import { Catch } from '@midwayjs/decorator';
 import { httpError, HttpStatus, MidwayHttpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { UNDEFINED_EXCEPTION } from '../utils/result.utils';
+import { Result } from '../core/result';
 
 @Catch(httpError.UnauthorizedError)
 export class UnauthorizedFilter {
@@ -10,7 +10,7 @@ export class UnauthorizedFilter {
     ctx.logger.error('%s > %s', err.name, err.message);
     // ctx.redirect('/401.html');
     // 返回200，提示错误信息
-    ctx.body = UNDEFINED_EXCEPTION(err.message, 401);
+    ctx.body = Result.err_msg(err.message, 401);
     ctx.status = HttpStatus.OK;
   }
 }

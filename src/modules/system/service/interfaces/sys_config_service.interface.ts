@@ -1,3 +1,5 @@
+import { PageBody } from '../../../../framework/core/page_body';
+import { PageData } from '../../../../framework/core/page_data';
 import { SysConfig } from '../../model/sys_config';
 
 /**
@@ -7,12 +9,22 @@ import { SysConfig } from '../../model/sys_config';
  */
 export interface SysConfigServiceInterface {
   /**
+   * 查询参数配置列表数据
+   *
+   * @param page_body 请求参数
+   * @return 列表数据结果
+   */
+  select_config_page(
+    page_body: PageBody<SysConfig>
+  ): Promise<PageData<SysConfig>>;
+
+  /**
    * 查询参数配置信息
    *
    * @param config_id 参数配置ID
    * @return 参数配置信息
    */
-  select_config_by_id(config_id: string): Promise<SysConfig>;
+  select_config_by_id(config_id: number): Promise<SysConfig>;
 
   /**
    * 根据键名查询参数配置信息
@@ -58,12 +70,12 @@ export interface SysConfigServiceInterface {
    *
    * @param config_ids 需要删除的参数ID
    */
-  delete_config_by_ids(config_ids: string[]): Promise<number>;
+  delete_config_by_ids(config_ids: number[]): Promise<number>;
 
   /**
    * 加载参数缓存数据
    */
-  loading_config_cache(): Promise<number>;
+  loading_config_cache(): Promise<void>;
 
   /**
    * 清空参数缓存数据
@@ -73,13 +85,13 @@ export interface SysConfigServiceInterface {
   /**
    * 重置参数缓存数据
    */
-  reset_config_cache(): Promise<number>;
+  reset_config_cache(): Promise<void>;
 
   /**
    * 校验参数键名是否唯一
    *
-   * @param sys_config 参数信息
+   * @param config_key 参数信息
    * @return 结果
    */
-  check_unique_config_key(sys_config: SysConfig): Promise<string>;
+  check_unique_config_key(config_key: string): Promise<SysConfig>;
 }
