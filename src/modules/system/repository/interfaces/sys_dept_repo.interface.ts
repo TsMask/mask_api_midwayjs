@@ -1,4 +1,6 @@
 import { SysDept } from '../../../../framework/core/model/sys_dept';
+import { PageBody } from '../../../../framework/core/page_body';
+import { PageData } from '../../../../framework/core/page_data';
 
 /**
  * 部门管理 数据层接口
@@ -6,6 +8,16 @@ import { SysDept } from '../../../../framework/core/model/sys_dept';
  * @author TsMask <340112800@qq.com>
  */
 export interface SysDeptRepoInterface {
+    /**
+   * 分页查询部门管理数据
+   *
+   * @param page_body 请求参数
+   * @return 列表数据结果
+   */
+     select_dept_page(
+      page_body: PageBody<SysDept>
+    ): Promise<PageData<SysDept>>;
+
   /**
    * 查询部门管理数据
    *
@@ -32,7 +44,7 @@ export interface SysDeptRepoInterface {
    * @param dept_id 部门ID
    * @return 部门信息
    */
-  selectDeptById(dept_id: string): Promise<SysDept>;
+  select_dept_by_id(dept_id: string): Promise<SysDept>;
 
   /**
    * 根据ID查询所有子部门
@@ -99,7 +111,7 @@ export interface SysDeptRepoInterface {
    *
    * @param dept_ids 部门ID组
    */
-  update_dept_status_normal(dept_ids: string[]): Promise<boolean>;
+  update_dept_status_normal(dept_ids: string[]): Promise<number>;
 
   /**
    * 修改子元素关系
@@ -107,13 +119,13 @@ export interface SysDeptRepoInterface {
    * @param sys_depts 子元素
    * @return 结果
    */
-  updateDeptChildren(sys_depts: SysDept[]): Promise<SysDept>;
+  update_dept_children(sys_depts: SysDept[]): Promise<number>;
 
   /**
    * 删除部门管理信息
    *
-   * @param deptId 部门ID
+   * @param dept_id 部门ID
    * @return 结果
    */
-  delete_dept_by_id(dept_id: string): Promise<SysDept>;
+  delete_dept_by_id(dept_id: string): Promise<number>;
 }

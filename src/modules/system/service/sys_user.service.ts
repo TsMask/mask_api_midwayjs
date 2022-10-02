@@ -1,6 +1,6 @@
 import { Provide, Inject } from '@midwayjs/decorator';
-import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { SysUser } from '../../../framework/core/model/sys_user';
+import { SysUserRepo } from '../repository/sys_user.repo';
 import { SysUserServiceInterface } from './interfaces/sys_user_service.interface';
 
 /**
@@ -11,7 +11,7 @@ import { SysUserServiceInterface } from './interfaces/sys_user_service.interface
 @Provide()
 export class SysUserService implements SysUserServiceInterface {
   @Inject()
-  private dataSourceManager: TypeORMDataSourceManager;
+  private sys_user_repo: SysUserRepo;
 
   select_user_List(sys_user: SysUser): Promise<[SysUser[], number]> {
     throw new Error('Method not implemented.');
@@ -64,9 +64,11 @@ export class SysUserService implements SysUserServiceInterface {
   update_user_status(sys_user: SysUser): Promise<number> {
     throw new Error('Method not implemented.');
   }
-  update_user_profile(sys_user: SysUser): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async update_user_profile(sys_user: SysUser): Promise<number> {
+    return await this.sys_user_repo.update_user(sys_user);
   }
+
   update_user_avatar(user_name: string, avatar: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
@@ -92,12 +94,6 @@ export class SysUserService implements SysUserServiceInterface {
   }
 
   public async upsdate_user(user: SysUser): Promise<boolean> {
-    // 获取连接并创建新的queryRunner
-    const dataSource = this.dataSourceManager.getDataSource('default');
-
-    const sql = '';
-    const parameters = [];
-    dataSource.query(sql, parameters);
-    return false;
+    throw new Error('Method not implemented.');
   }
 }

@@ -9,7 +9,7 @@ import { SysConfig } from '../../model/sys_config';
  */
 export interface SysConfigServiceInterface {
   /**
-   * 查询参数配置列表数据
+   * 分页查询参数配置列表数据
    *
    * @param page_body 请求参数
    * @return 列表数据结果

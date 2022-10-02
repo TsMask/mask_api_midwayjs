@@ -172,4 +172,9 @@ export class SysMenu {
     length: 500,
   })
   remark: string | null;
+
+  // ====== 非数据库字段属性 ======
+
+  /**子菜单 */
+  children: SysMenu[];
 }

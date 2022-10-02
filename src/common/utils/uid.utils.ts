@@ -4,7 +4,7 @@ import { customAlphabet } from 'nanoid';
 
 /**
  * 生成随机ID
- * ID包含数字、大小写字母
+ * ID包含数字、小写字母
  * @param size 长度
  * @param prefix 前缀
  * @returns string

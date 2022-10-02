@@ -110,7 +110,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
           /**输出sql日志 */
           logging: false,
           /** 输出时间字段转字符串格式 yyyy-MM-dd hh:mm:ss */
-          dateStrings: true,
+          dateStrings: false,
         },
       },
     },

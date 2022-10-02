@@ -76,7 +76,11 @@ export class Result {
    * @param args 可展开的参数对象
    * @returns
    */
-  public static rest(code: number, msg: string, args?: Record<string, any>) {
+  public static rest(
+    code: number,
+    msg: string,
+    args: Record<string, any> = {}
+  ) {
     const res = new Result();
     res.code = code;
     res.msg = msg;

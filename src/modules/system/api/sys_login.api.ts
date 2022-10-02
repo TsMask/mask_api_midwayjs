@@ -3,6 +3,7 @@ import { Context } from '@midwayjs/koa';
 import { TOKEN } from '../../../common/constant/some';
 import { Result } from '../../../framework/core/result';
 import { LoginBody } from '../../../framework/core/types/login_body';
+import { SysLoginService } from '../../../framework/service/sys_login.service';
 /**
  * 登录验证
  *
@@ -11,18 +12,23 @@ import { LoginBody } from '../../../framework/core/types/login_body';
 @Controller()
 export class SysLoginApi {
   @Inject()
-  ctx: Context;
+  private ctx: Context;
+
+  @Inject()
+  private sys_login_service: SysLoginService;
 
   /**
    * 登录方法
    *
-   * @param loginBody 登录信息
+   * @param login_body 登录信息
    * @return 结果
    */
   @Post('/login')
-  async login(@Body() loginBody: LoginBody): Promise<Result> {
+  async login(@Body() login_body: LoginBody): Promise<Result> {
+    const token = await this.sys_login_service.login(login_body);
+    console.log(token, this.ctx)
     return Result.ok({
-      [TOKEN]: 'log',
+      [TOKEN]: token
     });
   }
 

@@ -62,7 +62,7 @@ export const LOGIN_FAIL = 'Error';
 /**
  * 验证码有效期（分钟）
  */
-export const CAPTCHA_EXPIRATION = 2;
+export const CAPTCHA_EXPIRATION = 2 * 60 * 1000;
 
 /**
  * 令牌

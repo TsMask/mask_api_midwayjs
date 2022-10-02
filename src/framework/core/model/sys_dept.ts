@@ -131,4 +131,9 @@ export class SysDept {
     comment: '更新时间',
   })
   update_time: Date | null;
+
+  // ====== 非数据库字段属性 ======
+
+  /**子部门 */
+  children: SysDept[];
 }

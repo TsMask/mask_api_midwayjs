@@ -1,4 +1,6 @@
 import { SysDept } from '../../../../framework/core/model/sys_dept';
+import { PageBody } from '../../../../framework/core/page_body';
+import { PageData } from '../../../../framework/core/page_data';
 import { TreeSelect } from '../../../../framework/core/tree_select';
 
 /**
@@ -8,12 +10,20 @@ import { TreeSelect } from '../../../../framework/core/tree_select';
  */
 export interface SysDeptServiceInterface {
   /**
+   * 分页查询部门管理数据
+   *
+   * @param page_body 请求参数
+   * @return 列表数据结果
+   */
+  select_dept_page(page_body: PageBody<SysDept>): Promise<PageData<SysDept>>;
+
+  /**
    * 查询部门管理数据
    *
    * @param sys_dept 部门信息
    * @return 部门信息集合
    */
-  selectDeptList(sys_dept: SysDept): Promise<SysDept[]>;
+  select_dept_list(sys_dept: SysDept): Promise<SysDept[]>;
 
   /**
    * 查询部门树结构信息
@@ -24,28 +34,12 @@ export interface SysDeptServiceInterface {
   select_dept_tree_list(sys_dept: SysDept): Promise<TreeSelect[]>;
 
   /**
-   * 构建前端所需要树结构
-   *
-   * @param sys_depts 部门列表
-   * @return 树结构列表
-   */
-  build_dept_tree(sys_depts: SysDept[]): Promise<SysDept[]>;
-
-  /**
-   * 构建前端所需要下拉树结构
-   *
-   * @param sys_depts 部门列表
-   * @return 下拉树结构列表
-   */
-  build_dept_tree_select(sys_depts: SysDept[]): Promise<TreeSelect[]>;
-
-  /**
    * 根据角色ID查询部门树信息
    *
    * @param role_id 角色ID
    * @return 选中部门列表
    */
-  select_dept_list_by_role_id(roleId: string): Promise<string[]>;
+  select_dept_list_by_role_id(role_id: string): Promise<string[]>;
 
   /**
    * 根据部门ID查询信息

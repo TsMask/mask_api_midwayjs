@@ -1,5 +1,5 @@
 {
-  "name": "ruoyi_vue_midwayjs",
+  "name": "ruoyi_api_midwayjs",
   "version": "1.0.0",
   "description": "🎉 基于RuoYi-Vue3的Midwayjs框架版本",
   "private": true,
@@ -52,7 +52,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/TsMask/ruoyi_vue_midwayjs"
+    "url": "https://gitee.com/TsMask/ruoyi_api_midwayjs"
   },
   "author": "TsMask",
   "license": "MIT"
