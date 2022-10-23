@@ -1,4 +1,4 @@
-import { SUCCESS, ERROR } from '../../common/constant/http_status';
+import { SUCCESS, ERROR } from '../../common/constants/HttpStatusConstants';
 
 /**
  * 响应信息主体
@@ -28,7 +28,7 @@ export class Result {
    * @param code 响应状态码
    * @return 响应结果对象
    */
-  public static ok_msg(msg: string, code: number = SUCCESS) {
+  public static okMsg(msg: string, code: number = SUCCESS) {
     return this.rest(code, msg);
   }
 
@@ -37,7 +37,7 @@ export class Result {
    * @param data 数据值
    * @return 响应结果对象
    */
-  public static ok_data<T>(data: T) {
+  public static okData<T>(data: T) {
     return this.rest(SUCCESS, '成功', { data });
   }
 
@@ -56,7 +56,7 @@ export class Result {
    * @param code 响应状态码
    * @return 响应结果对象
    */
-  public static err_msg(msg: string, code: number = ERROR) {
+  public static errMsg(msg: string, code: number = ERROR) {
     return this.rest(code, msg);
   }
 
@@ -65,7 +65,7 @@ export class Result {
    * @param data 数据值
    * @return 响应结果对象
    */
-  public static err_data<T>(data: T) {
+  public static errData<T>(data: T) {
     return this.rest(ERROR, '失败', { data });
   }
 
@@ -84,6 +84,7 @@ export class Result {
     const res = new Result();
     res.code = code;
     res.msg = msg;
+    // 展开参数混入
     for (const key of Object.keys(args)) {
       res[key] = args[key];
     }

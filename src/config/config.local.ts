@@ -58,7 +58,7 @@ export default {
         port: 3306,
         username: 'admin',
         password: 'admin1234',
-        database: 'ry-vue',
+        database: 'ryjs-api',
         synchronize: false, // 用于同步表结构, 上线设置false
         logging: true, // 输出sql日志
       },

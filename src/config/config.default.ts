@@ -5,13 +5,13 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     // use for cookie sign key, should change to your own and keep security
     keys: '1662290627179_89234',
 
-    // 项目相关配置
+    /**项目相关配置 */
     project: {
-      // 名称
+      /**名称 */
       name: 'RuoYi-Midwayjs',
-      // 版本
+      /**版本 */
       version: '0.0.2',
-      // 版权年份
+      /**版权年份 */
       copyrightYear: 2022,
       // 实例演示开关
       demoEnabled: true,
@@ -19,7 +19,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       profile: 'D:/ruoyi/uploadPath',
       // 获取ip地址开关
       addressEnabled: false,
-      // 验证码类型 math 数组计算 char 字符验证
+      /**验证码类型 math 数组计算 char 字符验证 */
       captchaType: 'math',
     },
 
@@ -37,7 +37,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       ignoreChars: '0o1i',
     },
 
-    // math 数组计算码配置
+    /**math 数组计算码配置 */
     mathCaptcha: {
       /**干扰线条的数量 */
       noise: 4,
@@ -78,7 +78,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       },
     },
 
-    // 静态文件配置
+    /**静态文件配置 http://www.midwayjs.org/docs/extensions/static_file */
     staticFile: {
       dirs: {
         default: {
@@ -93,7 +93,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       },
     },
 
-    /**TypeORM 数据源 */
+    /**TypeORM 数据源 http://www.midwayjs.org/docs/extensions/orm */
     typeorm: {
       dataSource: {
         // 默认数据库实例
@@ -115,43 +115,41 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       },
     },
 
-    /**Redis 缓存数据 */
+    /**Redis 缓存数据 http://www.midwayjs.org/docs/extensions/redis */
     redis: {
       client: {
         port: 6379, // Redis port
-        host: "127.0.0.1", // Redis host
-        password: "",
+        host: '127.0.0.1', // Redis host
+        password: '',
         db: 1,
       },
     },
 
-    // 登录密码 加密与重试
-    password: {
-      secret: 'e2b668c3b631', // 应用密匙+用户随机盐
-      errorLimit: 6, // 密码错误最大重试次数
-      errorRetryTime: 1000 * 60 * 30, // 密码错误重试次数超限之后的冻结时间（单位毫秒）
+    /**jwt令牌配置 https://github.com/auth0/node-jsonwebtoken */
+    jwt: {
+      /**令牌算法 */
+      algorithm: 'HS512',
+      /**令牌密钥 */
+      secret: 'abcdefghijklmnopqrstuvwxyz', // fs.readFileSync('xxxxx.key')
+      /**令牌有效期（默认30分钟） */
+      expiresIn: '240m', // https://github.com/vercel/ms
     },
+    /**请求头令牌自定义标识 */
+    jwtHeader: 'Authorization',
+    /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
+    jwtRefreshIn: '20m', // https://github.com/vercel/ms
 
-    // 登录令牌 自签
-    token: {
-      secret: 'e2b668c3b631', // 加密密钥
-      algorithm: 'sha1', // 加密算法  'sha1' | 'sha256' | 'sha512' | 'md5'
-      exp: 1000 * 60 * 60 * 2, // 过期时间（单位毫秒）
-      iss: 'pb_midway', // 签发人
-    },
-
-    // 短信验证码
-    sms: {
-      exp: 1000 * 60 * 5, // 验证码过期时间，单位：毫秒
-      key: 'your sms key', // 短信密钥key
-      secret: 'your sms secret', // 短信密钥secret
-    },
-
-    // 邮件验证码
-    email: {
-      exp: 1000 * 60 * 5, // 验证码过期时间，单位：毫秒
-      key: 'your sms key', // 短信密钥key
-      secret: 'your sms secret', // 短信密钥secret
+    /**用户配置 */
+    user: {
+      /**密码 */
+      password: {
+        /**密码最大错误次数 */
+        maxRetryCount: 5,
+        /**密码锁定时间（默认10分钟） */
+        lockTime: 10,
+      },
+      /**超级管理员列表 */
+      superAdmin: ['1'],
     },
 
     //
