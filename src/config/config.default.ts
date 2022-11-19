@@ -15,8 +15,8 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       copyrightYear: 2022,
       // 实例演示开关
       demoEnabled: true,
-      // 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-      profile: 'D:/ruoyi/uploadPath',
+      // 文件路径 示例（ Windows配置D:/home/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
+      profile: 'D:/home/ruoyi/uploadPath',
       // 获取ip地址开关
       addressEnabled: false,
       /**验证码类型 math 数组计算 char 字符验证 */

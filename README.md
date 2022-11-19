@@ -13,6 +13,8 @@
 ### 本地开发
 
 ```bash
+# bcrypt依赖库 需要python环境
+$ npm install --registry https://registry.npmmirror.com
 $ npm i
 $ npm run dev
 $ open http://localhost:7001/

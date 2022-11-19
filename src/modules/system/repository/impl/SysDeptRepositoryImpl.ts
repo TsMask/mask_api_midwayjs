@@ -310,8 +310,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     }
     const sqlStr = `update sys_dept set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
-      .join(',')} where dept_id = ${sysDept.deptId}`;
-
+      .join(',')} where dept_id = ?`;
+    paramMap.set('dept_id', sysDept.deptId);
     const rows = await this.db.execute(sqlStr, [...paramMap.values()]);
     return rows.length;
   }

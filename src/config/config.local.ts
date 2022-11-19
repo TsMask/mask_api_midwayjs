@@ -56,9 +56,9 @@ export default {
       default: {
         host: '127.0.0.1',
         port: 3306,
-        username: 'admin',
-        password: 'admin1234',
-        database: 'ryjs-api',
+        username: 'root',
+        password: 'root@1234',
+        database: 'ry-api-midwayjs',
         synchronize: false, // 用于同步表结构, 上线设置false
         logging: true, // 输出sql日志
       },

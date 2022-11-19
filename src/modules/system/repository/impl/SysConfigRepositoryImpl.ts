@@ -82,11 +82,11 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const count_row: { total: number }[] = await this.db.execute(
+    const countRow: { total: number }[] = await this.db.execute(
       `select count(1) as 'total' from sys_config where 1 = 1 ${sqlStr}`,
       paramArr
     );
-    if (count_row[0].total <= 0) {
+    if (countRow[0].total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
@@ -103,7 +103,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
       paramArr
     );
     const rows = parseSysConfigResult(results);
-    return { total: count_row[0].total, rows };
+    return { total: countRow[0].total, rows };
   }
 
   async selectConfigList(sysConfig: SysConfig): Promise<SysConfig[]> {
