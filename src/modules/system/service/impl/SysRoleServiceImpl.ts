@@ -15,13 +15,17 @@ export class SysRoleServiceImpl implements ISysRoleService {
   @Inject()
   private sysRoleRepository: SysRoleRepositoryImpl;
 
-  selectRoleList(sysRole: SysRole): Promise<SysRole[]> {
-    throw new Error('Method not implemented.');
+  async selectRolePage(query: any): Promise<rowPages> {
+    return await this.sysRoleRepository.selectRolePage(query);
+  }
+
+  async selectRoleList(sysRole: SysRole): Promise<SysRole[]> {
+    return await this.sysRoleRepository.selectRoleList(sysRole);
   }
   selectRolesByUserId(userId: string): Promise<SysRole[]> {
     throw new Error('Method not implemented.');
   }
-  
+
   async selectRolePermissionByUserId(userId: string): Promise<string[]> {
     const perms = await this.sysRoleRepository.selectRolePermissionByUserId(
       userId
@@ -35,14 +39,11 @@ export class SysRoleServiceImpl implements ISysRoleService {
     return [...new Set(role_arr)];
   }
 
-  selectRoleAll(): Promise<SysRole[]> {
-    throw new Error('Method not implemented.');
-  }
   selectRoleListByUserId(userId: string): Promise<string[]> {
     throw new Error('Method not implemented.');
   }
-  selectRoleById(roleId: string): Promise<SysRole> {
-    throw new Error('Method not implemented.');
+ async selectRoleById(roleId: string): Promise<SysRole> {
+    return await this.sysRoleRepository.selectRoleById(roleId);
   }
   checkUniqueRoleName(sysRole: SysRole): Promise<string> {
     throw new Error('Method not implemented.');

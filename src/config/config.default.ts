@@ -132,7 +132,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       /**令牌密钥 */
       secret: 'abcdefghijklmnopqrstuvwxyz', // fs.readFileSync('xxxxx.key')
       /**令牌有效期（默认30分钟） */
-      expiresIn: '240m', // https://github.com/vercel/ms
+      expiresIn: '640m', // https://github.com/vercel/ms
     },
     /**请求头令牌自定义标识 */
     jwtHeader: 'Authorization',

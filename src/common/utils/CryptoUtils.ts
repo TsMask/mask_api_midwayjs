@@ -11,7 +11,7 @@ import { compare, hash } from 'bcrypt';
  * @param originStr 原始密码
  * @returns 加密字符串
  */
-export async function bcryptHash(originStr: string): Promise<boolean> {
+export async function bcryptHash(originStr: string): Promise<string> {
   return await hash(originStr, 10);
 }
 

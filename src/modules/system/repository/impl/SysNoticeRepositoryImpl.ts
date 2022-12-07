@@ -151,7 +151,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId || 0;
+    return result.insertId;
   }
 
   async updateNotice(sysNotice: SysNotice): Promise<number> {
@@ -178,9 +178,9 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
 
     const sqlStr = `update sys_notice set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
-      .join(',')} where notice_id = ${sysNotice.noticeId}`;
+      .join(',')} where notice_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
+      ...paramMap.values(), sysNotice.noticeId
     ]);
     return result.changedRows;
   }

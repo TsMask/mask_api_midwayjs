@@ -28,7 +28,7 @@ export const DECORATOR_AUTH_TOKEN_KEY = 'decorator:auth_token_key';
  * @param options 授权限制参数
  * @returns 返回结果
  */
-export function AuthToken(options?: AuthOptions): MethodDecorator {
+export function PreAuthorize(options?: AuthOptions): MethodDecorator {
   return createCustomMethodDecorator(DECORATOR_AUTH_TOKEN_KEY, options);
 }
 
@@ -37,7 +37,7 @@ export function AuthToken(options?: AuthOptions): MethodDecorator {
  * @param options.metadata 方法装饰器参数
  * @returns 返回结果
  */
-export function AuthTokenVerify(options: { metadata: AuthOptions }) {
+export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
   return {
     around: async (joinPoint: JoinPoint) => {
       // 装饰器所在的实例上下文
@@ -118,10 +118,10 @@ function verifyRolePermission(
     );
   }
 
-  console.log('\nAuthToken   ================ ');
-  console.log('AuthToken   has ', hasRole, hasPermission);
-  console.log('AuthToken mathc ', matchRoles, matchPermissions);
-  console.log('AuthToken   ================ \n');
+  console.log('\nPreAuthorize   ================ ');
+  console.log('PreAuthorize   has ', hasRole, hasPermission);
+  console.log('PreAuthorize mathc ', matchRoles, matchPermissions);
+  console.log('PreAuthorize   ================ \n');
 
   // 同时判断 只需含有其中
   if (metadata.hasRoles && metadata.hasPermissions) {

@@ -7,12 +7,20 @@ import { SysUser } from '../../../framework/core/model/SysUser';
  */
 export interface ISysUserService {
   /**
-   * 根据条件分页查询用户列表
+  * 根据条件分页查询用户列表
+  *
+  * @param query 用户信息查询信息
+  * @return 用户信息集合信息
+  */
+  selectUserPage(query: any): Promise<rowPages>;
+
+  /**
+   * 根据条件查询用户列表
    *
    * @param sysUser 用户信息
    * @return 用户信息集合信息
    */
-  selectUserList(sysUser: SysUser): Promise<[SysUser[], number]>;
+  selectUserList(sysUser: SysUser): Promise<SysUser[]>;
 
   /**
    * 根据条件分页查询已分配用户角色列表
@@ -65,10 +73,10 @@ export interface ISysUserService {
   /**
    * 校验用户名称是否唯一
    *
-   * @param userName 用户名称
+   * @param sysUser 用户信息
    * @return 结果
    */
-  checkUniqueUserName(userName: string): Promise<string>;
+   checkUniqueUserName(sysUser: SysUser): Promise<boolean>;
 
   /**
    * 校验手机号码是否唯一
@@ -76,7 +84,7 @@ export interface ISysUserService {
    * @param sysUser 用户信息
    * @return 结果
    */
-  checkUniquePhone(sysUser: SysUser): Promise<string>;
+  checkUniquePhone(sysUser: SysUser): Promise<boolean>;
 
   /**
    * 校验email是否唯一
@@ -84,7 +92,7 @@ export interface ISysUserService {
    * @param sysUser 用户信息
    * @return 结果
    */
-  checkUniqueEmail(sysUser: SysUser): Promise<string>;
+  checkUniqueEmail(sysUser: SysUser): Promise<boolean>;
 
   /**
    * 校验用户是否允许操作
@@ -128,17 +136,9 @@ export interface ISysUserService {
    * 用户授权角色
    *
    * @param userId 用户ID
-   * @param role_ids 角色组
+   * @param roleIds 角色组
    */
-  insertAserAuth(userId: string, role_ids: string[]): Promise<boolean>;
-
-  /**
-   * 修改用户状态
-   *
-   * @param sysUser 用户信息
-   * @return 结果
-   */
-  updateUserStatus(sysUser: SysUser): Promise<number>;
+  insertAserAuth(userId: string, roleIds: string[]): Promise<boolean>;
 
   /**
    * 修改用户基本信息
@@ -155,7 +155,7 @@ export interface ISysUserService {
    * @param avatar 头像地址
    * @return 结果
    */
-  updateUserAvatar(userName: string, avatar: string): Promise<boolean>;
+  updateUserAvatar(userName: string, avatar: string): Promise<number>;
 
   /**
    * 重置用户密码
@@ -173,14 +173,6 @@ export interface ISysUserService {
    * @return 结果
    */
   resetUserPwd(userName: string, password: string): Promise<number>;
-
-  /**
-   * 通过用户ID删除用户
-   *
-   * @param userId 用户ID
-   * @return 结果
-   */
-  deleteUserById(userId: string): Promise<number>;
 
   /**
    * 批量删除用户信息

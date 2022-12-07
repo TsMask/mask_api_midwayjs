@@ -6,6 +6,15 @@ import { SysPost } from '../model/SysPost';
  * @author TsMask <340112800@qq.com>
  */
 export interface ISysPostRepository {
+
+  /**
+   * 查询岗位分页数据集合
+   *
+   * @param query 分页数据
+   * @return 岗位数据集合
+   */
+  selectPostPage(query: any): Promise<rowPages>;
+
   /**
    * 查询岗位数据集合
    *
@@ -77,19 +86,4 @@ export interface ISysPostRepository {
    */
   insertPost(sysPost: SysPost): Promise<number>;
 
-  /**
-   * 校验岗位名称
-   *
-   * @param postName 岗位名称
-   * @return 结果
-   */
-  checkUniquePostName(postName: string): Promise<SysPost>;
-
-  /**
-   * 校验岗位编码
-   *
-   * @param postCode 岗位编码
-   * @return 结果
-   */
-  checkUniquePostCode(postCode: string): Promise<SysPost>;
 }

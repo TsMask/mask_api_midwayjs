@@ -7,7 +7,15 @@ import { SysDictData } from '../../../framework/core/model/SysDictData';
  */
 export interface ISysDictDataService {
   /**
-   * 根据条件分页查询字典数据
+ * 根据条件分页查询字典数据
+ *
+ * @param query 字典数据信息
+ * @return 字典数据集合信息
+ */
+  selectDictDataPage(query: any): Promise<rowPages>;
+
+  /**
+   * 根据条件查询字典数据
    *
    * @param sysDictData 字典数据信息
    * @return 字典数据集合信息

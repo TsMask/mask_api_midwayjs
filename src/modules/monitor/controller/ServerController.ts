@@ -1,6 +1,6 @@
 import { Controller, Get } from '@midwayjs/decorator';
 import { Result } from '../../../framework/core/Result';
-import { AuthToken } from '../../../framework/decorator/AuthTokenDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 
 /**
  * 服务器监控
@@ -14,7 +14,7 @@ export class ServerController {
    * @returns 返回结果
    */
   @Get()
-  @AuthToken({ hasPermissions: ['monitor:server:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:server:list'] })
   async list(): Promise<Result> {
     return Result.okData({
       cpu: {

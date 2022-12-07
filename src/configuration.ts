@@ -15,8 +15,8 @@ import { ReportMiddleware } from './framework/middleware/ReportMiddleware';
 import { MidwayDecoratorService } from '@midwayjs/core';
 import {
   DECORATOR_AUTH_TOKEN_KEY,
-  AuthTokenVerify,
-} from './framework/decorator/AuthTokenDecorator';
+  PreAuthorizeVerify,
+} from './framework/decorator/PreAuthorizeDecorator';
 import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
 
 @Configuration({
@@ -59,7 +59,7 @@ export class ContainerLifeCycle {
     // 注册实现的方法装饰器-授权认证
     this.decoratorService.registerMethodHandler(
       DECORATOR_AUTH_TOKEN_KEY,
-      AuthTokenVerify
+      PreAuthorizeVerify
     );
   }
 }

@@ -1,5 +1,4 @@
 import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
-import { DEPT_NORMAL } from '../../../../common/constants/UserConstants';
 import { SysDept } from '../../../../framework/core/model/SysDept';
 import { TreeSelect } from '../../../../framework/core/TreeSelect';
 import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';
@@ -20,9 +19,10 @@ export class SysDeptServiceImpl implements ISysDeptService {
   @Inject()
   private sysRoleRepository: SysRoleRepositoryImpl;
 
-  selectDeptList(sysDept: SysDept): Promise<SysDept[]> {
-    throw new Error('Method not implemented.');
+  async selectDeptList(sysDept: SysDept): Promise<SysDept[]> {
+    return await this.sysDeptRepository.selectDeptList(sysDept);
   }
+
   async selectDeptTreeList(sysDept: SysDept): Promise<TreeSelect[]> {
     const depts: SysDept[] = await this.sysDeptRepository.selectDeptList(
       sysDept
@@ -37,8 +37,9 @@ export class SysDeptServiceImpl implements ISysDeptService {
    * @return 下拉树结构列表
    */
   private buildDeptTreeSelect(sysDepts: SysDept[]): TreeSelect[] {
-    const dept_trees: SysDept[] = this.buildDeptTree(sysDepts);
-    return dept_trees.map(dept => new TreeSelect().parseSysDept(dept));
+    const deptTrees: SysDept[] = this.buildDeptTree(sysDepts);
+    const s =  deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
+    return s;
   }
 
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
@@ -52,26 +53,28 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return null;
   }
 
-  selectDeptById(deptId: string): Promise<SysDept> {
-    throw new Error('Method not implemented.');
+  async selectDeptById(deptId: string): Promise<SysDept> {
+    return await this.sysDeptRepository.selectDeptById(deptId);
   }
-  selectNormalChildrenDeptById(deptId: string): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async selectNormalChildrenDeptById(deptId: string): Promise<number> {
+    return await this.sysDeptRepository.selectNormalChildrenDeptById(deptId);
   }
-  hasChildByDeptId(deptId: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
+
+  async hasChildByDeptId(deptId: string): Promise<boolean> {
+    return await this.sysDeptRepository.hasChildByDeptId(deptId) > 0;
   }
-  checkDeptExistUser(deptId: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  async checkDeptExistUser(deptId: string): Promise<boolean> {
+    return await this.sysDeptRepository.checkDeptExistUser(deptId) > 0;
   }
-  checkUniqueDeptName(sysDept: SysDept): Promise<SysDept> {
-    throw new Error('Method not implemented.');
+  async checkUniqueDeptName(sysDept: SysDept): Promise<SysDept> {
+    return await this.sysDeptRepository.checkUniqueDeptName(sysDept.deptName, sysDept.parentId);
   }
   checkScopeDeptData(deptId: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
-  insertDept(sysDept: SysDept): Promise<number> {
-    throw new Error('Method not implemented.');
+  async insertDept(sysDept: SysDept): Promise<number> {
+    return await this.sysDeptRepository.insertDept(sysDept);
   }
   async updateDept(sysDept: SysDept): Promise<number> {
     const newParentDept = await this.sysDeptRepository.selectDeptById(
@@ -85,18 +88,14 @@ export class SysDeptServiceImpl implements ISysDeptService {
       await this.updateDeptChildren(sysDept.deptId, newAncestors, oldAncestors);
     }
     const result = this.sysDeptRepository.updateDept(sysDept);
-    if (
-      DEPT_NORMAL === sysDept.status &&
-      sysDept.ancestors &&
-      sysDept.ancestors != '0'
-    ) {
-      // 如果该部门是启用状态，则启用该部门的所有上级部门
+    // 如果该部门是启用状态，则启用该部门的所有上级部门
+    if (sysDept.status == '0' && sysDept.ancestors && sysDept.ancestors != '0') {
       await this.updateParentDeptStatusNormal(sysDept);
     }
     return result;
   }
-  deleteDeptById(deptId: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async deleteDeptById(deptId: string): Promise<number> {
+    return await this.sysDeptRepository.deleteDeptById(deptId);
   }
 
   /**
@@ -110,8 +109,8 @@ export class SysDeptServiceImpl implements ISysDeptService {
     const childrens: SysDept[] = this.getChildrens(sysDepts, deptId);
     for (const child of childrens) {
       // 判断是否有子节点
-      const has_children = this.getChildrens(sysDepts, child.deptId);
-      if (has_children.length > 0) {
+      const hasChildren = this.getChildrens(sysDepts, child.deptId);
+      if (hasChildren.length > 0) {
         child.children = this.fnChildren(sysDepts, child.deptId);
       }
     }
@@ -137,23 +136,23 @@ export class SysDeptServiceImpl implements ISysDeptService {
   /**
    * 构建前端所需要树结构
    *
-   * @param sys_depts 部门列表
+   * @param sysDepts 部门列表
    * @return 树结构列表
    */
   private buildDeptTree(sysDepts: SysDept[]): SysDept[] {
-    let result_arr: SysDept[] = [];
-    const dept_ids: string[] = sysDepts.map(dept => dept.deptId);
+    let resultArr: SysDept[] = [];
+    const deptIds: string[] = sysDepts.map(dept => dept.deptId);
     for (const dept of sysDepts) {
       // 如果是顶级节点, 遍历该父节点的所有子节点
-      if (!dept_ids.includes(dept.parentId)) {
+      if (!deptIds.includes(dept.parentId)) {
         dept.children = this.fnChildren(sysDepts, dept.deptId);
-        result_arr.push(dept);
+        resultArr.push(dept);
       }
     }
-    if (result_arr.length) {
-      result_arr = sysDepts;
+    if(resultArr.length == 0){
+      resultArr = sysDepts;
     }
-    return result_arr;
+    return resultArr;
   }
 
   /**
@@ -167,13 +166,13 @@ export class SysDeptServiceImpl implements ISysDeptService {
     newAncestors: string,
     oldAncestors: string
   ) {
-    let childrens: SysDept[] =
-      await this.sysDeptRepository.selectChildrenDeptById(deptId);
+    let childrens: SysDept[] = await this.sysDeptRepository.selectChildrenDeptById(deptId);
+    // 替换父ID
     childrens = childrens.map(child => {
       child.ancestors = child.ancestors.replace(oldAncestors, newAncestors);
       return child;
     });
-    if (childrens.length) {
+    if (childrens && childrens.length > 0) {
       this.sysDeptRepository.updateDeptChildren(childrens);
     }
   }

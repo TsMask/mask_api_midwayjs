@@ -7,7 +7,15 @@ import { SysUser } from '../../../framework/core/model/SysUser';
  */
 export interface ISysUserRepository {
   /**
-   * 根据条件分页查询用户列表
+  * 根据条件分页查询用户列表
+  *
+  * @param query 用户信息查询信息
+  * @return 用户信息集合信息
+  */
+  selectUserPage(query: any): Promise<rowPages>;
+
+  /**
+   * 根据条件查询用户列表
    *
    * @param sysUser 用户信息
    * @return 用户信息集合信息
@@ -61,7 +69,7 @@ export interface ISysUserRepository {
    * @return 结果
    */
   updateUser(sysUser: SysUser): Promise<number>;
-
+  
   /**
    * 修改用户头像
    *
@@ -81,14 +89,6 @@ export interface ISysUserRepository {
   resetRserPwd(userName: string, password: string): Promise<number>;
 
   /**
-   * 通过用户ID删除用户
-   *
-   * @param userId 用户ID
-   * @return 结果
-   */
-  deleteUserById(userId: string): Promise<number>;
-
-  /**
    * 批量删除用户信息
    *
    * @param userIds 需要删除的用户ID
@@ -102,7 +102,7 @@ export interface ISysUserRepository {
    * @param userName 用户名称
    * @return 结果
    */
-  checkUniqueUserName(userName: string): Promise<number>;
+  checkUniqueUserName(userName: string): Promise<string>;
 
   /**
    * 校验手机号码是否唯一
@@ -110,7 +110,7 @@ export interface ISysUserRepository {
    * @param phonenumber 手机号码
    * @return 结果
    */
-  checkUniquePhone(phonenumber: string): Promise<SysUser>;
+  checkUniquePhone(phonenumber: string): Promise<string>;
 
   /**
    * 校验email是否唯一
@@ -118,5 +118,5 @@ export interface ISysUserRepository {
    * @param email 用户邮箱
    * @return 结果
    */
-  checkUniqueEmail(email: string): Promise<SysUser>;
+  checkUniqueEmail(email: string): Promise<string>;
 }

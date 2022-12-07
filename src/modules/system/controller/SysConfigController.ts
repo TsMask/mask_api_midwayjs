@@ -11,7 +11,7 @@ import {
 import { Context } from '@midwayjs/koa';
 import { parseNumber } from '../../../common/utils/ParseUtils';
 import { Result } from '../../../framework/core/Result';
-import { AuthToken } from '../../../framework/decorator/AuthTokenDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { SysConfig } from '../model/SysConfig';
 import { SysConfigServiceImpl } from '../service/impl/SysConfigServiceImpl';
 
@@ -33,7 +33,7 @@ export class SysConfigController {
    * @returns 返回结果
    */
   @Get('/list')
-  @AuthToken({ hasPermissions: ['system:config:list'] })
+  @PreAuthorize({ hasPermissions: ['system:config:list'] })
   async list(): Promise<Result> {
     const query = this.ctx.query;
     const data = await this.sysConfigService.selectConfigPage(query);
@@ -44,7 +44,7 @@ export class SysConfigController {
    * 导出参数配置列表
    */
   @Get('/export')
-  @AuthToken({ hasPermissions: ['system:config:export'] })
+  @PreAuthorize({ hasPermissions: ['system:config:export'] })
   async export(@Body() sysConfig: SysConfig) {
     const list = await this.sysConfigService.selectConfigList(sysConfig);
     //   ExcelUtil<SysConfig> util = new ExcelUtil<SysConfig>(SysConfig.class);
@@ -72,7 +72,7 @@ export class SysConfigController {
    * @returns 返回结果
    */
   @Get('/:configId')
-  @AuthToken({ hasPermissions: ['system:config:query'] })
+  @PreAuthorize({ hasPermissions: ['system:config:query'] })
   async get(@Param('configId') configId: string): Promise<Result> {
     const id = parseNumber(configId);
     if (!id) return Result.err();
@@ -86,7 +86,7 @@ export class SysConfigController {
    * @returns 返回结果
    */
   @Post()
-  @AuthToken({ hasPermissions: ['system:config:add'] })
+  @PreAuthorize({ hasPermissions: ['system:config:add'] })
   async add(@Body() config: SysConfig) {
     if (config && config.configKey) {
       const hasConfig = await this.sysConfigService.checkUniqueConfigKey(
@@ -110,7 +110,7 @@ export class SysConfigController {
    * @returns 返回结果
    */
   @Put()
-  @AuthToken({ hasPermissions: ['system:config:edit'] })
+  @PreAuthorize({ hasPermissions: ['system:config:edit'] })
   async edit(@Body() config: SysConfig) {
     if (!config.configId) {
       return Result.err();
@@ -134,7 +134,7 @@ export class SysConfigController {
    * @returns 返回结果
    */
   @Del('/:configIds')
-  @AuthToken({ hasPermissions: ['system:config:remove'] })
+  @PreAuthorize({ hasPermissions: ['system:config:remove'] })
   async remove(@Param('configIds') configIds: string) {
     if (!configIds) return Result.err();
     // 处理字符转有效数字id数组
@@ -151,7 +151,7 @@ export class SysConfigController {
    * @returns 返回结果
    */
   @Del('/refreshCache')
-  @AuthToken({ hasPermissions: ['system:config:remove'] })
+  @PreAuthorize({ hasPermissions: ['system:config:remove'] })
   async refreshCache(): Promise<Result> {
     await this.sysConfigService.resetConfigCache();
     return Result.ok();

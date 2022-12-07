@@ -24,7 +24,7 @@ export class TreeSelect {
   parseSysDept(sysDept: SysDept): TreeSelect {
     this.id = sysDept.deptId;
     this.label = sysDept.deptName;
-    this.children = sysDept.children.map(dept => this.parseSysDept(dept));
+    this.children = sysDept.children?.map(dept => new TreeSelect().parseSysDept(dept));
     return this;
   }
 
@@ -36,7 +36,7 @@ export class TreeSelect {
   parseSysMenu(sysMenu: SysMenu): TreeSelect {
     this.id = sysMenu.menuId;
     this.label = sysMenu.menuName;
-    this.children = sysMenu.children.map(menu => this.parseSysMenu(menu));
+    this.children = sysMenu.children?.map(menu => new TreeSelect().parseSysMenu(menu));
     return this;
   }
 }

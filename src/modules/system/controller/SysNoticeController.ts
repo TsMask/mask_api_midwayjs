@@ -10,7 +10,7 @@ import {
 } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { Result } from '../../../framework/core/Result';
-import { AuthToken } from '../../../framework/decorator/AuthTokenDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { SysNotice } from '../model/SysNotice';
 import { SysNoticeServiceImpl } from '../service/impl/SysNoticeServiceImpl';
 
@@ -32,7 +32,7 @@ export class SysNoticeController {
    * @returns 返回结果
    */
   @Get('/list')
-  @AuthToken({ hasPermissions: ['system:notice:list'] })
+  @PreAuthorize({ hasPermissions: ['system:notice:list'] })
   async list(): Promise<Result> {
     const query = this.ctx.query;
     const data = await this.sysNoticeService.selectNoticePage(query);
@@ -45,7 +45,7 @@ export class SysNoticeController {
    * @returns 返回结果
    */
   @Get('/:noticeId')
-  @AuthToken({ hasPermissions: ['system:notice:query'] })
+  @PreAuthorize({ hasPermissions: ['system:notice:query'] })
   async getInfo(@Param('noticeId') noticeId: string): Promise<Result> {
     if (!noticeId) return Result.err();
     const data = await this.sysNoticeService.selectNoticeById(noticeId);
@@ -61,7 +61,7 @@ export class SysNoticeController {
    * @returns 返回结果
    */
   @Post()
-  @AuthToken({ hasPermissions: ['system:notice:add'] })
+  @PreAuthorize({ hasPermissions: ['system:notice:add'] })
   async add(@Body() notice: SysNotice): Promise<Result> {
     if (notice && notice.noticeContent) {
       notice.createBy = this.ctx.loginUser?.user?.userName;
@@ -77,7 +77,7 @@ export class SysNoticeController {
    * @returns 返回结果
    */
   @Put()
-  @AuthToken({ hasPermissions: ['system:notice:edit'] })
+  @PreAuthorize({ hasPermissions: ['system:notice:edit'] })
   async edit(@Body() notice: SysNotice): Promise<Result> {
     if (notice && notice.noticeId) {
       notice.updateBy = this.ctx.loginUser?.user?.userName;
@@ -93,7 +93,7 @@ export class SysNoticeController {
    * @returns 返回结果
    */
   @Del('/:noticeIds')
-  @AuthToken({ hasPermissions: ['system:notice:remove'] })
+  @PreAuthorize({ hasPermissions: ['system:notice:remove'] })
   async remove(@Param('noticeIds') noticeIds: string): Promise<Result> {
     if (!noticeIds) return Result.err();
     // 处理字符转id数组

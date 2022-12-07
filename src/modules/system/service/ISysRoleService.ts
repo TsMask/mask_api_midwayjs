@@ -8,7 +8,15 @@ import { SysUserRole } from '../model/SysUserRole';
  */
 export interface ISysRoleService {
   /**
-   * 根据条件分页查询角色数据
+* 根据条件分页查询角色数据
+*
+* @param query 角色信息查询信息
+* @return 角色信息集合信息
+*/
+  selectRolePage(query: any): Promise<rowPages>;
+
+  /**
+   * 根据条件查询角色数据
    *
    * @param sysRole 角色信息
    * @return 角色数据集合信息
@@ -30,13 +38,6 @@ export interface ISysRoleService {
    * @return 权限列表
    */
   selectRolePermissionByUserId(userId: string): Promise<string[]>;
-
-  /**
-   * 查询所有角色
-   *
-   * @return 角色列表
-   */
-  selectRoleAll(): Promise<SysRole[]>;
 
   /**
    * 根据用户ID获取角色选择框列表

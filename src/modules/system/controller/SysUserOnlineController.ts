@@ -7,7 +7,7 @@ import {
   Query,
 } from '@midwayjs/decorator';
 import { Result } from '../../../framework/core/Result';
-import { AuthToken } from '../../../framework/decorator/AuthTokenDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { RedisCache } from '../../../framework/redis/RedisCache';
 import { LOGIN_TOKEN_KEY } from '../../../common/constants/CacheKeysConstants';
 import { SysUserOnline } from '../model/SysUserOnline';
@@ -33,7 +33,7 @@ export class SysUserOnlineController {
    * @returns 返回结果
    */
   @Get('/list')
-  @AuthToken({ hasPermissions: ['monitor:online:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:online:list'] })
   async list(
     @Query('ipaddr') ipaddr: string,
     @Query('userName') userName: string
@@ -87,7 +87,7 @@ export class SysUserOnlineController {
    * @returns 返回结果
    */
   @Del('/:tokenId')
-  @AuthToken({ hasPermissions: ['monitor:online:forceLogout'] })
+  @PreAuthorize({ hasPermissions: ['monitor:online:forceLogout'] })
   async forceLogout(@Param('tokenId') tokenId: string): Promise<Result> {
     this.redisCache.del(`${LOGIN_TOKEN_KEY}${tokenId}`);
     return Result.ok();

@@ -1,26 +1,26 @@
 import { SysDictData } from '../../../framework/core/model/SysDictData';
 
 /**
- * 字典表 数据层接口
+ * 字典类型数据表 数据层接口
  *
  * @author TsMask <340112800@qq.com>
  */
 export interface ISysDictDataRepository {
   /**
-   * 根据条件分页查询字典数据
+ * 根据条件分页查询字典数据
+ *
+ * @param query 字典数据查询信息
+ * @return 字典数据集合信息
+ */
+  selectDictDataPage(query: any): Promise<rowPages>;
+
+  /**
+   * 根据条件查询字典数据
    *
    * @param sysDictData 字典数据信息
    * @return 字典数据集合信息
    */
   selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]>;
-
-  /**
-   * 根据字典类型查询字典数据
-   *
-   * @param dictType 字典类型
-   * @return 字典数据集合信息
-   */
-  selectDictDataByType(dictType: string): Promise<SysDictData[]>;
 
   /**
    * 根据字典类型和字典键值查询字典数据信息

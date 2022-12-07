@@ -1,4 +1,3 @@
-import { SysDictData } from '../../../framework/core/model/SysDictData';
 import { SysDictType } from '../../../framework/core/model/SysDictType';
 
 /**
@@ -14,21 +13,6 @@ export interface ISysDictTypeService {
    * @return 字典类型集合信息
    */
   selectDictTypeList(sysDictType: SysDictType): Promise<SysDictType[]>;
-
-  /**
-   * 根据所有字典类型
-   *
-   * @return 字典类型集合信息
-   */
-  selectDictTypeAll(): Promise<SysDictType[]>;
-
-  /**
-   * 根据字典类型查询字典数据
-   *
-   * @param dictType 字典类型
-   * @return 字典数据集合信息
-   */
-  selectDictDataByType(dictType: string): Promise<SysDictData[]>;
 
   /**
    * 根据字典类型ID查询信息
@@ -55,8 +39,9 @@ export interface ISysDictTypeService {
 
   /**
    * 加载字典缓存数据
+   * @param dictType 字典类型，不指定即加载所有
    */
-  loadingDictCache(): Promise<number>;
+  loadingDictCache(dictType?:string): Promise<void>;
 
   /**
    * 清空字典缓存数据
@@ -66,7 +51,7 @@ export interface ISysDictTypeService {
   /**
    * 重置字典缓存数据
    */
-  resetDictCache(): Promise<number>;
+  resetDictCache(): Promise<void>;
 
   /**
    * 新增保存字典类型信息
@@ -83,12 +68,4 @@ export interface ISysDictTypeService {
    * @return 结果
    */
   updateDictType(sysDictType: SysDictType): Promise<number>;
-
-  /**
-   * 校验字典类型称是否唯一
-   *
-   * @param sysDictType 字典类型
-   * @return 结果
-   */
-  checkUniqueDictType(sysDictType: SysDictType): Promise<string>;
 }

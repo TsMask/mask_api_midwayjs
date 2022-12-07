@@ -25,16 +25,16 @@ export interface ISysUserPostRepository {
   /**
    * 批量删除用户和岗位关联
    *
-   * @param ids 需要删除的数据ID
+   * @param userIds 需要删除的用户ID
    * @return 结果
    */
-  deleteUserPost(ids: string[]): Promise<number>;
+  deleteUserPost(userIds: string[]): Promise<number>;
 
   /**
    * 批量新增用户岗位信息
    *
-   * @param sysUserPostList 用户角色列表
+   * @param sysUserPosts 用户角色列表
    * @return 结果
    */
-  batchUserPost(sysUserPostList: SysUserPost[]): Promise<number>;
+  batchUserPost(sysUserPosts: SysUserPost[]): Promise<number>;
 }

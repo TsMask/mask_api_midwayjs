@@ -32,10 +32,10 @@ export class SysDept {
   status: string;
 
   /**删除标志（0代表存在 2代表删除） */
-  delFlag;
+  delFlag: string;
 
   /**创建者 */
-  createBy;
+  createBy: string;
 
   /**创建时间 */
   createTime: number;

@@ -2,7 +2,7 @@ import { Controller, Body, Post, Get, Inject } from '@midwayjs/decorator';
 import { TOKEN } from '../../../common/constants/CommonConstants';
 import { Result } from '../../../framework/core/Result';
 import { LoginBody } from '../../../framework/core/vo/LoginBody';
-import { AuthToken } from '../../../framework/decorator/AuthTokenDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { PermissionService } from '../../../framework/service/PermissionService';
 import { SysLoginService } from '../../../framework/service/SysLoginService';
@@ -46,7 +46,7 @@ export class SysLoginController {
    * @returns 返回用户信息
    */
   @Get('/getInfo')
-  @AuthToken()
+  @PreAuthorize()
   async getInfo(): Promise<Result> {
     let user = this.contextService.getSysUser();
     // 角色集合
@@ -66,11 +66,23 @@ export class SysLoginController {
    * @returns 路由信息
    */
   @Get('/getRouters')
-  @AuthToken()
+  @PreAuthorize()
   async getRouters(): Promise<Result> {
     const userId = this.contextService.getUserId();
     const menus = await this.sysMenuService.selectMenuTreeByUserId(userId);
     const buildMenus = await this.sysMenuService.buildMenus(menus);
     return Result.okData(buildMenus);
+  }
+
+  /**
+ * 系统登出
+ * @returns 返回结果
+ */
+  @Post('/logout')
+  @PreAuthorize()
+  async logout(): Promise<Result> {
+    const loginUser = this.contextService.getLoginUser();
+    this.sysLoginService.logout(loginUser.uuid);
+    return Result.okMsg("退出成功");
   }
 }

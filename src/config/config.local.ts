@@ -54,14 +54,24 @@ export default {
     dataSource: {
       // 单数据库实例
       default: {
-        host: '127.0.0.1',
+        host: '192.168.56.101',
         port: 3306,
         username: 'root',
         password: 'root@1234',
-        database: 'ry-api-midwayjs',
+        database: 'ruoyi-api-midwayjs',
         synchronize: false, // 用于同步表结构, 上线设置false
         logging: true, // 输出sql日志
       },
+    },
+  },
+
+  // Redis缓存
+  redis: {
+    client: {
+      port: 6379,
+      host: '192.168.56.101',
+      password: 'redis@1234',
+      db: 1,
     },
   },
 } as MidwayConfig;

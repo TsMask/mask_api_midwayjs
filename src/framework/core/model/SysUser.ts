@@ -47,7 +47,7 @@ export class SysUser {
   loginIp: string;
 
   /**最后登录时间 */
-  loginTime: number;
+  loginDate: number;
 
   /**创建者 */
   createBy: string;

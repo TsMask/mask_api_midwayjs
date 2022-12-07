@@ -15,6 +15,13 @@ export class ContextService {
   private ctx: Context;
 
   /**
+   * 获取上下文
+   **/
+  getContext(): Context {
+    return this.ctx;
+  }
+
+  /**
    * 获取配置信息
    **/
   getConfig(key: string): string {
@@ -69,18 +76,18 @@ export class ContextService {
     }
   }
 
-   /**
-   * 获取登录用户详细信息
-   **/
-    getSysUser(): SysUser {
-      try {
-        let user = this.ctx.loginUser.user;
-        delete user.password;
-        return user;
-      } catch (e) {
-        throw new UnauthorizedError(`获取登录用户详细信息异常, ${e.message}.`);
-      }
+  /**
+  * 获取登录用户详细信息
+  **/
+  getSysUser(): SysUser {
+    try {
+      let user = this.ctx.loginUser.user;
+      delete user.password;
+      return user;
+    } catch (e) {
+      throw new UnauthorizedError(`获取登录用户详细信息异常, ${e.message}.`);
     }
+  }
 
   /**
    * 是否为管理员
@@ -89,6 +96,7 @@ export class ContextService {
    * @return 结果
    */
   isSuperAdmin(userId: string): boolean {
+    if(!userId) return false;
     // 从本地配置获取user信息
     const { superAdmin } = this.ctx.app.getConfig('user');
     if (Array.isArray(superAdmin) && superAdmin.includes(userId)) {

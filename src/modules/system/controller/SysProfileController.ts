@@ -2,7 +2,7 @@ import { Controller, Get, Inject } from '@midwayjs/decorator';
 import { Result } from '../../../framework/core/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
-import { AuthToken } from '../../../framework/decorator/AuthTokenDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 
 /**
  * 个人信息
@@ -23,7 +23,7 @@ export class SysProfileController {
    * @returns 返回结果
    */
   @Get()
-  @AuthToken()
+  @PreAuthorize()
   async profile(): Promise<Result> {
     const sysUser = this.contextService.getSysUser();
     const roleGroup = await this.sysUserService.selectUserRoleGroup(

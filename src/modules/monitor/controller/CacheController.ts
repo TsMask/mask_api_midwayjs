@@ -9,7 +9,7 @@ import {
   SYS_DICT_KEY,
 } from '../../../common/constants/CacheKeysConstants';
 import { Result } from '../../../framework/core/Result';
-import { AuthToken } from '../../../framework/decorator/AuthTokenDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { RedisCache } from '../../../framework/redis/RedisCache';
 import { SysCache } from '../../system/model/SysCache';
 
@@ -29,7 +29,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Get()
-  @AuthToken({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async info(): Promise<Result> {
     return Result.okData({
       info: {},
@@ -44,7 +44,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Get('/getNames')
-  @AuthToken({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getNames(): Promise<Result> {
     let caches: SysCache[] = [];
     caches.push(new SysCache().newCacheNR(LOGIN_TOKEN_KEY, '用户信息'));
@@ -63,7 +63,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Get('/getKeys/:cacheName')
-  @AuthToken({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getKeys(@Param('cacheName') cacheName: string): Promise<Result> {
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
     return Result.okData(cacheKeys);
@@ -76,7 +76,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Get('/getValue/:cacheName/:cacheKey')
-  @AuthToken({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getValue(
     @Param('cacheName') cacheName: string,
     @Param('cacheKey') cacheKey: string
@@ -93,7 +93,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Del('/clearCacheName/:cacheName')
-  @AuthToken({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async clearCacheName(@Param('cacheName') cacheName: string): Promise<Result> {
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
     await this.redisCache.delKeys(cacheKeys);
@@ -106,7 +106,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Del('/clearCacheKey/:cacheKey')
-  @AuthToken({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async clearCacheKey(@Param('cacheKey') cacheKey: string): Promise<Result> {
     await this.redisCache.del(cacheKey);
     return Result.ok();
@@ -117,7 +117,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Del('/clearCacheAll')
-  @AuthToken({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async clearCacheAll(): Promise<Result> {
     const cacheKeys = await this.redisCache.getKeys('*');
     await this.redisCache.delKeys(cacheKeys);

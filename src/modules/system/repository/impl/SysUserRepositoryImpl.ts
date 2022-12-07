@@ -1,4 +1,6 @@
 import { Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { ResultSetHeader } from 'mysql2';
+import { parseNumber } from '../../../../common/utils/ParseUtils';
 import { SysDept } from '../../../../framework/core/model/SysDept';
 import { SysRole } from '../../../../framework/core/model/SysRole';
 import { SysUser } from '../../../../framework/core/model/SysUser';
@@ -7,7 +9,7 @@ import { ISysUserRepository } from '../ISysUserRepository';
 
 /**查询视图对象SQL */
 const SELECT_USER_VO = `select 
-u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.avatar, u.phonenumber, u.password, u.sex, u.status, u.del_flag, u.login_ip, u.login_time, u.create_by, u.create_time, u.remark, 
+u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.avatar, u.phonenumber, u.password, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, 
 d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.status as dept_status,
 r.role_id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.status as role_status
 from sys_user u
@@ -29,7 +31,7 @@ SYS_USER_RESULT.set('password', 'password');
 SYS_USER_RESULT.set('status', 'status');
 SYS_USER_RESULT.set('del_flag', 'delFlag');
 SYS_USER_RESULT.set('login_ip', 'loginIp');
-SYS_USER_RESULT.set('login_time', 'loginTime');
+SYS_USER_RESULT.set('login_date', 'loginDate');
 SYS_USER_RESULT.set('create_by', 'createBy');
 SYS_USER_RESULT.set('create_time', 'createTime');
 SYS_USER_RESULT.set('update_by', 'updateBy');
@@ -82,7 +84,9 @@ function parseSysUserResult(rows: any[]): SysUser[] {
       }
     }
     sysUser.dept = sysDept;
-    sysUser.roles.push(sysRole);
+    if (sysRole.roleKey) {
+      sysUser.roles.push(sysRole);
+    }
     sysUsers.push(sysUser);
   }
   return sysUsers;
@@ -99,8 +103,104 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   @Inject()
   private db: MysqlManager;
 
-  selectUserList(sysUser: SysUser): Promise<SysUser[]> {
-    throw new Error('Method not implemented.');
+  async selectUserPage(query: any): Promise<rowPages> {
+    const SELECT_USER_SQL = `select 
+    u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
+    from sys_user u
+		left join sys_dept d on u.dept_id = d.dept_id
+		where u.del_flag = '0' `;
+    // 查询条件拼接
+    let sqlStr = '';
+    const paramArr = [];
+    if (query.userId && query.userId != '0') {
+      sqlStr += " and u.user_id = ? ";
+      paramArr.push(query.userId);
+    }
+    if (query.userName) {
+      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      paramArr.push(query.userName);
+    }
+    if (query.status) {
+      sqlStr += " and u.status = ? ";
+      paramArr.push(query.status);
+    }
+    if (query.phonenumber) {
+      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      paramArr.push(query.phonenumber);
+    }
+    const beginTime = query.beginTime || query['params[beginTime]'];
+    if (beginTime) {
+      sqlStr +=
+        " and unix_timestamp(from_unixtime(u.create_time/1000,'%Y-%m-%d')) >= unix_timestamp(date_format(?,'%Y-%m-%d')) ";
+      paramArr.push(beginTime);
+    }
+    const endTime = query.endTime || query['params[endTime]'];
+    if (endTime) {
+      sqlStr +=
+        " and unix_timestamp(from_unixtime(u.create_time/1000,'%Y-%m-%d')) <= unix_timestamp(date_format(?,'%Y-%m-%d')) ";
+      paramArr.push(endTime);
+    }
+    if (query.deptId) {
+      sqlStr += " and (u.dept_id = ? OR u.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE find_in_set(?, ancestors) )) ";
+      paramArr.push(query.deptId);
+      paramArr.push(query.deptId);
+    }
+
+    // 查询条件数 长度必为0其值为0
+    const count_row: { total: number }[] = await this.db.execute(
+      `select count(1) as 'total' from sys_user u
+      left join sys_dept d on u.dept_id = d.dept_id
+      where u.del_flag = '0' ${sqlStr}`,
+      paramArr
+    );
+    if (count_row[0].total <= 0) {
+      return { total: 0, rows: [] };
+    }
+    // 分页
+    sqlStr += ' limit ?,? ';
+    let pageNum = parseNumber(query.pageNum);
+    let pageSize = parseNumber(query.pageSize);
+    pageNum = pageNum > 0 ? pageNum - 1 : 0;
+    pageSize = pageSize > 0 ? pageSize : 10;
+    paramArr.push(pageNum * pageSize);
+    paramArr.push(pageSize);
+    // 查询数据数
+    const results = await this.db.execute(
+      `${SELECT_USER_SQL} ${sqlStr}`,
+      paramArr
+    );
+    const rows = parseSysUserResult(results);
+    return { total: count_row[0].total, rows };
+  }
+
+  async selectUserList(sysUser: SysUser): Promise<SysUser[]> {
+    const SELECT_USER_SQL = `select 
+    u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
+    from sys_user u
+		left join sys_dept d on u.dept_id = d.dept_id
+		where u.del_flag = '0' `;
+    // 查询条件拼接
+    let sqlStr = '';
+    const paramArr = [];
+    if (sysUser.userId && sysUser.userId != '0') {
+      sqlStr += " and u.user_id = ? ";
+      paramArr.push(sysUser.userId);
+    }
+    if (sysUser.userName) {
+      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      paramArr.push(sysUser.userName);
+    }
+    if (sysUser.status) {
+      sqlStr += " and u.status = ? ";
+      paramArr.push(sysUser.status);
+    }
+    if (sysUser.phonenumber) {
+      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      paramArr.push(sysUser.phonenumber);
+    }
+    // 查询数据数
+    const results = await this.db.execute(`${SELECT_USER_SQL} ${sqlStr}`, paramArr);
+    return parseSysUserResult(results);
   }
   selectAllocatedList(sysUser: SysUser): Promise<SysUser[]> {
     throw new Error('Method not implemented.');
@@ -109,11 +209,14 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     throw new Error('Method not implemented.');
   }
 
-  public async selectUserByUserName(userName: string): Promise<SysUser> {
+  async selectUserByUserName(userName: string): Promise<SysUser> {
     let sqlStr = `${SELECT_USER_VO} where u.del_flag = '0' and u.user_name = ?`;
     const paramArr = [userName];
     const rows = await this.db.execute(sqlStr, paramArr);
     const sysUsers = parseSysUserResult(rows);
+    if (sysUsers.length === 0) {
+      return null;
+    }
     let sysUser = new SysUser();
     sysUsers.forEach((v, i) => {
       if (i === 0) {
@@ -130,11 +233,77 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return sysUser.userId ? sysUser : null;
   }
 
-  selectUserById(userId: string): Promise<SysUser> {
-    throw new Error('Method not implemented.');
+  async selectUserById(userId: string): Promise<SysUser> {
+    let sqlStr = `${SELECT_USER_VO} where u.del_flag = '0' and u.user_id = ?`;
+    const paramArr = [userId];
+    const rows = await this.db.execute(sqlStr, paramArr);
+    const sysUsers = parseSysUserResult(rows);
+    if (sysUsers.length === 0) {
+      return null;
+    }
+    let sysUser = new SysUser();
+    sysUsers.forEach((v, i) => {
+      if (i === 0) {
+        if (v.roles && v.roles.length === 0) {
+          v.roles = [];
+        }
+        sysUser = v;
+      } else {
+        if (v.roles && v.roles.length !== 0) {
+          sysUser.roles.concat(v.roles);
+        }
+      }
+    });
+    return sysUser.userId ? sysUser : null;
   }
-  insertUser(sysUser: SysUser): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async insertUser(sysUser: SysUser): Promise<number> {
+    const paramMap = new Map();
+    if (sysUser.userId) {
+      paramMap.set('user_id', sysUser.userId);
+    }
+    if (sysUser.deptId) {
+      paramMap.set('dept_id', sysUser.deptId);
+    }
+    if (sysUser.userName) {
+      paramMap.set('user_name', sysUser.userName);
+    }
+    if (sysUser.nickName) {
+      paramMap.set('nick_name', sysUser.nickName);
+    }
+    if (sysUser.email) {
+      paramMap.set('email', sysUser.email);
+    }
+    if (sysUser.phonenumber) {
+      paramMap.set('phonenumber', sysUser.phonenumber);
+    }
+    if (sysUser.sex) {
+      paramMap.set('sex', sysUser.sex);
+    }
+    if (sysUser.avatar) {
+      paramMap.set('avatar', sysUser.avatar);
+    }
+    if (sysUser.status) {
+      paramMap.set('status', sysUser.status);
+    }
+    if (sysUser.password) {
+      paramMap.set('password', sysUser.password);
+    }
+    if (sysUser.remark) {
+      paramMap.set('remark', sysUser.remark);
+    }
+    if (sysUser.createBy) {
+      paramMap.set('create_by', sysUser.createBy);
+      paramMap.set('create_time', new Date().getTime());
+    }
+
+    const sqlStr = `insert into sys_user (${[...paramMap.keys()].join(
+      ','
+    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
+    return result.insertId;
   }
 
   public async updateUser(sysUser: SysUser): Promise<number> {
@@ -160,46 +329,68 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.avatar) {
       paramMap.set('avatar', sysUser.avatar);
     }
+    if (sysUser.status) {
+      paramMap.set('status', sysUser.status);
+    }
     if (sysUser.loginIp) {
       paramMap.set('login_ip', sysUser.loginIp);
     }
-    if (sysUser.loginTime) {
-      paramMap.set('login_time', sysUser.loginTime);
+    if (sysUser.loginDate) {
+      paramMap.set('login_date', sysUser.loginDate);
     }
     if (sysUser.updateBy) {
       paramMap.set('update_by', sysUser.updateBy);
+      paramMap.set('update_time', new Date().getTime());
     }
     if (sysUser.remark) {
       paramMap.set('remark', sysUser.remark);
     }
-    const sqlStr = `update sys_user set ${[...paramMap.keys()]
-      .map(k => `${k} = ?`)
-      .join(', ')}, update_time = sysdate() 
-      where user_id = '${sysUser.userId}'`;
 
-    const rows: any[] = await this.db.execute(sqlStr, [...paramMap.values()]);
-    return rows.length;
+    const sqlStr = `update sys_user set ${[...paramMap.keys()].map(k => `${k} = ?`).join(', ')} where user_id = ?`;
+    const rows: ResultSetHeader = await this.db.execute(sqlStr, [...paramMap.values(), sysUser.userId]);
+    return rows.changedRows;
   }
 
-  updateUserAvatar(userName: string, avatar: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async updateUserAvatar(userName: string, avatar: string): Promise<number> {
+    const sqlStr = `update sys_user set avatar = ? where user_name = ?`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [avatar, userName]);
+    return result.changedRows;
   }
-  resetRserPwd(userName: string, password: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async resetRserPwd(userName: string, password: string): Promise<number> {
+    const sqlStr = `update sys_user set password = ? where user_name = ?`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [password, userName]);
+    return result.changedRows;
   }
-  deleteUserById(userId: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async deleteUserByIds(userIds: string[]): Promise<number> {
+    const sqlStr = `update sys_user set del_flag = '2' where user_id in ${userIds.map(k => `${k} = ?`).join(',')}`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
+    return result.changedRows;
   }
-  deleteUserByIds(userIds: string[]): Promise<number> {
-    throw new Error('Method not implemented.');
+  async checkUniqueUserName(userName: string): Promise<string> {
+    const sqlStr = `select user_id as userId from sys_user where user_name = ? and del_flag = '0' limit 1`;
+    const paramArr = [userName];
+    const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
+    if (rows.length > 0) {
+      return rows[0].userId;
+    }
+    return null;
   }
-  checkUniqueUserName(userName: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async checkUniquePhone(phonenumber: string): Promise<string> {
+    const sqlStr = `select user_id as userId from sys_user where phonenumber = ? and del_flag = '0' limit 1`;
+    const paramArr = [phonenumber];
+    const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
+    if (rows.length > 0) {
+      return rows[0].userId;
+    }
+    return null;
   }
-  checkUniquePhone(phonenumber: string): Promise<SysUser> {
-    throw new Error('Method not implemented.');
-  }
-  checkUniqueEmail(email: string): Promise<SysUser> {
-    throw new Error('Method not implemented.');
+  async checkUniqueEmail(email: string): Promise<string> {
+    const sqlStr = `select user_id as userId from sys_user where email = ? and del_flag = '0' limit 1`;
+    const paramArr = [email];
+    const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
+    if (rows.length > 0) {
+      return rows[0].userId;
+    }
+    return null;
   }
 }

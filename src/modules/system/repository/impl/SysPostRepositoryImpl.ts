@@ -1,4 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { ResultSetHeader } from 'mysql2';
+import { parseNumber } from '../../../../common/utils/ParseUtils';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { SysPost } from '../../model/SysPost';
 import { ISysPostRepository } from '../ISysPostRepository';
@@ -52,6 +54,48 @@ function parseSysPostResult(rows: any[]): SysPost[] {
 export class SysPostRepositoryImpl implements ISysPostRepository {
   @Inject()
   private db: MysqlManager;
+
+  async selectPostPage(query: any): Promise<rowPages> {
+    // 查询条件拼接
+    let sqlStr = '';
+    let paramArr = [];
+    if (query.postCode) {
+      sqlStr += " and post_code like concat('%', ?, '%') ";
+      paramArr.push(query.postCode);
+    }
+    if (query.postName) {
+      sqlStr += " and post_name like concat('%', ?, '%') ";
+      paramArr.push(query.postName);
+    }
+    if (query.status) {
+      sqlStr += ' and status = ? ';
+      paramArr.push(query.status);
+    }
+
+    // 查询条件数 长度必为0其值为0
+    const countRow: { total: number }[] = await this.db.execute(
+      `select count(1) as 'total' from sys_post where 1 = 1 ${sqlStr}`,
+      paramArr
+    );
+    if (countRow[0].total <= 0) {
+      return { total: 0, rows: [] };
+    }
+    // 分页
+    sqlStr += ' limit ?,? ';
+    let pageNum = parseNumber(query.pageNum);
+    let pageSize = parseNumber(query.pageSize);
+    pageNum = pageNum > 0 ? pageNum - 1 : 0;
+    pageSize = pageSize > 0 ? pageSize : 10;
+    paramArr.push(pageNum * pageSize);
+    paramArr.push(pageSize);
+    // 查询数据数
+    const results = await this.db.execute(
+      `${SELECT_POST_VO} where 1 = 1 ${sqlStr}`,
+      paramArr
+    );
+    const rows = parseSysPostResult(results);
+    return { total: countRow[0].total, rows };
+  }
 
   async selectPostList(sysPost: SysPost): Promise<SysPost[]> {
     let sqlStr = `${SELECT_POST_VO} where 1 = 1`;
@@ -113,8 +157,8 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const sqlStr = `delete from sys_post where post_id in (${postIds
       .map(() => '?')
       .join(',')})`;
-    const rows = await this.db.execute(sqlStr, postIds);
-    return rows.length;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, postIds);
+    return result.affectedRows;
   }
 
   async updatePost(sysPost: SysPost): Promise<number> {
@@ -140,11 +184,11 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     }
     const sqlStr = `update sys_post set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
-      .join(',')} 
-      where post_id = ${sysPost.postId}`;
-
-    const rows = await this.db.execute(sqlStr, [...paramMap.values()]);
-    return rows.length;
+      .join(',')} where post_id = ?`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(), sysPost.postId
+    ]);
+    return result.changedRows;
   }
 
   async insertPost(sysPost: SysPost): Promise<number> {
@@ -175,20 +219,9 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const sqlStr = `insert into sys_post (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-
-    const rows: any[] = await this.db.execute(sqlStr, [...paramMap.values()]);
-    return rows.length;
-  }
-
-  async checkUniquePostName(postName: string): Promise<SysPost> {
-    const sqlStr = `${SELECT_POST_VO} where post_name = ? limit 1 `;
-    const rows = await this.db.execute(sqlStr, [postName]);
-    return parseSysPostResult(rows)[0] || null;
-  }
-
-  async checkUniquePostCode(postCode: string): Promise<SysPost> {
-    const sqlStr = `${SELECT_POST_VO} where post_code = ? limit 1 `;
-    const rows = await this.db.execute(sqlStr, [postCode]);
-    return parseSysPostResult(rows)[0] || null;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
+    return result.insertId || 0;
   }
 }

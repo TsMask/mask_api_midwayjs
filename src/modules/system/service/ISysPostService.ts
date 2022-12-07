@@ -15,13 +15,6 @@ export interface ISysPostService {
   selectPostList(sysPost: SysPost): Promise<SysPost[]>;
 
   /**
-   * 查询所有岗位
-   *
-   * @return 岗位列表
-   */
-  selectPostAll(): Promise<SysPost[]>;
-
-  /**
    * 通过岗位ID查询岗位信息
    *
    * @param postId 岗位ID
@@ -36,22 +29,6 @@ export interface ISysPostService {
    * @return 选中岗位ID列表
    */
   selectPostListByUserId(userId: string): Promise<string[]>;
-
-  /**
-   * 校验岗位名称
-   *
-   * @param sysPost 岗位信息
-   * @return 结果
-   */
-  checkUniquePostName(sysPost: SysPost): Promise<string>;
-
-  /**
-   * 校验岗位编码
-   *
-   * @param sysPost 岗位信息
-   * @return 结果
-   */
-  checkUniquePostCode(sysPost: SysPost): Promise<string>;
 
   /**
    * 通过岗位ID查询岗位使用数量

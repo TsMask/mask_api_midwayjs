@@ -42,6 +42,13 @@ export class SysLoginService {
   private sysUserService: SysUserServiceImpl;
 
   /**
+ * 登出清除token
+ */
+  public async logout(token: string): Promise<void> {
+    return await this.tokenService.delLoginUserCache(token);
+  }
+
+  /**
    * 登录生成token
    * @param loginBody 登录参数信息
    * @returns 生成的token
@@ -128,7 +135,7 @@ export class SysLoginService {
     const user = new SysUser();
     user.userId = userId;
     user.loginIp = this.ctx.ip;
-    user.loginTime = new Date().getTime();
+    user.loginDate = new Date().getTime();
     return await this.sysUserService.updateUserProfile(user);
   }
 

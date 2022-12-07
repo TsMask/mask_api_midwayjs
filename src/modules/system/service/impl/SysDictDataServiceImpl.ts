@@ -2,9 +2,10 @@ import { Provide, Inject } from '@midwayjs/decorator';
 import { SysDictData } from '../../../../framework/core/model/SysDictData';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
 import { ISysDictDataService } from '../ISysDictDataService';
+import { SysDictTypeServiceImpl } from './SysDictTypeServiceImpl';
 
 /**
- * 用户 业务层处理
+ * 字典类型数据 业务层处理
  *
  * @author TsMask <340112800@qq.com>
  */
@@ -13,8 +14,15 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
   @Inject()
   private sysDictDataRepository: SysDictDataRepositoryImpl;
 
+  @Inject()
+  private sysDictTypeService: SysDictTypeServiceImpl;
+
+  async selectDictDataPage(query: any): Promise<rowPages> {
+    return await this.sysDictDataRepository.selectDictDataPage(query);
+  }
+
   async selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]> {
-    return await this.selectDictDataList(sysDictData);
+    return await this.sysDictDataRepository.selectDictDataList(sysDictData);
   }
 
   async selectDictLabel(dictType: string, dictValue: string): Promise<string> {
@@ -28,13 +36,23 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
     return await this.sysDictDataRepository.selectDictDataById(dictCode);
   }
 
-  deleteDictDataByIds(dictCodes: string[]): Promise<number> {
-    throw new Error('Method not implemented.');
+  async deleteDictDataByIds(dictCodes: string[]): Promise<number> {
+    return await this.sysDictDataRepository.deleteDictDataByIds(dictCodes);
   }
-  insertDictData(sysDictData: SysDictData): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async insertDictData(sysDictData: SysDictData): Promise<number> {
+    const row = await this.sysDictDataRepository.insertDictData(sysDictData);
+    if (row > 0) {
+      await this.sysDictTypeService.loadingDictCache(sysDictData.dictType);
+    }
+    return row;
   }
-  updateDictData(sysDictData: SysDictData): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async updateDictData(sysDictData: SysDictData): Promise<number> {
+    const row = await this.sysDictDataRepository.updateDictData(sysDictData);
+    if (row > 0) {
+      await this.sysDictTypeService.loadingDictCache(sysDictData.dictType);
+    }
+    return row;
   }
 }

@@ -1,4 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { ResultSetHeader } from 'mysql2';
+import { parseNumber } from '../../../../common/utils/ParseUtils';
 import { SysDictData } from '../../../../framework/core/model/SysDictData';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { ISysDictDataRepository } from '../ISysDictDataRepository';
@@ -20,6 +22,7 @@ SYS_DICT_DATA_RESULT.set('css_class', 'cssClass');
 SYS_DICT_DATA_RESULT.set('list_class', 'listClass');
 SYS_DICT_DATA_RESULT.set('is_default', 'isDefault');
 SYS_DICT_DATA_RESULT.set('status', 'status');
+SYS_DICT_DATA_RESULT.set('remark', 'remark');
 SYS_DICT_DATA_RESULT.set('create_by', 'createBy');
 SYS_DICT_DATA_RESULT.set('create_time', 'createTime');
 SYS_DICT_DATA_RESULT.set('update_by', 'updateBy');
@@ -46,7 +49,7 @@ function parseSysDictDataResult(rows: any[]): SysDictData[] {
 }
 
 /**
- * 字典表 数据层处理
+ * 字典类型数据表 数据层处理
  *
  * @author TsMask <340112800@qq.com>
  */
@@ -56,40 +59,194 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   @Inject()
   private db: MysqlManager;
 
-  selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]> {
-    throw new Error('Method not implemented.');
+  async selectDictDataPage(query: any): Promise<rowPages> {
+    // 查询条件拼接
+    let sqlStr = '';
+    const paramArr = [];
+    if (query.dictType) {
+      sqlStr += " and dict_type = ? ";
+      paramArr.push(query.dictType);
+    }
+    if (query.dictLabel) {
+      sqlStr += " and dict_label like concat('%', ?, '%') ";
+      paramArr.push(query.dictLabel);
+    }
+    if (query.status) {
+      sqlStr += " and status = ? ";
+      paramArr.push(query.status);
+    }
+    sqlStr += ' order by dict_sort asc ';
+
+    // 查询条件数 长度必为0其值为0
+    const countRow: { total: number }[] = await this.db.execute(
+      `select count(1) as 'total' from sys_dict_data where 1 = 1 ${sqlStr}`,
+      paramArr
+    );
+    if (countRow[0].total <= 0) {
+      return { total: 0, rows: [] };
+    }
+
+    // 分页
+    sqlStr += ' limit ?,? ';
+    let pageNum = parseNumber(query.pageNum);
+    let pageSize = parseNumber(query.pageSize);
+    pageNum = pageNum > 0 ? pageNum - 1 : 0;
+    pageSize = pageSize > 0 ? pageSize : 10;
+    paramArr.push(pageNum * pageSize);
+    paramArr.push(pageSize);
+    // 查询数据数
+    const results = await this.db.execute(
+      `${SELECT_DICT_DATA_VO} where 1 = 1 ${sqlStr}`,
+      paramArr
+    );
+    const rows = parseSysDictDataResult(results);
+    return { total: countRow[0].total, rows };
   }
-  selectDictDataByType(dictType: string): Promise<SysDictData[]> {
-    throw new Error('Method not implemented.');
+
+  async selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]> {
+    // 查询条件拼接
+    let sqlStr = '';
+    const paramArr = [];
+    if (sysDictData.dictType) {
+      sqlStr += " and dict_type = ? ";
+      paramArr.push(sysDictData.dictType);
+    }
+    if (sysDictData.dictLabel) {
+      sqlStr += " and dict_label like concat('%', ?, '%') ";
+      paramArr.push(sysDictData.dictLabel);
+    }
+    if (sysDictData.status) {
+      sqlStr += " and status = ? ";
+      paramArr.push(sysDictData.status);
+    }
+    sqlStr += ' order by dict_sort asc ';
+
+    // 查询数据数
+    const results = await this.db.execute(
+      `${SELECT_DICT_DATA_VO} where 1 = 1 ${sqlStr}`,
+      paramArr
+    );
+    return parseSysDictDataResult(results);
   }
-  selectDictLabel(dictType: string, dictValue: string): Promise<string> {
-    throw new Error('Method not implemented.');
+
+  async selectDictLabel(dictType: string, dictValue: string): Promise<string> {
+    const sql = `select dict_label from sys_dict_data where dict_type = ? and dict_value = ?`;
+    return await this.db.execute(sql, [dictType, dictValue]);
   }
+
   async selectDictDataById(dictCode: string): Promise<SysDictData> {
     const sql = `${SELECT_DICT_DATA_VO} where dict_code = ?`;
     const rows = await this.db.execute(sql, [dictCode]);
 
     return parseSysDictDataResult(rows)[0] || null;
   }
+
   countDictDataByType(dictType: string): Promise<number> {
     throw new Error('Method not implemented.');
   }
   deleteDictDataById(dictCode: string): Promise<number> {
     throw new Error('Method not implemented.');
   }
-  deleteDictDataByIds(dictCodes: string[]): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async deleteDictDataByIds(dictCodes: string[]): Promise<number> {
+    const sqlStr = `delete from sys_dict_data where dict_code in (${dictCodes
+      .map(() => '?')
+      .join(',')})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, dictCodes);
+    return result.affectedRows;
   }
-  insertDictData(sysDictData: SysDictData): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async insertDictData(sysDictData: SysDictData): Promise<number> {
+    const paramMap = new Map();
+    if (sysDictData.dictSort) {
+      paramMap.set('dict_sort', sysDictData.dictSort);
+    }
+    if (sysDictData.dictLabel) {
+      paramMap.set('dict_label', sysDictData.dictLabel);
+    }
+    if (sysDictData.dictValue) {
+      paramMap.set('dict_value', sysDictData.dictValue);
+    }
+    if (sysDictData.dictType) {
+      paramMap.set('dict_type', sysDictData.dictType);
+    }
+    if (sysDictData.listClass) {
+      paramMap.set('list_class', sysDictData.listClass);
+    }
+    if (sysDictData.isDefault) {
+      paramMap.set('is_default', sysDictData.isDefault);
+    }
+    if (sysDictData.status) {
+      paramMap.set('status', sysDictData.status);
+    }
+    if (sysDictData.remark) {
+      paramMap.set('remark', sysDictData.remark);
+    }
+    if (sysDictData.createBy) {
+      paramMap.set('create_by', sysDictData.createBy);
+      paramMap.set('create_time', new Date().getTime());
+    }
+
+    const sqlStr = `insert into sys_dict_data (${[...paramMap.keys()].join(
+      ','
+    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
+    return result.insertId || 0;
   }
-  updateDictData(sysDictData: SysDictData): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async updateDictData(sysDictData: SysDictData): Promise<number> {
+    const paramMap = new Map();
+    if (sysDictData.dictSort) {
+      paramMap.set('dict_sort', sysDictData.dictSort);
+    }
+    if (sysDictData.dictLabel) {
+      paramMap.set('dict_label', sysDictData.dictLabel);
+    }
+    if (sysDictData.dictValue) {
+      paramMap.set('dict_value', sysDictData.dictValue);
+    }
+    if (sysDictData.dictType) {
+      paramMap.set('dict_type', sysDictData.dictType);
+    }
+    if (sysDictData.cssClass) {
+      paramMap.set('css_class', sysDictData.cssClass);
+    }
+    if (sysDictData.listClass) {
+      paramMap.set('list_class', sysDictData.listClass);
+    }
+    if (sysDictData.isDefault) {
+      paramMap.set('is_default', sysDictData.isDefault);
+    }
+    if (sysDictData.status) {
+      paramMap.set('status', sysDictData.status);
+    }
+    if (sysDictData.remark) {
+      paramMap.set('remark', sysDictData.remark);
+    }
+    if (sysDictData.updateBy) {
+      paramMap.set('update_by', sysDictData.updateBy);
+      paramMap.set('update_time', new Date().getTime());
+    }
+
+    const sqlStr = `update sys_dict_data set ${[...paramMap.keys()]
+      .map(k => `${k} = ?`)
+      .join(',')} where dict_code = ?`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(), sysDictData.dictCode
+    ]);
+    return result.changedRows;
   }
-  updateDictDataType(
+
+  async updateDictDataType(
     oldDictType: string,
     newDictType: string
   ): Promise<number> {
-    throw new Error('Method not implemented.');
+    const sqlStr = `update sys_dict_data set dict_type = ? where dict_type = ?`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      newDictType, oldDictType
+    ]);
+    return result.changedRows;
   }
 }
