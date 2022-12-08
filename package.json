@@ -17,11 +17,12 @@
     "@midwayjs/task": "^3.0.0",
     "@midwayjs/typeorm": "^3.0.0",
     "bcrypt": "^5.0.0",
-    "mysql2": "^2.0.0",
-    "nanoid": "^3.0.0",
+    "flake-idgen": "^1.4.0",
     "mini-svg-data-uri": "^1.4.0",
     "svg-captcha": "^1.4.0",
     "typeorm": "^0.3.0",
+    "mysql2": "^2.0.0",
+    "nanoid": "^3.0.0",
     "ua-parser-js": "^1.0.0"
   },
   "devDependencies": {

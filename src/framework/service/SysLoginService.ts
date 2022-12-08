@@ -10,7 +10,6 @@ import { Context } from '@midwayjs/koa';
 import { TokenService } from './TokenService';
 import { LoginUser } from '../core/vo/LoginUser';
 import { UserStatus } from '../../common/enums/UserStatusEnum';
-import { PermissionService } from './PermissionService';
 import { parseNumber } from '../../common/utils/ParseUtils';
 import { bcryptCompare } from '../../common/utils/CryptoUtils';
 import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
@@ -33,17 +32,14 @@ export class SysLoginService {
   private tokenService: TokenService;
 
   @Inject()
-  private permissionService: PermissionService;
-
-  @Inject()
   private sysConfigService: SysConfigServiceImpl;
 
   @Inject()
   private sysUserService: SysUserServiceImpl;
 
   /**
- * 登出清除token
- */
+   * 登出清除token
+   */
   public async logout(token: string): Promise<void> {
     return await this.tokenService.delLoginUserCache(token);
   }
@@ -121,9 +117,7 @@ export class SysLoginService {
     }
     // 检查密码
     await this.validatePassword(sysUser.userName, sysUser.password, password);
-    // 用户权限组标识
-    const permissions = await this.permissionService.getMenuPermission(sysUser);
-    return await this.tokenService.createLoginUser(sysUser, permissions);
+    return await this.tokenService.createLoginUser(sysUser);
   }
 
   /**

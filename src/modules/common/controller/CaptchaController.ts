@@ -46,25 +46,36 @@ export class CaptchaController {
     let data = {
       captchaEnabled: captchaEnabled,
       uuid: uuid,
-      img: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-    }
+      img: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+    };
     // 从本地配置project获取验证码类型
     const { captchaType } = this.ctx.app.getConfig('project');
     if (captchaType === 'math') {
       const captcha = createMathExpr(this.ctx.app.getConfig('mathCaptcha'));
       data.img = svgBase64(captcha.data);
-      await this.redisCache.setByExpire(verifyKey, captcha.text, CAPTCHA_EXPIRATION);
+      await this.redisCache.setByExpire(
+        verifyKey,
+        captcha.text,
+        CAPTCHA_EXPIRATION
+      );
     }
     if (captchaType === 'char') {
       const captcha = create(this.ctx.app.getConfig('charCaptcha'));
       data.img = svgBase64(captcha.data);
-      await this.redisCache.setByExpire(verifyKey, captcha.text, CAPTCHA_EXPIRATION);
+      await this.redisCache.setByExpire(
+        verifyKey,
+        captcha.text,
+        CAPTCHA_EXPIRATION
+      );
     }
     // 本地开发下返回结果
-    if ((this.ctx.app.getEnv() == 'local')) {
-      data = Object.assign({
-        text: await this.redisCache.get(verifyKey)
-      }, data);
+    if (this.ctx.app.getEnv() == 'local') {
+      data = Object.assign(
+        {
+          text: await this.redisCache.get(verifyKey),
+        },
+        data
+      );
     }
     return Result.ok(data);
   }

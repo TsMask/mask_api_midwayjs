@@ -1,5 +1,6 @@
 import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
 import { SysUser } from '../../../../framework/core/model/SysUser';
+import { FlakeIdgenService } from '../../../../framework/service/FlakeIdgenService';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
 import { SysPostRepositoryImpl } from '../../repository/impl/SysPostRepositoryImpl';
@@ -31,6 +32,9 @@ export class SysUserServiceImpl implements ISysUserService {
 
   @Inject()
   private sysUserPostRepository: SysUserPostRepositoryImpl;
+
+  @Inject()
+  private flakeIdgenService: FlakeIdgenService;
 
   async selectUserPage(query: any): Promise<rowPages> {
     return await this.sysUserRepository.selectUserPage(query);
@@ -73,11 +77,15 @@ export class SysUserServiceImpl implements ISysUserService {
   }
 
   async checkUniqueUserName(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniqueUserName(sysUser.userName);
+    const userId = await this.sysUserRepository.checkUniqueUserName(
+      sysUser.userName
+    );
     return userId == sysUser.userId; // 用户信息与查询得到用户ID一致
   }
   async checkUniquePhone(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniquePhone(sysUser.phonenumber);
+    const userId = await this.sysUserRepository.checkUniquePhone(
+      sysUser.phonenumber
+    );
     return userId == sysUser.userId; // 用户信息与查询得到用户ID一致
   }
   async checkUniqueEmail(sysUser: SysUser): Promise<boolean> {
@@ -91,7 +99,8 @@ export class SysUserServiceImpl implements ISysUserService {
     throw new Error('Method not implemented.');
   }
   async insertUser(sysUser: SysUser): Promise<number> {
-    sysUser.userId = `${Math.floor(Math.random() * 100)}`; // 生成用户ID 
+    // 生成ID
+    sysUser.userId = await this.flakeIdgenService.getString();
     // 新增用户信息
     const rows = await this.sysUserRepository.insertUser(sysUser);
     if (rows > 0) {
@@ -118,16 +127,19 @@ export class SysUserServiceImpl implements ISysUserService {
     return await this.sysUserRepository.updateUser(sysUser);
   }
   /**
-     * 新增用户角色信息
-     * 
-     * @param userId 用户ID
-     * @param roleIds 角色组
-     */
-  private async insertUserRole(userId: string, roleIds: string[]): Promise<number> {
+   * 新增用户角色信息
+   *
+   * @param userId 用户ID
+   * @param roleIds 角色组
+   */
+  private async insertUserRole(
+    userId: string,
+    roleIds: string[]
+  ): Promise<number> {
     if (roleIds.length > 0) {
-      let sysUserRoles: SysUserRole[] = [];
+      const sysUserRoles: SysUserRole[] = [];
       for (const roleId of roleIds) {
-        let ur = new SysUserRole();
+        const ur = new SysUserRole();
         ur.userId = userId;
         ur.roleId = roleId;
         sysUserRoles.push(ur);
@@ -138,15 +150,18 @@ export class SysUserServiceImpl implements ISysUserService {
   }
   /**
    * 新增用户岗位信息
-   * 
+   *
    * @param userId 用户ID
    * @param postIds 岗位组
    */
-  private async insertUserPost(userId: string, postIds: string[]): Promise<number> {
+  private async insertUserPost(
+    userId: string,
+    postIds: string[]
+  ): Promise<number> {
     if (postIds.length > 0) {
-      let sysUserPosts: SysUserPost[] = [];
+      const sysUserPosts: SysUserPost[] = [];
       for (const postId of postIds) {
-        let up = new SysUserPost();
+        const up = new SysUserPost();
         up.userId = userId;
         up.postId = postId;
         sysUserPosts.push(up);
@@ -157,7 +172,7 @@ export class SysUserServiceImpl implements ISysUserService {
   }
   async insertAserAuth(userId: string, roleIds: string[]): Promise<boolean> {
     await this.sysUserRoleRepository.deleteUserRoleByUserId(userId);
-    return await this.insertUserRole(userId, roleIds) > 0;
+    return (await this.insertUserRole(userId, roleIds)) > 0;
   }
   async updateUserProfile(sysUser: SysUser): Promise<number> {
     return await this.sysUserRepository.updateUser(sysUser);

@@ -20,7 +20,7 @@ export interface ISysRoleDeptRepository {
    * @param roleIds 需要删除的数据ID
    * @return 结果
    */
-  deleteRoleDeptByRoleIds(roleIds: string[]): Promise<number>;
+  deleteRoleDept(roleIds: string[]): Promise<number>;
 
   /**
    * 查询部门使用数量
@@ -33,8 +33,8 @@ export interface ISysRoleDeptRepository {
   /**
    * 批量新增角色部门信息
    *
-   * @param sysRoleDeptList 角色部门列表
+   * @param sysRoleDepts 角色部门列表
    * @return 结果
    */
-  batchRoleDept(sysRoleDeptList: SysRoleDept[]): Promise<number>;
+  batchRoleDept(sysRoleDepts: SysRoleDept[]): Promise<number>;
 }

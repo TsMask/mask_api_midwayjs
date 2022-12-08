@@ -8,11 +8,11 @@ import { SysUserRole } from '../model/SysUserRole';
  */
 export interface ISysRoleService {
   /**
-* 根据条件分页查询角色数据
-*
-* @param query 角色信息查询信息
-* @return 角色信息集合信息
-*/
+   * 根据条件分页查询角色数据
+   *
+   * @param query 角色信息查询信息
+   * @return 角色信息集合信息
+   */
   selectRolePage(query: any): Promise<rowPages>;
 
   /**
@@ -61,7 +61,7 @@ export interface ISysRoleService {
    * @param sysRole 角色信息
    * @return 结果
    */
-  checkUniqueRoleName(sysRole: SysRole): Promise<string>;
+  checkUniqueRoleName(sysRole: SysRole): Promise<boolean>;
 
   /**
    * 校验角色权限是否唯一
@@ -69,7 +69,7 @@ export interface ISysRoleService {
    * @param sysRole 角色信息
    * @return 结果
    */
-  checkUniqueRoleKey(sysRole: SysRole): Promise<string>;
+  checkUniqueRoleKey(sysRole: SysRole): Promise<boolean>;
 
   /**
    * 校验角色是否允许操作
@@ -139,7 +139,7 @@ export interface ISysRoleService {
    * @param roleIds 需要删除的角色ID
    * @return 结果
    */
-  deleteRoleByIds(roleIds: string): Promise<number>;
+  deleteRoleByIds(roleIds: string[]): Promise<number>;
 
   /**
    * 取消授权用户角色

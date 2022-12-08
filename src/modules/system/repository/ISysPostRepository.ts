@@ -6,7 +6,6 @@ import { SysPost } from '../model/SysPost';
  * @author TsMask <340112800@qq.com>
  */
 export interface ISysPostRepository {
-
   /**
    * 查询岗位分页数据集合
    *
@@ -85,5 +84,4 @@ export interface ISysPostRepository {
    * @return 结果
    */
   insertPost(sysPost: SysPost): Promise<number>;
-
 }

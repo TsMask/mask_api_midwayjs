@@ -16,7 +16,7 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
   public db: MysqlManager;
 
   async deleteUserRoleByUserId(userId: string): Promise<number> {
-    const sqlStr = `delete from sys_user_role where user_id = ?`;
+    const sqlStr = 'delete from sys_user_role where user_id = ?';
     const result: ResultSetHeader = await this.db.execute(sqlStr, [userId]);
     return result.affectedRows;
   }
@@ -31,7 +31,9 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
     throw new Error('Method not implemented.');
   }
   async batchUserRole(sysUserRoles: SysUserRole[]): Promise<number> {
-    const sqlStr = `insert into sys_user_role(user_id, role_id) values ${sysUserRoles.map(item=> `(${item.userId},${item.roleId})`).join(',')}`;
+    const sqlStr = `insert into sys_user_role(user_id, role_id) values ${sysUserRoles
+      .map(item => `(${item.userId},${item.roleId})`)
+      .join(',')}`;
     const result: ResultSetHeader = await this.db.execute(sqlStr);
     return result.insertId;
   }

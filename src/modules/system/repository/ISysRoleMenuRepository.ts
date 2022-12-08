@@ -25,16 +25,16 @@ export interface ISysRoleMenuRepository {
   /**
    * 批量删除角色菜单关联信息
    *
-   * @param ids 需要删除的数据ID
+   * @param roleIds 需要删除的数据ID
    * @return 结果
    */
-  deleteRoleMenu(ids: string[]): Promise<number>;
+  deleteRoleMenu(roleIds: string[]): Promise<number>;
 
   /**
    * 批量新增角色菜单信息
    *
-   * @param sysRoleMenuList 角色菜单列表
+   * @param sysRoleMenus 角色菜单列表
    * @return 结果
    */
-  batchRoleMenu(sysRoleMenuList: SysRoleMenu[]): Promise<number>;
+  batchRoleMenu(sysRoleMenus: SysRoleMenu[]): Promise<number>;
 }

@@ -16,7 +16,7 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
   public db: MysqlManager;
 
   async deleteUserPostByUserId(userId: string): Promise<number> {
-    const sqlStr = `delete from sys_user_post where user_id = ?`;
+    const sqlStr = 'delete from sys_user_post where user_id = ?';
     const result: ResultSetHeader = await this.db.execute(sqlStr, [userId]);
     return result.affectedRows;
   }
@@ -31,9 +31,10 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
     return result.affectedRows;
   }
   async batchUserPost(sysUserPosts: SysUserPost[]): Promise<number> {
-    const sqlStr = `insert into sys_user_post(user_id, post_id) values ${sysUserPosts.map(item=> `(${item.userId},${item.postId})`).join(',')}`;
+    const sqlStr = `insert into sys_user_post(user_id, post_id) values ${sysUserPosts
+      .map(item => `(${item.userId},${item.postId})`)
+      .join(',')}`;
     const result: ResultSetHeader = await this.db.execute(sqlStr);
     return result.insertId;
   }
-
 }

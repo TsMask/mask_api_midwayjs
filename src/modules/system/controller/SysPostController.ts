@@ -69,14 +69,18 @@ export class SysPostController {
     post.postName = sysPost.postName;
     let hasPosts = await this.sysPostService.selectPostList(post);
     if (hasPosts && hasPosts.length > 0) {
-      return Result.errMsg(`新增岗位【${sysPost.postName}】失败，岗位名称已存在`);
+      return Result.errMsg(
+        `新增岗位【${sysPost.postName}】失败，岗位名称已存在`
+      );
     }
     // 检查岗位编码
     post = new SysPost();
     post.postCode = sysPost.postCode;
     hasPosts = await this.sysPostService.selectPostList(post);
     if (hasPosts && hasPosts.length > 0) {
-      return Result.errMsg(`新增岗位【${sysPost.postCode}】失败，岗位编码已存在`);
+      return Result.errMsg(
+        `新增岗位【${sysPost.postCode}】失败，岗位编码已存在`
+      );
     }
     sysPost.createBy = this.ctx.loginUser?.user?.userName;
     const id = await this.sysPostService.insertPost(sysPost);
@@ -98,14 +102,18 @@ export class SysPostController {
     post.postName = sysPost.postName;
     let hasPosts = await this.sysPostService.selectPostList(post);
     if (hasPosts && hasPosts.length > 0) {
-      return Result.errMsg(`修改岗位【${sysPost.postName}】失败，岗位名称已存在`);
+      return Result.errMsg(
+        `修改岗位【${sysPost.postName}】失败，岗位名称已存在`
+      );
     }
     // 检查岗位编码
     post = new SysPost();
     post.postCode = sysPost.postCode;
     hasPosts = await this.sysPostService.selectPostList(post);
     if (hasPosts && hasPosts.length > 0) {
-      return Result.errMsg(`修改岗位【${sysPost.postCode}】失败，岗位编码已存在`);
+      return Result.errMsg(
+        `修改岗位【${sysPost.postCode}】失败，岗位编码已存在`
+      );
     }
     sysPost.updateBy = this.ctx.loginUser?.user?.userName;
     const id = await this.sysPostService.updatePost(sysPost);

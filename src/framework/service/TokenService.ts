@@ -14,6 +14,7 @@ import { getRealAddressByIp } from '../../common/utils/ip2region';
 import { getUaInfo } from '../../common/utils/UAParserUtils';
 import * as ms from 'ms';
 import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
+import { PermissionService } from './PermissionService';
 
 /**
  * token验证处理
@@ -31,22 +32,24 @@ export class TokenService {
   @Inject()
   private redisCache: RedisCache;
 
+  @Inject()
+  private permissionService: PermissionService;
+
   /**
    * 创建登录用户信息对象
    * @param user 登录用户信息
-   * @param permissions 权限数组
    * @return 登录用户信息对象
    */
-  async createLoginUser(
-    user: SysUser,
-    permissions: string[]
-  ): Promise<LoginUser> {
+  async createLoginUser(user: SysUser): Promise<LoginUser> {
     delete user.password;
-    let loginUser = new LoginUser();
+    const loginUser = new LoginUser();
     loginUser.userId = user.userId;
     loginUser.deptId = user.deptId;
     loginUser.user = user;
-    loginUser.permissions = permissions;
+    // 用户权限组标识
+    loginUser.permissions = await this.permissionService.getMenuPermission(
+      user
+    );
     return loginUser;
   }
 
@@ -108,7 +111,6 @@ export class TokenService {
   /**
    * 设置令牌有效期
    * @param loginUser 登录用户信息对象
-   * @returns 登录用户信息对象
    */
   private async setUserToken(loginUser: LoginUser): Promise<void> {
     // 从本地配置获取jwt信息
@@ -188,15 +190,28 @@ export class TokenService {
           return await this.getLoginUserCache(uuid);
         }
       } catch (e) {
-        if('TokenExpiredError' == e.name){
+        if ('TokenExpiredError' == e.name) {
           throw new UnauthorizedError(`用户授权已过期, ${e.expiredAt}.`);
         }
-        if('JsonWebTokenError' == e.name){
-          throw new UnauthorizedError(`用户授权无效认证.`);
+        if ('JsonWebTokenError' == e.name) {
+          throw new UnauthorizedError('用户授权无效认证.');
         }
         throw new UnauthorizedError(`用户授权信息异常, ${e.message}.`);
       }
     }
     return null;
+  }
+
+  /**
+   * 设置用户身份信息
+   * @param loginUser 登录用户信息对象
+   */
+  async setLoginUser(loginUser: LoginUser): Promise<void> {
+    // 用户权限组标识
+    loginUser.permissions = await this.permissionService.getMenuPermission(
+      loginUser.user
+    );
+    // 重新设置刷新令牌有效期
+    await this.setUserToken(loginUser);
   }
 }

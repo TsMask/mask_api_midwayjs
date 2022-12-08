@@ -79,7 +79,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
 		left join sys_user_role ur on rm.role_id = ur.role_id
 		left join sys_role ro on ur.role_id = ro.role_id
 		where 1 = 1 `;
-    let paramArr = [];
+    const paramArr = [];
     if (sysMenu.menuId) {
       sqlStr += " and m.menu_name like concat('%', ?, '%') ";
       paramArr.push(sysMenu.menuId);

@@ -180,7 +180,8 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       .map(k => `${k} = ?`)
       .join(',')} where notice_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(), sysNotice.noticeId
+      ...paramMap.values(),
+      sysNotice.noticeId,
     ]);
     return result.changedRows;
   }

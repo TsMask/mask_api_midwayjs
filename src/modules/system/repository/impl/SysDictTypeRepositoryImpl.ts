@@ -67,7 +67,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       paramArr.push(query.dictType);
     }
     if (query.status) {
-      sqlStr += " and status = ? ";
+      sqlStr += ' and status = ? ';
       paramArr.push(query.status);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
@@ -122,7 +122,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       paramArr.push(sysDictType.dictType);
     }
     if (sysDictType?.status) {
-      sqlStr += " and status = ? ";
+      sqlStr += ' and status = ? ';
       paramArr.push(sysDictType.status);
     }
 
@@ -211,7 +211,8 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       .map(k => `${k} = ?`)
       .join(',')} where dict_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(), sysDictType.dictId
+      ...paramMap.values(),
+      sysDictType.dictId,
     ]);
     return result.changedRows;
   }

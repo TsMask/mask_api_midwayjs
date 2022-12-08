@@ -160,7 +160,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async selectDeptById(deptId: string): Promise<SysDept> {
-    let sqlStr = `select d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.phone, d.email, d.status,
+    const sqlStr = `select d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.phone, d.email, d.status,
     (select dept_name from sys_dept where dept_id = d.parent_id) parent_name 
     from sys_dept d where d.dept_id = ?`;
     const rows = await this.db.execute(sqlStr, [deptId]);
@@ -168,26 +168,27 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async selectChildrenDeptById(deptId: string): Promise<SysDept[]> {
-    let sqlStr = `${SELECT_DEPT_VO} where find_in_set(?, ancestors)`;
+    const sqlStr = `${SELECT_DEPT_VO} where find_in_set(?, ancestors)`;
     const rows = await this.db.execute(sqlStr, [deptId]);
     return parseSysDeptResult(rows);
   }
 
   async selectNormalChildrenDeptById(deptId: string): Promise<number> {
-    let sqlStr = `${SELECT_DEPT_TOTAL} where status = 0 and del_flag = '0' and find_in_set(?, ancestors) `;
+    const sqlStr = `${SELECT_DEPT_TOTAL} where status = 0 and del_flag = '0' and find_in_set(?, ancestors) `;
     const rows: rowTotal[] = await this.db.execute(sqlStr, [deptId]);
     return rows.length > 0 ? rows[0].total : 0;
   }
 
   async hasChildByDeptId(deptId: string): Promise<number> {
-    let sqlStr = `select count(1) as 'total' from sys_dept
+    const sqlStr = `select count(1) as 'total' from sys_dept
 		where del_flag = '0' and parent_id = ? limit 1`;
     const rows: rowTotal[] = await this.db.execute(sqlStr, [deptId]);
     return rows.length > 0 ? rows[0].total : 0;
   }
 
   async checkDeptExistUser(deptId: string): Promise<number> {
-    let sqlStr = "select count(1) as 'total' from sys_user where dept_id = ? and del_flag = '0'";
+    const sqlStr =
+      "select count(1) as 'total' from sys_user where dept_id = ? and del_flag = '0'";
     const rows: rowTotal[] = await this.db.execute(sqlStr, [deptId]);
     return rows.length > 0 ? rows[0].total : 0;
   }
@@ -247,9 +248,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
 
     const sqlStr = `insert into sys_dept (${[...paramMap.keys()].join(
       ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(
-      ','
-    )})`;
+    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
@@ -290,7 +289,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       .map(k => `${k} = ?`)
       .join(',')} where dept_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(), sysDept.deptId
+      ...paramMap.values(),
+      sysDept.deptId,
     ]);
     return result.changedRows;
   }
@@ -301,7 +301,9 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       return 0;
     }
 
-    const sqlStr = `update sys_dept set status = '0' where dept_id in (${deptIds.map(() => '?').join(',')}) `;
+    const sqlStr = `update sys_dept set status = '0' where dept_id in (${deptIds
+      .map(() => '?')
+      .join(',')}) `;
     const result: ResultSetHeader = await this.db.execute(sqlStr, deptIds);
     return result.changedRows;
   }

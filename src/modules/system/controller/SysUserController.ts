@@ -1,4 +1,14 @@
-import { Body, Controller, Del, Get, Inject, Param, Post, Put, Query } from '@midwayjs/decorator';
+import {
+  Body,
+  Controller,
+  Del,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@midwayjs/decorator';
 import { Result } from '../../../framework/core/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
@@ -35,9 +45,9 @@ export class SysUserController {
   private sysPostService: SysPostServiceImpl;
 
   /**
-  * 获取用户列表
-  */
-  @Get("/list")
+   * 获取用户列表
+   */
+  @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
@@ -75,56 +85,66 @@ export class SysUserController {
   // }
 
   /**
- * 根据用户编号获取详细信息
- */
-  @Get("/")
-  @Get("/:userId")
+   * 根据用户编号获取详细信息
+   */
+  @Get('/')
+  @Get('/:userId')
   @PreAuthorize({ hasPermissions: ['system:user:query'] })
-  async getInfo(@Param("userId") userId: string): Promise<Result> {
+  async getInfo(@Param('userId') userId: string): Promise<Result> {
     let roles = await this.sysRoleService.selectRoleList(new SysRole());
-    let posts = await this.sysPostService.selectPostList(new SysPost());
+    const posts = await this.sysPostService.selectPostList(new SysPost());
     // 不是系统指定超级管理员需要排除其角色
     if (!this.contextService.isSuperAdmin(userId)) {
-      roles = roles.filter(r => r.roleId !== "1");
+      roles = roles.filter(r => r.roleId !== '1');
     }
     // 检查用户是否存在
     const sysUser = await this.sysUserService.selectUserById(userId);
     if (sysUser && sysUser.userId) {
       const userRoleIds = sysUser.roles.map(r => r.roleId);
-      const userPostIds = await this.sysPostService.selectPostListByUserId(sysUser.userId);
+      const userPostIds = await this.sysPostService.selectPostListByUserId(
+        sysUser.userId
+      );
       delete sysUser.password;
       return Result.ok({
         data: sysUser,
         roleIds: userRoleIds,
         postIds: userPostIds,
         roles,
-        posts
+        posts,
       });
     }
     return Result.ok({
       roles,
-      posts
+      posts,
     });
   }
 
   /**
-  * 新增用户
-  */
+   * 新增用户
+   */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:user:add'] })
   async add(@Body() sysUser: SysUser): Promise<Result> {
     // 判断属性值是否唯一
-    const uniqueUserName = await this.sysUserService.checkUniqueUserName(sysUser);
+    const uniqueUserName = await this.sysUserService.checkUniqueUserName(
+      sysUser
+    );
     if (!uniqueUserName) {
-      return Result.errMsg(`新增用户【${sysUser.userName}】失败，登录账号已存在`);
+      return Result.errMsg(
+        `新增用户【${sysUser.userName}】失败，登录账号已存在`
+      );
     }
     const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
     if (!uniquePhone) {
-      return Result.errMsg(`新增用户【${sysUser.userName}】失败，手机号码已存在`);
+      return Result.errMsg(
+        `新增用户【${sysUser.userName}】失败，手机号码已存在`
+      );
     }
     const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
     if (!uniqueEmail) {
-      return Result.errMsg(`新增用户【${sysUser.userName}】失败，邮箱账号已存在`);
+      return Result.errMsg(
+        `新增用户【${sysUser.userName}】失败，邮箱账号已存在`
+      );
     }
 
     sysUser.createBy = this.contextService.getUsername();
@@ -133,8 +153,8 @@ export class SysUserController {
   }
 
   /**
-  * 修改用户
-  */
+   * 修改用户
+   */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
   async edit(@Body() sysUser: SysUser): Promise<Result> {
@@ -150,7 +170,9 @@ export class SysUserController {
       return Result.errMsg('没有权限访问用户数据！');
     }
     // 判断属性值是否唯一
-    const uniqueUserName = await this.sysUserService.checkUniqueUserName(sysUser);
+    const uniqueUserName = await this.sysUserService.checkUniqueUserName(
+      sysUser
+    );
     if (!uniqueUserName) {
       return Result.errMsg(`修改用户【${user.userName}】失败，登录账号已存在`);
     }
@@ -169,16 +191,16 @@ export class SysUserController {
   }
 
   /**
-* 删除用户
-*/
-  @Del("/:userIds")
+   * 删除用户
+   */
+  @Del('/:userIds')
   @PreAuthorize({ hasPermissions: ['system:user:remove'] })
-  async remove(@Param("userIds") userIds: string): Promise<Result> {
+  async remove(@Param('userIds') userIds: string): Promise<Result> {
     if (!userIds) return Result.err();
     // 处理字符转id数组
     const ids = userIds.split(',');
     if (ids.includes(this.contextService.getUserId())) {
-      return Result.errMsg("当前用户不能删除");
+      return Result.errMsg('当前用户不能删除');
     }
     const rowNum = await this.sysUserService.deleteUserByIds(ids);
     return Result[rowNum ? 'ok' : 'err']();
@@ -187,7 +209,7 @@ export class SysUserController {
   /**
    * 重置密码
    */
-  @Put("/resetPwd")
+  @Put('/resetPwd')
   @PreAuthorize({ hasPermissions: ['system:user:resetPwd'] })
   async resetPwd(@Body() sysUser: SysUser): Promise<Result> {
     // 修改的用户ID是否可用
@@ -208,11 +230,11 @@ export class SysUserController {
   }
 
   /**
-* 用户授权角色信息
-*/
-  @Get("/authRole/:userId")
+   * 用户授权角色信息
+   */
+  @Get('/authRole/:userId')
   @PreAuthorize({ hasPermissions: ['system:user:query'] })
-  async authRoleInfo(@Param("userId") userId: string): Promise<Result> {
+  async authRoleInfo(@Param('userId') userId: string): Promise<Result> {
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
@@ -220,21 +242,23 @@ export class SysUserController {
     // 不是系统指定超级管理员需要排除其角色
     let roles = await this.sysRoleService.selectRolesByUserId(userId);
     if (!this.contextService.isSuperAdmin(userId)) {
-      roles = roles.filter(r => r.roleId !== "1");
+      roles = roles.filter(r => r.roleId !== '1');
     }
     return Result.ok({
       user,
-      roles
-    })
+      roles,
+    });
   }
 
-
   /**
-* 用户授权角色修改
-*/
-  @Put("/authRole")
+   * 用户授权角色修改
+   */
+  @Put('/authRole')
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
-  async authRoleAdd(@Body("userId") userId: string, @Body("roleIds") roleIds: string[]): Promise<Result> {
+  async authRoleAdd(
+    @Body('userId') userId: string,
+    @Body('roleIds') roleIds: string[]
+  ): Promise<Result> {
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
@@ -247,7 +271,7 @@ export class SysUserController {
    * 获取部门树列表
    */
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
-  @Get("/deptTree")
+  @Get('/deptTree')
   async deptTree(@Query() sysDept: SysDept): Promise<Result> {
     const data = await this.sysDeptService.selectDeptTreeList(sysDept);
     return Result.okData(data);

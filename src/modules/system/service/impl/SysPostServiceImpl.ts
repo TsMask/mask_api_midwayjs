@@ -41,5 +41,4 @@ export class SysPostServiceImpl implements ISysPostService {
   async updatePost(sysPost: SysPost): Promise<number> {
     return await this.sysPostRepository.updatePost(sysPost);
   }
-
 }

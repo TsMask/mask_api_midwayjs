@@ -23,8 +23,8 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
   private redisCache: RedisCache;
 
   /**
-  * 启动时，初始化参数到缓存
-  */
+   * 启动时，初始化参数到缓存
+   */
   @Init()
   async init() {
     await this.loadingDictCache();
@@ -49,15 +49,17 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
 
   async loadingDictCache(dictType?: string): Promise<void> {
     const sysDictData = new SysDictData();
-    sysDictData.status = "0";
+    sysDictData.status = '0';
     if (dictType) {
       sysDictData.dictType = dictType;
       await this.redisCache.del(SYS_DICT_KEY + dictType);
     }
-    const dictDatas = await this.sysDictDataRepository.selectDictDataList(sysDictData);
+    const dictDatas = await this.sysDictDataRepository.selectDictDataList(
+      sysDictData
+    );
     // 遍历分组
     const dictDatasObj = dictDatas.reduce((pre, cur) => {
-      let key = cur.dictType;
+      const key = cur.dictType;
       if (!Object.prototype.hasOwnProperty.call(pre, key)) {
         pre[key] = [];
       }
@@ -73,7 +75,7 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     }
   }
   async clearDictCache(): Promise<number> {
-    const key = SYS_DICT_KEY + "*";
+    const key = SYS_DICT_KEY + '*';
     const keysArr = await this.redisCache.getKeys(key);
     return await this.redisCache.delKeys(keysArr);
   }
@@ -93,12 +95,14 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
   async updateDictType(sysDictType: SysDictType): Promise<number> {
     const oldDict = await this.selectDictTypeById(sysDictType.dictId);
     if (!oldDict) return 0;
-    await this.sysDictDataRepository.updateDictDataType(oldDict.dictType, sysDictType.dictType);
+    await this.sysDictDataRepository.updateDictDataType(
+      oldDict.dictType,
+      sysDictType.dictType
+    );
     const row = await this.sysDictTypeRepository.updateDictType(sysDictType);
     if (row > 0) {
       await this.loadingDictCache(sysDictType.dictType);
     }
     return row;
   }
-
 }

@@ -7,11 +7,11 @@ import { SysRole } from '../../../framework/core/model/SysRole';
  */
 export interface ISysRoleRepository {
   /**
-  * 根据条件分页查询角色数据
-  *
-  * @param query 角色信息查询信息
-  * @return 角色信息集合信息
-  */
+   * 根据条件分页查询角色数据
+   *
+   * @param query 角色信息查询信息
+   * @return 角色信息集合信息
+   */
   selectRolePage(query: any): Promise<rowPages>;
 
   /**
@@ -67,7 +67,7 @@ export interface ISysRoleRepository {
    * @param roleName 角色名称
    * @return 角色信息
    */
-  checkUniqueRoleName(roleName: string): Promise<SysRole>;
+  checkUniqueRoleName(roleName: string): Promise<string>;
 
   /**
    * 校验角色权限是否唯一
@@ -75,7 +75,7 @@ export interface ISysRoleRepository {
    * @param roleKey 角色权限
    * @return 角色信息
    */
-  checkUniqueRoleKey(roleKey: string): Promise<SysRole>;
+  checkUniqueRoleKey(roleKey: string): Promise<string>;
 
   /**
    * 修改角色信息
@@ -91,7 +91,7 @@ export interface ISysRoleRepository {
    * @param sysRole 角色信息
    * @return 结果
    */
-  insert_role(sysRole: SysRole): Promise<number>;
+  insertRole(sysRole: SysRole): Promise<number>;
 
   /**
    * 通过角色ID删除角色

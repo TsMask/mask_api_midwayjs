@@ -22,7 +22,7 @@ export class SysRole {
   /**菜单树选择项 是否关联显示 */
   menuCheckStrictly: number;
 
-  /**部门树选择项是否关联显示 */
+  /**部门树选择项 是否关联显示 */
   deptCheckStrictly: number;
 
   /**角色状态（0正常 1停用） */
@@ -45,4 +45,15 @@ export class SysRole {
 
   /**备注 */
   remark: string;
+
+  // ====== 非数据库字段属性 ======
+
+  /**菜单组 */
+  menuIds: string[];
+
+  /**部门组（数据权限） */
+  deptIds: string[];
+
+  /**角色菜单权限 */
+  permissions: string[];
 }

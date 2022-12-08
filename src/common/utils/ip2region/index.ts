@@ -30,7 +30,7 @@ export async function getRegionSearchByIp(ip: string) {
  */
 export async function getRealAddressByIp(ip: string) {
   // 未知地址
-  let real_address = '未知 未知';
+  const real_address = '未知 未知';
   try {
     // 创建searcher对象
     const searcher = newWithFileOnly(dbPath);

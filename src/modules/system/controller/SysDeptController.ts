@@ -1,5 +1,13 @@
 import { Context, Del, Put } from '@midwayjs/core';
-import { Body, Controller, Get, Inject, Param, Post, Query } from '@midwayjs/decorator';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Query,
+} from '@midwayjs/decorator';
 import { SysDept } from '../../../framework/core/model/SysDept';
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
@@ -35,7 +43,10 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:list'] })
   async excludeChild(@Param('deptId') deptId: string): Promise<Result> {
     let data = await this.sysDeptService.selectDeptList(new SysDept());
-    data = data.filter(dept => !(dept.deptId == deptId || dept.ancestors.split(',').includes(deptId)))
+    data = data.filter(
+      dept =>
+        !(dept.deptId == deptId || dept.ancestors.split(',').includes(deptId))
+    );
     return Result.okData(data);
   }
 
@@ -61,12 +72,18 @@ export class SysDeptController {
     if (sysDept && sysDept.parentId) {
       const dept = await this.sysDeptService.checkUniqueDeptName(sysDept);
       if (dept) {
-        return Result.errMsg(`新增部门【${sysDept.deptName}】失败，部门名称已存在`);
+        return Result.errMsg(
+          `新增部门【${sysDept.deptName}】失败，部门名称已存在`
+        );
       }
       // 如果父节点不为正常状态,则不允许新增子节点
-      const deptParent = await this.sysDeptService.selectDeptById(sysDept.parentId);
-      if (deptParent && deptParent.status == "1") {
-        return Result.errMsg(`上级部门【${deptParent.deptName}】停用，不允许新增`);
+      const deptParent = await this.sysDeptService.selectDeptById(
+        sysDept.parentId
+      );
+      if (deptParent && deptParent.status == '1') {
+        return Result.errMsg(
+          `上级部门【${deptParent.deptName}】停用，不允许新增`
+        );
       }
       sysDept.ancestors = `${deptParent.ancestors},${sysDept.parentId}`;
       sysDept.createBy = this.ctx.loginUser?.user?.userName;
@@ -83,18 +100,24 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
   async edit(@Body() sysDept: SysDept): Promise<Result> {
     if (sysDept.parentId == sysDept.deptId) {
-      return Result.errMsg(`修改部门【${sysDept.deptName}】失败，上级部门不能是自己`);
+      return Result.errMsg(
+        `修改部门【${sysDept.deptName}】失败，上级部门不能是自己`
+      );
     }
     // 检查同级下同名
     const dept = await this.sysDeptService.checkUniqueDeptName(sysDept);
     if (dept) {
-      return Result.errMsg(`修改部门【${sysDept.deptName}】失败，部门名称已存在`);
+      return Result.errMsg(
+        `修改部门【${sysDept.deptName}】失败，部门名称已存在`
+      );
     }
     // 上级停用
-    if (sysDept.status == "1") {
-      const hasChild = await this.sysDeptService.hasChildByDeptId(sysDept.deptId);
+    if (sysDept.status == '1') {
+      const hasChild = await this.sysDeptService.hasChildByDeptId(
+        sysDept.deptId
+      );
       if (hasChild) {
-        return Result.errMsg("该部门包含未停用的子部门！");
+        return Result.errMsg('该部门包含未停用的子部门！');
       }
     }
     sysDept.updateBy = this.ctx.loginUser?.user?.userName;
@@ -103,19 +126,19 @@ export class SysDeptController {
   }
 
   /**
-  * 删除部门
-  */
-  @Del("/:deptId")
+   * 删除部门
+   */
+  @Del('/:deptId')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   async remove(@Param('deptId') deptId: string): Promise<Result> {
     if (!deptId) return Result.err();
     const hasChild = await this.sysDeptService.hasChildByDeptId(deptId);
     if (hasChild) {
-      return Result.errMsg("存在下级部门,不允许删除");
+      return Result.errMsg('存在下级部门,不允许删除');
     }
     const existUser = await this.sysDeptService.checkDeptExistUser(deptId);
     if (existUser) {
-      return Result.errMsg("部门存在用户,不允许删除");
+      return Result.errMsg('部门存在用户,不允许删除');
     }
     const rowNum = await this.sysDeptService.deleteDeptById(deptId);
     return Result[rowNum ? 'ok' : 'err']();

@@ -38,7 +38,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
    */
   private buildDeptTreeSelect(sysDepts: SysDept[]): TreeSelect[] {
     const deptTrees: SysDept[] = this.buildDeptTree(sysDepts);
-    const s =  deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
+    const s = deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
     return s;
   }
 
@@ -62,13 +62,16 @@ export class SysDeptServiceImpl implements ISysDeptService {
   }
 
   async hasChildByDeptId(deptId: string): Promise<boolean> {
-    return await this.sysDeptRepository.hasChildByDeptId(deptId) > 0;
+    return (await this.sysDeptRepository.hasChildByDeptId(deptId)) > 0;
   }
   async checkDeptExistUser(deptId: string): Promise<boolean> {
-    return await this.sysDeptRepository.checkDeptExistUser(deptId) > 0;
+    return (await this.sysDeptRepository.checkDeptExistUser(deptId)) > 0;
   }
   async checkUniqueDeptName(sysDept: SysDept): Promise<SysDept> {
-    return await this.sysDeptRepository.checkUniqueDeptName(sysDept.deptName, sysDept.parentId);
+    return await this.sysDeptRepository.checkUniqueDeptName(
+      sysDept.deptName,
+      sysDept.parentId
+    );
   }
   checkScopeDeptData(deptId: string): Promise<boolean> {
     throw new Error('Method not implemented.');
@@ -89,7 +92,11 @@ export class SysDeptServiceImpl implements ISysDeptService {
     }
     const result = this.sysDeptRepository.updateDept(sysDept);
     // 如果该部门是启用状态，则启用该部门的所有上级部门
-    if (sysDept.status == '0' && sysDept.ancestors && sysDept.ancestors != '0') {
+    if (
+      sysDept.status == '0' &&
+      sysDept.ancestors &&
+      sysDept.ancestors != '0'
+    ) {
       await this.updateParentDeptStatusNormal(sysDept);
     }
     return result;
@@ -149,7 +156,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
         resultArr.push(dept);
       }
     }
-    if(resultArr.length == 0){
+    if (resultArr.length == 0) {
       resultArr = sysDepts;
     }
     return resultArr;
@@ -166,7 +173,8 @@ export class SysDeptServiceImpl implements ISysDeptService {
     newAncestors: string,
     oldAncestors: string
   ) {
-    let childrens: SysDept[] = await this.sysDeptRepository.selectChildrenDeptById(deptId);
+    let childrens: SysDept[] =
+      await this.sysDeptRepository.selectChildrenDeptById(deptId);
     // 替换父ID
     childrens = childrens.map(child => {
       child.ancestors = child.ancestors.replace(oldAncestors, newAncestors);

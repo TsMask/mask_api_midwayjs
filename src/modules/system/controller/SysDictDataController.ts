@@ -1,4 +1,13 @@
-import { Body, Controller, Del, Get, Inject, Param, Post, Put } from '@midwayjs/decorator';
+import {
+  Body,
+  Controller,
+  Del,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Put,
+} from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { SysDictData } from '../../../framework/core/model/SysDictData';
 import { Result } from '../../../framework/core/Result';
@@ -18,7 +27,7 @@ export class SysDictDataController {
   @Inject()
   private sysDictDataServer: SysDictDataServiceImpl;
 
-  @Get("/list")
+  @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:dict:list'] })
   async list(): Promise<Result> {
     const query = this.ctx.query;
@@ -46,7 +55,6 @@ export class SysDictDataController {
     return Result.okData(data || {});
   }
 
-
   /**
    * 根据字典类型查询字典数据信息
    */
@@ -54,15 +62,15 @@ export class SysDictDataController {
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async dictType(@Param('dictType') dictType: string): Promise<Result> {
     const sysDictData = new SysDictData();
-    sysDictData.status = "0";
+    sysDictData.status = '0';
     sysDictData.dictType = dictType;
     const data = await this.sysDictDataServer.selectDictDataList(sysDictData);
     return Result.okData(data);
   }
 
   /**
- * 新增字典类型数据
- */
+   * 新增字典类型数据
+   */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dict:add'] })
   async add(@Body() sysDictData: SysDictData): Promise<Result> {
@@ -74,10 +82,9 @@ export class SysDictDataController {
     return Result.err();
   }
 
-
   /**
- * 修改保存字典类型数据
- */
+   * 修改保存字典类型数据
+   */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
   async edit(@Body() sysDictData: SysDictData): Promise<Result> {
@@ -90,9 +97,9 @@ export class SysDictDataController {
   }
 
   /**
-* 删除字典类型数据
-*/
-  @Del("/:dictCodes")
+   * 删除字典类型数据
+   */
+  @Del('/:dictCodes')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   async remove(@Param('dictCodes') dictCodes: string): Promise<Result> {
     if (!dictCodes) return Result.err();

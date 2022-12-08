@@ -113,7 +113,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.userId && query.userId != '0') {
-      sqlStr += " and u.user_id = ? ";
+      sqlStr += ' and u.user_id = ? ';
       paramArr.push(query.userId);
     }
     if (query.userName) {
@@ -121,7 +121,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(query.userName);
     }
     if (query.status) {
-      sqlStr += " and u.status = ? ";
+      sqlStr += ' and u.status = ? ';
       paramArr.push(query.status);
     }
     if (query.phonenumber) {
@@ -141,7 +141,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(endTime);
     }
     if (query.deptId) {
-      sqlStr += " and (u.dept_id = ? OR u.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE find_in_set(?, ancestors) )) ";
+      sqlStr +=
+        ' and (u.dept_id = ? OR u.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE find_in_set(?, ancestors) )) ';
       paramArr.push(query.deptId);
       paramArr.push(query.deptId);
     }
@@ -183,7 +184,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysUser.userId && sysUser.userId != '0') {
-      sqlStr += " and u.user_id = ? ";
+      sqlStr += ' and u.user_id = ? ';
       paramArr.push(sysUser.userId);
     }
     if (sysUser.userName) {
@@ -191,7 +192,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(sysUser.userName);
     }
     if (sysUser.status) {
-      sqlStr += " and u.status = ? ";
+      sqlStr += ' and u.status = ? ';
       paramArr.push(sysUser.status);
     }
     if (sysUser.phonenumber) {
@@ -199,7 +200,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(sysUser.phonenumber);
     }
     // 查询数据数
-    const results = await this.db.execute(`${SELECT_USER_SQL} ${sqlStr}`, paramArr);
+    const results = await this.db.execute(
+      `${SELECT_USER_SQL} ${sqlStr}`,
+      paramArr
+    );
     return parseSysUserResult(results);
   }
   selectAllocatedList(sysUser: SysUser): Promise<SysUser[]> {
@@ -210,7 +214,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   }
 
   async selectUserByUserName(userName: string): Promise<SysUser> {
-    let sqlStr = `${SELECT_USER_VO} where u.del_flag = '0' and u.user_name = ?`;
+    const sqlStr = `${SELECT_USER_VO} where u.del_flag = '0' and u.user_name = ?`;
     const paramArr = [userName];
     const rows = await this.db.execute(sqlStr, paramArr);
     const sysUsers = parseSysUserResult(rows);
@@ -234,7 +238,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   }
 
   async selectUserById(userId: string): Promise<SysUser> {
-    let sqlStr = `${SELECT_USER_VO} where u.del_flag = '0' and u.user_id = ?`;
+    const sqlStr = `${SELECT_USER_VO} where u.del_flag = '0' and u.user_id = ?`;
     const paramArr = [userId];
     const rows = await this.db.execute(sqlStr, paramArr);
     const sysUsers = parseSysUserResult(rows);
@@ -306,7 +310,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return result.insertId;
   }
 
-  public async updateUser(sysUser: SysUser): Promise<number> {
+  async updateUser(sysUser: SysUser): Promise<number> {
     const paramMap = new Map();
     if (sysUser.deptId) {
       paramMap.set('dept_id', sysUser.deptId);
@@ -346,28 +350,42 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramMap.set('remark', sysUser.remark);
     }
 
-    const sqlStr = `update sys_user set ${[...paramMap.keys()].map(k => `${k} = ?`).join(', ')} where user_id = ?`;
-    const rows: ResultSetHeader = await this.db.execute(sqlStr, [...paramMap.values(), sysUser.userId]);
+    const sqlStr = `update sys_user set ${[...paramMap.keys()]
+      .map(k => `${k} = ?`)
+      .join(', ')} where user_id = ?`;
+    const rows: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+      sysUser.userId,
+    ]);
     return rows.changedRows;
   }
 
   async updateUserAvatar(userName: string, avatar: string): Promise<number> {
-    const sqlStr = `update sys_user set avatar = ? where user_name = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [avatar, userName]);
+    const sqlStr = 'update sys_user set avatar = ? where user_name = ?';
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      avatar,
+      userName,
+    ]);
     return result.changedRows;
   }
   async resetRserPwd(userName: string, password: string): Promise<number> {
-    const sqlStr = `update sys_user set password = ? where user_name = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [password, userName]);
+    const sqlStr = 'update sys_user set password = ? where user_name = ?';
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      password,
+      userName,
+    ]);
     return result.changedRows;
   }
   async deleteUserByIds(userIds: string[]): Promise<number> {
-    const sqlStr = `update sys_user set del_flag = '2' where user_id in ${userIds.map(k => `${k} = ?`).join(',')}`;
+    const sqlStr = `update sys_user set del_flag = '2' where user_id in ${userIds
+      .map(k => `${k} = ?`)
+      .join(',')}`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
     return result.changedRows;
   }
   async checkUniqueUserName(userName: string): Promise<string> {
-    const sqlStr = `select user_id as userId from sys_user where user_name = ? and del_flag = '0' limit 1`;
+    const sqlStr =
+      "select user_id as userId from sys_user where user_name = ? and del_flag = '0' limit 1";
     const paramArr = [userName];
     const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
     if (rows.length > 0) {
@@ -376,7 +394,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return null;
   }
   async checkUniquePhone(phonenumber: string): Promise<string> {
-    const sqlStr = `select user_id as userId from sys_user where phonenumber = ? and del_flag = '0' limit 1`;
+    const sqlStr =
+      "select user_id as userId from sys_user where phonenumber = ? and del_flag = '0' limit 1";
     const paramArr = [phonenumber];
     const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
     if (rows.length > 0) {
@@ -385,7 +404,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return null;
   }
   async checkUniqueEmail(email: string): Promise<string> {
-    const sqlStr = `select user_id as userId from sys_user where email = ? and del_flag = '0' limit 1`;
+    const sqlStr =
+      "select user_id as userId from sys_user where email = ? and del_flag = '0' limit 1";
     const paramArr = [email];
     const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
     if (rows.length > 0) {

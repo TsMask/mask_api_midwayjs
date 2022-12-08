@@ -41,7 +41,7 @@ export interface ISysDictTypeService {
    * 加载字典缓存数据
    * @param dictType 字典类型，不指定即加载所有
    */
-  loadingDictCache(dictType?:string): Promise<void>;
+  loadingDictCache(dictType?: string): Promise<void>;
 
   /**
    * 清空字典缓存数据

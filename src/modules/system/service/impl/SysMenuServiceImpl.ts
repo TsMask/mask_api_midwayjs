@@ -72,7 +72,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 菜单标识字符串数组
    */
   private getChildPerms(sysMenuList: SysMenu[], parentId: string): SysMenu[] {
-    let returnList = [];
+    const returnList = [];
     for (const sysMenu of sysMenuList) {
       // 一、根据传入的某个父节点ID,遍历该父节点的所有子节点
       if (sysMenu.parentId == parentId) {
@@ -104,7 +104,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * 得到子节点列表
    */
   private getChildList(sysMenuList: SysMenu[], sysMenu: SysMenu): SysMenu[] {
-    let sysMenus: SysMenu[] = [];
+    const sysMenus: SysMenu[] = [];
     for (const child of sysMenuList) {
       if (child.parentId == sysMenu.menuId) {
         sysMenus.push(child);

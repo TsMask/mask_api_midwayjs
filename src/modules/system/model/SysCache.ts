@@ -5,16 +5,16 @@
  */
 export class SysCache {
   /**缓存名称 */
-  cacheName: string = '';
+  cacheName = '';
 
   /**缓存键名 */
-  cacheKey: string = '';
+  cacheKey = '';
 
   /**缓存内容 */
-  cacheValue: string = '';
+  cacheValue = '';
 
   /**备注 */
-  remark: string = '';
+  remark = '';
 
   /**
    * 实例new函数

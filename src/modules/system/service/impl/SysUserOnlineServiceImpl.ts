@@ -46,7 +46,7 @@ export class SysUserOnlineServiceImpl implements ISysUserOnlineService {
     if (!loginUser && !loginUser.user) {
       return null;
     }
-    let sysUserOnline = new SysUserOnline();
+    const sysUserOnline = new SysUserOnline();
     sysUserOnline.tokenId = loginUser.uuid;
     sysUserOnline.userName = loginUser.user?.userName;
     sysUserOnline.ipaddr = loginUser.ipaddr;

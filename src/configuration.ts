@@ -45,8 +45,10 @@ export class ContainerLifeCycle {
   @Inject()
   decoratorService: MidwayDecoratorService;
 
-  async onReady() {
-    this.app.getLogger().warn('配置环境 => %s', this.app.getEnv());
+  /**
+   * 在依赖注入容器 ready 的时候执行
+   */
+  async onReady(): Promise<void> {
     // add middleware 添加使用中间件
     this.app.useMiddleware([ReportMiddleware]);
     // add filter 添加使用错误过滤器
@@ -61,5 +63,12 @@ export class ContainerLifeCycle {
       DECORATOR_AUTH_TOKEN_KEY,
       PreAuthorizeVerify
     );
+  }
+
+  /**
+   * 在应用服务启动后执行
+   */
+  async onServerReady(): Promise<void> {
+    this.app.getLogger().warn('配置环境 => %s', this.app.getEnv());
   }
 }

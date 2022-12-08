@@ -64,7 +64,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.dictType) {
-      sqlStr += " and dict_type = ? ";
+      sqlStr += ' and dict_type = ? ';
       paramArr.push(query.dictType);
     }
     if (query.dictLabel) {
@@ -72,7 +72,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramArr.push(query.dictLabel);
     }
     if (query.status) {
-      sqlStr += " and status = ? ";
+      sqlStr += ' and status = ? ';
       paramArr.push(query.status);
     }
     sqlStr += ' order by dict_sort asc ';
@@ -108,7 +108,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysDictData.dictType) {
-      sqlStr += " and dict_type = ? ";
+      sqlStr += ' and dict_type = ? ';
       paramArr.push(sysDictData.dictType);
     }
     if (sysDictData.dictLabel) {
@@ -116,7 +116,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramArr.push(sysDictData.dictLabel);
     }
     if (sysDictData.status) {
-      sqlStr += " and status = ? ";
+      sqlStr += ' and status = ? ';
       paramArr.push(sysDictData.status);
     }
     sqlStr += ' order by dict_sort asc ';
@@ -130,7 +130,8 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   }
 
   async selectDictLabel(dictType: string, dictValue: string): Promise<string> {
-    const sql = `select dict_label from sys_dict_data where dict_type = ? and dict_value = ?`;
+    const sql =
+      'select dict_label from sys_dict_data where dict_type = ? and dict_value = ?';
     return await this.db.execute(sql, [dictType, dictValue]);
   }
 
@@ -234,7 +235,8 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       .map(k => `${k} = ?`)
       .join(',')} where dict_code = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(), sysDictData.dictCode
+      ...paramMap.values(),
+      sysDictData.dictCode,
     ]);
     return result.changedRows;
   }
@@ -243,9 +245,10 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     oldDictType: string,
     newDictType: string
   ): Promise<number> {
-    const sqlStr = `update sys_dict_data set dict_type = ? where dict_type = ?`;
+    const sqlStr = 'update sys_dict_data set dict_type = ? where dict_type = ?';
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      newDictType, oldDictType
+      newDictType,
+      oldDictType,
     ]);
     return result.changedRows;
   }

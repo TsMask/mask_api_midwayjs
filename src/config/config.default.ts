@@ -152,6 +152,13 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       superAdmin: ['1'],
     },
 
+    /**有序唯一分布式ID */
+    flakeIdgen: {
+      /**机器编号 */
+      id: 46,
+      /**基准时间 (2022 - 1970) * 31536000 * 1000 */
+      epoch: 1639872000000,
+    },
     //
   };
 };

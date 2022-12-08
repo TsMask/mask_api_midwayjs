@@ -46,7 +46,7 @@ export class CacheController {
   @Get('/getNames')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getNames(): Promise<Result> {
-    let caches: SysCache[] = [];
+    const caches: SysCache[] = [];
     caches.push(new SysCache().newCacheNR(LOGIN_TOKEN_KEY, '用户信息'));
     caches.push(new SysCache().newCacheNR(SYS_CONFIG_KEY, '配置信息'));
     caches.push(new SysCache().newCacheNR(SYS_DICT_KEY, '数据字典'));

@@ -7,16 +7,16 @@ import { SysUserRole } from '../model/SysUserRole';
  */
 export interface ISysUserRoleRepository {
   /**
-     * 通过用户ID删除用户和角色关联
-     * 
-     * @param userId 用户ID
-     * @return 结果
-     */
+   * 通过用户ID删除用户和角色关联
+   *
+   * @param userId 用户ID
+   * @return 结果
+   */
   deleteUserRoleByUserId(userId: string): Promise<number>;
 
   /**
    * 批量删除用户和角色关联
-   * 
+   *
    * @param userIds 需要删除的用户ID
    * @return 结果
    */
@@ -24,7 +24,7 @@ export interface ISysUserRoleRepository {
 
   /**
    * 通过角色ID查询角色使用数量
-   * 
+   *
    * @param roleId 角色ID
    * @return 结果
    */
@@ -32,7 +32,7 @@ export interface ISysUserRoleRepository {
 
   /**
    * 批量新增用户角色信息
-   * 
+   *
    * @param sysUserRoles 用户角色列表
    * @return 结果
    */
@@ -40,7 +40,7 @@ export interface ISysUserRoleRepository {
 
   /**
    * 删除用户和角色关联信息
-   * 
+   *
    * @param sysUserRole 用户和角色关联信息
    * @return 结果
    */
@@ -48,7 +48,7 @@ export interface ISysUserRoleRepository {
 
   /**
    * 批量取消授权用户角色
-   * 
+   *
    * @param roleId 角色ID
    * @param userIds 需要删除的用户数据ID
    * @return 结果

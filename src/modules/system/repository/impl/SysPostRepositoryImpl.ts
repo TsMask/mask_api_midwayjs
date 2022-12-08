@@ -58,7 +58,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
   async selectPostPage(query: any): Promise<rowPages> {
     // 查询条件拼接
     let sqlStr = '';
-    let paramArr = [];
+    const paramArr = [];
     if (query.postCode) {
       sqlStr += " and post_code like concat('%', ?, '%') ";
       paramArr.push(query.postCode);
@@ -99,7 +99,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
 
   async selectPostList(sysPost: SysPost): Promise<SysPost[]> {
     let sqlStr = `${SELECT_POST_VO} where 1 = 1`;
-    let paramArr = [];
+    const paramArr = [];
     if (sysPost.postCode) {
       sqlStr += " and post_code like concat('%', ?, '%') ";
       paramArr.push(sysPost.postCode);
@@ -128,7 +128,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
   }
 
   async selectPostListByUserId(userId: string): Promise<string[]> {
-    let sqlStr = `select p.post_id from sys_post p 
+    const sqlStr = `select p.post_id from sys_post p 
     left join sys_user_post up on up.post_id = p.post_id 
     left join sys_user u on u.user_id = up.user_id 
     where u.user_id = ? `;
@@ -148,7 +148,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
   }
 
   async deletePostById(postId: string): Promise<number> {
-    const sqlStr = `delete from sys_post where post_id = ?`;
+    const sqlStr = 'delete from sys_post where post_id = ?';
     const rows = await this.db.execute(sqlStr, [postId]);
     return rows.length;
   }
@@ -186,7 +186,8 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
       .map(k => `${k} = ?`)
       .join(',')} where post_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(), sysPost.postId
+      ...paramMap.values(),
+      sysPost.postId,
     ]);
     return result.changedRows;
   }

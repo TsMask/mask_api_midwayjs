@@ -6,13 +6,12 @@ import { SysDictType } from '../../../framework/core/model/SysDictType';
  * @author TsMask <340112800@qq.com>
  */
 export interface ISysDictTypeRepository {
-
   /**
-  * 根据条件分页查询字典类型
-  *
-  * @param query 字典类型查询数据信息
-  * @return 字典数据集合信息
-  */
+   * 根据条件分页查询字典类型
+   *
+   * @param query 字典类型查询数据信息
+   * @return 字典数据集合信息
+   */
   selectDictTypePage(query: any): Promise<rowPages>;
 
   /**
@@ -70,5 +69,4 @@ export interface ISysDictTypeRepository {
    * @return 结果
    */
   updateDictType(sysDictType: SysDictType): Promise<number>;
-
 }

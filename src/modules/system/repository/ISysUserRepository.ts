@@ -7,11 +7,11 @@ import { SysUser } from '../../../framework/core/model/SysUser';
  */
 export interface ISysUserRepository {
   /**
-  * 根据条件分页查询用户列表
-  *
-  * @param query 用户信息查询信息
-  * @return 用户信息集合信息
-  */
+   * 根据条件分页查询用户列表
+   *
+   * @param query 用户信息查询信息
+   * @return 用户信息集合信息
+   */
   selectUserPage(query: any): Promise<rowPages>;
 
   /**
@@ -69,7 +69,7 @@ export interface ISysUserRepository {
    * @return 结果
    */
   updateUser(sysUser: SysUser): Promise<number>;
-  
+
   /**
    * 修改用户头像
    *

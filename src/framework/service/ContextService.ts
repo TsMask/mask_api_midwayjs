@@ -7,6 +7,7 @@ import { LoginUser } from '../core/vo/LoginUser';
 /**
  * 上下文对象服务
  *
+ * 单例模式下不可用
  * @author TsMask <340112800@qq.com>
  */
 @Provide()
@@ -77,11 +78,11 @@ export class ContextService {
   }
 
   /**
-  * 获取登录用户详细信息
-  **/
+   * 获取登录用户详细信息
+   **/
   getSysUser(): SysUser {
     try {
-      let user = this.ctx.loginUser.user;
+      const user = this.ctx.loginUser.user;
       delete user.password;
       return user;
     } catch (e) {
@@ -90,13 +91,13 @@ export class ContextService {
   }
 
   /**
-   * 是否为管理员
+   * 判断用户是否为管理员
    *
    * @param userId 用户ID
    * @return 结果
    */
   isSuperAdmin(userId: string): boolean {
-    if(!userId) return false;
+    if (!userId) return false;
     // 从本地配置获取user信息
     const { superAdmin } = this.ctx.app.getConfig('user');
     if (Array.isArray(superAdmin) && superAdmin.includes(userId)) {

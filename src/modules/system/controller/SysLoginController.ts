@@ -48,7 +48,7 @@ export class SysLoginController {
   @Get('/getInfo')
   @PreAuthorize()
   async getInfo(): Promise<Result> {
-    let user = this.contextService.getSysUser();
+    const user = this.contextService.getSysUser();
     // 角色集合
     const roles = await this.permissionService.getRolePermission(user);
     // 权限集合
@@ -75,14 +75,14 @@ export class SysLoginController {
   }
 
   /**
- * 系统登出
- * @returns 返回结果
- */
+   * 系统登出
+   * @returns 返回结果
+   */
   @Post('/logout')
   @PreAuthorize()
   async logout(): Promise<Result> {
     const loginUser = this.contextService.getLoginUser();
     this.sysLoginService.logout(loginUser.uuid);
-    return Result.okMsg("退出成功");
+    return Result.okMsg('退出成功');
   }
 }
