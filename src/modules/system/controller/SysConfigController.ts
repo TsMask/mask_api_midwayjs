@@ -9,7 +9,7 @@ import {
   Put,
 } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { parseNumber } from '../../../common/utils/ParseUtils';
+import { parseNumber } from '../../../common/utils/ValueParseUtils';
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { SysConfig } from '../model/SysConfig';

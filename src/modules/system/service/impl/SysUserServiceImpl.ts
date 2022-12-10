@@ -1,6 +1,5 @@
 import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
 import { SysUser } from '../../../../framework/core/model/SysUser';
-import { FlakeIdgenService } from '../../../../framework/service/FlakeIdgenService';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
 import { SysPostRepositoryImpl } from '../../repository/impl/SysPostRepositoryImpl';
@@ -32,9 +31,6 @@ export class SysUserServiceImpl implements ISysUserService {
 
   @Inject()
   private sysUserPostRepository: SysUserPostRepositoryImpl;
-
-  @Inject()
-  private flakeIdgenService: FlakeIdgenService;
 
   async selectUserPage(query: any): Promise<rowPages> {
     return await this.sysUserRepository.selectUserPage(query);
@@ -80,17 +76,29 @@ export class SysUserServiceImpl implements ISysUserService {
     const userId = await this.sysUserRepository.checkUniqueUserName(
       sysUser.userName
     );
-    return userId == sysUser.userId; // 用户信息与查询得到用户ID一致
+    // 用户信息与查询得到用户ID一致
+    if (userId && sysUser.userId === userId) {
+      return true;
+    }
+    return !userId;
   }
   async checkUniquePhone(sysUser: SysUser): Promise<boolean> {
     const userId = await this.sysUserRepository.checkUniquePhone(
       sysUser.phonenumber
     );
-    return userId == sysUser.userId; // 用户信息与查询得到用户ID一致
+    // 用户信息与查询得到用户ID一致
+    if (userId && sysUser.userId === userId) {
+      return true;
+    }
+    return !userId;
   }
   async checkUniqueEmail(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniquePhone(sysUser.email);
-    return userId == sysUser.userId; // 用户信息与查询得到用户ID一致
+    const userId = await this.sysUserRepository.checkUniqueEmail(sysUser.email);
+    // 用户信息与查询得到用户ID一致
+    if (userId && sysUser.userId === userId) {
+      return true;
+    }
+    return !userId;
   }
   checkUserAllowed(sysUser: SysUser): Promise<boolean> {
     throw new Error('Method not implemented.');
@@ -98,18 +106,17 @@ export class SysUserServiceImpl implements ISysUserService {
   checkUserDataScope(userId: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
-  async insertUser(sysUser: SysUser): Promise<number> {
-    // 生成ID
-    sysUser.userId = await this.flakeIdgenService.getString();
+  async insertUser(sysUser: SysUser): Promise<string> {
     // 新增用户信息
-    const rows = await this.sysUserRepository.insertUser(sysUser);
-    if (rows > 0) {
+    const insertId = await this.sysUserRepository.insertUser(sysUser);
+    if (insertId) {
+      sysUser.userId = insertId;
       // 新增用户与角色管理
       await this.insertUserRole(sysUser.userId, sysUser.roleIds);
       // 新增用户与岗位管理
       await this.insertUserPost(sysUser.userId, sysUser.postIds);
     }
-    return rows;
+    return insertId;
   }
   registerUser(sysUser: SysUser): Promise<boolean> {
     throw new Error('Method not implemented.');
@@ -181,7 +188,7 @@ export class SysUserServiceImpl implements ISysUserService {
     return await this.sysUserRepository.updateUserAvatar(userName, avatar);
   }
   async resetPwd(sysUser: SysUser): Promise<number> {
-    throw new Error('Method not implemented.');
+    return await this.sysUserRepository.updateUser(sysUser);
   }
   async resetUserPwd(userName: string, password: string): Promise<number> {
     return await this.sysUserRepository.resetRserPwd(userName, password);

@@ -1,6 +1,10 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { parseNumber } from '../../../../common/utils/ParseUtils';
+import {
+  parseStrToDate,
+  YYYY_MM_DD,
+} from '../../../../common/utils/DateFnsUtils';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysDictType } from '../../../../framework/core/model/SysDictType';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { ISysDictTypeRepository } from '../ISysDictTypeRepository';
@@ -72,15 +76,15 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
-      sqlStr +=
-        " and unix_timestamp(from_unixtime(create_time/1000,'%Y-%m-%d')) >= unix_timestamp(date_format(?,'%Y-%m-%d')) ";
-      paramArr.push(beginTime);
+      const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
+      sqlStr += ' and create_time >= ? ';
+      paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
-      sqlStr +=
-        " and unix_timestamp(from_unixtime(create_time/1000,'%Y-%m-%d')) <= unix_timestamp(date_format(?,'%Y-%m-%d')) ";
-      paramArr.push(endTime);
+      const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
+      sqlStr += ' and create_time <= ? ';
+      paramArr.push(endDate);
     }
 
     // 查询条件数 长度必为0其值为0

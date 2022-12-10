@@ -9,7 +9,7 @@ import { customAlphabet } from 'nanoid';
  * @param prefix 前缀
  * @returns string
  */
-export function generateId(size: number, prefix?: string): string {
+export function generateID(size: number, prefix?: string): string {
   const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
   const nanoid = customAlphabet(alphabet, size);
   if (prefix) return `${prefix}${nanoid()}`;
@@ -23,7 +23,7 @@ export function generateId(size: number, prefix?: string): string {
  * @param prefix 前缀
  * @returns string
  */
-export function generateUuid(size: number, prefix?: string): string {
+export function generateUUID(size: number, prefix?: string): string {
   const alphabet =
     '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-';
   const nanoid = customAlphabet(alphabet, size);

@@ -8,7 +8,7 @@
 ```js
 // 路由将忽略此中间件
 ignore(ctx: Context): boolean {
-    return ctx.path == '/api/info'
+    return ctx.path === '/api/info'
 }
 
 // 匹配到的路由会执行此中间件

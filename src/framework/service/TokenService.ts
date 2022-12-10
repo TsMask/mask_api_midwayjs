@@ -9,7 +9,7 @@ import { LoginUser } from '../core/vo/LoginUser';
 import { RedisCache } from '../redis/RedisCache';
 import { LOGIN_TOKEN_KEY } from '../../common/constants/CacheKeysConstants';
 import { SysUser } from '../core/model/SysUser';
-import { generateId } from '../../common/utils/UidUtils';
+import { generateID } from '../../common/utils/GenIdUtils';
 import { getRealAddressByIp } from '../../common/utils/ip2region';
 import { getUaInfo } from '../../common/utils/UAParserUtils';
 import * as ms from 'ms';
@@ -60,7 +60,7 @@ export class TokenService {
    */
   async createToken(loginUser: LoginUser): Promise<string> {
     // 生成用户唯一tokne32位
-    const uuid = generateId(32);
+    const uuid = generateID(32);
     loginUser.uuid = uuid;
     // 设置请求用户登录客户端
     loginUser = await this.setUserAgent(loginUser);
@@ -190,10 +190,10 @@ export class TokenService {
           return await this.getLoginUserCache(uuid);
         }
       } catch (e) {
-        if ('TokenExpiredError' == e.name) {
+        if ('TokenExpiredError' === e.name) {
           throw new UnauthorizedError(`用户授权已过期, ${e.expiredAt}.`);
         }
-        if ('JsonWebTokenError' == e.name) {
+        if ('JsonWebTokenError' === e.name) {
           throw new UnauthorizedError('用户授权无效认证.');
         }
         throw new UnauthorizedError(`用户授权信息异常, ${e.message}.`);

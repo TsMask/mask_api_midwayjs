@@ -1,6 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { parseNumber } from '../../../../common/utils/ParseUtils';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { SysNotice } from '../../model/SysNotice';
 import { ISysNoticeRepository } from '../ISysNoticeRepository';
@@ -72,11 +72,11 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const count_row: { total: number }[] = await this.db.execute(
+    const countRow: { total: number }[] = await this.db.execute(
       `select count(1) as 'total' from sys_notice where 1 = 1 ${sqlStr}`,
       paramArr
     );
-    if (count_row[0].total <= 0) {
+    if (countRow[0].total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
@@ -93,7 +93,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramArr
     );
     const rows = parseSysNoticeResult(results);
-    return { total: count_row[0].total, rows };
+    return { total: countRow[0].total, rows };
   }
 
   async selectNoticeById(noticeId: string): Promise<SysNotice> {

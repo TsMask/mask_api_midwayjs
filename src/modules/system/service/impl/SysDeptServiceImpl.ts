@@ -47,7 +47,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
     if (sysRole) {
       return this.sysDeptRepository.selectDeptListByRoleId(
         roleId,
-        sysRole.deptCheckStrictly == 1
+        sysRole.deptCheckStrictly === 1
       );
     }
     return null;
@@ -93,9 +93,9 @@ export class SysDeptServiceImpl implements ISysDeptService {
     const result = this.sysDeptRepository.updateDept(sysDept);
     // 如果该部门是启用状态，则启用该部门的所有上级部门
     if (
-      sysDept.status == '0' &&
+      sysDept.status === '0' &&
       sysDept.ancestors &&
-      sysDept.ancestors != '0'
+      sysDept.ancestors !== '0'
     ) {
       await this.updateParentDeptStatusNormal(sysDept);
     }
@@ -156,7 +156,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
         resultArr.push(dept);
       }
     }
-    if (resultArr.length == 0) {
+    if (resultArr.length === 0) {
       resultArr = sysDepts;
     }
     return resultArr;

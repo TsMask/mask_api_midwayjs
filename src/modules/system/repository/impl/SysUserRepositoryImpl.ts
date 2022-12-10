@@ -1,6 +1,11 @@
 import { Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { parseNumber } from '../../../../common/utils/ParseUtils';
+import { bcryptHash } from '../../../../common/utils/CryptoUtils';
+import {
+  parseStrToDate,
+  YYYY_MM_DD,
+} from '../../../../common/utils/DateFnsUtils';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysDept } from '../../../../framework/core/model/SysDept';
 import { SysRole } from '../../../../framework/core/model/SysRole';
 import { SysUser } from '../../../../framework/core/model/SysUser';
@@ -112,7 +117,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
-    if (query.userId && query.userId != '0') {
+    if (query.userId && query.userId !== '0') {
       sqlStr += ' and u.user_id = ? ';
       paramArr.push(query.userId);
     }
@@ -130,31 +135,31 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
-      sqlStr +=
-        " and unix_timestamp(from_unixtime(u.create_time/1000,'%Y-%m-%d')) >= unix_timestamp(date_format(?,'%Y-%m-%d')) ";
-      paramArr.push(beginTime);
+      const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
+      sqlStr += ' and u.create_time >= ? ';
+      paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
-      sqlStr +=
-        " and unix_timestamp(from_unixtime(u.create_time/1000,'%Y-%m-%d')) <= unix_timestamp(date_format(?,'%Y-%m-%d')) ";
-      paramArr.push(endTime);
+      const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
+      sqlStr += ' and u.create_time <= ? ';
+      paramArr.push(endDate);
     }
     if (query.deptId) {
       sqlStr +=
-        ' and (u.dept_id = ? OR u.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE find_in_set(?, ancestors) )) ';
+        ' and (u.dept_id = ? or u.dept_id in ( select t.dept_id from sys_dept t where find_in_set(?, ancestors) )) ';
       paramArr.push(query.deptId);
       paramArr.push(query.deptId);
     }
 
     // 查询条件数 长度必为0其值为0
-    const count_row: { total: number }[] = await this.db.execute(
+    const countRow: { total: number }[] = await this.db.execute(
       `select count(1) as 'total' from sys_user u
       left join sys_dept d on u.dept_id = d.dept_id
       where u.del_flag = '0' ${sqlStr}`,
       paramArr
     );
-    if (count_row[0].total <= 0) {
+    if (countRow[0].total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
@@ -171,7 +176,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr
     );
     const rows = parseSysUserResult(results);
-    return { total: count_row[0].total, rows };
+    return { total: countRow[0].total, rows };
   }
 
   async selectUserList(sysUser: SysUser): Promise<SysUser[]> {
@@ -183,7 +188,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
-    if (sysUser.userId && sysUser.userId != '0') {
+    if (sysUser.userId && sysUser.userId !== '0') {
       sqlStr += ' and u.user_id = ? ';
       paramArr.push(sysUser.userId);
     }
@@ -261,7 +266,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return sysUser.userId ? sysUser : null;
   }
 
-  async insertUser(sysUser: SysUser): Promise<number> {
+  async insertUser(sysUser: SysUser): Promise<string> {
     const paramMap = new Map();
     if (sysUser.userId) {
       paramMap.set('user_id', sysUser.userId);
@@ -278,20 +283,21 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.email) {
       paramMap.set('email', sysUser.email);
     }
+    if (sysUser.avatar) {
+      paramMap.set('avatar', sysUser.avatar);
+    }
     if (sysUser.phonenumber) {
       paramMap.set('phonenumber', sysUser.phonenumber);
     }
     if (sysUser.sex) {
       paramMap.set('sex', sysUser.sex);
     }
-    if (sysUser.avatar) {
-      paramMap.set('avatar', sysUser.avatar);
+    if (sysUser.password) {
+      const password = await bcryptHash(sysUser.password);
+      paramMap.set('password', password);
     }
     if (sysUser.status) {
       paramMap.set('status', sysUser.status);
-    }
-    if (sysUser.password) {
-      paramMap.set('password', sysUser.password);
     }
     if (sysUser.remark) {
       paramMap.set('remark', sysUser.remark);
@@ -307,7 +313,11 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId;
+    // 自定义用户ID时
+    if (result.insertId && sysUser.userId) {
+      return sysUser.userId;
+    }
+    return `${result.insertId}`;
   }
 
   async updateUser(sysUser: SysUser): Promise<number> {
@@ -333,6 +343,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.avatar) {
       paramMap.set('avatar', sysUser.avatar);
     }
+    if (sysUser.password) {
+      const password = await bcryptHash(sysUser.password);
+      paramMap.set('password', password);
+    }
     if (sysUser.status) {
       paramMap.set('status', sysUser.status);
     }
@@ -357,7 +371,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       ...paramMap.values(),
       sysUser.userId,
     ]);
-    return rows.changedRows;
+    return rows.affectedRows;
   }
 
   async updateUserAvatar(userName: string, avatar: string): Promise<number> {
@@ -366,7 +380,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       avatar,
       userName,
     ]);
-    return result.changedRows;
+    return result.affectedRows;
   }
   async resetRserPwd(userName: string, password: string): Promise<number> {
     const sqlStr = 'update sys_user set password = ? where user_name = ?';
@@ -374,14 +388,14 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       password,
       userName,
     ]);
-    return result.changedRows;
+    return result.affectedRows;
   }
   async deleteUserByIds(userIds: string[]): Promise<number> {
-    const sqlStr = `update sys_user set del_flag = '2' where user_id in ${userIds
-      .map(k => `${k} = ?`)
-      .join(',')}`;
+    const sqlStr = `update sys_user set del_flag = '2' where user_id in (${userIds
+      .map(() => '?')
+      .join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
-    return result.changedRows;
+    return result.affectedRows;
   }
   async checkUniqueUserName(userName: string): Promise<string> {
     const sqlStr =

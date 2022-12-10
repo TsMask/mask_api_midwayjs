@@ -38,8 +38,8 @@ export async function getRealAddressByIp(ip: string) {
     const data = await searcher.search(ip);
     if (data.region) {
       const region_arr = data.region.split('|');
-      const province = region_arr[2] == '0' ? '未知' : region_arr[2];
-      const city = region_arr[3] == '0' ? '未知' : region_arr[3];
+      const province = region_arr[2] === '0' ? '未知' : region_arr[2];
+      const city = region_arr[3] === '0' ? '未知' : region_arr[3];
       return `${province} ${city}`;
     }
   } catch (e) {

@@ -23,7 +23,7 @@ export function parseBoolean(str: string | number): boolean {
  * @param str 字符串 ab
  * @returns 结果 Ab
  */
-export function parsefirstUpper(str: string): string {
+export function parseFirstUpper(str: string): string {
   if (!str) return str;
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }

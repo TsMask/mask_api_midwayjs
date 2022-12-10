@@ -1,6 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { parseNumber } from '../../../../common/utils/ParseUtils';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysDictData } from '../../../../framework/core/model/SysDictData';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { ISysDictDataRepository } from '../ISysDictDataRepository';
@@ -75,7 +75,6 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       sqlStr += ' and status = ? ';
       paramArr.push(query.status);
     }
-    sqlStr += ' order by dict_sort asc ';
 
     // 查询条件数 长度必为0其值为0
     const countRow: { total: number }[] = await this.db.execute(
@@ -87,7 +86,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     }
 
     // 分页
-    sqlStr += ' limit ?,? ';
+    sqlStr += ' order by dict_sort asc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     let pageSize = parseNumber(query.pageSize);
     pageNum = pageNum > 0 ? pageNum - 1 : 0;

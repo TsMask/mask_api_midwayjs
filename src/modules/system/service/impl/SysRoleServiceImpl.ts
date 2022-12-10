@@ -35,8 +35,19 @@ export class SysRoleServiceImpl implements ISysRoleService {
   async selectRoleList(sysRole: SysRole): Promise<SysRole[]> {
     return await this.sysRoleRepository.selectRoleList(sysRole);
   }
-  selectRolesByUserId(userId: string): Promise<SysRole[]> {
-    throw new Error('Method not implemented.');
+
+  async selectRolesByUserId(userId: string): Promise<SysRole[]> {
+    const roles = await this.sysRoleRepository.selectRoleList(new SysRole());
+    const userRoles = await this.sysRoleRepository.selectRolePermissionByUserId(userId);
+    for (const role of roles) {
+      for (const userRole of userRoles) {
+        if (role.roleId === userRole.roleId) {
+          role.flag = true;
+          break;
+        }
+      }
+    }
+    return roles;
   }
 
   async selectRolePermissionByUserId(userId: string): Promise<string[]> {
@@ -58,18 +69,29 @@ export class SysRoleServiceImpl implements ISysRoleService {
   async selectRoleById(roleId: string): Promise<SysRole> {
     return await this.sysRoleRepository.selectRoleById(roleId);
   }
+
   async checkUniqueRoleName(sysRole: SysRole): Promise<boolean> {
     const roleId = await this.sysRoleRepository.checkUniqueRoleName(
       sysRole.roleName
     );
-    return roleId == sysRole.roleId; // 角色信息与查询得到角色ID一致
+    // 角色信息与查询得到角色ID一致
+    if (roleId && sysRole.roleId === roleId) {
+      return true;
+    }
+    return !roleId;
   }
+
   async checkUniqueRoleKey(sysRole: SysRole): Promise<boolean> {
     const roleId = await this.sysRoleRepository.checkUniqueRoleName(
       sysRole.roleKey
     );
-    return roleId == sysRole.roleId; // 角色信息与查询得到角色ID一致
+    // 角色信息与查询得到角色ID一致
+    if (roleId && sysRole.roleId === roleId) {
+      return true;
+    }
+    return !roleId;
   }
+
   checkRoleAllowed(sysRole: SysRole): Promise<boolean> {
     throw new Error('Method not implemented.');
   }

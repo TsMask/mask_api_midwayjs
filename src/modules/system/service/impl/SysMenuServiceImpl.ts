@@ -8,7 +8,7 @@ import {
   TYPE_DIR,
   TYPE_MENU,
 } from '../../../../common/constants/UserConstants';
-import { parsefirstUpper } from '../../../../common/utils/ParseUtils';
+import { parseFirstUpper } from '../../../../common/utils/ValueParseUtils';
 import { validHttp } from '../../../../common/utils/RegularUtils';
 import { SysMenu } from '../../../../framework/core/model/SysMenu';
 import { TreeSelect } from '../../../../framework/core/TreeSelect';
@@ -75,7 +75,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     const returnList = [];
     for (const sysMenu of sysMenuList) {
       // 一、根据传入的某个父节点ID,遍历该父节点的所有子节点
-      if (sysMenu.parentId == parentId) {
+      if (sysMenu.parentId === parentId) {
         const menu = this.recursionFn(sysMenuList, sysMenu);
         returnList.push(menu);
       }
@@ -106,7 +106,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
   private getChildList(sysMenuList: SysMenu[], sysMenu: SysMenu): SysMenu[] {
     const sysMenus: SysMenu[] = [];
     for (const child of sysMenuList) {
-      if (child.parentId == sysMenu.menuId) {
+      if (child.parentId === sysMenu.menuId) {
         sysMenus.push(child);
       }
     }
@@ -156,7 +156,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
         const children = new RouterVo();
         children.path = menu.path;
         children.component = menu.component;
-        children.name = parsefirstUpper(menu.path);
+        children.name = parseFirstUpper(menu.path);
         const mateVoChildren = new MetaVo();
         mateVoChildren.newTitleIconCacheLike(
           menu.menuName,
@@ -181,7 +181,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
         const routerPath = this.innerLinkReplaceEach(menu.path);
         children.path = routerPath;
         children.component = INNER_LINK;
-        children.name = parsefirstUpper(routerPath);
+        children.name = parseFirstUpper(routerPath);
         const mateVoChildren = new MetaVo();
         mateVoChildren.newTitleIconLink(menu.menuName, menu.icon, menu.path);
         children.meta = mateVoChildren;
@@ -228,7 +228,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 路由名称
    */
   private getRouteName(menu: SysMenu): string {
-    let routerName = parsefirstUpper(menu.path);
+    let routerName = parseFirstUpper(menu.path);
     // 非外链并且是一级目录（类型为目录）
     if (this.isMenuFrame(menu)) {
       routerName = '';

@@ -1,6 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { parseNumber } from '../../../../common/utils/ParseUtils';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { SysPost } from '../../model/SysPost';
 import { ISysPostRepository } from '../ISysPostRepository';

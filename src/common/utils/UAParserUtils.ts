@@ -1,3 +1,4 @@
+// 依赖来源 https://github.com/faisalman/ua-parser-js
 import * as UAParser from 'ua-parser-js';
 
 /**

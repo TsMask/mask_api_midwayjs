@@ -10,7 +10,7 @@ import { Context } from '@midwayjs/koa';
 import { TokenService } from './TokenService';
 import { LoginUser } from '../core/vo/LoginUser';
 import { UserStatus } from '../../common/enums/UserStatusEnum';
-import { parseNumber } from '../../common/utils/ParseUtils';
+import { parseNumber } from '../../common/utils/ValueParseUtils';
 import { bcryptCompare } from '../../common/utils/CryptoUtils';
 import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../modules/system/service/impl/SysUserServiceImpl';

@@ -45,7 +45,7 @@ export class SysDeptController {
     let data = await this.sysDeptService.selectDeptList(new SysDept());
     data = data.filter(
       dept =>
-        !(dept.deptId == deptId || dept.ancestors.split(',').includes(deptId))
+        !(dept.deptId === deptId || dept.ancestors.split(',').includes(deptId))
     );
     return Result.okData(data);
   }
@@ -80,7 +80,7 @@ export class SysDeptController {
       const deptParent = await this.sysDeptService.selectDeptById(
         sysDept.parentId
       );
-      if (deptParent && deptParent.status == '1') {
+      if (deptParent && deptParent.status === '1') {
         return Result.errMsg(
           `上级部门【${deptParent.deptName}】停用，不允许新增`
         );
@@ -99,7 +99,7 @@ export class SysDeptController {
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
   async edit(@Body() sysDept: SysDept): Promise<Result> {
-    if (sysDept.parentId == sysDept.deptId) {
+    if (sysDept.parentId === sysDept.deptId) {
       return Result.errMsg(
         `修改部门【${sysDept.deptName}】失败，上级部门不能是自己`
       );
@@ -112,7 +112,7 @@ export class SysDeptController {
       );
     }
     // 上级停用
-    if (sysDept.status == '1') {
+    if (sysDept.status === '1') {
       const hasChild = await this.sysDeptService.hasChildByDeptId(
         sysDept.deptId
       );

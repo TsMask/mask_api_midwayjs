@@ -31,13 +31,6 @@ export interface ISysRoleRepository {
   selectRolePermissionByUserId(userId: string): Promise<SysRole[]>;
 
   /**
-   * 查询所有角色
-   *
-   * @return 角色列表
-   */
-  selectRoleAll(): Promise<SysRole[]>;
-
-  /**
    * 根据用户ID获取角色选择框列表
    *
    * @param userId 用户ID

@@ -60,7 +60,7 @@ export interface ISysUserRepository {
    * @param sysUser 用户信息
    * @return 结果
    */
-  insertUser(sysUser: SysUser): Promise<number>;
+  insertUser(sysUser: SysUser): Promise<string>;
 
   /**
    * 修改用户信息

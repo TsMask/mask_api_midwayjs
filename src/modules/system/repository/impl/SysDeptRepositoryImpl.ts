@@ -297,7 +297,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
 
   async updateDeptStatusNormal(deptIds: string[]): Promise<number> {
     // 无参数
-    if (Array.isArray(deptIds) && deptIds.length == 0) {
+    if (Array.isArray(deptIds) && deptIds.length === 0) {
       return 0;
     }
 
@@ -310,7 +310,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
 
   async updateDeptChildren(sysDepts: SysDept[]): Promise<number> {
     // 无参数
-    if (Array.isArray(sysDepts) && sysDepts.length == 0) {
+    if (Array.isArray(sysDepts) && sysDepts.length === 0) {
       return 0;
     }
 

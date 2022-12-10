@@ -43,7 +43,7 @@ export function cryptoHmac(
   return createHmac(type, secret).update(text).digest('hex');
 }
 
-// == 下面的未知使用，不确定删除 ==
+// 下面的未知使用，不确定删除
 
 type HashType = 'sha1' | 'sha256' | 'sha512' | 'md5';
 type WXDataOptions = {

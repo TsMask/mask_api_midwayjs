@@ -58,8 +58,7 @@ export default {
         port: 3306,
         username: 'root',
         password: 'root@1234',
-        database: 'ruoyi-api-midwayjs',
-        synchronize: false, // 用于同步表结构, 上线设置false
+        database: 'ruoyi_api_midwayjs',
         logging: true, // 输出sql日志
       },
     },

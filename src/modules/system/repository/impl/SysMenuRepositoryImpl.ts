@@ -62,7 +62,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   @Inject()
   public db: MysqlManager;
 
-  selectMenuList(sys_menu: SysMenu): Promise<SysMenu[]> {
+  selectMenuList(sysMenu: SysMenu): Promise<SysMenu[]> {
     throw new Error('Method not implemented.');
   }
   selectMenuPerms(): Promise<string[]> {

@@ -100,12 +100,12 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         default: {
           /**数据库类型 */
           type: 'mysql',
-          host: '',
+          host: '127.0.0.1',
           port: 3306,
-          username: '',
-          password: '',
-          database: '',
-          /**用于同步表结构 */
+          username: '<用户名>',
+          password: '<密码>',
+          database: '<数据库>',
+          /**用于同步表结构，不建议使用 */
           synchronize: false,
           /**输出sql日志 */
           logging: false,
@@ -125,7 +125,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       },
     },
 
-    /**jwt令牌配置 https://github.com/auth0/node-jsonwebtoken */
+    /**jwt令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
     jwt: {
       /**令牌算法 */
       algorithm: 'HS512',

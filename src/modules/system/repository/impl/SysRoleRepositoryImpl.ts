@@ -1,6 +1,10 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { parseNumber } from '../../../../common/utils/ParseUtils';
+import {
+  parseStrToDate,
+  YYYY_MM_DD,
+} from '../../../../common/utils/DateFnsUtils';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysRole } from '../../../../framework/core/model/SysRole';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { ISysRoleRepository } from '../ISysRoleRepository';
@@ -66,7 +70,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
-    if (query.roleId && query.roleId != '0') {
+    if (query.roleId && query.roleId !== '0') {
       sqlStr += ' and r.role_id = ? ';
       paramArr.push(query.roleId);
     }
@@ -84,36 +88,36 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
-      sqlStr +=
-        " and unix_timestamp(from_unixtime(r.create_time/1000,'%Y-%m-%d')) >= unix_timestamp(date_format(?,'%Y-%m-%d')) ";
-      paramArr.push(beginTime);
+      const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
+      sqlStr += ' and r.create_time >= ? ';
+      paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
-      sqlStr +=
-        " and unix_timestamp(from_unixtime(r.create_time/1000,'%Y-%m-%d')) <= unix_timestamp(date_format(?,'%Y-%m-%d')) ";
-      paramArr.push(endTime);
+      const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
+      sqlStr += ' and r.create_time <= ? ';
+      paramArr.push(endDate);
     }
     if (query.deptId) {
       sqlStr +=
-        ' and (u.dept_id = ? OR u.dept_id IN ( SELECT t.dept_id FROM sys_dept t WHERE find_in_set(?, ancestors) )) ';
+        ' and (u.dept_id = ? or u.dept_id in ( select t.dept_id from sys_dept t where find_in_set(?, ancestors) )) ';
       paramArr.push(query.deptId);
       paramArr.push(query.deptId);
     }
 
     // 查询条件数 长度必为0其值为0
-    const count_row: { total: number }[] = await this.db.execute(
+    const countRow: { total: number }[] = await this.db.execute(
       `select count(1) as 'total' from sys_role r
       left join sys_user_role ur on ur.role_id = r.role_id
       left join sys_user u on u.user_id = ur.user_id
       left join sys_dept d on u.dept_id = d.dept_id where r.del_flag = '0' ${sqlStr}`,
       paramArr
     );
-    if (count_row[0].total <= 0) {
+    if (countRow[0].total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
-    sqlStr += ' limit ?,? ';
+    sqlStr += ' order by r.role_sort asc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     let pageSize = parseNumber(query.pageSize);
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
@@ -122,11 +126,11 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     paramArr.push(pageSize);
     // 查询数据数
     const results = await this.db.execute(
-      `${SELECT_ROLE_VO} where r.del_flag = '0' ${sqlStr} order by r.role_sort`,
+      `${SELECT_ROLE_VO} where r.del_flag = '0' ${sqlStr}`,
       paramArr
     );
     const rows = parseSysRoleResult(results);
-    return { total: count_row[0].total, rows };
+    return { total: countRow[0].total, rows };
   }
 
   async selectRoleList(sysRole: SysRole): Promise<SysRole[]> {
@@ -162,9 +166,6 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return parseSysRoleResult(rows);
   }
 
-  selectRoleAll(): Promise<SysRole[]> {
-    throw new Error('Method not implemented.');
-  }
   selectRoleListByUserId(userId: string): Promise<string[]> {
     throw new Error('Method not implemented.');
   }

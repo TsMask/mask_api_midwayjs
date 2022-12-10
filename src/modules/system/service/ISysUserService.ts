@@ -114,7 +114,7 @@ export interface ISysUserService {
    * @param sysUser 用户信息
    * @return 结果
    */
-  insertUser(sysUser: SysUser): Promise<number>;
+  insertUser(sysUser: SysUser): Promise<string>;
 
   /**
    * 注册用户信息

@@ -4,7 +4,7 @@ import { create, createMathExpr } from 'svg-captcha';
 import * as svgBase64 from 'mini-svg-data-uri';
 import { CAPTCHA_CODE_KEY } from '../../../common/constants/CacheKeysConstants';
 import { CAPTCHA_EXPIRATION } from '../../../common/constants/CommonConstants';
-import { generateId } from '../../../common/utils/UidUtils';
+import { generateID } from '../../../common/utils/GenIdUtils';
 import { Result } from '../../../framework/core/Result';
 import { RedisCache } from '../../../framework/redis/RedisCache';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
@@ -41,7 +41,7 @@ export class CaptchaController {
     }
 
     // 生成唯一标识
-    const uuid = generateId(16);
+    const uuid = generateID(16);
     const verifyKey = CAPTCHA_CODE_KEY + uuid;
     let data = {
       captchaEnabled: captchaEnabled,
@@ -69,7 +69,7 @@ export class CaptchaController {
       );
     }
     // 本地开发下返回结果
-    if (this.ctx.app.getEnv() == 'local') {
+    if (this.ctx.app.getEnv() === 'local') {
       data = Object.assign(
         {
           text: await this.redisCache.get(verifyKey),
