@@ -138,7 +138,7 @@ export interface ISysUserService {
    * @param userId 用户ID
    * @param roleIds 角色组
    */
-  insertAserAuth(userId: string, roleIds: string[]): Promise<boolean>;
+  insertAserAuth(userId: string, roleIds: string[]): Promise<number>;
 
   /**
    * 修改用户基本信息

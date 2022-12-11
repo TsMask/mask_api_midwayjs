@@ -10,25 +10,18 @@ export interface ISysMenuRepository {
    * 查询系统菜单列表
    *
    * @param sysMenu 菜单信息
+   * @param userId 用户ID null时是管理员显示所有菜单信息
    * @return 菜单列表
    */
-  selectMenuList(sysMenu: SysMenu): Promise<SysMenu[]>;
+  selectMenuList(sysMenu: SysMenu, userId?: string): Promise<SysMenu[]>;
 
   /**
    * 根据用户所有权限
    *
    * @return 权限列表
    */
-  selectMenuPerms(): Promise<string[]>;
-
-  /**
-   * 根据用户查询系统菜单列表
-   *
-   * @param sysMenu 菜单信息
-   * @return 菜单列表
-   */
-  selectMenuListByUserId(sysMenu: SysMenu): Promise<SysMenu[]>;
-
+  selectMenuPerms(): Promise<number[]>;
+  
   /**
    * 根据角色ID查询权限
    *
@@ -44,13 +37,6 @@ export interface ISysMenuRepository {
    * @return 权限列表
    */
   selectMenuPermsByUserId(userId: string): Promise<string[]>;
-
-  /**
-   * 根据用户ID查询菜单
-   *
-   * @return 菜单列表
-   */
-  selectMenuTreeAll(): Promise<SysMenu[]>;
 
   /**
    * 根据用户ID查询菜单
@@ -88,13 +74,21 @@ export interface ISysMenuRepository {
    */
   hasChildByMenuId(menuId: string): Promise<number>;
 
+    /**
+   * 查询菜单是否存在角色
+   *
+   * @param menuId 菜单ID
+   * @return 结果
+   */
+    checkMenuExistRole(menuId: string): Promise<number>;
+
   /**
    * 新增菜单信息
    *
    * @param sysMenu 菜单信息
    * @return 结果
    */
-  insertMenu(sysMenu: SysMenu): Promise<number>;
+  insertMenu(sysMenu: SysMenu): Promise<string>;
 
   /**
    * 修改菜单信息
@@ -119,5 +113,5 @@ export interface ISysMenuRepository {
    * @param parentId 父菜单ID
    * @return 结果
    */
-  checkUniqueMenuName(menuName: string, parentId: string): Promise<SysMenu>;
+  checkUniqueMenuName(menuName: string, parentId: string): Promise<string>;
 }

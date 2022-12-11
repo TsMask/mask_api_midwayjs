@@ -29,7 +29,6 @@ export class SysNoticeController {
 
   /**
    * 通知公告列表
-   * @returns 返回结果
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:notice:list'] })
@@ -40,9 +39,7 @@ export class SysNoticeController {
   }
 
   /**
-   * 获取通知详细信息
-   * @param noticeId 公告ID
-   * @returns 返回结果
+   * 通知公告信息
    */
   @Get('/:noticeId')
   @PreAuthorize({ hasPermissions: ['system:notice:query'] })
@@ -56,41 +53,35 @@ export class SysNoticeController {
   }
 
   /**
-   * 新增通知公告
-   * @param notice 公告实体信息
-   * @returns 返回结果
+   * 通知公告新增
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:notice:add'] })
   async add(@Body() notice: SysNotice): Promise<Result> {
     if (notice && notice.noticeContent) {
       notice.createBy = this.ctx.loginUser?.user?.userName;
-      const id = await this.sysNoticeService.insertNotice(notice);
-      return Result[id ? 'ok' : 'err']();
+      const rows = await this.sysNoticeService.insertNotice(notice);
+      return Result[rows > 0 ? 'ok' : 'err']();
     }
     return Result.err();
   }
 
   /**
-   * 修改通知公告
-   * @param notice 公告实体信息
-   * @returns 返回结果
+   * 通知公告修改
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:notice:edit'] })
   async edit(@Body() notice: SysNotice): Promise<Result> {
     if (notice && notice.noticeId) {
       notice.updateBy = this.ctx.loginUser?.user?.userName;
-      const id = await this.sysNoticeService.updateNotice(notice);
-      return Result[id ? 'ok' : 'err']();
+      const rows = await this.sysNoticeService.updateNotice(notice);
+      return Result[rows > 0 ? 'ok' : 'err']();
     }
     return Result.err();
   }
 
   /**
-   * 删除通知公告
-   * @param noticeIds 格式字符串 "id,id"
-   * @returns 返回结果
+   * 通知公告删除
    */
   @Del('/:noticeIds')
   @PreAuthorize({ hasPermissions: ['system:notice:remove'] })
@@ -98,7 +89,7 @@ export class SysNoticeController {
     if (!noticeIds) return Result.err();
     // 处理字符转id数组
     const ids = noticeIds.split(',');
-    const rowNum = await this.sysNoticeService.deleteNoticeByIds(ids);
-    return Result[rowNum ? 'ok' : 'err']();
+    const rows = await this.sysNoticeService.deleteNoticeByIds(ids);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 }

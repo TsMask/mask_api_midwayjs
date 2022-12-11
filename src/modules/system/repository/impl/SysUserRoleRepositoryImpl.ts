@@ -35,7 +35,7 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
       .map(item => `(${item.userId},${item.roleId})`)
       .join(',')}`;
     const result: ResultSetHeader = await this.db.execute(sqlStr);
-    return result.insertId;
+    return result.affectedRows;
   }
   deleteUserRoleInfo(sysUserRole: SysUserRole): Promise<number> {
     throw new Error('Method not implemented.');

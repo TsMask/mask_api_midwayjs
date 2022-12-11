@@ -69,8 +69,9 @@ export class SysLoginController {
   @PreAuthorize()
   async getRouters(): Promise<Result> {
     const userId = this.contextService.getUserId();
-    const menus = await this.sysMenuService.selectMenuTreeByUserId(userId);
-    const buildMenus = await this.sysMenuService.buildMenus(menus);
+    const isSuperAdmin = this.contextService.isSuperAdmin(userId);
+    const menus = await this.sysMenuService.selectMenuTreeByUserId(isSuperAdmin ? null : userId);
+    const buildMenus = await this.sysMenuService.buildRouteMenus(menus);
     return Result.okData(buildMenus);
   }
 

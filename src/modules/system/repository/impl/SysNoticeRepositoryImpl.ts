@@ -96,12 +96,6 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     return { total: countRow[0].total, rows };
   }
 
-  async selectNoticeById(noticeId: string): Promise<SysNotice> {
-    const sqlStr = `${SELECT_NOTICE_VO} where notice_id = ? `;
-    const rows = await this.db.execute(sqlStr, [noticeId]);
-    return parseSysNoticeResult(rows)[0] || null;
-  }
-
   async selectNoticeList(sysNotice: SysNotice): Promise<SysNotice[]> {
     let sqlStr = `${SELECT_NOTICE_VO} where 1 = 1 `;
     const paramArr = [];
@@ -121,6 +115,12 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
 
     const rows = await this.db.execute(sqlStr, paramArr);
     return parseSysNoticeResult(rows);
+  }
+
+  async selectNoticeById(noticeId: string): Promise<SysNotice> {
+    const sqlStr = `${SELECT_NOTICE_VO} where notice_id = ? `;
+    const rows = await this.db.execute(sqlStr, [noticeId]);
+    return parseSysNoticeResult(rows)[0] || null;
   }
 
   async insertNotice(sysNotice: SysNotice): Promise<number> {

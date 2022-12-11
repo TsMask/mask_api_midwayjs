@@ -26,15 +26,15 @@ export class SysMenu {
   query: string;
 
   /**是否为外链（0是 1否） */
-  isFrame: number;
+  isFrame: string;
 
   /**是否缓存（0缓存 1不缓存） */
-  isCache: number;
+  isCache: string;
 
   /**菜单类型（M目录 C菜单 F按钮） */
   menuType: string;
 
-  /**菜单状态（0显示 1隐藏） */
+  /**显示状态（0显示 1隐藏） */
   visible: string;
 
   /**菜单状态（0正常 1停用） */

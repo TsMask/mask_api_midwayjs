@@ -31,23 +31,28 @@ export const YES_FRAME = '0';
 /**是否菜单外链（否） */
 export const NO_FRAME = '1';
 
-/**菜单类型（目录） */
-export const TYPE_DIR = 'M';
+export enum MenuTypeEnum {
+    /**菜单类型（目录） */
+    DIR = 'M',
+    /**菜单类型（菜单） */
+    MENU = 'C',
+    /**菜单类型（按钮） */
+    BUTTON = 'F',
+}
 
-/**菜单类型（菜单） */
-export const TYPE_MENU = 'C';
+export enum MenuComponentEnum {
+    /**Layout组件标识 */
+    LAYOUT = 'Layout',
+    /**ParentView组件标识 */
+    PARENT_VIEW = 'ParentView',
+    /**InnerLink组件标识 */
+    INNER_LINK = 'InnerLink'
+}
 
-/**菜单类型（按钮） */
-export const TYPE_BUTTON = 'F';
+export enum ComponentEnum {
 
-/**Layout组件标识 */
-export const LAYOUT = 'Layout';
+}
 
-/**ParentView组件标识 */
-export const PARENT_VIEW = 'ParentView';
-
-/**InnerLink组件标识 */
-export const INNER_LINK = 'InnerLink';
 
 /**校验返回结果码 假0*/
 export const UNIQUE = '0';

@@ -35,6 +35,6 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
       .map(item => `(${item.userId},${item.postId})`)
       .join(',')}`;
     const result: ResultSetHeader = await this.db.execute(sqlStr);
-    return result.insertId;
+    return result.affectedRows;
   }
 }

@@ -76,24 +76,22 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:add'] })
   async add(@Body() sysRole: SysRole): Promise<Result> {
     // 判断属性值是否唯一
-    const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
-      sysRole
-    );
+    const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(sysRole);
     if (!uniqueRoleName) {
       return Result.errMsg(
-        `新增角色【${sysRole.roleName}】失败，角色名称已存在`
+        `角色新增【${sysRole.roleName}】失败，角色名称已存在`
       );
     }
     const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(sysRole);
     if (!uniqueRoleKey) {
       return Result.errMsg(
-        `新增角色【${sysRole.roleName}】失败，角色权限已存在`
+        `角色新增【${sysRole.roleName}】失败，权限字符已存在`
       );
     }
 
     sysRole.createBy = this.contextService.getUsername();
-    const id = await this.sysRoleService.insertRole(sysRole);
-    return Result[id ? 'ok' : 'err']();
+    const insertId = await this.sysRoleService.insertRole(sysRole);
+    return Result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -106,7 +104,7 @@ export class SysRoleController {
     const roleId = sysRole.roleId;
     if (!roleId) return Result.err();
     // 检查是否管理员角色
-    if (roleId === '1') {
+    if (roleId === "1") {
       return Result.errMsg('不允许操作超级管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
@@ -114,18 +112,16 @@ export class SysRoleController {
       return Result.errMsg('没有权限访问角色数据！');
     }
     // 判断属性值是否唯一
-    const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
-      sysRole
-    );
+    const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(sysRole);
     if (!uniqueRoleName) {
       return Result.errMsg(
-        `修改角色【${sysRole.roleName}】失败，角色名称已存在`
+        `角色修改【${sysRole.roleName}】失败，角色名称已存在`
       );
     }
     const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(sysRole);
     if (!uniqueRoleKey) {
       return Result.errMsg(
-        `修改角色【${sysRole.roleName}】失败，角色权限已存在`
+        `修改角色【${sysRole.roleName}】失败，权限字符已存在`
       );
     }
 
@@ -145,7 +141,7 @@ export class SysRoleController {
       }
       return Result.ok();
     }
-    return Result.errMsg(`修改角色【${sysRole.roleName}】失败，请联系管理员`);
+    return Result.errMsg(`角色修改【${sysRole.roleName}】失败，请联系管理员`);
   }
 
   /**

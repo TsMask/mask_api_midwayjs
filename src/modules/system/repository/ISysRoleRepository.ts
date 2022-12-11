@@ -84,7 +84,7 @@ export interface ISysRoleRepository {
    * @param sysRole 角色信息
    * @return 结果
    */
-  insertRole(sysRole: SysRole): Promise<number>;
+  insertRole(sysRole: SysRole): Promise<string>;
 
   /**
    * 通过角色ID删除角色

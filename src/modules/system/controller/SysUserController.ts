@@ -54,35 +54,6 @@ export class SysUserController {
     return Result.ok(data);
   }
 
-  // @Log(title = "用户管理", businessType = BusinessType.EXPORT)
-  // @PreAuthorize("@ss.hasPermi('system:user:export')")
-  // @PostMapping("/export")
-  // public void export(HttpServletResponse response, SysUser user)
-  // {
-  //     List<SysUser> list = userService.selectUserList(user);
-  //     ExcelUtil<SysUser> util = new ExcelUtil<SysUser>(SysUser.class);
-  //     util.exportExcel(response, list, "用户数据");
-  // }
-
-  // @Log(title = "用户管理", businessType = BusinessType.IMPORT)
-  // @PreAuthorize("@ss.hasPermi('system:user:import')")
-  // @PostMapping("/importData")
-  // public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception
-  // {
-  //     ExcelUtil<SysUser> util = new ExcelUtil<SysUser>(SysUser.class);
-  //     List<SysUser> userList = util.importExcel(file.getInputStream());
-  //     String operName = getUsername();
-  //     String message = userService.importUser(userList, updateSupport, operName);
-  //     return success(message);
-  // }
-
-  // @PostMapping("/importTemplate")
-  // public void importTemplate(HttpServletResponse response)
-  // {
-  //     ExcelUtil<SysUser> util = new ExcelUtil<SysUser>(SysUser.class);
-  //     util.importTemplateExcel(response, "用户数据");
-  // }
-
   /**
    * 用户信息
    */
@@ -268,19 +239,19 @@ export class SysUserController {
   @Put('/authRole')
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
   async authRoleAdd(
-    @Body('userId') userId: string,
-    @Body('roleIds') roleIds: string[]
+    @Query('userId') userId: string,
+    @Query('roleIds') roleIds: string[]
   ): Promise<Result> {
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
-    const ok = await this.sysUserService.insertAserAuth(userId, roleIds);
-    return Result[ok ? 'ok' : 'err']();
+    const rows = await this.sysUserService.insertAserAuth(userId, roleIds);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
-   * 获取部门树列表
+   * 部门树列表
    */
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
   @Get('/deptTree')

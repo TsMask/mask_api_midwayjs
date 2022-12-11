@@ -30,18 +30,6 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return this.buildDeptTreeSelect(depts);
   }
 
-  /**
-   * 构建前端所需要下拉树结构
-   *
-   * @param sysDepts 部门列表
-   * @return 下拉树结构列表
-   */
-  private buildDeptTreeSelect(sysDepts: SysDept[]): TreeSelect[] {
-    const deptTrees: SysDept[] = this.buildDeptTree(sysDepts);
-    const s = deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
-    return s;
-  }
-
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
     const sysRole = await this.sysRoleRepository.selectRoleById(roleId);
     if (sysRole) {
@@ -106,6 +94,39 @@ export class SysDeptServiceImpl implements ISysDeptService {
   }
 
   /**
+   * 构建前端所需要下拉树结构
+   *
+   * @param sysDepts 部门列表
+   * @return 下拉树结构列表
+   */
+  private buildDeptTreeSelect(sysDepts: SysDept[]): TreeSelect[] {
+    const deptTrees: SysDept[] = this.buildDeptTree(sysDepts);
+    return deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
+  }
+
+  /**
+ * 构建前端所需要树结构
+ *
+ * @param sysDepts 部门列表
+ * @return 树结构列表
+ */
+  private buildDeptTree(sysDepts: SysDept[]): SysDept[] {
+    let resultArr: SysDept[] = [];
+    const deptIds: string[] = sysDepts.map(dept => dept.deptId);
+    for (const dept of sysDepts) {
+      // 如果是顶级节点, 遍历该父节点的所有子节点
+      if (!deptIds.includes(dept.parentId)) {
+        dept.children = this.fnChildren(sysDepts, dept.deptId);
+        resultArr.push(dept);
+      }
+    }
+    if (resultArr.length === 0) {
+      resultArr = sysDepts;
+    }
+    return resultArr;
+  }
+
+  /**
    * 递归得到部门列表
    * @param sysDepts 部门列表
    * @param deptId 当前部门ID
@@ -140,27 +161,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return childrens;
   }
 
-  /**
-   * 构建前端所需要树结构
-   *
-   * @param sysDepts 部门列表
-   * @return 树结构列表
-   */
-  private buildDeptTree(sysDepts: SysDept[]): SysDept[] {
-    let resultArr: SysDept[] = [];
-    const deptIds: string[] = sysDepts.map(dept => dept.deptId);
-    for (const dept of sysDepts) {
-      // 如果是顶级节点, 遍历该父节点的所有子节点
-      if (!deptIds.includes(dept.parentId)) {
-        dept.children = this.fnChildren(sysDepts, dept.deptId);
-        resultArr.push(dept);
-      }
-    }
-    if (resultArr.length === 0) {
-      resultArr = sysDepts;
-    }
-    return resultArr;
-  }
+
 
   /**
    * 修改子元素关系

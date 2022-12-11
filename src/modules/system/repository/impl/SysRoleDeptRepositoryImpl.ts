@@ -35,6 +35,6 @@ export class SysRoleDeptRepositoryImpl implements ISysRoleDeptRepository {
       .map(item => `(${item.roleId},${item.deptId})`)
       .join(',')}`;
     const result: ResultSetHeader = await this.db.execute(sqlStr);
-    return result.insertId;
+    return result.affectedRows;
   }
 }

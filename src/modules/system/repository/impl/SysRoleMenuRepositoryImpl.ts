@@ -35,6 +35,6 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
       .map(item => `(${item.roleId},${item.menuId})`)
       .join(',')}`;
     const result: ResultSetHeader = await this.db.execute(sqlStr);
-    return result.insertId;
+    return result.affectedRows;
   }
 }

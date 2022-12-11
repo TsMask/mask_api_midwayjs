@@ -74,9 +74,8 @@ export class SysUserOnlineController {
         userOnlines.push(online);
       }
     }
-    userOnlines = userOnlines.reverse();
     return Result.ok({
-      rows: userOnlines,
+      rows: userOnlines.reverse(),
       total: keys.length,
     });
   }

@@ -97,9 +97,9 @@ export interface ISysRoleService {
    * 新增保存角色信息
    *
    * @param sysRole 角色信息
-   * @return 结果
+   * @return 返回记录ID
    */
-  insertRole(sysRole: SysRole): Promise<number>;
+  insertRole(sysRole: SysRole): Promise<string>;
 
   /**
    * 修改保存角色信息

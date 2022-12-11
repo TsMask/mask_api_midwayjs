@@ -1,6 +1,5 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { SysRole } from '../../../../framework/core/model/SysRole';
-import { FlakeIdgenService } from '../../../../framework/service/FlakeIdgenService';
 import { SysRoleMenu } from '../../model/SysRoleMenu';
 import { SysUserRole } from '../../model/SysUserRole';
 import { SysRoleDeptRepositoryImpl } from '../../repository/impl/SysRoleDeptRepositoryImpl';
@@ -24,9 +23,6 @@ export class SysRoleServiceImpl implements ISysRoleService {
 
   @Inject()
   private sysRoleDeptRepository: SysRoleDeptRepositoryImpl;
-
-  @Inject()
-  private flakeIdgenService: FlakeIdgenService;
 
   async selectRolePage(query: any): Promise<rowPages> {
     return await this.sysRoleRepository.selectRolePage(query);
@@ -102,16 +98,15 @@ export class SysRoleServiceImpl implements ISysRoleService {
     throw new Error('Method not implemented.');
   }
 
-  async insertRole(sysRole: SysRole): Promise<number> {
-    // 生成ID
-    sysRole.roleId = await this.flakeIdgenService.getString();
+  async insertRole(sysRole: SysRole): Promise<string> {
     // 新增角色信息
-    const rows = await this.sysRoleRepository.insertRole(sysRole);
-    if (rows > 0) {
+    const insertId = await this.sysRoleRepository.insertRole(sysRole);
+    if (insertId) {
+      sysRole.roleId = insertId;
       await this.insertRoleMenu(sysRole);
-      return rows;
+      return insertId;
     }
-    return rows;
+    return insertId;
   }
 
   async updateRole(sysRole: SysRole): Promise<number> {

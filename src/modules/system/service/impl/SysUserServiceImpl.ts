@@ -177,9 +177,9 @@ export class SysUserServiceImpl implements ISysUserService {
     }
     return 0;
   }
-  async insertAserAuth(userId: string, roleIds: string[]): Promise<boolean> {
+  async insertAserAuth(userId: string, roleIds: string[]): Promise<number> {
     await this.sysUserRoleRepository.deleteUserRoleByUserId(userId);
-    return (await this.insertUserRole(userId, roleIds)) > 0;
+    return await this.insertUserRole(userId, roleIds);
   }
   async updateUserProfile(sysUser: SysUser): Promise<number> {
     return await this.sysUserRepository.updateUser(sysUser);

@@ -12,10 +12,10 @@ export interface ISysMenuService {
    * 根据用户查询系统菜单列表
    *
    * @param sysMenu 菜单信息
-   * @param userId 用户ID
+   * @param userId 用户ID null时是管理员显示所有菜单信息
    * @return 菜单列表
    */
-  selectMenuList(sysMenu: SysMenu, userId: string): Promise<SysMenu[]>;
+  selectMenuList(sysMenu: SysMenu, userId?: string): Promise<SysMenu[]>;
 
   /**
    * 根据用户ID查询权限
@@ -42,6 +42,14 @@ export interface ISysMenuService {
   selectMenuTreeByUserId(userId: string): Promise<SysMenu[]>;
 
   /**
+ * 查询菜单树结构信息
+ * @param sysMenu 菜单信息
+ * @param userId 用户ID null时是管理员显示所有菜单信息
+ * @returns 菜单树信息集合
+ */
+  selectMenuTreeSelectByUserId(sysMenu: SysMenu, userId: string): Promise<TreeSelect[]>;
+
+  /**
    * 根据角色ID查询菜单树信息
    *
    * @param roleId 角色ID
@@ -50,28 +58,12 @@ export interface ISysMenuService {
   selectMenuListByRoleId(roleId: string): Promise<string[]>;
 
   /**
-   * 构建前端路由所需要的菜单
-   *
-   * @param sysMenus 菜单列表
-   * @return 路由列表
-   */
-  buildMenus(sysMenus: SysMenu[]): Promise<RouterVo[]>;
-
-  /**
-   * 构建前端所需要树结构
-   *
-   * @param sysMenus 菜单列表
-   * @return 树结构列表
-   */
-  buildMenuTree(sysMenus: SysMenu[]): Promise<SysMenu[]>;
-
-  /**
-   * 构建前端所需要下拉树结构
-   *
-   * @param sysMenus 菜单列表
-   * @return 下拉树结构列表
-   */
-  buildMenuTreeSelect(sysMenus: SysMenu[]): Promise<TreeSelect[]>;
+  * 构建前端路由所需要的菜单
+  *
+  * @param sysMenus 菜单列表
+  * @return 路由列表
+  */
+  buildRouteMenus(sysMenus: SysMenu[]): Promise<RouterVo[]>
 
   /**
    * 根据菜单ID查询信息
@@ -103,7 +95,7 @@ export interface ISysMenuService {
    * @param sysMenu 菜单信息
    * @return 结果
    */
-  insertMenu(sysMenu: SysMenu): Promise<number>;
+  insertMenu(sysMenu: SysMenu): Promise<string>;
 
   /**
    * 修改保存菜单信息
@@ -124,8 +116,8 @@ export interface ISysMenuService {
   /**
    * 校验菜单名称是否唯一
    *
-   * @param menuName 菜单名称
+   * @param sysMenu 菜单信息
    * @return 结果
    */
-  checkUniqueNenuName(menuName: string): Promise<SysMenu>;
+  checkUniqueNenuName(sysMenu: SysMenu): Promise<boolean>;
 }

@@ -399,32 +399,23 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   }
   async checkUniqueUserName(userName: string): Promise<string> {
     const sqlStr =
-      "select user_id as userId from sys_user where user_name = ? and del_flag = '0' limit 1";
+      "select user_id as str from sys_user where user_name = ? and del_flag = '0' limit 1";
     const paramArr = [userName];
-    const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
-    if (rows.length > 0) {
-      return rows[0].userId;
-    }
-    return null;
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    return rows.length > 0 ? rows[0].str : null;
   }
   async checkUniquePhone(phonenumber: string): Promise<string> {
     const sqlStr =
-      "select user_id as userId from sys_user where phonenumber = ? and del_flag = '0' limit 1";
+      "select user_id as str from sys_user where phonenumber = ? and del_flag = '0' limit 1";
     const paramArr = [phonenumber];
-    const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
-    if (rows.length > 0) {
-      return rows[0].userId;
-    }
-    return null;
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    return rows.length > 0 ? rows[0].str : null;
   }
   async checkUniqueEmail(email: string): Promise<string> {
     const sqlStr =
-      "select user_id as userId from sys_user where email = ? and del_flag = '0' limit 1";
+      "select user_id as str from sys_user where email = ? and del_flag = '0' limit 1";
     const paramArr = [email];
-    const rows: { userId: string }[] = await this.db.execute(sqlStr, paramArr);
-    if (rows.length > 0) {
-      return rows[0].userId;
-    }
-    return null;
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    return rows.length > 0 ? rows[0].str : null;
   }
 }

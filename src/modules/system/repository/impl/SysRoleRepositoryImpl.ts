@@ -106,7 +106,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: { total: number }[] = await this.db.execute(
+    const countRow: rowTotal[] = await this.db.execute(
       `select count(1) as 'total' from sys_role r
       left join sys_user_role ur on ur.role_id = r.role_id
       left join sys_user u on u.user_id = ur.user_id
@@ -182,24 +182,16 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return parseSysRoleResult(rows);
   }
   async checkUniqueRoleName(roleName: string): Promise<string> {
-    const sqlStr = `${SELECT_ROLE_VO} where r.role_name = ? and r.del_flag = '0' limit 1`;
+    const sqlStr = `select role_id as str from sys_role r where r.role_name = ? and r.del_flag = '0' limit 1`;
     const paramArr = [roleName];
-    const rows = await this.db.execute(sqlStr, paramArr);
-    const roles = parseSysRoleResult(rows);
-    if (roles.length > 0) {
-      return roles[0].roleId;
-    }
-    return null;
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    return rows.length > 0 ? rows[0].str : null;
   }
   async checkUniqueRoleKey(roleKey: string): Promise<string> {
-    const sqlStr = `${SELECT_ROLE_VO} where r.role_key = ? and r.del_flag = '0' limit 1`;
+    const sqlStr = `select role_id as str from sys_role r where r.role_key = ? and r.del_flag = '0' limit 1`;
     const paramArr = [roleKey];
-    const rows = await this.db.execute(sqlStr, paramArr);
-    const roles = parseSysRoleResult(rows);
-    if (roles.length > 0) {
-      return roles[0].roleId;
-    }
-    return null;
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    return rows.length > 0 ? rows[0].str : null;
   }
   async updateRole(sysRole: SysRole): Promise<number> {
     const paramMap = new Map();
@@ -241,7 +233,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     ]);
     return rows.changedRows;
   }
-  async insertRole(sysRole: SysRole): Promise<number> {
+  async insertRole(sysRole: SysRole): Promise<string> {
     const paramMap = new Map();
     if (sysRole.roleId) {
       paramMap.set('role_id', sysRole.roleId);
@@ -281,7 +273,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId;
+    return `${result.insertId}`;
   }
   deleteRoleById(roleId: string): Promise<number> {
     throw new Error('Method not implemented.');
