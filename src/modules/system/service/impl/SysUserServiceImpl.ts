@@ -39,11 +39,10 @@ export class SysUserServiceImpl implements ISysUserService {
   async selectUserList(sysUser: SysUser): Promise<SysUser[]> {
     return await this.sysUserRepository.selectUserList(sysUser);
   }
-  selectAllocatedList(sysUser: SysUser): Promise<SysUser[]> {
-    throw new Error('Method not implemented.');
-  }
-  selectUnallocatedList(sysUser: SysUser): Promise<SysUser[]> {
-    throw new Error('Method not implemented.');
+ 
+  async selectAllocatedPage(roleId:string, unallocated: boolean = false, query?: any): Promise<rowPages>{
+
+    return await this.sysUserRepository.selectAllocatedPage(roleId,unallocated, query);
   }
   async selectUserByUserName(userName: string): Promise<SysUser> {
     return await this.sysUserRepository.selectUserByUserName(userName);
@@ -122,6 +121,9 @@ export class SysUserServiceImpl implements ISysUserService {
     throw new Error('Method not implemented.');
   }
   async updateUser(sysUser: SysUser): Promise<number> {
+    return await this.sysUserRepository.updateUser(sysUser);
+  }
+  async updateUserAndRolePost(sysUser: SysUser): Promise<number> {
     const userId = sysUser.userId;
     // 删除用户与角色关联
     await this.sysUserRoleRepository.deleteUserRoleByUserId(userId);
@@ -143,17 +145,14 @@ export class SysUserServiceImpl implements ISysUserService {
     userId: string,
     roleIds: string[]
   ): Promise<number> {
-    if (roleIds.length > 0) {
-      const sysUserRoles: SysUserRole[] = [];
-      for (const roleId of roleIds) {
-        const ur = new SysUserRole();
-        ur.userId = userId;
-        ur.roleId = roleId;
-        sysUserRoles.push(ur);
-      }
-      return await this.sysUserRoleRepository.batchUserRole(sysUserRoles);
+    const sysUserRoles: SysUserRole[] = [];
+    for (const roleId of roleIds) {
+      const ur = new SysUserRole();
+      ur.userId = userId;
+      ur.roleId = roleId;
+      sysUserRoles.push(ur);
     }
-    return 0;
+    return await this.sysUserRoleRepository.batchUserRole(sysUserRoles);
   }
   /**
    * 新增用户岗位信息
@@ -177,9 +176,11 @@ export class SysUserServiceImpl implements ISysUserService {
     }
     return 0;
   }
-  async insertAserAuth(userId: string, roleIds: string[]): Promise<number> {
+  async insertAserAuth(userId: string, roleIds: string[]): Promise<void> {
     await this.sysUserRoleRepository.deleteUserRoleByUserId(userId);
-    return await this.insertUserRole(userId, roleIds);
+    if (roleIds.length > 0) {
+      await this.insertUserRole(userId, roleIds);
+    }
   }
   async updateUserProfile(sysUser: SysUser): Promise<number> {
     return await this.sysUserRepository.updateUser(sysUser);
@@ -187,12 +188,7 @@ export class SysUserServiceImpl implements ISysUserService {
   async updateUserAvatar(userName: string, avatar: string): Promise<number> {
     return await this.sysUserRepository.updateUserAvatar(userName, avatar);
   }
-  async resetPwd(sysUser: SysUser): Promise<number> {
-    return await this.sysUserRepository.updateUser(sysUser);
-  }
-  async resetUserPwd(userName: string, password: string): Promise<number> {
-    return await this.sysUserRepository.resetRserPwd(userName, password);
-  }
+
   async deleteUserByIds(userIds: string[]): Promise<number> {
     // 遍历检查是否都存在
     for (const userId of userIds) {

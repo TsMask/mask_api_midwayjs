@@ -28,7 +28,7 @@ export interface ISysUserRoleRepository {
    * @param roleId 角色ID
    * @return 结果
    */
-  countUserRoleByRoleId(roleId: string[]): Promise<number>;
+  countUserRoleByRoleId(roleId: string): Promise<number>;
 
   /**
    * 批量新增用户角色信息

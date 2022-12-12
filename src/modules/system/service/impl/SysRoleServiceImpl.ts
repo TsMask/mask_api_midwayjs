@@ -5,6 +5,7 @@ import { SysUserRole } from '../../model/SysUserRole';
 import { SysRoleDeptRepositoryImpl } from '../../repository/impl/SysRoleDeptRepositoryImpl';
 import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
+import { SysUserRoleRepositoryImpl } from '../../repository/impl/SysUserRoleRepositoryImpl';
 import { ISysRoleService } from '../ISysRoleService';
 
 /**
@@ -17,6 +18,9 @@ import { ISysRoleService } from '../ISysRoleService';
 export class SysRoleServiceImpl implements ISysRoleService {
   @Inject()
   private sysRoleRepository: SysRoleRepositoryImpl;
+
+  @Inject()
+  private sysUserRoleRepository: SysUserRoleRepositoryImpl;
 
   @Inject()
   private sysRoleMenuRepository: SysRoleMenuRepositoryImpl;
@@ -94,12 +98,11 @@ export class SysRoleServiceImpl implements ISysRoleService {
   checkRoleDataScope(roleId: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
-  countUserRoleByRoleId(roleId: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async countUserRoleByRoleId(roleId: string): Promise<number> {
+    return await this.sysUserRoleRepository.countUserRoleByRoleId(roleId)
   }
 
   async insertRole(sysRole: SysRole): Promise<string> {
-    // 新增角色信息
     const insertId = await this.sysRoleRepository.insertRole(sysRole);
     if (insertId) {
       sysRole.roleId = insertId;
@@ -112,13 +115,13 @@ export class SysRoleServiceImpl implements ISysRoleService {
   async updateRole(sysRole: SysRole): Promise<number> {
     // 修改角色信息
     const rows = await this.sysRoleRepository.updateRole(sysRole);
-    if (rows > 0) {
+    if (rows > 0 && sysRole.menuIds) {
       // 删除角色与菜单关联
       await this.sysRoleMenuRepository.deleteRoleMenuByRoleId(sysRole.roleId);
       await this.insertRoleMenu(sysRole);
       return rows;
     }
-    return 0;
+    return rows;
   }
 
   /**

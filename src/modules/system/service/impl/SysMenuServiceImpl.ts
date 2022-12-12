@@ -192,7 +192,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
   async selectMenuListByRoleId(roleId: string): Promise<string[]> {
     const role = await this.sysRoleRepository.selectRoleById(roleId);
-    return await this.sysMenuRepository.selectMenuListByRoleId(role.roleId, role.menuCheckStrictly === 1);
+    return await this.sysMenuRepository.selectMenuListByRoleId(role.roleId, role.menuCheckStrictly === "1");
   }
 
   async selectMenuById(menuId: string): Promise<SysMenu> {

@@ -202,16 +202,16 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       paramMap.set('role_key', sysRole.roleKey);
     }
     if (sysRole.roleSort) {
-      paramMap.set('role_sort', sysRole.roleSort);
+      paramMap.set('role_sort', parseNumber(sysRole.roleSort));
     }
     if (sysRole.dataScope) {
       paramMap.set('data_scope', sysRole.dataScope);
     }
     if (sysRole.menuCheckStrictly) {
-      paramMap.set('menu_check_strictly', sysRole.menuCheckStrictly);
+      paramMap.set('menu_check_strictly', parseNumber(sysRole.menuCheckStrictly));
     }
     if (sysRole.deptCheckStrictly) {
-      paramMap.set('dept_check_strictly', sysRole.deptCheckStrictly);
+      paramMap.set('dept_check_strictly', parseNumber(sysRole.deptCheckStrictly));
     }
     if (sysRole.status) {
       paramMap.set('status', sysRole.status);
@@ -279,10 +279,8 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     throw new Error('Method not implemented.');
   }
   async deleteRoleByIds(roleIds: string[]): Promise<number> {
-    const sqlStr = `update sys_role set del_flag = '2' where role_id in ${roleIds
-      .map(k => `${k} = ?`)
-      .join(',')}`;
+    const sqlStr = `update sys_role set del_flag = '2' where role_id in (${roleIds.map(() => `?`).join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
-    return result.changedRows;
+    return result.affectedRows;
   }
 }

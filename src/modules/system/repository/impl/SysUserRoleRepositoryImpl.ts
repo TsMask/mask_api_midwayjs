@@ -27,8 +27,10 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
-  countUserRoleByRoleId(roleId: string[]): Promise<number> {
-    throw new Error('Method not implemented.');
+  async countUserRoleByRoleId(roleId: string): Promise<number> {
+    const sqlStr = `select count(1) as total from sys_user_role where role_id = ?`;
+    const result: rowTotal[] = await this.db.execute(sqlStr, [roleId]);
+    return result[0].total;
   }
   async batchUserRole(sysUserRoles: SysUserRole[]): Promise<number> {
     const sqlStr = `insert into sys_user_role(user_id, role_id) values ${sysUserRoles

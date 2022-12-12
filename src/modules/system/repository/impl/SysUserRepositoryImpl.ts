@@ -153,7 +153,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: { total: number }[] = await this.db.execute(
+    const countRow: rowTotal[] = await this.db.execute(
       `select count(1) as 'total' from sys_user u
       left join sys_dept d on u.dept_id = d.dept_id
       where u.del_flag = '0' ${sqlStr}`,
@@ -211,11 +211,60 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     );
     return parseSysUserResult(results);
   }
-  selectAllocatedList(sysUser: SysUser): Promise<SysUser[]> {
-    throw new Error('Method not implemented.');
-  }
-  selectUnallocatedList(sysUser: SysUser): Promise<SysUser[]> {
-    throw new Error('Method not implemented.');
+  async selectAllocatedPage(roleId: string, unallocated: boolean = false, query: any): Promise<rowPages> {
+    // 查询条件拼接
+    let sqlStr = '';
+    let paramArr = [];
+    if (query.userName) {
+      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      paramArr.push(query.userName);
+    }
+    if (query.phonenumber) {
+      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      paramArr.push(query.phonenumber);
+    }
+    // 未分配角色用户
+    if (unallocated) {
+      sqlStr += ` and (r.role_id != ? or r.role_id IS NULL) and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = ?)`;
+      paramArr.push(roleId);
+      paramArr.push(roleId);
+    } else {
+      sqlStr += " and r.role_id = ? "
+      paramArr.push(roleId);
+    }
+
+    // 查询条件数 长度必为0其值为0
+    const countRow: rowTotal[] = await this.db.execute(
+      `select count(distinct u.user_id) as 'total' from sys_user u
+      left join sys_dept d on u.dept_id = d.dept_id
+      left join sys_user_role ur on u.user_id = ur.user_id
+      left join sys_role r on r.role_id = ur.role_id
+      where u.del_flag = '0' ${sqlStr}`,
+      paramArr
+    );
+    if (countRow[0].total <= 0) {
+      return { total: 0, rows: [] };
+    }
+    // 分页
+    sqlStr += ' limit ?,? ';
+    let pageNum = parseNumber(query.pageNum);
+    let pageSize = parseNumber(query.pageSize);
+    pageNum = pageNum > 0 ? pageNum - 1 : 0;
+    pageSize = pageSize > 0 ? pageSize : 10;
+    paramArr.push(pageNum * pageSize);
+    paramArr.push(pageSize);
+
+    const buildSql = `select distinct 
+    u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.status, u.create_time
+    from sys_user u
+    left join sys_dept d on u.dept_id = d.dept_id
+    left join sys_user_role ur on u.user_id = ur.user_id
+    left join sys_role r on r.role_id = ur.role_id
+    where u.del_flag = '0' ${sqlStr}`;
+    // 查询数据数
+    const results = await this.db.execute(buildSql, paramArr);
+    const rows = parseSysUserResult(results);
+    return { total: countRow[0].total, rows };
   }
 
   async selectUserByUserName(userName: string): Promise<SysUser> {
@@ -382,14 +431,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     ]);
     return result.affectedRows;
   }
-  async resetRserPwd(userName: string, password: string): Promise<number> {
-    const sqlStr = 'update sys_user set password = ? where user_name = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      password,
-      userName,
-    ]);
-    return result.affectedRows;
-  }
+
   async deleteUserByIds(userIds: string[]): Promise<number> {
     const sqlStr = `update sys_user set del_flag = '2' where user_id in (${userIds
       .map(() => '?')

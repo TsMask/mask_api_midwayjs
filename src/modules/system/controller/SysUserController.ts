@@ -20,6 +20,7 @@ import { SysRole } from '../../../framework/core/model/SysRole';
 import { SysPost } from '../model/SysPost';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysUser } from '../../../framework/core/model/SysUser';
+import { parseNumber } from '../../../common/utils/ValueParseUtils';
 
 /**
  * 用户信息
@@ -183,7 +184,7 @@ export class SysUserController {
   }
 
   /**
-   * 重置密码
+   * 用户重置密码
    */
   @Put('/resetPwd')
   @PreAuthorize({ hasPermissions: ['system:user:resetPwd'] })
@@ -205,7 +206,33 @@ export class SysUserController {
     sysUser.userId = userId;
     sysUser.password = password;
     sysUser.updateBy = this.contextService.getUsername();
-    const rows = await this.sysUserService.resetPwd(sysUser);
+    const rows = await this.sysUserService.updateUser(sysUser);
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+ * 用户状态修改
+ */
+  @Put('/changeStatus')
+  @PreAuthorize({ hasPermissions: ['system:user:edit'] })
+  async changeStatus(
+    @Body('userId') userId: string,
+    @Body('status') status: string
+  ): Promise<Result> {
+    if (!userId) return Result.err();
+    // 检查是否管理员用户
+    if (this.contextService.isSuperAdmin(userId)) {
+      return Result.errMsg('不允许操作超级管理员用户');
+    }
+    const user = await this.sysUserService.selectUserById(userId);
+    if (!user) {
+      return Result.errMsg('没有权限访问用户数据！');
+    }
+    let sysUser = new SysUser();
+    sysUser.userId = userId;
+    sysUser.status = `${parseNumber(status)}`;
+    sysUser.updateBy = this.contextService.getUsername();
+    const rows = await this.sysUserService.updateUser(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -240,18 +267,21 @@ export class SysUserController {
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
   async authRoleAdd(
     @Query('userId') userId: string,
-    @Query('roleIds') roleIds: string[]
+    @Query('roleIds') roleIds: string
   ): Promise<Result> {
+    if (!userId) return Result.err();
+    // 处理字符转id数组
+    const ids = roleIds ? roleIds.split(',') : [];
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
-    const rows = await this.sysUserService.insertAserAuth(userId, roleIds);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    await this.sysUserService.insertAserAuth(userId, ids);
+    return Result.ok();
   }
 
   /**
-   * 部门树列表
+   * 用户部门树列表
    */
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
   @Get('/deptTree')

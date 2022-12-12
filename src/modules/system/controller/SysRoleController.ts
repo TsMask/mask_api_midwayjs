@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@midwayjs/decorator';
 import { Result } from '../../../framework/core/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
@@ -15,6 +16,9 @@ import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { SysRole } from '../../../framework/core/model/SysRole';
 import { ContextService } from '../../../framework/service/ContextService';
 import { TokenService } from '../../../framework/service/TokenService';
+import { parseNumber } from '../../../common/utils/ValueParseUtils';
+import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
+import { SysDept } from '../../../framework/core/model/SysDept';
 
 /**
  * 角色信息
@@ -35,6 +39,9 @@ export class SysRoleController {
   @Inject()
   private sysRoleService: SysRoleServiceImpl;
 
+  @Inject()
+  private sysDeptService: SysDeptServiceImpl;
+
   /**
    * 角色列表列表
    */
@@ -46,22 +53,13 @@ export class SysRoleController {
     return Result.ok(data);
   }
 
-  // @Log(title = "角色管理", businessType = BusinessType.EXPORT)
-  // @PreAuthorize("@ss.hasPermi('system:role:export')")
-  // @PostMapping("/export")
-  // public void export(HttpServletResponse response, SysRole role)
-  // {
-  //     List<SysRole> list = roleService.selectRoleList(role);
-  //     ExcelUtil<SysRole> util = new ExcelUtil<SysRole>(SysRole.class);
-  //     util.exportExcel(response, list, "角色数据");
-  // }
-
   /**
    * 角色信息详情
    */
   @Get('/:roleId')
   @PreAuthorize({ hasPermissions: ['system:role:query'] })
   async getInfo(@Param('roleId') roleId: string): Promise<Result> {
+    if (!roleId) return Result.err();
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (role) {
       return Result.okData(role);
@@ -129,7 +127,7 @@ export class SysRoleController {
     const rows = await this.sysRoleService.updateRole(sysRole);
     if (rows > 0) {
       // 更新缓存用户权限
-      // 非超级管理员用户 同时 自己也拥有角色权限
+      // 非超级管理员用户 同时 自己拥有角色权限
       const loginUser = this.contextService.getLoginUser();
       const isSuperAdmin = this.contextService.isSuperAdmin(loginUser.userId);
       if (!isSuperAdmin && loginUser.user.roleIds.includes(sysRole.roleId)) {
@@ -148,12 +146,62 @@ export class SysRoleController {
    * 角色信息删除
    */
   @Del('/:roleIds')
-  @PreAuthorize({ hasPermissions: ['system:user:remove'] })
+  @PreAuthorize({ hasPermissions: ['system:role:remove'] })
   async remove(@Param('roleIds') roleIds: string): Promise<Result> {
     if (!roleIds) return Result.err();
     // 处理字符转id数组
     const ids = roleIds.split(',');
-    const rowNum = await this.sysRoleService.deleteRoleByIds(ids);
+    const rows = await this.sysRoleService.deleteRoleByIds(ids);
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+ * 角色状态变更
+ */
+  @Put('/changeStatus')
+  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  async changeStatus(@Body('roleId') roleId: string, @Body('status') status: string): Promise<Result> {
+    if (!roleId) return Result.err();
+    // 检查是否管理员角色
+    if (roleId === "1") {
+      return Result.errMsg('不允许操作超级管理员角色');
+    }
+    const role = await this.sysRoleService.selectRoleById(roleId);
+    if (!role) {
+      return Result.errMsg('没有权限访问角色数据！');
+    }
+    // 更新状态不刷新缓存
+    let sysRole = new SysRole();
+    sysRole.roleId = roleId;
+    sysRole.status = `${parseNumber(status)}`;
+    sysRole.updateBy = this.contextService.getUsername();
+    const rowNum = await this.sysRoleService.updateRole(sysRole);
     return Result[rowNum ? 'ok' : 'err']();
   }
+
+  /**
+ * 角色部门树列表
+ */
+  @Get('/deptTree/:roleId')
+  @PreAuthorize({ hasPermissions: ['system:role:query'] })
+  async deptTree(@Param("roleId") roleId: string): Promise<Result> {
+    if (!roleId) return Result.err();
+    return Result.ok({
+      checkedKeys: await this.sysDeptService.selectDeptListByRoleId(roleId),
+      depts: await this.sysDeptService.selectDeptTreeList(new SysDept())
+    });
+  }
+
+  /**
+   * 角色已分配用户列表
+   */
+  @Get('/authUser/allocatedList')
+  @PreAuthorize({ hasPermissions: ['system:role:list'] })
+  async allocatedList(@Query("roleId") roleId: string): Promise<Result> {
+    if (!roleId) return Result.err();
+    const query = this.contextService.getContext().query;
+    const data = await this.sysUserService.selectAllocatedPage(roleId, false, query);
+    return Result.ok(data);
+  }
+
 }

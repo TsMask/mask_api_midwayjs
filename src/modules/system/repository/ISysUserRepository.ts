@@ -23,20 +23,14 @@ export interface ISysUserRepository {
   selectUserList(sysUser: SysUser): Promise<SysUser[]>;
 
   /**
-   * 根据条件分页查询已配用户角色列表
+   * 根据条件分页查询分配用户角色列表
    *
-   * @param sysUser 用户信息
+   * @param roleId 角色ID
+   * @param unallocated 未分配的
+   * @param query 用户信息查询信息
    * @return 用户信息集合信息
    */
-  selectAllocatedList(sysUser: SysUser): Promise<SysUser[]>;
-
-  /**
-   * 根据条件分页查询未分配用户角色列表
-   *
-   * @param sysUser 用户信息
-   * @return 用户信息集合信息
-   */
-  selectUnallocatedList(sysUser: SysUser): Promise<SysUser[]>;
+  selectAllocatedPage(roleId:string, unallocated: boolean, query?: any): Promise<rowPages>;
 
   /**
    * 通过用户名查询用户
@@ -78,15 +72,6 @@ export interface ISysUserRepository {
    * @return 结果
    */
   updateUserAvatar(userName: string, avatar: string): Promise<number>;
-
-  /**
-   * 重置用户密码
-   *
-   * @param userName 用户名
-   * @param password 密码
-   * @return 结果
-   */
-  resetRserPwd(userName: string, password: string): Promise<number>;
 
   /**
    * 批量删除用户信息

@@ -33,10 +33,8 @@ export class SysDeptServiceImpl implements ISysDeptService {
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
     const sysRole = await this.sysRoleRepository.selectRoleById(roleId);
     if (sysRole) {
-      return this.sysDeptRepository.selectDeptListByRoleId(
-        roleId,
-        sysRole.deptCheckStrictly === 1
-      );
+      const deptCheckStrictly = sysRole.deptCheckStrictly === "1";
+      return this.sysDeptRepository.selectDeptListByRoleId(roleId, deptCheckStrictly);
     }
     return null;
   }

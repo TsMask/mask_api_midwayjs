@@ -9,8 +9,6 @@ const SELECT_DEPT_VO = `select
 d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.phone, d.email, d.status, d.del_flag, d.create_by, d.create_time 
 from sys_dept d`;
 
-const SELECT_DEPT_TOTAL = "select count(1) as 'total' from sys_dept";
-
 /**部门管理表信息实体映射 */
 const SYS_DEPT_RESULT = new Map<string, string>();
 SYS_DEPT_RESULT.set('dept_id', 'deptId');
@@ -83,7 +81,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     }
     // 查询条件数 长度必为0其值为0
     const countRow: rowTotal[] = await this.db.execute(
-      `${SELECT_DEPT_TOTAL} where 1 = 1 ${sqlStr}`,
+      `select count(1) as 'total' from sys_dept where 1 = 1 ${sqlStr}`,
       paramArr
     );
     if (countRow[0].total <= 0) {
@@ -149,7 +147,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     }
     if (deptCheckStrictly) {
       sqlStr += `and d.dept_id not in (
-      select d.parent_id from sysDept d 
+      select d.parent_id from sys_dept d 
       inner join sys_role_dept rd on d.dept_id = rd.dept_id and rd.role_id = ?
       )`;
       paramArr.push(roleId);
@@ -174,7 +172,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async selectNormalChildrenDeptById(deptId: string): Promise<number> {
-    const sqlStr = `${SELECT_DEPT_TOTAL} where status = 0 and del_flag = '0' and find_in_set(?, ancestors) `;
+    const sqlStr = `select count(1) as 'total' from sys_dept where status = 0 and del_flag = '0' and find_in_set(?, ancestors) `;
     const rows: rowTotal[] = await this.db.execute(sqlStr, [deptId]);
     return rows.length > 0 ? rows[0].total : 0;
   }
