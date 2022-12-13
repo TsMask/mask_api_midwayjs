@@ -7,20 +7,12 @@ import { SysUserPost } from '../model/SysUserPost';
  */
 export interface ISysUserPostRepository {
   /**
-   * 通过用户ID删除用户和岗位关联
-   *
-   * @param userId 用户ID
-   * @return 结果
-   */
-  deleteUserPostByUserId(userId: string): Promise<number>;
-
-  /**
    * 通过岗位ID查询岗位使用数量
    *
    * @param postId 岗位ID
    * @return 结果
    */
-  countUserPostById(postId: string): Promise<number>;
+  countUserPostByPostId(postId: string): Promise<number>;
 
   /**
    * 批量删除用户和岗位关联

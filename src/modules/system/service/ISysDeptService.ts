@@ -69,7 +69,7 @@ export interface ISysDeptService {
    * @param sysDept 部门信息
    * @return 结果
    */
-  checkUniqueDeptName(sysDept: SysDept): Promise<SysDept>;
+  checkUniqueDeptName(sysDept: SysDept): Promise<boolean>;
 
   /**
    * 校验部门是否有数据权限
@@ -84,7 +84,7 @@ export interface ISysDeptService {
    * @param sysDept 部门信息
    * @return 结果
    */
-  insertDept(sysDept: SysDept): Promise<number>;
+  insertDept(sysDept: SysDept): Promise<string>;
 
   /**
    * 修改保存部门信息

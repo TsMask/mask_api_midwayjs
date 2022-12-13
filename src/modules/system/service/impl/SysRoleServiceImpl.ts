@@ -1,5 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { SysRole } from '../../../../framework/core/model/SysRole';
+import { SysRoleDept } from '../../model/SysRoleDept';
 import { SysRoleMenu } from '../../model/SysRoleMenu';
 import { SysUserRole } from '../../model/SysUserRole';
 import { SysRoleDeptRepositoryImpl } from '../../repository/impl/SysRoleDeptRepositoryImpl';
@@ -38,7 +39,9 @@ export class SysRoleServiceImpl implements ISysRoleService {
 
   async selectRolesByUserId(userId: string): Promise<SysRole[]> {
     const roles = await this.sysRoleRepository.selectRoleList(new SysRole());
-    const userRoles = await this.sysRoleRepository.selectRolePermissionByUserId(userId);
+    const userRoles = await this.sysRoleRepository.selectRolePermissionByUserId(
+      userId
+    );
     for (const role of roles) {
       for (const userRole of userRoles) {
         if (role.roleId === userRole.roleId) {
@@ -99,7 +102,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
     throw new Error('Method not implemented.');
   }
   async countUserRoleByRoleId(roleId: string): Promise<number> {
-    return await this.sysUserRoleRepository.countUserRoleByRoleId(roleId)
+    return await this.sysUserRoleRepository.countUserRoleByRoleId(roleId);
   }
 
   async insertRole(sysRole: SysRole): Promise<string> {
@@ -145,8 +148,24 @@ export class SysRoleServiceImpl implements ISysRoleService {
   updateRoleStatus(sysRole: SysRole): Promise<number> {
     throw new Error('Method not implemented.');
   }
-  authDataScope(sysRole: SysRole): Promise<number> {
-    throw new Error('Method not implemented.');
+  async authDataScope(sysRole: SysRole): Promise<number> {
+    const roleId = sysRole.roleId;
+    // 删除角色与部门关联
+    await this.sysRoleDeptRepository.deleteRoleDept([roleId]);
+    // 新增角色和部门信息（数据权限）
+    if (sysRole.deptIds && sysRole.deptIds.length > 0) {
+      // 新增角色与部门（数据权限）管理
+      const sysRoleDepts: SysRoleDept[] = [];
+      for (const deptId of sysRole.deptIds) {
+        const rd = new SysRoleDept();
+        rd.roleId = roleId;
+        rd.deptId = deptId;
+        sysRoleDepts.push(rd);
+      }
+      await this.sysRoleDeptRepository.batchRoleDept(sysRoleDepts);
+    }
+    // 修改角色信息
+    return await this.sysRoleRepository.updateRole(sysRole);
   }
   deleteRoleById(roleId: string): Promise<number> {
     throw new Error('Method not implemented.');
@@ -174,13 +193,22 @@ export class SysRoleServiceImpl implements ISysRoleService {
     await this.sysRoleDeptRepository.deleteRoleDept(roleIds);
     return await this.sysRoleRepository.deleteRoleByIds(roleIds);
   }
-  deleteAuthUser(sysUserRole: SysUserRole): Promise<number> {
-    throw new Error('Method not implemented.');
+
+  async deleteAuthUsers(roleId: string, userIds: string[]): Promise<number> {
+    return await this.sysUserRoleRepository.deleteUserRoleInfos(
+      roleId,
+      userIds
+    );
   }
-  deleteAuthUsers(roleId: string, userIds: string[]): Promise<number> {
-    throw new Error('Method not implemented.');
-  }
-  insertAuthUsers(roleId: string, userIds: string[]): Promise<number> {
-    throw new Error('Method not implemented.');
+  async insertAuthUsers(roleId: string, userIds: string[]): Promise<number> {
+    // 新增用户与角色管理
+    const sysUserRoles: SysUserRole[] = [];
+    for (const userId of userIds) {
+      const ur = new SysUserRole();
+      ur.userId = userId;
+      ur.roleId = roleId;
+      sysUserRoles.push(ur);
+    }
+    return await this.sysUserRoleRepository.batchUserRole(sysUserRoles);
   }
 }

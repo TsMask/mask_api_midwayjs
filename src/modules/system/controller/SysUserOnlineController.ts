@@ -38,7 +38,7 @@ export class SysUserOnlineController {
     @Query('ipaddr') ipaddr: string,
     @Query('userName') userName: string
   ): Promise<Result> {
-    let userOnlines: SysUserOnline[] = [];
+    const userOnlines: SysUserOnline[] = [];
     const keys = await this.redisCache.getKeys(`${LOGIN_TOKEN_KEY}*`);
     for (const key of keys) {
       const loginUserStr = await this.redisCache.get(key);

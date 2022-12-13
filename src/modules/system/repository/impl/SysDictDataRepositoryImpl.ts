@@ -156,10 +156,10 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return result.affectedRows;
   }
 
-  async insertDictData(sysDictData: SysDictData): Promise<number> {
+  async insertDictData(sysDictData: SysDictData): Promise<string> {
     const paramMap = new Map();
-    if (sysDictData.dictSort) {
-      paramMap.set('dict_sort', sysDictData.dictSort);
+    if (sysDictData.dictSort >= 0) {
+      paramMap.set('dict_sort', parseNumber(sysDictData.dictSort));
     }
     if (sysDictData.dictLabel) {
       paramMap.set('dict_label', sysDictData.dictLabel);
@@ -177,7 +177,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramMap.set('is_default', sysDictData.isDefault);
     }
     if (sysDictData.status) {
-      paramMap.set('status', sysDictData.status);
+      paramMap.set('status', parseNumber(sysDictData.status));
     }
     if (sysDictData.remark) {
       paramMap.set('remark', sysDictData.remark);
@@ -193,13 +193,13 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId || 0;
+    return `${result.insertId}`;
   }
 
   async updateDictData(sysDictData: SysDictData): Promise<number> {
     const paramMap = new Map();
-    if (sysDictData.dictSort) {
-      paramMap.set('dict_sort', sysDictData.dictSort);
+    if (sysDictData.dictSort >= 0) {
+      paramMap.set('dict_sort', parseNumber(sysDictData.dictSort));
     }
     if (sysDictData.dictLabel) {
       paramMap.set('dict_label', sysDictData.dictLabel);
@@ -220,7 +220,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramMap.set('is_default', sysDictData.isDefault);
     }
     if (sysDictData.status) {
-      paramMap.set('status', sysDictData.status);
+      paramMap.set('status', parseNumber(sysDictData.status));
     }
     if (sysDictData.remark) {
       paramMap.set('remark', sysDictData.remark);
@@ -237,7 +237,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       ...paramMap.values(),
       sysDictData.dictCode,
     ]);
-    return result.changedRows;
+    return result.affectedRows;
   }
 
   async updateDictDataType(
@@ -249,6 +249,6 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       newDictType,
       oldDictType,
     ]);
-    return result.changedRows;
+    return result.affectedRows;
   }
 }

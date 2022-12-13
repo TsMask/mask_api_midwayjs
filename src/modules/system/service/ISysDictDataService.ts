@@ -52,7 +52,7 @@ export interface ISysDictDataService {
    * @param sysDictData 字典数据信息
    * @return 结果
    */
-  insertDictData(sysDictData: SysDictData): Promise<number>;
+  insertDictData(sysDictData: SysDictData): Promise<string>;
 
   /**
    * 修改保存字典数据信息

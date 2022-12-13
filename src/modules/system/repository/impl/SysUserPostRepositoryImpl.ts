@@ -15,14 +15,13 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
   @Inject()
   public db: MysqlManager;
 
-  async deleteUserPostByUserId(userId: string): Promise<number> {
-    const sqlStr = 'delete from sys_user_post where user_id = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [userId]);
-    return result.affectedRows;
+  async countUserPostByPostId(postId: string): Promise<number> {
+    const sqlStr =
+      'select count(1) as total from sys_user_post where post_id = ?';
+    const result: rowTotal[] = await this.db.execute(sqlStr, [postId]);
+    return result[0].total;
   }
-  countUserPostById(postId: string): Promise<number> {
-    throw new Error('Method not implemented.');
-  }
+
   async deleteUserPost(userIds: string[]): Promise<number> {
     const sqlStr = `delete from sys_user_post where user_id in (${userIds
       .map(() => '?')
@@ -30,6 +29,7 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
+
   async batchUserPost(sysUserPosts: SysUserPost[]): Promise<number> {
     const sqlStr = `insert into sys_user_post(user_id, post_id) values ${sysUserPosts
       .map(item => `(${item.userId},${item.postId})`)

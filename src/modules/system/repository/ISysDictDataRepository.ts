@@ -69,7 +69,7 @@ export interface ISysDictDataRepository {
    * @param sysDictData 字典数据信息
    * @return 结果
    */
-  insertDictData(sysDictData: SysDictData): Promise<number>;
+  insertDictData(sysDictData: SysDictData): Promise<string>;
 
   /**
    * 修改字典数据信息

@@ -60,7 +60,7 @@ export interface ISysDictTypeRepository {
    * @param sysDictType 字典类型信息
    * @return 结果
    */
-  insertDictType(sysDictType: SysDictType): Promise<number>;
+  insertDictType(sysDictType: SysDictType): Promise<string>;
 
   /**
    * 修改字典类型信息

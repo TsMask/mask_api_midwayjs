@@ -15,7 +15,7 @@ import { SysNotice } from '../model/SysNotice';
 import { SysNoticeServiceImpl } from '../service/impl/SysNoticeServiceImpl';
 
 /**
- * 公告信息
+ * 通知公告信息
  *
  * @author TsMask <340112800@qq.com>
  */
@@ -46,10 +46,8 @@ export class SysNoticeController {
   async getInfo(@Param('noticeId') noticeId: string): Promise<Result> {
     if (!noticeId) return Result.err();
     const data = await this.sysNoticeService.selectNoticeById(noticeId);
-    if (data) {
-      return Result.okData(data || {});
-    }
-    return Result.err();
+    if (!data) return Result.err();
+    return Result.okData(data);
   }
 
   /**
@@ -58,12 +56,10 @@ export class SysNoticeController {
   @Post()
   @PreAuthorize({ hasPermissions: ['system:notice:add'] })
   async add(@Body() notice: SysNotice): Promise<Result> {
-    if (notice && notice.noticeContent) {
-      notice.createBy = this.ctx.loginUser?.user?.userName;
-      const rows = await this.sysNoticeService.insertNotice(notice);
-      return Result[rows > 0 ? 'ok' : 'err']();
-    }
-    return Result.err();
+    if (!notice.noticeContent) return Result.err();
+    notice.createBy = this.ctx.loginUser?.user?.userName;
+    const rows = await this.sysNoticeService.insertNotice(notice);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -72,12 +68,10 @@ export class SysNoticeController {
   @Put()
   @PreAuthorize({ hasPermissions: ['system:notice:edit'] })
   async edit(@Body() notice: SysNotice): Promise<Result> {
-    if (notice && notice.noticeId) {
-      notice.updateBy = this.ctx.loginUser?.user?.userName;
-      const rows = await this.sysNoticeService.updateNotice(notice);
-      return Result[rows > 0 ? 'ok' : 'err']();
-    }
-    return Result.err();
+    if (!notice.noticeId) return Result.err();
+    notice.updateBy = this.ctx.loginUser?.user?.userName;
+    const rows = await this.sysNoticeService.updateNotice(notice);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**

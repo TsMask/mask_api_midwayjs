@@ -23,13 +23,6 @@ export interface ISysPostRepository {
   selectPostList(sysPost: SysPost): Promise<SysPost[]>;
 
   /**
-   * 查询所有岗位
-   *
-   * @return 岗位列表
-   */
-  selectPostAll(): Promise<SysPost[]>;
-
-  /**
    * 通过岗位ID查询岗位信息
    *
    * @param postId 岗位ID
@@ -54,14 +47,6 @@ export interface ISysPostRepository {
   selectPostsByUserName(userName: string): Promise<SysPost[]>;
 
   /**
-   * 删除岗位信息
-   *
-   * @param postId 岗位ID
-   * @return 结果
-   */
-  deletePostById(postId: string): Promise<number>;
-
-  /**
    * 批量删除岗位信息
    *
    * @param postIds 需要删除的岗位ID
@@ -83,5 +68,21 @@ export interface ISysPostRepository {
    * @param sysPost 岗位信息
    * @return 结果
    */
-  insertPost(sysPost: SysPost): Promise<number>;
+  insertPost(sysPost: SysPost): Promise<string>;
+
+  /**
+   * 校验岗位名称
+   *
+   * @param postName 岗位名称
+   * @return 结果
+   */
+  checkUniquePostName(postName: string): Promise<string>;
+
+  /**
+   * 校验岗位编码
+   *
+   * @param postCode 岗位编码
+   * @return 结果
+   */
+  checkUniquePostCode(postCode: string): Promise<string>;
 }

@@ -182,13 +182,15 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return parseSysRoleResult(rows);
   }
   async checkUniqueRoleName(roleName: string): Promise<string> {
-    const sqlStr = `select role_id as str from sys_role r where r.role_name = ? and r.del_flag = '0' limit 1`;
+    const sqlStr =
+      "select role_id as 'str' from sys_role r where r.role_name = ? and r.del_flag = '0' limit 1";
     const paramArr = [roleName];
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
   async checkUniqueRoleKey(roleKey: string): Promise<string> {
-    const sqlStr = `select role_id as str from sys_role r where r.role_key = ? and r.del_flag = '0' limit 1`;
+    const sqlStr =
+      "select role_id as 'str' from sys_role r where r.role_key = ? and r.del_flag = '0' limit 1";
     const paramArr = [roleKey];
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
@@ -201,20 +203,26 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     if (sysRole.roleKey) {
       paramMap.set('role_key', sysRole.roleKey);
     }
-    if (sysRole.roleSort) {
+    if (sysRole.roleSort >= 0) {
       paramMap.set('role_sort', parseNumber(sysRole.roleSort));
     }
     if (sysRole.dataScope) {
-      paramMap.set('data_scope', sysRole.dataScope);
+      paramMap.set('data_scope', parseNumber(sysRole.dataScope));
     }
     if (sysRole.menuCheckStrictly) {
-      paramMap.set('menu_check_strictly', parseNumber(sysRole.menuCheckStrictly));
+      paramMap.set(
+        'menu_check_strictly',
+        parseNumber(sysRole.menuCheckStrictly)
+      );
     }
     if (sysRole.deptCheckStrictly) {
-      paramMap.set('dept_check_strictly', parseNumber(sysRole.deptCheckStrictly));
+      paramMap.set(
+        'dept_check_strictly',
+        parseNumber(sysRole.deptCheckStrictly)
+      );
     }
     if (sysRole.status) {
-      paramMap.set('status', sysRole.status);
+      paramMap.set('status', parseNumber(sysRole.status));
     }
     if (sysRole.remark) {
       paramMap.set('remark', sysRole.remark);
@@ -231,7 +239,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       ...paramMap.values(),
       sysRole.roleId,
     ]);
-    return rows.changedRows;
+    return rows.affectedRows;
   }
   async insertRole(sysRole: SysRole): Promise<string> {
     const paramMap = new Map();
@@ -244,20 +252,26 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     if (sysRole.roleKey) {
       paramMap.set('role_key', sysRole.roleKey);
     }
-    if (sysRole.roleSort) {
-      paramMap.set('role_sort', sysRole.roleSort);
+    if (sysRole.roleSort >= 0) {
+      paramMap.set('role_sort', parseNumber(sysRole.roleSort));
     }
     if (sysRole.dataScope) {
-      paramMap.set('data_scope', sysRole.dataScope);
+      paramMap.set('data_scope', parseNumber(sysRole.dataScope));
     }
     if (sysRole.menuCheckStrictly) {
-      paramMap.set('menu_check_strictly', sysRole.menuCheckStrictly);
+      paramMap.set(
+        'menu_check_strictly',
+        parseNumber(sysRole.menuCheckStrictly)
+      );
     }
     if (sysRole.deptCheckStrictly) {
-      paramMap.set('dept_check_strictly', sysRole.deptCheckStrictly);
+      paramMap.set(
+        'dept_check_strictly',
+        parseNumber(sysRole.deptCheckStrictly)
+      );
     }
     if (sysRole.status) {
-      paramMap.set('status', sysRole.status);
+      paramMap.set('status', parseNumber(sysRole.status));
     }
     if (sysRole.remark) {
       paramMap.set('remark', sysRole.remark);
@@ -279,7 +293,9 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     throw new Error('Method not implemented.');
   }
   async deleteRoleByIds(roleIds: string[]): Promise<number> {
-    const sqlStr = `update sys_role set del_flag = '2' where role_id in (${roleIds.map(() => `?`).join(',')})`;
+    const sqlStr = `update sys_role set del_flag = '2' where role_id in (${roleIds
+      .map(() => '?')
+      .join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }

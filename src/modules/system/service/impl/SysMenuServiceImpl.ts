@@ -13,6 +13,7 @@ import { RouterVo } from '../../model/vo/RouterVo';
 import { SysMenuRepositoryImpl } from '../../repository/impl/SysMenuRepositoryImpl';
 import { ISysMenuService } from '../ISysMenuService';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
+import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
 
 /**
  * 菜单 服务层实现
@@ -26,6 +27,9 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
   @Inject()
   private sysRoleRepository: SysRoleRepositoryImpl;
+
+  @Inject()
+  private sysRoleMenuRepository: SysRoleMenuRepositoryImpl;
 
   async selectMenuList(sysMenu: SysMenu, userId?: string): Promise<SysMenu[]> {
     return await this.sysMenuRepository.selectMenuList(sysMenu, userId);
@@ -56,16 +60,16 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
   async selectMenuTreeByUserId(userId: string): Promise<SysMenu[]> {
     const menus = await this.sysMenuRepository.selectMenuTreeByUserId(userId);
-    return this.getChildPerms(menus, "0");
+    return this.getChildPerms(menus, '0');
   }
 
   /**
-* 根据父节点的ID获取所有子节点
-*
-* @param sysMenuList 分类表
-* @param parentId 传入的父节点ID
-* @return 菜单标识字符串数组
-*/
+   * 根据父节点的ID获取所有子节点
+   *
+   * @param sysMenuList 分类表
+   * @param parentId 传入的父节点ID
+   * @return 菜单标识字符串数组
+   */
   private getChildPerms(sysMenuList: SysMenu[], parentId: string): SysMenu[] {
     const returnList = [];
     for (const sysMenu of sysMenuList) {
@@ -115,28 +119,31 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return this.getChildList(sysMenuList, sysMenu).length > 0;
   }
 
-  async selectMenuTreeSelectByUserId(sysMenu: SysMenu, userId: string): Promise<TreeSelect[]> {
+  async selectMenuTreeSelectByUserId(
+    sysMenu: SysMenu,
+    userId: string
+  ): Promise<TreeSelect[]> {
     const menus = await this.sysMenuRepository.selectMenuList(sysMenu, userId);
     return this.buildMenuTreeSelect(menus);
   }
 
   /**
-  * 构建前端所需要下拉树结构
-  *
-  * @param sysMenus 菜单列表
-  * @return 下拉树结构列表
-  */
+   * 构建前端所需要下拉树结构
+   *
+   * @param sysMenus 菜单列表
+   * @return 下拉树结构列表
+   */
   private buildMenuTreeSelect(sysMenus: SysMenu[]): TreeSelect[] {
     const menuTrees: SysMenu[] = this.buildMenuTree(sysMenus);
     return menuTrees.map(menu => new TreeSelect().parseSysMenu(menu));
   }
 
   /**
- * 构建前端所需要树结构
- *
- * @param sysMenus 菜单列表
- * @return 树结构列表
- */
+   * 构建前端所需要树结构
+   *
+   * @param sysMenus 菜单列表
+   * @return 树结构列表
+   */
   private buildMenuTree(sysMenus: SysMenu[]): SysMenu[] {
     let resultArr: SysMenu[] = [];
     const menuIds: string[] = sysMenus.map(menu => menu.menuId);
@@ -154,11 +161,11 @@ export class SysMenuServiceImpl implements ISysMenuService {
   }
 
   /**
-* 递归得到菜单列表
-* @param sysMenus 菜单列表
-* @param menuId 当前菜单ID
-* @return 递归得到菜单列表
-*/
+   * 递归得到菜单列表
+   * @param sysMenus 菜单列表
+   * @param menuId 当前菜单ID
+   * @return 递归得到菜单列表
+   */
   private fnChildren(sysMenus: SysMenu[], menuId: string): SysMenu[] {
     // 得到子节点列表
     const childrens: SysMenu[] = this.getChildrens(sysMenus, menuId);
@@ -188,34 +195,36 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return childrens;
   }
 
-
-
   async selectMenuListByRoleId(roleId: string): Promise<string[]> {
     const role = await this.sysRoleRepository.selectRoleById(roleId);
-    return await this.sysMenuRepository.selectMenuListByRoleId(role.roleId, role.menuCheckStrictly === "1");
+    return await this.sysMenuRepository.selectMenuListByRoleId(
+      role.roleId,
+      role.menuCheckStrictly === '1'
+    );
   }
 
   async selectMenuById(menuId: string): Promise<SysMenu> {
     return await this.sysMenuRepository.selectMenuById(menuId);
   }
   async hasChildByMenuId(menuId: string): Promise<boolean> {
-    return await this.sysMenuRepository.hasChildByMenuId(menuId) > 0;
+    return (await this.sysMenuRepository.hasChildByMenuId(menuId)) > 0;
   }
   async checkMenuExistRole(menuId: string): Promise<boolean> {
-    return await this.sysMenuRepository.checkMenuExistRole(menuId) > 0;
+    return (await this.sysRoleMenuRepository.checkMenuExistRole(menuId)) > 0;
   }
   async insertMenu(sysMenu: SysMenu): Promise<string> {
-    return await this.sysMenuRepository.insertMenu(sysMenu)
+    return await this.sysMenuRepository.insertMenu(sysMenu);
   }
   async updateMenu(sysMenu: SysMenu): Promise<number> {
-    return await this.sysMenuRepository.updateMenu(sysMenu)
+    return await this.sysMenuRepository.updateMenu(sysMenu);
   }
   async deleteMenuById(menuId: string): Promise<number> {
-    return await this.sysMenuRepository.deleteMenuById(menuId)
+    return await this.sysMenuRepository.deleteMenuById(menuId);
   }
   async checkUniqueNenuName(sysMenu: SysMenu): Promise<boolean> {
     const menuId = await this.sysMenuRepository.checkUniqueMenuName(
-      sysMenu.menuName, sysMenu.parentId
+      sysMenu.menuName,
+      sysMenu.parentId
     );
     // 菜单信息与查询得到菜单ID一致
     if (menuId && sysMenu.menuId === menuId) {
@@ -223,7 +232,6 @@ export class SysMenuServiceImpl implements ISysMenuService {
     }
     return !menuId;
   }
-
 
   async buildRouteMenus(sysMenus: SysMenu[]): Promise<RouterVo[]> {
     const routers: RouterVo[] = [];
@@ -238,7 +246,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       metaVo.newTitleIconCacheLike(
         menu.menuName,
         menu.icon,
-        menu.isCache === "1",
+        menu.isCache === '1',
         menu.path
       );
       router.meta = metaVo;
@@ -262,7 +270,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
         mateVoChildren.newTitleIconCacheLike(
           menu.menuName,
           menu.icon,
-          menu.isCache === "1",
+          menu.isCache === '1',
           menu.path
         );
         children.meta = mateVoChildren;
@@ -272,7 +280,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       }
       // 父id且为内链组件
       const isInnerLink = this.isInnerLink(menu);
-      if (menu.parentId === "0" && isInnerLink) {
+      if (menu.parentId === '0' && isInnerLink) {
         const mateVo = new MetaVo();
         mateVo.newTitleIcon(menu.menuName, menu.icon);
         router.meta = mateVo;
@@ -318,13 +326,13 @@ export class SysMenuServiceImpl implements ISysMenuService {
   private getRouterPath(menu: SysMenu): string {
     let routerPath = menu.path;
     // 内链打开外网方式
-    if (menu.parentId !== "0" && this.isInnerLink(menu)) {
+    if (menu.parentId !== '0' && this.isInnerLink(menu)) {
       routerPath = this.innerLinkReplaceEach(routerPath);
     }
     // 非外链并且是一级目录（类型为目录）
     if (
-      menu.parentId === "0" &&
-      menu.isFrame === "1" &&
+      menu.parentId === '0' &&
+      menu.isFrame === '1' &&
       menu.menuType === MenuTypeEnum.DIR
     ) {
       routerPath = `/${menu.path}`;
@@ -348,7 +356,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       component = menu.component;
     } else if (
       menu.component &&
-      menu.parentId !== "0" &&
+      menu.parentId !== '0' &&
       this.isInnerLink(menu)
     ) {
       component = MenuComponentEnum.INNER_LINK;
@@ -365,7 +373,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 结果
    */
   private isInnerLink(menu: SysMenu): boolean {
-    return menu.isFrame === "1" && validHttp(menu.path);
+    return menu.isFrame === '1' && validHttp(menu.path);
   }
 
   /**
@@ -376,8 +384,8 @@ export class SysMenuServiceImpl implements ISysMenuService {
    */
   private isMenuFrame(menu: SysMenu): boolean {
     return (
-      menu.parentId === "0" &&
-      menu.isFrame === "1" &&
+      menu.parentId === '0' &&
+      menu.isFrame === '1' &&
       menu.menuType === MenuTypeEnum.MENU
     );
   }
@@ -389,7 +397,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 结果
    */
   private isParentView(menu: SysMenu): boolean {
-    return menu.parentId !== "0" && menu.menuType === MenuTypeEnum.MENU;
+    return menu.parentId !== '0' && menu.menuType === MenuTypeEnum.MENU;
   }
 
   /**

@@ -1,5 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysDept } from '../../../../framework/core/model/SysDept';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { ISysDeptRepository } from '../ISysDeptRepository';
@@ -58,57 +59,6 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   @Inject()
   private db: MysqlManager;
 
-  async selectDeptPage(pageBody: any): Promise<rowPages> {
-    // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
-    const sysDept: SysDept = pageBody.search;
-    if (sysDept.deptId) {
-      sqlStr += ' and dept_id = ? ';
-      paramArr.push(sysDept.deptId);
-    }
-    if (sysDept.parentId) {
-      sqlStr += ' and parent_id = ? ';
-      paramArr.push(sysDept.parentId);
-    }
-    if (sysDept.deptName) {
-      sqlStr += " and dept_name like concat('%', ?, '%') ";
-      paramArr.push(sysDept.deptName);
-    }
-    if (sysDept.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(sysDept.status);
-    }
-    // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
-      `select count(1) as 'total' from sys_dept where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    if (countRow[0].total <= 0) {
-      return { total: 0, rows: [] };
-    }
-
-    // 排序列
-    if (pageBody.orderByColumn && pageBody.orderByIs) {
-      sqlStr += ' order by ? ? ';
-      paramArr.push(pageBody.orderByColumn);
-      paramArr.push(pageBody.orderByIs);
-    }
-    // 分页
-    if (pageBody.pageNum && pageBody.pageSize) {
-      sqlStr += ' limit ?,? ';
-      paramArr.push(pageBody.pageNum - 1);
-      paramArr.push(pageBody.pageNum * pageBody.pageSize);
-    }
-    // 查询数据数
-    const rows = await this.db.execute(
-      `${SELECT_DEPT_VO} where d.del_flag = '0' ${sqlStr}`,
-      paramArr
-    );
-    // 将数据包装
-    return { total: countRow[0].total, rows };
-  }
-
   async selectDeptList(sysDept: SysDept): Promise<SysDept[]> {
     let sqlStr = `${SELECT_DEPT_VO} where d.del_flag = '0' `;
     const paramArr = [];
@@ -137,7 +87,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     roleId: string,
     deptCheckStrictly: boolean
   ): Promise<string[]> {
-    let sqlStr = `select d.dept_id as str from sys_dept d
+    let sqlStr = `select d.dept_id as 'str' from sys_dept d
     left join sys_role_dept rd on d.dept_id = rd.dept_id
     where 1 = 1`;
     const paramArr = [];
@@ -172,7 +122,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async selectNormalChildrenDeptById(deptId: string): Promise<number> {
-    const sqlStr = `select count(1) as 'total' from sys_dept where status = 0 and del_flag = '0' and find_in_set(?, ancestors) `;
+    const sqlStr =
+      "select count(1) as 'total' from sys_dept where status = 0 and del_flag = '0' and find_in_set(?, ancestors) ";
     const rows: rowTotal[] = await this.db.execute(sqlStr, [deptId]);
     return rows.length > 0 ? rows[0].total : 0;
   }
@@ -194,23 +145,15 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   async checkUniqueDeptName(
     deptName: string,
     parentId: string
-  ): Promise<SysDept> {
-    let sqlStr = `${SELECT_DEPT_VO} where 1 = 1`;
-    const paramArr = [];
-    if (deptName) {
-      sqlStr += ' and dept_name = ? ';
-      paramArr.push(deptName);
-    }
-    if (parentId) {
-      sqlStr += ' and parent_id = ? ';
-      paramArr.push(parentId);
-    }
-    sqlStr += " and del_flag = '0' limit 1 ";
-    const rows = await this.db.execute(sqlStr, paramArr);
-    return parseSysDeptResult(rows)[0] || null;
+  ): Promise<string> {
+    const sqlStr =
+      "select dept_id as 'str' from sys_dept where dept_name = ? and parent_id = ? and del_flag = '0' limit 1";
+    const paramArr = [deptName, parentId];
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    return rows.length > 0 ? rows[0].str : null;
   }
 
-  async insertDept(sysDept: SysDept): Promise<number> {
+  async insertDept(sysDept: SysDept): Promise<string> {
     const paramMap = new Map();
     if (sysDept.deptId) {
       paramMap.set('dept_id', sysDept.deptId);
@@ -224,8 +167,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     if (sysDept.ancestors) {
       paramMap.set('ancestors', sysDept.ancestors);
     }
-    if (sysDept.orderNum) {
-      paramMap.set('order_num', sysDept.orderNum);
+    if (sysDept.orderNum >= 0) {
+      paramMap.set('order_num', parseNumber(sysDept.orderNum));
     }
     if (sysDept.leader) {
       paramMap.set('leader', sysDept.leader);
@@ -237,7 +180,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       paramMap.set('email', sysDept.email);
     }
     if (sysDept.status) {
-      paramMap.set('status', sysDept.status);
+      paramMap.set('status', parseNumber(sysDept.status));
     }
     if (sysDept.createBy) {
       paramMap.set('create_by', sysDept.createBy);
@@ -250,7 +193,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId || 0;
+    return `${result.insertId}`;
   }
 
   async updateDept(sysDept: SysDept): Promise<number> {
@@ -264,8 +207,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     if (sysDept.ancestors) {
       paramMap.set('ancestors', sysDept.ancestors);
     }
-    if (sysDept.orderNum) {
-      paramMap.set('order_num', sysDept.orderNum);
+    if (sysDept.orderNum >= 0) {
+      paramMap.set('order_num', parseNumber(sysDept.orderNum));
     }
     if (sysDept.leader) {
       paramMap.set('leader', sysDept.leader);
@@ -277,7 +220,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       paramMap.set('email', sysDept.email);
     }
     if (sysDept.status) {
-      paramMap.set('status', sysDept.status);
+      paramMap.set('status', parseNumber(sysDept.status));
     }
     if (sysDept.updateBy) {
       paramMap.set('update_by', sysDept.updateBy);
@@ -290,20 +233,15 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       ...paramMap.values(),
       sysDept.deptId,
     ]);
-    return result.changedRows;
+    return result.affectedRows;
   }
 
   async updateDeptStatusNormal(deptIds: string[]): Promise<number> {
-    // 无参数
-    if (Array.isArray(deptIds) && deptIds.length === 0) {
-      return 0;
-    }
-
     const sqlStr = `update sys_dept set status = '0' where dept_id in (${deptIds
       .map(() => '?')
       .join(',')}) `;
     const result: ResultSetHeader = await this.db.execute(sqlStr, deptIds);
-    return result.changedRows;
+    return result.affectedRows;
   }
 
   async updateDeptChildren(sysDepts: SysDept[]): Promise<number> {
@@ -324,12 +262,12 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       ' '
     )} where dept_id in (${paramArr.map(() => '?').join(',')}) `;
     const result: ResultSetHeader = await this.db.execute(sqlStr, paramArr);
-    return result.changedRows;
+    return result.affectedRows;
   }
 
   async deleteDeptById(deptId: string): Promise<number> {
     const sqlStr = "update sys_dept set del_flag = '2' where dept_id = ?";
     const result: ResultSetHeader = await this.db.execute(sqlStr, [deptId]);
-    return result.changedRows;
+    return result.affectedRows;
   }
 }

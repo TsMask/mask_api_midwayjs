@@ -164,7 +164,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     return result.affectedRows;
   }
 
-  async insertDictType(sysDictType: SysDictType): Promise<number> {
+  async insertDictType(sysDictType: SysDictType): Promise<string> {
     const paramMap = new Map();
     if (sysDictType.dictName) {
       paramMap.set('dict_name', sysDictType.dictName);
@@ -173,7 +173,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       paramMap.set('dict_type', sysDictType.dictType);
     }
     if (sysDictType.status) {
-      paramMap.set('status', sysDictType.status);
+      paramMap.set('status', parseNumber(sysDictType.status));
     }
     if (sysDictType.remark) {
       paramMap.set('remark', sysDictType.remark);
@@ -189,7 +189,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId || 0;
+    return `${result.insertId}`;
   }
 
   async updateDictType(sysDictType: SysDictType): Promise<number> {
@@ -201,7 +201,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       paramMap.set('dict_type', sysDictType.dictType);
     }
     if (sysDictType.status) {
-      paramMap.set('status', sysDictType.status);
+      paramMap.set('status', parseNumber(sysDictType.status));
     }
     if (sysDictType.remark) {
       paramMap.set('remark', sysDictType.remark);
@@ -218,6 +218,6 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       ...paramMap.values(),
       sysDictType.dictId,
     ]);
-    return result.changedRows;
+    return result.affectedRows;
   }
 }

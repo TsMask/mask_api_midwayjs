@@ -12,7 +12,7 @@ import { SysUser } from '../core/model/SysUser';
 import { generateID } from '../../common/utils/GenIdUtils';
 import { getRealAddressByIp } from '../../common/utils/ip2region';
 import { getUaInfo } from '../../common/utils/UAParserUtils';
-import * as ms from 'ms';
+import * as parseMS from 'ms';
 import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
 import { PermissionService } from './PermissionService';
 
@@ -80,7 +80,7 @@ export class TokenService {
   async verifyToken(loginUser: LoginUser): Promise<LoginUser> {
     // 从本地配置获取jwt信息
     const jwtRefreshIn = this.ctx.app.getConfig('jwtRefreshIn');
-    const timeout = ms(jwtRefreshIn);
+    const timeout = parseMS(jwtRefreshIn);
     // 相差不足xx分钟，自动刷新缓存
     const expireTime = loginUser.expireTime;
     const currentTime = new Date().getTime();
@@ -115,7 +115,7 @@ export class TokenService {
   private async setUserToken(loginUser: LoginUser): Promise<void> {
     // 从本地配置获取jwt信息
     const { expiresIn } = this.ctx.app.getConfig('jwt');
-    const timestamp: number = ms(String(expiresIn));
+    const timestamp: number = parseMS(String(expiresIn));
     const second = Number(timestamp / 1000);
     loginUser.loginTime = new Date().getTime();
     loginUser.expireTime = loginUser.loginTime + timestamp;

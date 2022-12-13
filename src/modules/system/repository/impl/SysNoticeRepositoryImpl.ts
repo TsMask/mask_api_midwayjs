@@ -135,7 +135,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramMap.set('notice_content', sysNotice.noticeContent);
     }
     if (sysNotice.status) {
-      paramMap.set('status', sysNotice.status);
+      paramMap.set('status', parseNumber(sysNotice.status));
     }
     if (sysNotice.remark) {
       paramMap.set('remark', sysNotice.remark);
@@ -166,7 +166,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramMap.set('notice_content', sysNotice.noticeContent);
     }
     if (sysNotice.status) {
-      paramMap.set('status', sysNotice.status);
+      paramMap.set('status', parseNumber(sysNotice.status));
     }
     if (sysNotice.remark) {
       paramMap.set('remark', sysNotice.remark);

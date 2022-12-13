@@ -61,10 +61,8 @@ export class SysRoleController {
   async getInfo(@Param('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     const role = await this.sysRoleService.selectRoleById(roleId);
-    if (role) {
-      return Result.okData(role);
-    }
-    return Result.err();
+    if (!role) return Result.err();
+    return Result.okData(role);
   }
 
   /**
@@ -74,7 +72,9 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:add'] })
   async add(@Body() sysRole: SysRole): Promise<Result> {
     // 判断属性值是否唯一
-    const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(sysRole);
+    const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
+      sysRole
+    );
     if (!uniqueRoleName) {
       return Result.errMsg(
         `角色新增【${sysRole.roleName}】失败，角色名称已存在`
@@ -102,7 +102,7 @@ export class SysRoleController {
     const roleId = sysRole.roleId;
     if (!roleId) return Result.err();
     // 检查是否管理员角色
-    if (roleId === "1") {
+    if (roleId === '1') {
       return Result.errMsg('不允许操作超级管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
@@ -110,7 +110,9 @@ export class SysRoleController {
       return Result.errMsg('没有权限访问角色数据！');
     }
     // 判断属性值是否唯一
-    const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(sysRole);
+    const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
+      sysRole
+    );
     if (!uniqueRoleName) {
       return Result.errMsg(
         `角色修改【${sysRole.roleName}】失败，角色名称已存在`
@@ -156,14 +158,17 @@ export class SysRoleController {
   }
 
   /**
- * 角色状态变更
- */
+   * 角色状态变更
+   */
   @Put('/changeStatus')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  async changeStatus(@Body('roleId') roleId: string, @Body('status') status: string): Promise<Result> {
+  async changeStatus(
+    @Body('roleId') roleId: string,
+    @Body('status') status: string
+  ): Promise<Result> {
     if (!roleId) return Result.err();
     // 检查是否管理员角色
-    if (roleId === "1") {
+    if (roleId === '1') {
       return Result.errMsg('不允许操作超级管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
@@ -171,7 +176,7 @@ export class SysRoleController {
       return Result.errMsg('没有权限访问角色数据！');
     }
     // 更新状态不刷新缓存
-    let sysRole = new SysRole();
+    const sysRole = new SysRole();
     sysRole.roleId = roleId;
     sysRole.status = `${parseNumber(status)}`;
     sysRole.updateBy = this.contextService.getUsername();
@@ -180,15 +185,35 @@ export class SysRoleController {
   }
 
   /**
- * 角色部门树列表
- */
+   * 角色数据权限修改
+   */
+  @Put('/dataScope')
+  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  async dataScope(@Body() sysRole: SysRole): Promise<Result> {
+    const roleId = sysRole.roleId;
+    if (!roleId) return Result.err();
+    // 检查是否管理员角色
+    if (roleId === '1') {
+      return Result.errMsg('不允许操作超级管理员角色');
+    }
+    const role = await this.sysRoleService.selectRoleById(roleId);
+    if (!role) {
+      return Result.errMsg('没有权限访问角色数据！');
+    }
+    const rows = await this.sysRoleService.authDataScope(sysRole);
+    return Result[rows >= 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 角色部门树列表
+   */
   @Get('/deptTree/:roleId')
   @PreAuthorize({ hasPermissions: ['system:role:query'] })
-  async deptTree(@Param("roleId") roleId: string): Promise<Result> {
+  async deptTree(@Param('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     return Result.ok({
       checkedKeys: await this.sysDeptService.selectDeptListByRoleId(roleId),
-      depts: await this.sysDeptService.selectDeptTreeList(new SysDept())
+      depts: await this.sysDeptService.selectDeptTreeList(new SysDept()),
     });
   }
 
@@ -197,11 +222,90 @@ export class SysRoleController {
    */
   @Get('/authUser/allocatedList')
   @PreAuthorize({ hasPermissions: ['system:role:list'] })
-  async allocatedList(@Query("roleId") roleId: string): Promise<Result> {
+  async allocatedList(@Query('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     const query = this.contextService.getContext().query;
-    const data = await this.sysUserService.selectAllocatedPage(roleId, false, query);
+    const data = await this.sysUserService.selectAllocatedPage(
+      roleId,
+      false,
+      query
+    );
     return Result.ok(data);
   }
 
+  /**
+   * 角色未分配用户列表
+   */
+  @Get('/authUser/unallocatedList')
+  @PreAuthorize({ hasPermissions: ['system:role:list'] })
+  async unallocatedList(@Query('roleId') roleId: string): Promise<Result> {
+    if (!roleId) return Result.err();
+    const query = this.contextService.getContext().query;
+    const data = await this.sysUserService.selectAllocatedPage(
+      roleId,
+      true,
+      query
+    );
+    return Result.ok(data);
+  }
+
+  /**
+   * 角色批量选择用户授权
+   */
+  @Put('/authUser/selectAll')
+  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  async selectAuthUserAll(
+    @Body('roleId') roleId: string,
+    @Body('userIds') userIds: string
+  ): Promise<Result> {
+    if (!roleId || !userIds) return Result.err();
+    // 处理字符转id数组
+    const ids = userIds.split(',');
+    if (ids.length <= 0) return Result.err();
+    const role = await this.sysRoleService.selectRoleById(roleId);
+    if (!role) {
+      return Result.errMsg('没有权限访问角色数据！');
+    }
+    const rows = await this.sysRoleService.insertAuthUsers(roleId, ids);
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 角色批量选择用户取消授权
+   */
+  @Put('/authUser/cancelAll')
+  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  async cancelAuthUserAll(
+    @Body('roleId') roleId: string,
+    @Body('userIds') userIds: string
+  ): Promise<Result> {
+    if (!roleId || !userIds) return Result.err();
+    // 处理字符转id数组
+    const ids = userIds.split(',');
+    if (ids.length <= 0) return Result.err();
+    const role = await this.sysRoleService.selectRoleById(roleId);
+    if (!role) {
+      return Result.errMsg('没有权限访问角色数据！');
+    }
+    const rows = await this.sysRoleService.deleteAuthUsers(roleId, ids);
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 角色选择用户取消授权
+   */
+  @Put('/authUser/cancel')
+  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  async cancelAuthUser(
+    @Body('roleId') roleId: string,
+    @Body('userId') userId: string
+  ): Promise<Result> {
+    if (!roleId || !userId) return Result.err();
+    const role = await this.sysRoleService.selectRoleById(roleId);
+    if (!role) {
+      return Result.errMsg('没有权限访问角色数据！');
+    }
+    const rows = await this.sysRoleService.deleteAuthUsers(roleId, [userId]);
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
 }

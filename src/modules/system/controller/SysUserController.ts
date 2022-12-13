@@ -211,8 +211,8 @@ export class SysUserController {
   }
 
   /**
- * 用户状态修改
- */
+   * 用户状态修改
+   */
   @Put('/changeStatus')
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
   async changeStatus(
@@ -228,7 +228,7 @@ export class SysUserController {
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
-    let sysUser = new SysUser();
+    const sysUser = new SysUser();
     sysUser.userId = userId;
     sysUser.status = `${parseNumber(status)}`;
     sysUser.updateBy = this.contextService.getUsername();
@@ -266,12 +266,13 @@ export class SysUserController {
   @Put('/authRole')
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
   async authRoleAdd(
-    @Query('userId') userId: string,
-    @Query('roleIds') roleIds: string
+    @Body('userId') userId: string,
+    @Body('roleIds') roleIds: string
   ): Promise<Result> {
     if (!userId) return Result.err();
     // 处理字符转id数组
-    const ids = roleIds ? roleIds.split(',') : [];
+    const ids = roleIds.split(',');
+    if (ids.length <= 0) return Result.err();
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');

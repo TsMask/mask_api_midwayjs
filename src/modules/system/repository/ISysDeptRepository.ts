@@ -73,7 +73,7 @@ export interface ISysDeptRepository {
    * @param parentId 父部门ID
    * @return 结果
    */
-  checkUniqueDeptName(deptName: string, parentId: string): Promise<SysDept>;
+  checkUniqueDeptName(deptName: string, parentId: string): Promise<string>;
 
   /**
    * 新增部门信息
@@ -81,7 +81,7 @@ export interface ISysDeptRepository {
    * @param sysDept 部门信息
    * @return 结果
    */
-  insertDept(sysDept: SysDept): Promise<number>;
+  insertDept(sysDept: SysDept): Promise<string>;
 
   /**
    * 修改部门信息

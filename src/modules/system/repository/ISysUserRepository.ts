@@ -30,7 +30,11 @@ export interface ISysUserRepository {
    * @param query 用户信息查询信息
    * @return 用户信息集合信息
    */
-  selectAllocatedPage(roleId:string, unallocated: boolean, query?: any): Promise<rowPages>;
+  selectAllocatedPage(
+    roleId: string,
+    unallocated: boolean,
+    query?: any
+  ): Promise<rowPages>;
 
   /**
    * 通过用户名查询用户

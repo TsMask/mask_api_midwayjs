@@ -39,10 +39,17 @@ export class SysUserServiceImpl implements ISysUserService {
   async selectUserList(sysUser: SysUser): Promise<SysUser[]> {
     return await this.sysUserRepository.selectUserList(sysUser);
   }
- 
-  async selectAllocatedPage(roleId:string, unallocated: boolean = false, query?: any): Promise<rowPages>{
 
-    return await this.sysUserRepository.selectAllocatedPage(roleId,unallocated, query);
+  async selectAllocatedPage(
+    roleId: string,
+    unallocated = false,
+    query?: any
+  ): Promise<rowPages> {
+    return await this.sysUserRepository.selectAllocatedPage(
+      roleId,
+      unallocated,
+      query
+    );
   }
   async selectUserByUserName(userName: string): Promise<SysUser> {
     return await this.sysUserRepository.selectUserByUserName(userName);
@@ -126,11 +133,11 @@ export class SysUserServiceImpl implements ISysUserService {
   async updateUserAndRolePost(sysUser: SysUser): Promise<number> {
     const userId = sysUser.userId;
     // 删除用户与角色关联
-    await this.sysUserRoleRepository.deleteUserRoleByUserId(userId);
+    await this.sysUserRoleRepository.deleteUserRole([userId]);
     // 新增用户与角色管理
     await this.insertUserRole(userId, sysUser.roleIds);
     // 删除用户与岗位关联
-    await this.sysUserPostRepository.deleteUserPostByUserId(userId);
+    await this.sysUserPostRepository.deleteUserPost([userId]);
     // 新增用户与岗位管理
     await this.insertUserPost(userId, sysUser.postIds);
     return await this.sysUserRepository.updateUser(sysUser);
@@ -177,7 +184,7 @@ export class SysUserServiceImpl implements ISysUserService {
     return 0;
   }
   async insertAserAuth(userId: string, roleIds: string[]): Promise<void> {
-    await this.sysUserRoleRepository.deleteUserRoleByUserId(userId);
+    await this.sysUserRoleRepository.deleteUserRole([userId]);
     if (roleIds.length > 0) {
       await this.insertUserRole(userId, roleIds);
     }

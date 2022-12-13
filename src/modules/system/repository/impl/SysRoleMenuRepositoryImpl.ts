@@ -15,8 +15,11 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
   @Inject()
   public db: MysqlManager;
 
-  checkMenuExistRole(menuId: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async checkMenuExistRole(menuId: string): Promise<number> {
+    const sqlStr =
+      "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
+    const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
+    return countRow[0].total;
   }
   async deleteRoleMenuByRoleId(roleId: string): Promise<number> {
     const sqlStr = 'delete from sys_role_menu where role_id = ?';

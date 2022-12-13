@@ -39,14 +39,6 @@ export interface ISysPostService {
   countUserPostById(postId: string): Promise<string>;
 
   /**
-   * 删除岗位信息
-   *
-   * @param postId 岗位ID
-   * @return 结果
-   */
-  deletePostById(postId: string): Promise<number>;
-
-  /**
    * 批量删除岗位信息
    *
    * @param postIds 需要删除的岗位ID
@@ -60,7 +52,7 @@ export interface ISysPostService {
    * @param sysPost 岗位信息
    * @return 结果
    */
-  insertPost(sysPost: SysPost): Promise<number>;
+  insertPost(sysPost: SysPost): Promise<string>;
 
   /**
    * 修改保存岗位信息
@@ -69,4 +61,20 @@ export interface ISysPostService {
    * @return 结果
    */
   updatePost(sysPost: SysPost): Promise<number>;
+
+  /**
+   * 校验岗位名称
+   *
+   * @param sysPost 岗位信息
+   * @return 结果
+   */
+  checkUniquePostName(sysPost: SysPost): Promise<boolean>;
+
+  /**
+   * 校验岗位编码
+   *
+   * @param sysPost 岗位信息
+   * @return 结果
+   */
+  checkUniquePostCode(sysPost: SysPost): Promise<boolean>;
 }

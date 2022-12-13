@@ -211,10 +211,14 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     );
     return parseSysUserResult(results);
   }
-  async selectAllocatedPage(roleId: string, unallocated: boolean = false, query: any): Promise<rowPages> {
+  async selectAllocatedPage(
+    roleId: string,
+    unallocated = false,
+    query: any
+  ): Promise<rowPages> {
     // 查询条件拼接
     let sqlStr = '';
-    let paramArr = [];
+    const paramArr = [];
     if (query.userName) {
       sqlStr += " and u.user_name like concat('%', ?, '%') ";
       paramArr.push(query.userName);
@@ -225,11 +229,12 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     }
     // 未分配角色用户
     if (unallocated) {
-      sqlStr += ` and (r.role_id != ? or r.role_id IS NULL) and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = ?)`;
+      sqlStr +=
+        ' and (r.role_id != ? or r.role_id IS NULL) and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = ?)';
       paramArr.push(roleId);
       paramArr.push(roleId);
     } else {
-      sqlStr += " and r.role_id = ? "
+      sqlStr += ' and r.role_id = ? ';
       paramArr.push(roleId);
     }
 
@@ -339,14 +344,14 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramMap.set('phonenumber', sysUser.phonenumber);
     }
     if (sysUser.sex) {
-      paramMap.set('sex', sysUser.sex);
+      paramMap.set('sex', parseNumber(sysUser.sex));
     }
     if (sysUser.password) {
       const password = await bcryptHash(sysUser.password);
       paramMap.set('password', password);
     }
     if (sysUser.status) {
-      paramMap.set('status', sysUser.status);
+      paramMap.set('status', parseNumber(sysUser.status));
     }
     if (sysUser.remark) {
       paramMap.set('remark', sysUser.remark);
@@ -362,10 +367,6 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    // 自定义用户ID时
-    if (result.insertId && sysUser.userId) {
-      return sysUser.userId;
-    }
     return `${result.insertId}`;
   }
 
@@ -387,7 +388,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramMap.set('phonenumber', sysUser.phonenumber);
     }
     if (sysUser.sex) {
-      paramMap.set('sex', sysUser.sex);
+      paramMap.set('sex', parseNumber(sysUser.sex));
     }
     if (sysUser.avatar) {
       paramMap.set('avatar', sysUser.avatar);
@@ -397,7 +398,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramMap.set('password', password);
     }
     if (sysUser.status) {
-      paramMap.set('status', sysUser.status);
+      paramMap.set('status', parseNumber(sysUser.status));
     }
     if (sysUser.loginIp) {
       paramMap.set('login_ip', sysUser.loginIp);
@@ -441,21 +442,21 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   }
   async checkUniqueUserName(userName: string): Promise<string> {
     const sqlStr =
-      "select user_id as str from sys_user where user_name = ? and del_flag = '0' limit 1";
+      "select user_id as 'str' from sys_user where user_name = ? and del_flag = '0' limit 1";
     const paramArr = [userName];
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
   async checkUniquePhone(phonenumber: string): Promise<string> {
     const sqlStr =
-      "select user_id as str from sys_user where phonenumber = ? and del_flag = '0' limit 1";
+      "select user_id as 'str' from sys_user where phonenumber = ? and del_flag = '0' limit 1";
     const paramArr = [phonenumber];
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
   async checkUniqueEmail(email: string): Promise<string> {
     const sqlStr =
-      "select user_id as str from sys_user where email = ? and del_flag = '0' limit 1";
+      "select user_id as 'str' from sys_user where email = ? and del_flag = '0' limit 1";
     const paramArr = [email];
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;

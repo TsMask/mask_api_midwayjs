@@ -42,12 +42,15 @@ export interface ISysMenuService {
   selectMenuTreeByUserId(userId: string): Promise<SysMenu[]>;
 
   /**
- * 查询菜单树结构信息
- * @param sysMenu 菜单信息
- * @param userId 用户ID null时是管理员显示所有菜单信息
- * @returns 菜单树信息集合
- */
-  selectMenuTreeSelectByUserId(sysMenu: SysMenu, userId: string): Promise<TreeSelect[]>;
+   * 查询菜单树结构信息
+   * @param sysMenu 菜单信息
+   * @param userId 用户ID null时是管理员显示所有菜单信息
+   * @returns 菜单树信息集合
+   */
+  selectMenuTreeSelectByUserId(
+    sysMenu: SysMenu,
+    userId: string
+  ): Promise<TreeSelect[]>;
 
   /**
    * 根据角色ID查询菜单树信息
@@ -58,12 +61,12 @@ export interface ISysMenuService {
   selectMenuListByRoleId(roleId: string): Promise<string[]>;
 
   /**
-  * 构建前端路由所需要的菜单
-  *
-  * @param sysMenus 菜单列表
-  * @return 路由列表
-  */
-  buildRouteMenus(sysMenus: SysMenu[]): Promise<RouterVo[]>
+   * 构建前端路由所需要的菜单
+   *
+   * @param sysMenus 菜单列表
+   * @return 路由列表
+   */
+  buildRouteMenus(sysMenus: SysMenu[]): Promise<RouterVo[]>;
 
   /**
    * 根据菜单ID查询信息

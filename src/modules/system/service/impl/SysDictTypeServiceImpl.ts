@@ -84,12 +84,14 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     await this.loadingDictCache();
   }
 
-  async insertDictType(sysDictType: SysDictType): Promise<number> {
-    const row = await this.sysDictTypeRepository.insertDictType(sysDictType);
-    if (row > 0) {
+  async insertDictType(sysDictType: SysDictType): Promise<string> {
+    const insertId = await this.sysDictTypeRepository.insertDictType(
+      sysDictType
+    );
+    if (insertId) {
       await this.loadingDictCache(sysDictType.dictType);
     }
-    return row;
+    return insertId;
   }
 
   async updateDictType(sysDictType: SysDictType): Promise<number> {

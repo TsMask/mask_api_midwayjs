@@ -1,5 +1,4 @@
 import { SysRole } from '../../../framework/core/model/SysRole';
-import { SysUserRole } from '../model/SysUserRole';
 
 /**
  * 角色 服务层接口
@@ -140,14 +139,6 @@ export interface ISysRoleService {
    * @return 结果
    */
   deleteRoleByIds(roleIds: string[]): Promise<number>;
-
-  /**
-   * 取消授权用户角色
-   *
-   * @param sysUserRole 用户和角色关联信息
-   * @return 结果
-   */
-  deleteAuthUser(sysUserRole: SysUserRole): Promise<number>;
 
   /**
    * 批量取消授权用户角色

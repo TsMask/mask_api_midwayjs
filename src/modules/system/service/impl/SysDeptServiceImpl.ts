@@ -33,8 +33,11 @@ export class SysDeptServiceImpl implements ISysDeptService {
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
     const sysRole = await this.sysRoleRepository.selectRoleById(roleId);
     if (sysRole) {
-      const deptCheckStrictly = sysRole.deptCheckStrictly === "1";
-      return this.sysDeptRepository.selectDeptListByRoleId(roleId, deptCheckStrictly);
+      const deptCheckStrictly = sysRole.deptCheckStrictly === '1';
+      return this.sysDeptRepository.selectDeptListByRoleId(
+        roleId,
+        deptCheckStrictly
+      );
     }
     return null;
   }
@@ -53,16 +56,21 @@ export class SysDeptServiceImpl implements ISysDeptService {
   async checkDeptExistUser(deptId: string): Promise<boolean> {
     return (await this.sysDeptRepository.checkDeptExistUser(deptId)) > 0;
   }
-  async checkUniqueDeptName(sysDept: SysDept): Promise<SysDept> {
-    return await this.sysDeptRepository.checkUniqueDeptName(
+  async checkUniqueDeptName(sysDept: SysDept): Promise<boolean> {
+    const deptId = await this.sysDeptRepository.checkUniqueDeptName(
       sysDept.deptName,
       sysDept.parentId
     );
+    // 部门信息与查询得到部门ID一致
+    if (deptId && sysDept.deptId === deptId) {
+      return true;
+    }
+    return !deptId;
   }
   checkScopeDeptData(deptId: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
-  async insertDept(sysDept: SysDept): Promise<number> {
+  async insertDept(sysDept: SysDept): Promise<string> {
     return await this.sysDeptRepository.insertDept(sysDept);
   }
   async updateDept(sysDept: SysDept): Promise<number> {
@@ -76,7 +84,6 @@ export class SysDeptServiceImpl implements ISysDeptService {
       sysDept.ancestors = newAncestors;
       await this.updateDeptChildren(sysDept.deptId, newAncestors, oldAncestors);
     }
-    const result = this.sysDeptRepository.updateDept(sysDept);
     // 如果该部门是启用状态，则启用该部门的所有上级部门
     if (
       sysDept.status === '0' &&
@@ -85,7 +92,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
     ) {
       await this.updateParentDeptStatusNormal(sysDept);
     }
-    return result;
+    return await this.sysDeptRepository.updateDept(sysDept);
   }
   async deleteDeptById(deptId: string): Promise<number> {
     return await this.sysDeptRepository.deleteDeptById(deptId);
@@ -103,11 +110,11 @@ export class SysDeptServiceImpl implements ISysDeptService {
   }
 
   /**
- * 构建前端所需要树结构
- *
- * @param sysDepts 部门列表
- * @return 树结构列表
- */
+   * 构建前端所需要树结构
+   *
+   * @param sysDepts 部门列表
+   * @return 树结构列表
+   */
   private buildDeptTree(sysDepts: SysDept[]): SysDept[] {
     let resultArr: SysDept[] = [];
     const deptIds: string[] = sysDepts.map(dept => dept.deptId);
@@ -159,8 +166,6 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return childrens;
   }
 
-
-
   /**
    * 修改子元素关系
    * @param deptId 被修改的部门ID
@@ -189,8 +194,12 @@ export class SysDeptServiceImpl implements ISysDeptService {
    * @param sysDept 当前部门
    * @return 修改数
    */
-  private async updateParentDeptStatusNormal(sysDept: SysDept) {
+  private async updateParentDeptStatusNormal(
+    sysDept: SysDept
+  ): Promise<number> {
+    if (!sysDept.ancestors) return 0;
     const deptIds: string[] = sysDept.ancestors.split(',');
+    if (deptIds.length) return 0;
     return await this.sysDeptRepository.updateDeptStatusNormal(deptIds);
   }
 }

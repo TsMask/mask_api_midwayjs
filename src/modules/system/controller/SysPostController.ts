@@ -8,9 +8,9 @@ import {
   Del,
   Put,
 } from '@midwayjs/decorator';
-import { Context } from '@midwayjs/koa';
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { ContextService } from '../../../framework/service/ContextService';
 import { SysPost } from '../model/SysPost';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 
@@ -22,41 +22,36 @@ import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 @Controller('/system/post')
 export class SysPostController {
   @Inject()
-  private ctx: Context;
+  private contextService: ContextService;
 
   @Inject()
   private sysPostService: SysPostServiceImpl;
 
   /**
-   * 获取岗位列表
-   * @returns 返回结果
+   * 岗位列表
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:post:list'] })
   async list(): Promise<Result> {
-    const query = this.ctx.query;
+    const query = this.contextService.getContext().query;
     const data = await this.sysPostService.selectPostPage(query);
     return Result.ok(data);
   }
 
   /**
-   * 根据岗位编号获取详细信息
-   * @returns 返回结果
+   * 岗位信息
    */
   @Get('/:postId')
   @PreAuthorize({ hasPermissions: ['system:post:query'] })
   async getInfo(@Param('postId') postId: string): Promise<Result> {
     if (!postId) return Result.err();
     const data = await this.sysPostService.selectPostById(postId);
-    if (data) {
-      return Result.okData(data || {});
-    }
-    return Result.err();
+    if (!data) return Result.err();
+    return Result.okData(data);
   }
 
   /**
-   * 新增岗位
-   * @returns 返回结果
+   * 岗位新增
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:post:add'] })
@@ -64,32 +59,31 @@ export class SysPostController {
     if (!sysPost.postName || !sysPost.postCode) {
       return Result.err();
     }
-    // 检查岗位名称
-    let post = new SysPost();
-    post.postName = sysPost.postName;
-    let hasPosts = await this.sysPostService.selectPostList(post);
-    if (hasPosts && hasPosts.length > 0) {
+    // 检查属性值唯一
+    const uniqueuPostName = await this.sysPostService.checkUniquePostName(
+      sysPost
+    );
+    if (!uniqueuPostName) {
       return Result.errMsg(
-        `新增岗位【${sysPost.postName}】失败，岗位名称已存在`
+        `岗位新增【${sysPost.postName}】失败，岗位名称已存在`
       );
     }
-    // 检查岗位编码
-    post = new SysPost();
-    post.postCode = sysPost.postCode;
-    hasPosts = await this.sysPostService.selectPostList(post);
-    if (hasPosts && hasPosts.length > 0) {
+    const uniquePostCode = await this.sysPostService.checkUniquePostCode(
+      sysPost
+    );
+    if (!uniquePostCode) {
       return Result.errMsg(
-        `新增岗位【${sysPost.postCode}】失败，岗位编码已存在`
+        `岗位新增【${sysPost.postCode}】失败，岗位编码已存在`
       );
     }
-    sysPost.createBy = this.ctx.loginUser?.user?.userName;
-    const id = await this.sysPostService.insertPost(sysPost);
-    return Result[id ? 'ok' : 'err']();
+
+    sysPost.createBy = this.contextService.getUsername();
+    const insertId = await this.sysPostService.insertPost(sysPost);
+    return Result[insertId ? 'ok' : 'err']();
   }
 
   /**
-   * 修改岗位
-   * @returns 返回结果
+   * 岗位修改
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:post:edit'] })
@@ -97,32 +91,31 @@ export class SysPostController {
     if (!sysPost.postName || !sysPost.postCode || !sysPost.postId) {
       return Result.err();
     }
-    // 检查岗位名称
-    let post = new SysPost();
-    post.postName = sysPost.postName;
-    let hasPosts = await this.sysPostService.selectPostList(post);
-    if (hasPosts && hasPosts.length > 0) {
+    // 检查属性值唯一
+    const uniqueuPostName = await this.sysPostService.checkUniquePostName(
+      sysPost
+    );
+    if (!uniqueuPostName) {
       return Result.errMsg(
-        `修改岗位【${sysPost.postName}】失败，岗位名称已存在`
+        `岗位修改【${sysPost.postName}】失败，岗位名称已存在`
       );
     }
-    // 检查岗位编码
-    post = new SysPost();
-    post.postCode = sysPost.postCode;
-    hasPosts = await this.sysPostService.selectPostList(post);
-    if (hasPosts && hasPosts.length > 0) {
+    const uniquePostCode = await this.sysPostService.checkUniquePostCode(
+      sysPost
+    );
+    if (!uniquePostCode) {
       return Result.errMsg(
-        `修改岗位【${sysPost.postCode}】失败，岗位编码已存在`
+        `岗位修改【${sysPost.postCode}】失败，岗位编码已存在`
       );
     }
-    sysPost.updateBy = this.ctx.loginUser?.user?.userName;
-    const id = await this.sysPostService.updatePost(sysPost);
-    return Result[id ? 'ok' : 'err']();
+
+    sysPost.updateBy = this.contextService.getUsername();
+    const rows = await this.sysPostService.updatePost(sysPost);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
-   * 删除岗位
-   * @returns 返回结果
+   * 岗位删除
    */
   @Del('/:postIds')
   @PreAuthorize({ hasPermissions: ['system:post:remove'] })
@@ -130,7 +123,8 @@ export class SysPostController {
     if (!postIds) return Result.err();
     // 处理字符转id数组
     const ids = postIds.split(',');
-    const rowNum = await this.sysPostService.deletePostByIds(ids);
-    return Result[rowNum ? 'ok' : 'err']();
+    if (ids.length <= 0) return Result.err();
+    const rows = await this.sysPostService.deletePostByIds(ids);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 }

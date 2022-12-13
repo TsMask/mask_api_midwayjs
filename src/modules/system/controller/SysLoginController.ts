@@ -70,7 +70,9 @@ export class SysLoginController {
   async getRouters(): Promise<Result> {
     const userId = this.contextService.getUserId();
     const isSuperAdmin = this.contextService.isSuperAdmin(userId);
-    const menus = await this.sysMenuService.selectMenuTreeByUserId(isSuperAdmin ? null : userId);
+    const menus = await this.sysMenuService.selectMenuTreeByUserId(
+      isSuperAdmin ? null : userId
+    );
     const buildMenus = await this.sysMenuService.buildRouteMenus(menus);
     return Result.okData(buildMenus);
   }

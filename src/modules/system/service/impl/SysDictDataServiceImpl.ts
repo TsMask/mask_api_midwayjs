@@ -40,12 +40,14 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
     return await this.sysDictDataRepository.deleteDictDataByIds(dictCodes);
   }
 
-  async insertDictData(sysDictData: SysDictData): Promise<number> {
-    const row = await this.sysDictDataRepository.insertDictData(sysDictData);
-    if (row > 0) {
+  async insertDictData(sysDictData: SysDictData): Promise<string> {
+    const insertId = await this.sysDictDataRepository.insertDictData(
+      sysDictData
+    );
+    if (insertId) {
       await this.sysDictTypeService.loadingDictCache(sysDictData.dictType);
     }
-    return row;
+    return insertId;
   }
 
   async updateDictData(sysDictData: SysDictData): Promise<number> {

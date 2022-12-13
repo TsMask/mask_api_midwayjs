@@ -8,7 +8,7 @@ export class IndexController {
   ctx: Context;
 
   @Get()
-  async index(): Promise<Object> {
+  async index(): Promise<Result> {
     // 从本地配置project项目名版本
     const { name, version } = this.ctx.app.getConfig('project');
     return Result.okMsg(

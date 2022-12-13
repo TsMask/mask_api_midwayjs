@@ -1,5 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysMenu } from '../../../../framework/core/model/SysMenu';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { ISysMenuRepository } from '../ISysMenuRepository';
@@ -72,7 +73,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   public db: MysqlManager;
 
   async selectMenuList(sysMenu: SysMenu, userId?: string): Promise<SysMenu[]> {
-    let sqlStr = "";
+    let sqlStr = '';
     const paramArr = [];
     if (sysMenu.menuName) {
       sqlStr += " and m.menu_name like concat('%', ?, '%') ";
@@ -87,9 +88,9 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       paramArr.push(sysMenu.status);
     }
 
-    let buildSqlStr = `${SELECT_MENU_VO} where 1 = 1 ${sqlStr} order by m.parent_id, m.order_num`
-    if (userId && userId !== "0") {
-      sqlStr += " and ur.user_id = ? ";
+    let buildSqlStr = `${SELECT_MENU_VO} where 1 = 1 ${sqlStr} order by m.parent_id, m.order_num`;
+    if (userId && userId !== '0') {
+      sqlStr += ' and ur.user_id = ? ';
       paramArr.push(userId);
       buildSqlStr = `${SELECT_MENU_USER_VO} where 1 = 1 ${sqlStr} order by m.parent_id, m.order_num`;
     }
@@ -98,7 +99,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   }
 
   async selectMenuTreeByUserId(userId?: string): Promise<SysMenu[]> {
-    let paramArr = [];
+    const paramArr = [];
     let buildSqlStr = `${SELECT_MENU_VO} where 
     m.menu_type in ('M', 'C') and m.status = 0
 		order by m.parent_id, m.order_num`;
@@ -120,33 +121,36 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   }
 
   async selectMenuPermsByRoleId(roleId: string): Promise<string[]> {
-    const sqlStr = `select distinct m.perms as 'perms' from sys_menu m 
+    const sqlStr = `select distinct m.perms as 'str' from sys_menu m 
     left join sys_role_menu rm on m.menu_id = rm.menu_id
     where m.status = '0' and rm.role_id = ?`;
 
-    const rows: { perms: string }[] = await this.db.execute(sqlStr, [roleId]);
-    return rows.map(v => v.perms);
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [roleId]);
+    return rows.map(item => item.str);
   }
 
   async selectMenuPermsByUserId(userId: string): Promise<string[]> {
-    const sqlStr = `select distinct m.perms from sys_menu m 
+    const sqlStr = `select distinct m.perms as 'str' from sys_menu m 
     left join sys_role_menu rm on m.menu_id = rm.menu_id 
     left join sys_user_role ur on rm.role_id = ur.role_id 
     left join sys_role r on r.role_id = ur.role_id
 		where m.status = '0' and r.status = '0' and ur.user_id = ? `;
 
-    return await this.db.execute(sqlStr, [userId]);
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [userId]);
+    return rows.map(item => item.str);
   }
 
-
-
-  async selectMenuListByRoleId(roleId: string, menuCheckStrictly: boolean): Promise<string[]> {
-    let sqlStr = `select m.menu_id as str from sys_menu m 
+  async selectMenuListByRoleId(
+    roleId: string,
+    menuCheckStrictly: boolean
+  ): Promise<string[]> {
+    let sqlStr = `select m.menu_id as 'str' from sys_menu m 
     left join sys_role_menu rm on m.menu_id = rm.menu_id
     where rm.role_id = ?`;
     const paramArr = [roleId];
     if (menuCheckStrictly) {
-      sqlStr += " and m.menu_id not in (select m.parent_id from sys_menu m inner join sys_role_menu rm on m.menu_id = rm.menu_id and rm.role_id = ?) ";
+      sqlStr +=
+        ' and m.menu_id not in (select m.parent_id from sys_menu m inner join sys_role_menu rm on m.menu_id = rm.menu_id and rm.role_id = ?) ';
       paramArr.push(roleId);
     }
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
@@ -160,13 +164,15 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   }
 
   async hasChildByMenuId(menuId: string): Promise<number> {
-    const sqlStr = `select count(1) as 'total' from sys_menu where parent_id = ? `;
+    const sqlStr =
+      "select count(1) as 'total' from sys_menu where parent_id = ? ";
     const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
     return countRow[0].total;
   }
 
   async checkMenuExistRole(menuId: string): Promise<number> {
-    const sqlStr = `select count(1) as 'total' from sys_role_menu where menu_id = ? `;
+    const sqlStr =
+      "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
     const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
     return countRow[0].total;
   }
@@ -176,14 +182,14 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.menuId) {
       paramMap.set('menu_id', sysMenu.menuId);
     }
-    if (sysMenu.parentId && sysMenu.parentId !== "0") {
+    if (sysMenu.parentId && sysMenu.parentId !== '0') {
       paramMap.set('parent_id', sysMenu.parentId);
     }
     if (sysMenu.menuName) {
       paramMap.set('menu_name', sysMenu.menuName);
     }
-    if (sysMenu.orderNum) {
-      paramMap.set('order_num', sysMenu.orderNum);
+    if (sysMenu.orderNum >= 0) {
+      paramMap.set('order_num', parseNumber(sysMenu.orderNum));
     }
     if (sysMenu.path) {
       paramMap.set('path', sysMenu.path);
@@ -195,19 +201,19 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       paramMap.set('query', sysMenu.query);
     }
     if (sysMenu.isFrame) {
-      paramMap.set('is_frame', sysMenu.isFrame);
+      paramMap.set('is_frame', parseNumber(sysMenu.isFrame));
     }
     if (sysMenu.isCache) {
-      paramMap.set('is_cache', sysMenu.isCache);
+      paramMap.set('is_cache', parseNumber(sysMenu.isCache));
     }
     if (sysMenu.menuType) {
       paramMap.set('menu_type', sysMenu.menuType);
     }
     if (sysMenu.visible) {
-      paramMap.set('visible', sysMenu.visible);
+      paramMap.set('visible', parseNumber(sysMenu.visible));
     }
     if (sysMenu.status) {
-      paramMap.set('status', sysMenu.status);
+      paramMap.set('status', parseNumber(sysMenu.status));
     }
     if (sysMenu.perms) {
       paramMap.set('perms', sysMenu.perms);
@@ -234,14 +240,14 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
 
   async updateMenu(sysMenu: SysMenu): Promise<number> {
     const paramMap = new Map();
-    if (sysMenu.parentId && sysMenu.parentId !== "0") {
+    if (sysMenu.parentId && sysMenu.parentId !== '0') {
       paramMap.set('parent_id', sysMenu.parentId);
     }
     if (sysMenu.menuName) {
       paramMap.set('menu_name', sysMenu.menuName);
     }
-    if (sysMenu.orderNum) {
-      paramMap.set('order_num', sysMenu.orderNum);
+    if (sysMenu.orderNum >= 0) {
+      paramMap.set('order_num', parseNumber(sysMenu.orderNum));
     }
     if (sysMenu.path) {
       paramMap.set('path', sysMenu.path);
@@ -253,19 +259,19 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       paramMap.set('query', sysMenu.query);
     }
     if (sysMenu.isFrame) {
-      paramMap.set('is_frame', sysMenu.isFrame);
+      paramMap.set('is_frame', parseNumber(sysMenu.isFrame));
     }
     if (sysMenu.isCache) {
-      paramMap.set('is_cache', sysMenu.isCache);
+      paramMap.set('is_cache', parseNumber(sysMenu.isCache));
     }
     if (sysMenu.menuType) {
       paramMap.set('menu_type', sysMenu.menuType);
     }
     if (sysMenu.visible) {
-      paramMap.set('visible', sysMenu.visible);
+      paramMap.set('visible', parseNumber(sysMenu.visible));
     }
     if (sysMenu.status) {
-      paramMap.set('status', sysMenu.status);
+      paramMap.set('status', parseNumber(sysMenu.status));
     }
     if (sysMenu.perms) {
       paramMap.set('perms', sysMenu.perms);
@@ -297,12 +303,16 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     return result.affectedRows;
   }
 
-  async checkUniqueMenuName(menuName: string, parentId: string): Promise<string> {
-    const sqlStr = "select menu_id as str from sys_menu where menu_name = ? and parent_id = ? limit 1";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [menuName, parentId]);
-    if (rows.length > 0) {
-      return rows[0].str;
-    }
-    return null;
+  async checkUniqueMenuName(
+    menuName: string,
+    parentId: string
+  ): Promise<string> {
+    const sqlStr =
+      "select menu_id as 'str' from sys_menu where menu_name = ? and parent_id = ? limit 1";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [
+      menuName,
+      parentId,
+    ]);
+    return rows.length > 0 ? rows[0].str : null;
   }
 }

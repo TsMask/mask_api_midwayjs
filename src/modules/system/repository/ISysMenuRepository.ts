@@ -21,7 +21,7 @@ export interface ISysMenuRepository {
    * @return 权限列表
    */
   selectMenuPerms(): Promise<number[]>;
-  
+
   /**
    * 根据角色ID查询权限
    *
@@ -74,13 +74,13 @@ export interface ISysMenuRepository {
    */
   hasChildByMenuId(menuId: string): Promise<number>;
 
-    /**
+  /**
    * 查询菜单是否存在角色
    *
    * @param menuId 菜单ID
    * @return 结果
    */
-    checkMenuExistRole(menuId: string): Promise<number>;
+  checkMenuExistRole(menuId: string): Promise<number>;
 
   /**
    * 新增菜单信息

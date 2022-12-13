@@ -170,12 +170,12 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     if (sysConfig.configType) {
       paramMap.set('config_type', sysConfig.configType);
     }
+    if (sysConfig.remark) {
+      paramMap.set('remark', sysConfig.remark);
+    }
     if (sysConfig.createBy) {
       paramMap.set('create_by', sysConfig.createBy);
       paramMap.set('create_time', new Date().getTime());
-    }
-    if (sysConfig.remark) {
-      paramMap.set('remark', sysConfig.remark);
     }
 
     const sqlStr = `insert into sys_config (${[...paramMap.keys()].join(
@@ -201,12 +201,12 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     if (sysConfig.configType) {
       paramMap.set('config_type', sysConfig.configType);
     }
+    if (sysConfig.remark) {
+      paramMap.set('remark', sysConfig.remark);
+    }
     if (sysConfig.updateBy) {
       paramMap.set('update_by', sysConfig.updateBy);
       paramMap.set('update_time', new Date().getTime());
-    }
-    if (sysConfig.remark) {
-      paramMap.set('remark', sysConfig.remark);
     }
 
     const sqlStr = `update sys_config set ${[...paramMap.keys()]
@@ -220,7 +220,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
 
   async deleteConfigById(configId: number): Promise<number> {
     const sqlStr = 'delete from sys_config where config_id = ?';
-    const result = await this.db.execute(sqlStr, [configId]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [configId]);
     return result.affectedRows;
   }
 }

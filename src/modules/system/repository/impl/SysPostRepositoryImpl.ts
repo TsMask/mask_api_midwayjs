@@ -73,7 +73,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: { total: number }[] = await this.db.execute(
+    const countRow: rowTotal[] = await this.db.execute(
       `select count(1) as 'total' from sys_post where 1 = 1 ${sqlStr}`,
       paramArr
     );
@@ -117,10 +117,6 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     return parseSysPostResult(rows);
   }
 
-  async selectPostAll(): Promise<SysPost[]> {
-    return await this.db.execute(SELECT_POST_VO);
-  }
-
   async selectPostById(postId: string): Promise<SysPost> {
     const sqlStr = `${SELECT_POST_VO} where post_id = ? `;
     const rows = await this.db.execute(sqlStr, [postId]);
@@ -147,12 +143,6 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     return parseSysPostResult(rows);
   }
 
-  async deletePostById(postId: string): Promise<number> {
-    const sqlStr = 'delete from sys_post where post_id = ?';
-    const rows = await this.db.execute(sqlStr, [postId]);
-    return rows.length;
-  }
-
   async deletePostByIds(postIds: string[]): Promise<number> {
     const sqlStr = `delete from sys_post where post_id in (${postIds
       .map(() => '?')
@@ -169,11 +159,11 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     if (sysPost.postName) {
       paramMap.set('post_name', sysPost.postName);
     }
-    if (sysPost.postSort) {
-      paramMap.set('post_sort', sysPost.postSort);
+    if (sysPost.postSort >= 0) {
+      paramMap.set('post_sort', parseNumber(sysPost.postSort));
     }
     if (sysPost.status) {
-      paramMap.set('status', sysPost.status);
+      paramMap.set('status', parseNumber(sysPost.status));
     }
     if (sysPost.remark) {
       paramMap.set('remark', sysPost.remark);
@@ -189,10 +179,10 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
       ...paramMap.values(),
       sysPost.postId,
     ]);
-    return result.changedRows;
+    return result.affectedRows;
   }
 
-  async insertPost(sysPost: SysPost): Promise<number> {
+  async insertPost(sysPost: SysPost): Promise<string> {
     const paramMap = new Map();
     if (sysPost.postId) {
       paramMap.set('post_id', sysPost.postId);
@@ -203,11 +193,11 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     if (sysPost.postName) {
       paramMap.set('post_name', sysPost.postName);
     }
-    if (sysPost.postSort) {
-      paramMap.set('post_sort', sysPost.postSort);
+    if (sysPost.postSort >= 0) {
+      paramMap.set('post_sort', parseNumber(sysPost.postSort));
     }
     if (sysPost.status) {
-      paramMap.set('status', sysPost.status);
+      paramMap.set('status', parseNumber(sysPost.status));
     }
     if (sysPost.remark) {
       paramMap.set('remark', sysPost.remark);
@@ -223,6 +213,22 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId || 0;
+    return `${result.insertId}`;
+  }
+
+  async checkUniquePostName(postName: string): Promise<string> {
+    const sqlStr =
+      "select post_id as 'str' from sys_post where post_name= ? limit 1";
+    const paramArr = [postName];
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    return rows.length > 0 ? rows[0].str : null;
+  }
+
+  async checkUniquePostCode(postCode: string): Promise<string> {
+    const sqlStr =
+      "select post_id as 'str' from sys_post where post_code = ? limit 1";
+    const paramArr = [postCode];
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    return rows.length > 0 ? rows[0].str : null;
   }
 }
