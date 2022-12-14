@@ -53,8 +53,8 @@ export class RedisCache {
     key: string,
     timeout: string | number
   ): Promise<boolean> {
-    const keyNum = await this.redisService.expire(key, timeout);
-    return keyNum > 0;
+    const keys = await this.redisService.expire(key, timeout);
+    return keys > 0;
   }
 
   /**
@@ -74,8 +74,8 @@ export class RedisCache {
    * @return true=存在 false=不存在
    */
   public async hasKey(key: string): Promise<boolean> {
-    const keyNum = await this.redisService.exists(key);
-    return keyNum > 0;
+    const keys = await this.redisService.exists(key);
+    return keys > 0;
   }
 
   /**
@@ -95,10 +95,8 @@ export class RedisCache {
    * @return 删除key数量
    */
   public async delKeys(keys: string[]): Promise<number> {
-    if (keys.length > 0) {
-      return await this.redisService.del(keys);
-    }
-    return 0;
+    if (keys.length <= 0) return 0;
+    return await this.redisService.del(keys);
   }
 
   /**

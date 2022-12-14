@@ -153,7 +153,8 @@ export class SysRoleController {
     if (!roleIds) return Result.err();
     // 处理字符转id数组
     const ids = roleIds.split(',');
-    const rows = await this.sysRoleService.deleteRoleByIds(ids);
+    if (ids.length <= 0) return Result.err();
+    const rows = await this.sysRoleService.deleteRoleByIds([...new Set(ids)]);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -266,7 +267,9 @@ export class SysRoleController {
     if (!role) {
       return Result.errMsg('没有权限访问角色数据！');
     }
-    const rows = await this.sysRoleService.insertAuthUsers(roleId, ids);
+    const rows = await this.sysRoleService.insertAuthUsers(roleId, [
+      ...new Set(ids),
+    ]);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -287,7 +290,9 @@ export class SysRoleController {
     if (!role) {
       return Result.errMsg('没有权限访问角色数据！');
     }
-    const rows = await this.sysRoleService.deleteAuthUsers(roleId, ids);
+    const rows = await this.sysRoleService.deleteAuthUsers(roleId, [
+      ...new Set(ids),
+    ]);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 

@@ -1,5 +1,5 @@
 // 依赖来源 https://github.com/faisalman/ua-parser-js
-import * as UAParser from 'ua-parser-js';
+import UAParser = require('ua-parser-js');
 
 /**
  * 获取ua信息

@@ -183,7 +183,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
       }
       const useCount = await this.countUserRoleByRoleId(roleId);
       if (useCount > 0) {
-        throw new Error(`【${role.roleName}】已分配,不能删除`);
+        throw new Error(`【${role.roleName}】已分配给用户,不能删除`);
       }
     }
 

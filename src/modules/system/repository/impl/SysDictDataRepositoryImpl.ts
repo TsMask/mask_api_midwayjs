@@ -129,21 +129,55 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   }
 
   async selectDictLabel(dictType: string, dictValue: string): Promise<string> {
-    const sql =
-      'select dict_label from sys_dict_data where dict_type = ? and dict_value = ?';
-    return await this.db.execute(sql, [dictType, dictValue]);
+    const sqlStr =
+      "select dict_label as 'str' from sys_dict_data where dict_type = ? and dict_value = ?";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [
+      dictType,
+      dictValue,
+    ]);
+    return rows[0].str || null;
   }
 
   async selectDictDataById(dictCode: string): Promise<SysDictData> {
-    const sql = `${SELECT_DICT_DATA_VO} where dict_code = ?`;
-    const rows = await this.db.execute(sql, [dictCode]);
+    const sqlStr = `${SELECT_DICT_DATA_VO} where dict_code = ?`;
+    const rows = await this.db.execute(sqlStr, [dictCode]);
 
     return parseSysDictDataResult(rows)[0] || null;
   }
 
-  countDictDataByType(dictType: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async countDictDataByType(dictType: string): Promise<number> {
+    const sqlStr =
+      "select count(1) as 'total' from sys_dict_data where dict_type = ?";
+    const countRow: rowTotal[] = await this.db.execute(sqlStr, [dictType]);
+    return parseNumber(countRow[0].total);
   }
+
+  async checkUniqueDictLabel(
+    dictType: string,
+    dictLabel: string
+  ): Promise<string> {
+    const sqlStr =
+      "select dict_code as 'str' from sys_dict_data where dict_type = ? and dict_label = ? limit 1";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [
+      dictType,
+      dictLabel,
+    ]);
+    return rows.length > 0 ? rows[0].str : null;
+  }
+
+  async checkUniqueDictValue(
+    dictType: string,
+    dictValue: string
+  ): Promise<string> {
+    const sqlStr =
+      "select dict_code as 'str' from sys_dict_data where dict_type = ? and dict_value = ? limit 1";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [
+      dictType,
+      dictValue,
+    ]);
+    return rows.length > 0 ? rows[0].str : null;
+  }
+
   deleteDictDataById(dictCode: string): Promise<number> {
     throw new Error('Method not implemented.');
   }
@@ -162,13 +196,13 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramMap.set('dict_sort', parseNumber(sysDictData.dictSort));
     }
     if (sysDictData.dictLabel) {
-      paramMap.set('dict_label', sysDictData.dictLabel);
+      paramMap.set('dict_label', sysDictData.dictLabel.trim());
     }
     if (sysDictData.dictValue) {
-      paramMap.set('dict_value', sysDictData.dictValue);
+      paramMap.set('dict_value', sysDictData.dictValue.trim());
     }
     if (sysDictData.dictType) {
-      paramMap.set('dict_type', sysDictData.dictType);
+      paramMap.set('dict_type', sysDictData.dictType.trim());
     }
     if (sysDictData.listClass) {
       paramMap.set('list_class', sysDictData.listClass);
@@ -202,13 +236,13 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramMap.set('dict_sort', parseNumber(sysDictData.dictSort));
     }
     if (sysDictData.dictLabel) {
-      paramMap.set('dict_label', sysDictData.dictLabel);
+      paramMap.set('dict_label', sysDictData.dictLabel.trim());
     }
     if (sysDictData.dictValue) {
-      paramMap.set('dict_value', sysDictData.dictValue);
+      paramMap.set('dict_value', sysDictData.dictValue.trim());
     }
     if (sysDictData.dictType) {
-      paramMap.set('dict_type', sysDictData.dictType);
+      paramMap.set('dict_type', sysDictData.dictType.trim());
     }
     if (sysDictData.cssClass) {
       paramMap.set('css_class', sysDictData.cssClass);

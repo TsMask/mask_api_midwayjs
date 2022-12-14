@@ -1,7 +1,7 @@
 import { Controller, Get, HttpCode, Inject } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { create, createMathExpr } from 'svg-captcha';
-import * as svgBase64 from 'mini-svg-data-uri';
+import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../common/constants/CacheKeysConstants';
 import { CAPTCHA_EXPIRATION } from '../../../common/constants/CommonConstants';
 import { generateID } from '../../../common/utils/GenIdUtils';

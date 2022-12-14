@@ -46,8 +46,7 @@ export class SysNoticeController {
   async getInfo(@Param('noticeId') noticeId: string): Promise<Result> {
     if (!noticeId) return Result.err();
     const data = await this.sysNoticeService.selectNoticeById(noticeId);
-    if (!data) return Result.err();
-    return Result.okData(data);
+    return Result.okData(data || {});
   }
 
   /**
@@ -83,7 +82,9 @@ export class SysNoticeController {
     if (!noticeIds) return Result.err();
     // 处理字符转id数组
     const ids = noticeIds.split(',');
-    const rows = await this.sysNoticeService.deleteNoticeByIds(ids);
+    const rows = await this.sysNoticeService.deleteNoticeByIds([
+      ...new Set(ids),
+    ]);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 }

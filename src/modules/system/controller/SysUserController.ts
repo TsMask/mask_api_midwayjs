@@ -176,10 +176,11 @@ export class SysUserController {
     if (!userIds) return Result.err();
     // 处理字符转id数组
     const ids = userIds.split(',');
+    if (ids.length <= 0) return Result.err();
     if (ids.includes(this.contextService.getUserId())) {
       return Result.errMsg('当前用户不能删除');
     }
-    const rows = await this.sysUserService.deleteUserByIds(ids);
+    const rows = await this.sysUserService.deleteUserByIds([...new Set(ids)]);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -277,7 +278,7 @@ export class SysUserController {
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
-    await this.sysUserService.insertAserAuth(userId, ids);
+    await this.sysUserService.insertAserAuth(userId, [...new Set(ids)]);
     return Result.ok();
   }
 
@@ -288,6 +289,6 @@ export class SysUserController {
   @Get('/deptTree')
   async deptTree(@Query() sysDept: SysDept): Promise<Result> {
     const data = await this.sysDeptService.selectDeptTreeList(sysDept);
-    return Result.okData(data);
+    return Result.okData(data || []);
   }
 }

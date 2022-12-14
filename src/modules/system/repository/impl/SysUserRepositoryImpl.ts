@@ -159,7 +159,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       where u.del_flag = '0' ${sqlStr}`,
       paramArr
     );
-    if (countRow[0].total <= 0) {
+    const total = parseNumber(countRow[0].total);
+    if (total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
@@ -176,7 +177,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr
     );
     const rows = parseSysUserResult(results);
-    return { total: countRow[0].total, rows };
+    return { total, rows };
   }
 
   async selectUserList(sysUser: SysUser): Promise<SysUser[]> {
@@ -211,6 +212,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     );
     return parseSysUserResult(results);
   }
+
   async selectAllocatedPage(
     roleId: string,
     unallocated = false,
@@ -247,7 +249,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       where u.del_flag = '0' ${sqlStr}`,
       paramArr
     );
-    if (countRow[0].total <= 0) {
+    const total = parseNumber(countRow[0].total);
+    if (total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
@@ -269,7 +272,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     // 查询数据数
     const results = await this.db.execute(buildSql, paramArr);
     const rows = parseSysUserResult(results);
-    return { total: countRow[0].total, rows };
+    return { total, rows };
   }
 
   async selectUserByUserName(userName: string): Promise<SysUser> {

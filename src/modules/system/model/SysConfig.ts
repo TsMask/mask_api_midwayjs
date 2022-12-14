@@ -5,7 +5,7 @@
  */
 export class SysConfig {
   /**参数主键 */
-  configId: number;
+  configId: string;
 
   /**参数名称 */
   configName: string;

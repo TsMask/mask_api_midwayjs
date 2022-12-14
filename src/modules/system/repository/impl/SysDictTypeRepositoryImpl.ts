@@ -88,11 +88,12 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: { total: number }[] = await this.db.execute(
+    const countRow: rowTotal[] = await this.db.execute(
       `select count(1) as 'total' from sys_dict_type where 1 = 1 ${sqlStr}`,
       paramArr
     );
-    if (countRow[0].total <= 0) {
+    const total = parseNumber(countRow[0].total);
+    if (total <= 0) {
       return { total: 0, rows: [] };
     }
 
@@ -110,7 +111,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       paramArr
     );
     const rows = parseSysDictTypeResult(results);
-    return { total: countRow[0].total, rows };
+    return { total, rows };
   }
 
   async selectDictTypeList(sysDictType: SysDictType): Promise<SysDictType[]> {
@@ -148,29 +149,30 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   async selectDictTypeByType(dictType: string): Promise<SysDictType> {
     const sql = `${SELECT_DICT_TYPE_VO} where dict_type = ?`;
     const rows = await this.db.execute(sql, [dictType]);
-
     return parseSysDictTypeResult(rows)[0] || null;
   }
 
-  deleteDictTypeById(dictId: string): Promise<number> {
-    throw new Error('Method not implemented.');
+  async checkUniqueDictName(dictName: string): Promise<string> {
+    const sqlStr =
+      "select dict_id as 'str' from sys_dict_type where dict_name = ? limit 1";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [dictName]);
+    return rows.length > 0 ? rows[0].str : null;
   }
 
-  async deleteDictTypeByIds(dictIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_dict_type where dict_id in (${dictIds
-      .map(() => '?')
-      .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, dictIds);
-    return result.affectedRows;
+  async checkUniqueDictType(dictType: string): Promise<string> {
+    const sqlStr =
+      "select dict_id as 'str' from sys_dict_type where dict_type = ? limit 1";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [dictType]);
+    return rows.length > 0 ? rows[0].str : null;
   }
 
   async insertDictType(sysDictType: SysDictType): Promise<string> {
     const paramMap = new Map();
     if (sysDictType.dictName) {
-      paramMap.set('dict_name', sysDictType.dictName);
+      paramMap.set('dict_name', sysDictType.dictName.trim());
     }
     if (sysDictType.dictType) {
-      paramMap.set('dict_type', sysDictType.dictType);
+      paramMap.set('dict_type', sysDictType.dictType.trim());
     }
     if (sysDictType.status) {
       paramMap.set('status', parseNumber(sysDictType.status));
@@ -195,10 +197,10 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   async updateDictType(sysDictType: SysDictType): Promise<number> {
     const paramMap = new Map();
     if (sysDictType.dictName) {
-      paramMap.set('dict_name', sysDictType.dictName);
+      paramMap.set('dict_name', sysDictType.dictName.trim());
     }
     if (sysDictType.dictType) {
-      paramMap.set('dict_type', sysDictType.dictType);
+      paramMap.set('dict_type', sysDictType.dictType.trim());
     }
     if (sysDictType.status) {
       paramMap.set('status', parseNumber(sysDictType.status));
@@ -218,6 +220,14 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       ...paramMap.values(),
       sysDictType.dictId,
     ]);
+    return result.affectedRows;
+  }
+
+  async deleteDictTypeByIds(dictIds: string[]): Promise<number> {
+    const sqlStr = `delete from sys_dict_type where dict_id in (${dictIds
+      .map(() => '?')
+      .join(',')})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, dictIds);
     return result.affectedRows;
   }
 }

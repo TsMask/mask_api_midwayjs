@@ -36,8 +36,28 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
     return await this.sysDictDataRepository.selectDictDataById(dictCode);
   }
 
-  async deleteDictDataByIds(dictCodes: string[]): Promise<number> {
-    return await this.sysDictDataRepository.deleteDictDataByIds(dictCodes);
+  async checkUniqueDictLabel(sysDictData: SysDictData): Promise<boolean> {
+    const dictCode = await this.sysDictDataRepository.checkUniqueDictLabel(
+      sysDictData.dictType,
+      sysDictData.dictLabel
+    );
+    // 字典数据与查询得到字典数据code一致
+    if (dictCode && sysDictData.dictCode === dictCode) {
+      return true;
+    }
+    return !dictCode;
+  }
+
+  async checkUniqueDictValue(sysDictData: SysDictData): Promise<boolean> {
+    const dictCode = await this.sysDictDataRepository.checkUniqueDictValue(
+      sysDictData.dictType,
+      sysDictData.dictValue
+    );
+    // 字典数据与查询得到字典数据code一致
+    if (dictCode && sysDictData.dictCode === dictCode) {
+      return true;
+    }
+    return !dictCode;
   }
 
   async insertDictData(sysDictData: SysDictData): Promise<string> {
@@ -51,10 +71,36 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
   }
 
   async updateDictData(sysDictData: SysDictData): Promise<number> {
-    const row = await this.sysDictDataRepository.updateDictData(sysDictData);
-    if (row > 0) {
+    const rows = await this.sysDictDataRepository.updateDictData(sysDictData);
+    if (rows > 0) {
       await this.sysDictTypeService.loadingDictCache(sysDictData.dictType);
     }
-    return row;
+    return rows;
+  }
+
+  async deleteDictDataByIds(dictCodes: string[]): Promise<number> {
+    let dictTypes: string[] = [];
+    for (const dictCode of dictCodes) {
+      // 检查是否存在
+      const dictData = await this.sysDictDataRepository.selectDictDataById(
+        dictCode
+      );
+      if (!dictData) {
+        throw new Error('没有权限访问字典数据数据！');
+      }
+      dictTypes.push(dictData.dictType);
+    }
+    dictTypes = [...new Set(dictTypes)];
+    const rows = await this.sysDictDataRepository.deleteDictDataByIds(
+      dictCodes
+    );
+    if (rows > 0) {
+      // 刷新缓存
+      for (const dictType of dictTypes) {
+        await this.sysDictTypeService.clearDictCache(dictType);
+        await this.sysDictTypeService.loadingDictCache(dictType);
+      }
+    }
+    return rows;
   }
 }

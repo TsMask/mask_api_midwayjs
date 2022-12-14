@@ -1,5 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { SysRoleMenu } from '../../model/SysRoleMenu';
 import { ISysRoleMenuRepository } from '../ISysRoleMenuRepository';
@@ -19,7 +20,7 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
     const sqlStr =
       "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
     const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
-    return countRow[0].total;
+    return parseNumber(countRow[0].total);
   }
   async deleteRoleMenuByRoleId(roleId: string): Promise<number> {
     const sqlStr = 'delete from sys_role_menu where role_id = ?';

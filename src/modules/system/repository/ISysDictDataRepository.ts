@@ -48,6 +48,22 @@ export interface ISysDictDataRepository {
   countDictDataByType(dictType: string): Promise<number>;
 
   /**
+   * 校验字典标签是否唯一
+   *
+   * @param dictLabel 字典标签
+   * @return 结果
+   */
+  checkUniqueDictLabel(dictType: string, dictLabel: string): Promise<string>;
+
+  /**
+   * 校验字典键值是否唯一
+   *
+   * @param dictValue 字典键值
+   * @return 结果
+   */
+  checkUniqueDictValue(dictType: string, dictValue: string): Promise<string>;
+
+  /**
    * 通过字典ID删除字典数据信息
    *
    * @param dictCode 字典数据ID

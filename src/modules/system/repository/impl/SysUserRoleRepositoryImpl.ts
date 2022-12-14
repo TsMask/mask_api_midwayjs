@@ -1,5 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
+import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
 import { SysUserRole } from '../../model/SysUserRole';
 import { ISysUserRoleRepository } from '../ISysUserRoleRepository';
@@ -18,8 +19,8 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
   async countUserRoleByRoleId(roleId: string): Promise<number> {
     const sqlStr =
       'select count(1) as total from sys_user_role where role_id = ?';
-    const result: rowTotal[] = await this.db.execute(sqlStr, [roleId]);
-    return result[0].total;
+    const countRow: rowTotal[] = await this.db.execute(sqlStr, [roleId]);
+    return parseNumber(countRow[0].total);
   }
 
   async batchUserRole(sysUserRoles: SysUserRole[]): Promise<number> {

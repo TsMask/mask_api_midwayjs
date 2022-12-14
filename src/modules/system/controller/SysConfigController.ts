@@ -8,10 +8,9 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
-import { Context } from '@midwayjs/koa';
-import { parseNumber } from '../../../common/utils/ValueParseUtils';
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { ContextService } from '../../../framework/service/ContextService';
 import { SysConfig } from '../model/SysConfig';
 import { SysConfigServiceImpl } from '../service/impl/SysConfigServiceImpl';
 
@@ -23,132 +22,121 @@ import { SysConfigServiceImpl } from '../service/impl/SysConfigServiceImpl';
 @Controller('/system/config')
 export class SysConfigController {
   @Inject()
-  private ctx: Context;
+  private contextService: ContextService;
 
   @Inject()
   private sysConfigService: SysConfigServiceImpl;
 
   /**
-   * 获取参数配置列表
+   * 参数配置列表
    * @returns 返回结果
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:config:list'] })
   async list(): Promise<Result> {
-    const query = this.ctx.query;
+    const query = this.contextService.getContext().query;
     const data = await this.sysConfigService.selectConfigPage(query);
     return Result.ok(data);
   }
 
   /**
-   * 导出参数配置列表
-   */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['system:config:export'] })
-  async export(@Body() sysConfig: SysConfig) {
-    const list = await this.sysConfigService.selectConfigList(sysConfig);
-    //   ExcelUtil<SysConfig> util = new ExcelUtil<SysConfig>(SysConfig.class);
-    //   util.exportExcel(response, list, "参数数据");
-    return list;
-  }
-
-  /**
-   * 根据参数键名查询参数值
-   * @param configKey 配置键key
-   * @returns 返回结果
+   * 参数配置根据参数键名
    */
   @Get('/configKey/:configKey')
   async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
-    const key = await this.sysConfigService.selectConfigByKey(configKey);
-    if (key) {
-      return Result.okData(key);
-    }
-    return Result.err();
+    const key = await this.sysConfigService.selectConfigValueByKey(configKey);
+    return Result.okData(key || '');
   }
 
   /**
-   * 获取详细信息
-   * @param configId 配置id
-   * @returns 返回结果
+   * 参数配置信息
    */
   @Get('/:configId')
   @PreAuthorize({ hasPermissions: ['system:config:query'] })
   async get(@Param('configId') configId: string): Promise<Result> {
-    const id = parseNumber(configId);
-    if (!id) return Result.err();
-    const data = await this.sysConfigService.selectConfigById(id);
+    if (!configId) return Result.err();
+    const data = await this.sysConfigService.selectConfigById(configId);
     return Result.okData(data || {});
   }
 
   /**
-   * 新增参数配置
-   * @param config 配置对象信息
-   * @returns 返回结果
+   * 参数配置新增
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:config:add'] })
-  async add(@Body() config: SysConfig) {
-    if (config && config.configKey) {
-      const hasConfig = await this.sysConfigService.checkUniqueConfigKey(
-        config.configKey
+  async add(@Body() sysConfig: SysConfig) {
+    if (!sysConfig.configName || !sysConfig.configKey || !sysConfig.configValue)
+      return Result.err();
+    // 检查属性值唯一
+    const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
+      sysConfig
+    );
+    if (!uniqueConfigKey) {
+      return Result.errMsg(
+        `参数配置新增【${sysConfig.configKey}】失败，参数键名已存在`
       );
-      if (hasConfig) {
-        return Result.errMsg(
-          `新增参数 ${config.configKey} 失败，参数键名已存在`
-        );
-      }
-      config.createBy = this.ctx.loginUser?.user?.userName;
-      const id = await this.sysConfigService.insertConfig(config);
-      return Result[id ? 'ok' : 'err']();
     }
-    return Result.err();
+    const uniqueConfigValue =
+      await this.sysConfigService.checkUniqueConfigValue(sysConfig);
+    if (!uniqueConfigValue) {
+      return Result.errMsg(
+        `参数配置新增【${sysConfig.configValue}】失败，参数键值已存在`
+      );
+    }
+
+    sysConfig.createBy = this.contextService.getUsername();
+    const insertId = await this.sysConfigService.insertConfig(sysConfig);
+    return Result[insertId ? 'ok' : 'err']();
   }
 
   /**
-   * 修改参数配置
-   * @param config 配置对象信息
-   * @returns 返回结果
+   * 参数配置修改
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:config:edit'] })
-  async edit(@Body() config: SysConfig) {
-    if (!config.configId) {
+  async edit(@Body() sysConfig: SysConfig) {
+    if (!sysConfig.configName || !sysConfig.configKey || !sysConfig.configValue)
       return Result.err();
-    }
-    const hasConfig = await this.sysConfigService.checkUniqueConfigKey(
-      config.configKey
+    // 检查属性值唯一
+    const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
+      sysConfig
     );
-    if (hasConfig) {
+    if (!uniqueConfigKey) {
       return Result.errMsg(
-        `修改参数 ${config.configName} 失败，参数键名已存在`
+        `参数配置修改【${sysConfig.configKey}】失败，参数键名已存在`
       );
     }
-    config.updateBy = this.ctx.loginUser?.user?.userName;
-    const rowNum = await this.sysConfigService.updateConfig(config);
-    return Result[rowNum ? 'ok' : 'err']();
+    const uniqueConfigValue =
+      await this.sysConfigService.checkUniqueConfigValue(sysConfig);
+    if (!uniqueConfigValue) {
+      return Result.errMsg(
+        `参数配置修改【${sysConfig.configValue}】失败，参数键值已存在`
+      );
+    }
+
+    sysConfig.updateBy = this.contextService.getUsername();
+    const rows = await this.sysConfigService.updateConfig(sysConfig);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
-   * 删除参数配置
-   * @param configIds 格式字符串 "id,id"
-   * @returns 返回结果
+   * 参数配置删除
    */
   @Del('/:configIds')
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
   async remove(@Param('configIds') configIds: string) {
     if (!configIds) return Result.err();
     // 处理字符转有效数字id数组
-    const ids = configIds
-      .split(',')
-      .map(s => parseNumber(s))
-      .filter(i => i > 0);
-    const rowNum = await this.sysConfigService.deleteConfigByIds(ids);
-    return Result[rowNum ? 'ok' : 'err']();
+    const ids = configIds.split(',');
+    if (ids.length <= 0) return Result.err();
+    const rows = await this.sysConfigService.deleteConfigByIds([
+      ...new Set(ids),
+    ]);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
-   * 刷新参数缓存
-   * @returns 返回结果
+   * 参数配置刷新缓存
    */
   @Del('/refreshCache')
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })

@@ -41,7 +41,7 @@ export class SysMenuController {
       sysMenu,
       isSuperAdmin ? null : userId
     );
-    return Result.okData(data);
+    return Result.okData(data || []);
   }
 
   /**
@@ -52,10 +52,7 @@ export class SysMenuController {
   async getInfo(@Param('menuId') menuId: string): Promise<Result> {
     if (!menuId) return Result.err();
     const data = await this.sysMenuService.selectMenuById(menuId);
-    if (data) {
-      return Result.okData(data || {});
-    }
-    return Result.err();
+    return Result.okData(data || {});
   }
 
   /**
@@ -129,7 +126,7 @@ export class SysMenuController {
     }
     const existRole = await this.sysMenuService.checkMenuExistRole(menuId);
     if (existRole) {
-      return Result.errMsg('菜单已分配,不允许删除');
+      return Result.errMsg('菜单已分配给角色,不允许删除');
     }
     const rows = await this.sysMenuService.deleteMenuById(menuId);
     return Result[rows > 0 ? 'ok' : 'err']();

@@ -40,11 +40,20 @@ export interface ISysDictDataService {
   selectDictDataById(dictCode: string): Promise<SysDictData>;
 
   /**
-   * 批量删除字典数据信息
+   * 校验字典标签是否唯一
    *
-   * @param dictCodes 需要删除的字典数据ID
+   * @param sysDictData 字典数据信息
+   * @return 结果
    */
-  deleteDictDataByIds(dictCodes: string[]): Promise<number>;
+  checkUniqueDictLabel(sysDictData: SysDictData): Promise<boolean>;
+
+  /**
+   * 校验字典键值是否唯一
+   *
+   * @param sysDictData 字典数据信息
+   * @return 结果
+   */
+  checkUniqueDictValue(sysDictData: SysDictData): Promise<boolean>;
 
   /**
    * 新增保存字典数据信息
@@ -61,4 +70,11 @@ export interface ISysDictDataService {
    * @return 结果
    */
   updateDictData(sysDictData: SysDictData): Promise<number>;
+
+  /**
+   * 批量删除字典数据信息
+   *
+   * @param dictCodes 需要删除的字典数据ID
+   */
+  deleteDictDataByIds(dictCodes: string[]): Promise<number>;
 }

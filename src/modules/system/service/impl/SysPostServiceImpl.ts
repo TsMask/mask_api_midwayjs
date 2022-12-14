@@ -48,7 +48,7 @@ export class SysPostServiceImpl implements ISysPostService {
         postId
       );
       if (useCount > 0) {
-        throw new Error(`【${post.postName}】已分配,不能删除`);
+        throw new Error(`【${post.postName}】已分配给用户,不能删除`);
       }
     }
     return await this.sysPostRepository.deletePostByIds(postIds);

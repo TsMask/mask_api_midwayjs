@@ -39,20 +39,20 @@ export interface ISysDictTypeRepository {
   selectDictTypeByType(dictType: string): Promise<SysDictType>;
 
   /**
-   * 通过字典ID删除字典信息
+   * 校验字典名称是否唯一
    *
-   * @param dictId 字典ID
+   * @param dictName 字典名称
    * @return 结果
    */
-  deleteDictTypeById(dictId: string): Promise<number>;
+  checkUniqueDictName(dictName: string): Promise<string>;
 
   /**
-   * 批量删除字典类型信息
+   * 校验字典类型是否唯一
    *
-   * @param dictIds 需要删除的字典ID
+   * @param dictType 字典类型
    * @return 结果
    */
-  deleteDictTypeByIds(dictIds: string[]): Promise<number>;
+  checkUniqueDictType(dictType: string): Promise<string>;
 
   /**
    * 新增字典类型信息
@@ -69,4 +69,12 @@ export interface ISysDictTypeRepository {
    * @return 结果
    */
   updateDictType(sysDictType: SysDictType): Promise<number>;
+
+  /**
+   * 批量删除字典类型信息
+   *
+   * @param dictIds 需要删除的字典ID
+   * @return 结果
+   */
+  deleteDictTypeByIds(dictIds: string[]): Promise<number>;
 }

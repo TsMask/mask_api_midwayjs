@@ -77,7 +77,8 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
       `select count(1) as 'total' from sys_post where 1 = 1 ${sqlStr}`,
       paramArr
     );
-    if (countRow[0].total <= 0) {
+    const total = parseNumber(countRow[0].total);
+    if (total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
@@ -94,7 +95,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
       paramArr
     );
     const rows = parseSysPostResult(results);
-    return { total: countRow[0].total, rows };
+    return { total, rows };
   }
 
   async selectPostList(sysPost: SysPost): Promise<SysPost[]> {

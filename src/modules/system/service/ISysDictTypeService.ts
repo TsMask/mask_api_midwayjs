@@ -31,27 +31,20 @@ export interface ISysDictTypeService {
   selectDictTypeByType(dictType: string): Promise<SysDictType>;
 
   /**
-   * 批量删除字典信息
+   * 校验字典名称是否唯一
    *
-   * @param dictIds 需要删除的字典ID
+   * @param sysDictType 字典类型信息
+   * @return 结果
    */
-  deleteDictTypeByIds(dictIds: string[]): Promise<number>;
+  checkUniqueDictName(sysDictType: SysDictType): Promise<boolean>;
 
   /**
-   * 加载字典缓存数据
-   * @param dictType 字典类型，不指定即加载所有
+   * 校验字典类型是否唯一
+   *
+   * @param sysDictType 字典类型信息
+   * @return 结果
    */
-  loadingDictCache(dictType?: string): Promise<void>;
-
-  /**
-   * 清空字典缓存数据
-   */
-  clearDictCache(): Promise<number>;
-
-  /**
-   * 重置字典缓存数据
-   */
-  resetDictCache(): Promise<void>;
+  checkUniqueDictType(sysDictType: SysDictType): Promise<boolean>;
 
   /**
    * 新增保存字典类型信息
@@ -68,4 +61,28 @@ export interface ISysDictTypeService {
    * @return 结果
    */
   updateDictType(sysDictType: SysDictType): Promise<number>;
+
+  /**
+   * 批量删除字典信息
+   *
+   * @param dictIds 需要删除的字典ID
+   */
+  deleteDictTypeByIds(dictIds: string[]): Promise<number>;
+
+  /**
+   * 加载字典缓存数据
+   * @param dictType 字典类型，不指定即加载所有
+   */
+  loadingDictCache(dictType?: string): Promise<void>;
+
+  /**
+   * 清空字典缓存数据
+   * @param dictType 字典类型，不指定即清除所有
+   */
+  clearDictCache(dictType?: string): Promise<number>;
+
+  /**
+   * 重置字典缓存数据
+   */
+  resetDictCache(): Promise<void>;
 }

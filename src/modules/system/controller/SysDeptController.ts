@@ -49,7 +49,7 @@ export class SysDeptController {
       dept =>
         !(dept.deptId === deptId || dept.ancestors.split(',').includes(deptId))
     );
-    return Result.okData(data);
+    return Result.okData(data || []);
   }
 
   /**
@@ -59,10 +59,7 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:query'] })
   async getInfo(@Param('deptId') deptId: string): Promise<Result> {
     const data = await this.sysDeptService.selectDeptById(deptId);
-    if (data) {
-      return Result.okData(data);
-    }
-    return Result.err();
+    return Result.okData(data || {});
   }
 
   /**

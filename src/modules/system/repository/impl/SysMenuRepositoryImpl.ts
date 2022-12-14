@@ -167,14 +167,14 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     const sqlStr =
       "select count(1) as 'total' from sys_menu where parent_id = ? ";
     const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
-    return countRow[0].total;
+    return parseNumber(countRow[0].total);
   }
 
   async checkMenuExistRole(menuId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
     const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
-    return countRow[0].total;
+    return parseNumber(countRow[0].total);
   }
 
   async insertMenu(sysMenu: SysMenu): Promise<string> {

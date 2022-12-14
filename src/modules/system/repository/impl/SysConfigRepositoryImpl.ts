@@ -86,11 +86,12 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: { total: number }[] = await this.db.execute(
+    const countRow: rowTotal[] = await this.db.execute(
       `select count(1) as 'total' from sys_config where 1 = 1 ${sqlStr}`,
       paramArr
     );
-    if (countRow[0].total <= 0) {
+    const total = parseNumber(countRow[0].total);
+    if (total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
@@ -107,7 +108,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
       paramArr
     );
     const rows = parseSysConfigResult(results);
-    return { total: countRow[0].total, rows };
+    return { total, rows };
   }
 
   async selectConfigList(sysConfig: SysConfig): Promise<SysConfig[]> {
@@ -134,38 +135,43 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     return parseSysConfigResult(rows);
   }
 
-  async selectConfig(sysConfig: SysConfig): Promise<SysConfig> {
-    let sqlStr = `${SELECT_CONFIG_VO} where 1 = 1 `;
-    const paramArr = [];
-    if (sysConfig.configId) {
-      sqlStr += ' and config_id = ? ';
-      paramArr.push(sysConfig.configId);
-    }
-    if (sysConfig.configKey) {
-      sqlStr += ' and config_key = ? ';
-      paramArr.push(sysConfig.configKey);
-    }
+  async selectconfigValueByKey(configKey: string): Promise<string> {
+    const sqlStr =
+      "select config_value as 'str' from sys_config config_key = ?";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [configKey]);
+    return rows.length > 0 ? rows[0].str : null;
+  }
 
-    const rows = await this.db.execute(sqlStr, paramArr);
+  async selectConfigById(configId: string): Promise<SysConfig> {
+    const sqlStr = `${SELECT_CONFIG_VO} where config_id = ?`;
+    const rows = await this.db.execute(sqlStr, [configId]);
     return parseSysConfigResult(rows)[0] || null;
   }
 
-  async checkUniqueConfigKey(configKey: string): Promise<SysConfig> {
-    const sqlStr = `${SELECT_CONFIG_VO} where config_key = ? limit 1`;
-    const rows = await this.db.execute(sqlStr, [configKey]);
-    return parseSysConfigResult(rows)[0] || null;
+  async checkUniqueConfigKey(configKey: string): Promise<string> {
+    const sqlStr =
+      "select config_id as 'str' from sys_config where config_key = ? limit 1";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [configKey]);
+    return rows.length > 0 ? rows[0].str : null;
   }
 
-  async insertConfig(sysConfig: SysConfig): Promise<number> {
+  async checkUniqueConfigValue(configValue: string): Promise<string> {
+    const sqlStr =
+      "select config_id as 'str' from sys_config where config_value= ? limit 1";
+    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [configValue]);
+    return rows.length > 0 ? rows[0].str : null;
+  }
+
+  async insertConfig(sysConfig: SysConfig): Promise<string> {
     const paramMap = new Map();
     if (sysConfig.configName) {
-      paramMap.set('config_name', sysConfig.configName);
+      paramMap.set('config_name', sysConfig.configName.trim());
     }
     if (sysConfig.configKey) {
-      paramMap.set('config_key', sysConfig.configKey);
+      paramMap.set('config_key', sysConfig.configKey.trim());
     }
     if (sysConfig.configValue) {
-      paramMap.set('config_value', sysConfig.configValue);
+      paramMap.set('config_value', sysConfig.configValue.trim());
     }
     if (sysConfig.configType) {
       paramMap.set('config_type', sysConfig.configType);
@@ -184,19 +190,19 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId;
+    return `${result.insertId}`;
   }
 
   async updateConfig(sysConfig: SysConfig): Promise<number> {
     const paramMap = new Map();
     if (sysConfig.configName) {
-      paramMap.set('config_name', sysConfig.configName);
+      paramMap.set('config_name', sysConfig.configName.trim());
     }
     if (sysConfig.configKey) {
-      paramMap.set('config_key', sysConfig.configKey);
+      paramMap.set('config_key', sysConfig.configKey.trim());
     }
     if (sysConfig.configValue) {
-      paramMap.set('config_value', sysConfig.configValue);
+      paramMap.set('config_value', sysConfig.configValue.trim());
     }
     if (sysConfig.configType) {
       paramMap.set('config_type', sysConfig.configType);
@@ -211,16 +217,19 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
 
     const sqlStr = `update sys_config set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
-      .join(',')} where config_id = ${sysConfig.configId}`;
+      .join(',')} where config_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
+      sysConfig.configId,
     ]);
     return result.affectedRows;
   }
 
-  async deleteConfigById(configId: number): Promise<number> {
-    const sqlStr = 'delete from sys_config where config_id = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [configId]);
+  async deleteConfigByIds(configIds: string[]): Promise<number> {
+    const sqlStr = `delete from sys_config where config_id in (${configIds
+      .map(() => '?')
+      .join(',')})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, configIds);
     return result.affectedRows;
   }
 }

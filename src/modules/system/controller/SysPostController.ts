@@ -46,8 +46,7 @@ export class SysPostController {
   async getInfo(@Param('postId') postId: string): Promise<Result> {
     if (!postId) return Result.err();
     const data = await this.sysPostService.selectPostById(postId);
-    if (!data) return Result.err();
-    return Result.okData(data);
+    return Result.okData(data || {});
   }
 
   /**
@@ -124,7 +123,7 @@ export class SysPostController {
     // 处理字符转id数组
     const ids = postIds.split(',');
     if (ids.length <= 0) return Result.err();
-    const rows = await this.sysPostService.deletePostByIds(ids);
+    const rows = await this.sysPostService.deletePostByIds([...new Set(ids)]);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 }

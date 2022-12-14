@@ -1,5 +1,5 @@
 import { Config, Init, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
-import * as FlakeId from 'flake-idgen';
+import FlakeId = require('flake-idgen');
 
 /**
  * 有序唯一分布式ID

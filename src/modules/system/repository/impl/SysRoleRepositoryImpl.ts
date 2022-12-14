@@ -113,7 +113,8 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       left join sys_dept d on u.dept_id = d.dept_id where r.del_flag = '0' ${sqlStr}`,
       paramArr
     );
-    if (countRow[0].total <= 0) {
+    const total = parseNumber(countRow[0].total);
+    if (total <= 0) {
       return { total: 0, rows: [] };
     }
     // 分页
@@ -130,7 +131,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       paramArr
     );
     const rows = parseSysRoleResult(results);
-    return { total: countRow[0].total, rows };
+    return { total, rows };
   }
 
   async selectRoleList(sysRole: SysRole): Promise<SysRole[]> {

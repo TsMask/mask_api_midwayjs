@@ -8,93 +8,105 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
-import { Context } from '@midwayjs/koa';
 import { SysDictType } from '../../../framework/core/model/SysDictType';
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { ContextService } from '../../../framework/service/ContextService';
 import { SysDictTypeServiceImpl } from '../service/impl/SysDictTypeServiceImpl';
 
 /**
- * 数据字典信息
+ * 字典类型信息
  *
  * @author TsMask <340112800@qq.com>
  */
 @Controller('/system/dict/type')
 export class SysDictTypeController {
   @Inject()
-  private ctx: Context;
+  private contextService: ContextService;
 
   @Inject()
   private sysDictTypeService: SysDictTypeServiceImpl;
 
+  /**
+   * 字典类型列表
+   */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:dict:list'] })
   async list(): Promise<Result> {
-    const query = this.ctx.query;
+    const query = this.contextService.getContext().query;
     const data = await this.sysDictTypeService.selectDictTypePage(query);
     return Result.ok(data);
   }
 
-  // @Log(title = "字典类型", businessType = BusinessType.EXPORT)
-  // @PreAuthorize("@ss.hasPermi('system:dict:export')")
-  // @PostMapping("/export")
-  // public void export(HttpServletResponse response, SysDictType dictType)
-  // {
-  //     List<SysDictType> list = dictTypeService.selectDictTypeList(dictType);
-  //     ExcelUtil<SysDictType> util = new ExcelUtil<SysDictType>(SysDictType.class);
-  //     util.exportExcel(response, list, "字典类型");
-  // }
-
   /**
-   * 查询字典类型详细
+   * 字典类型信息
    */
   @Get('/:dictId')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async getInfo(@Param('dictId') dictId: string) {
     const data = await this.sysDictTypeService.selectDictTypeById(dictId);
-    return Result.okData(data);
+    return Result.okData(data || {});
   }
 
   /**
-   * 新增字典类型
+   * 字典类型新增
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dict:add'] })
   async add(@Body() sysDictType: SysDictType): Promise<Result> {
-    const dictType = await this.sysDictTypeService.selectDictTypeByType(
-      sysDictType.dictType
+    // 检查属性值唯一
+    const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
+      sysDictType
     );
-    if (!dictType) {
-      sysDictType.createBy = this.ctx.loginUser?.user?.userName;
-      const id = await this.sysDictTypeService.insertDictType(sysDictType);
-      return Result[id ? 'ok' : 'err']();
+    if (!uniqueDictName) {
+      return Result.errMsg(
+        `字典新增【${sysDictType.dictName}】失败，字典名称已存在`
+      );
     }
-    return Result.errMsg(
-      `新增字典【${sysDictType.dictType}】失败，字典类型已存在`
+    const uniqueDictType = await this.sysDictTypeService.checkUniqueDictType(
+      sysDictType
     );
+    if (!uniqueDictType) {
+      return Result.errMsg(
+        `字典新增【${sysDictType.dictType}】失败，字典类型已存在`
+      );
+    }
+
+    sysDictType.createBy = this.contextService.getUsername();
+    const insertId = await this.sysDictTypeService.insertDictType(sysDictType);
+    return Result[insertId ? 'ok' : 'err']();
   }
 
   /**
-   * 修改字典类型
+   * 字典类型修改
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
   async edit(@Body() sysDictType: SysDictType): Promise<Result> {
-    const dictType = await this.sysDictTypeService.selectDictTypeByType(
-      sysDictType.dictType
+    // 检查属性值唯一
+    const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
+      sysDictType
     );
-    if (dictType) {
-      sysDictType.updateBy = this.ctx.loginUser?.user?.userName;
-      const id = await this.sysDictTypeService.updateDictType(sysDictType);
-      return Result[id ? 'ok' : 'err']();
+    if (!uniqueDictName) {
+      return Result.errMsg(
+        `字典修改【${sysDictType.dictName}】失败，字典名称已存在`
+      );
     }
-    return Result.errMsg(
-      `修改字典【${sysDictType.dictType}】失败，字典类型不存在`
+    const uniqueDictType = await this.sysDictTypeService.checkUniqueDictType(
+      sysDictType
     );
+    if (!uniqueDictType) {
+      return Result.errMsg(
+        `字典修改【${sysDictType.dictType}】失败，字典类型已存在`
+      );
+    }
+    sysDictType.updateBy = this.contextService.getUsername();
+    const rows = await this.sysDictTypeService.updateDictType(sysDictType);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
-   * 删除字典类型
+   * 字典类型删除
    */
   @Del('/:dictIds')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
@@ -102,12 +114,15 @@ export class SysDictTypeController {
     if (!dictIds) return Result.err();
     // 处理字符转id数组
     const ids = dictIds.split(',');
-    const rowNum = await this.sysDictTypeService.deleteDictTypeByIds(ids);
-    return Result[rowNum ? 'ok' : 'err']();
+    if (ids.length <= 0) return Result.err();
+    const rows = await this.sysDictTypeService.deleteDictTypeByIds([
+      ...new Set(ids),
+    ]);
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
-   * 刷新字典缓存
+   * 字典类型刷新缓存
    */
   @Del('/refreshCache')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
@@ -117,7 +132,7 @@ export class SysDictTypeController {
   }
 
   /**
-   * 获取字典选择框列表
+   * 字典类型选择框列表
    */
   @Get('/optionselect')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
@@ -125,6 +140,6 @@ export class SysDictTypeController {
     const data = await this.sysDictTypeService.selectDictTypeList(
       new SysDictType()
     );
-    return Result.okData(data);
+    return Result.okData(data || []);
   }
 }

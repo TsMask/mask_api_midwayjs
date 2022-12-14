@@ -20,7 +20,7 @@ export interface ISysConfigService {
    * @param configId 参数配置ID
    * @return 参数配置信息
    */
-  selectConfigById(configId: number): Promise<SysConfig>;
+  selectConfigById(configId: string): Promise<SysConfig>;
 
   /**
    * 根据键名查询参数配置信息
@@ -28,7 +28,7 @@ export interface ISysConfigService {
    * @param configKey 参数键名
    * @return 参数键值
    */
-  selectConfigByKey(configKey: string): Promise<string>;
+  selectConfigValueByKey(configKey: string): Promise<string>;
 
   /**
    * 获取验证码开关
@@ -46,12 +46,28 @@ export interface ISysConfigService {
   selectConfigList(sysConfig: SysConfig): Promise<SysConfig[]>;
 
   /**
+   * 校验参数键名是否唯一
+   *
+   * @param sysConfig 参数配置信息
+   * @return 结果
+   */
+  checkUniqueConfigKey(sysConfig: SysConfig): Promise<boolean>;
+
+  /**
+   * 校验参数键值是否唯一
+   *
+   * @param sysConfig 参数配置信息
+   * @return 结果
+   */
+  checkUniqueConfigValue(sysConfig: SysConfig): Promise<boolean>;
+
+  /**
    * 新增参数配置
    *
    * @param sysConfig 参数配置信息
    * @return 结果
    */
-  insertConfig(sysConfig: SysConfig): Promise<number>;
+  insertConfig(sysConfig: SysConfig): Promise<string>;
 
   /**
    * 修改参数配置
@@ -66,28 +82,22 @@ export interface ISysConfigService {
    *
    * @param configIds 需要删除的参数ID
    */
-  deleteConfigByIds(configIds: number[]): Promise<number>;
+  deleteConfigByIds(configIds: string[]): Promise<number>;
 
   /**
    * 加载参数缓存数据
+   * @param configKey 参数键名，不指定即加载所有
    */
-  loadingConfigCache(): Promise<void>;
+  loadingConfigCache(configKey: string): Promise<void>;
 
   /**
    * 清空参数缓存数据
+   *  @param configKey 参数键名，不指定即清除所有
    */
-  clearConfigCache(): Promise<number>;
+  clearConfigCache(configKey: string): Promise<number>;
 
   /**
    * 重置参数缓存数据
    */
   resetConfigCache(): Promise<void>;
-
-  /**
-   * 校验参数键名是否唯一
-   *
-   * @param configKey 参数信息
-   * @return 结果
-   */
-  checkUniqueConfigKey(configKey: string): Promise<SysConfig>;
 }
