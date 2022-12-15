@@ -113,7 +113,13 @@ export class SysConfigController {
         `参数配置修改【${sysConfig.configValue}】失败，参数键值已存在`
       );
     }
-
+    // 检查是否存在
+    const config = await this.sysConfigService.selectConfigById(
+      sysConfig.configId
+    );
+    if (!config) {
+      return Result.errMsg('没有权限访问参数配置数据！');
+    }
     sysConfig.updateBy = this.contextService.getUsername();
     const rows = await this.sysConfigService.updateConfig(sysConfig);
     return Result[rows > 0 ? 'ok' : 'err']();

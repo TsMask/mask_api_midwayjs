@@ -1,17 +1,18 @@
 import { SysLogininfor } from '../model/SysLogininfor';
 
 /**
- * 系统访问日志情况信息 服务层接口
+ * 系统访问日志情况信息 数据层接口
  *
  * @author TsMask <340112800@qq.com>
  */
-export interface ISysLogininforService {
+export interface ISysLogininforRepository {
   /**
-   * 新增系统登录日志
+   * 分页查询系统登录日志集合
    *
-   * @param sysLogininfor 访问日志对象
+   * @param query 查询信息
+   * @return 操作日志集合
    */
-  insertLogininfor(sysLogininfor: SysLogininfor): Promise<number>;
+  selectLogininforPage(query: any): Promise<rowPages>;
 
   /**
    * 查询系统登录日志集合
@@ -20,6 +21,13 @@ export interface ISysLogininforService {
    * @return 登录记录集合
    */
   selectLogininforList(sysLogininfor: SysLogininfor): Promise<SysLogininfor[]>;
+
+  /**
+   * 新增系统登录日志
+   *
+   * @param sysLogininfor 访问日志对象
+   */
+  insertLogininfor(sysLogininfor: SysLogininfor): Promise<string>;
 
   /**
    * 批量删除系统登录日志
@@ -31,6 +39,8 @@ export interface ISysLogininforService {
 
   /**
    * 清空系统登录日志
+   *
+   * @return 结果
    */
   cleanLogininfor(): Promise<number>;
 }

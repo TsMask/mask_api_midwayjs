@@ -11,7 +11,7 @@ import {
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { RedisCache } from '../../../framework/redis/RedisCache';
-import { SysCache } from '../../system/model/SysCache';
+import { SysCache } from '../model/SysCache';
 
 /**
  * 缓存监控信息

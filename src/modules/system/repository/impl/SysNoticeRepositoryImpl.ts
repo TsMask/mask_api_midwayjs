@@ -123,13 +123,13 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     return parseSysNoticeResult(rows)[0] || null;
   }
 
-  async insertNotice(sysNotice: SysNotice): Promise<number> {
+  async insertNotice(sysNotice: SysNotice): Promise<string> {
     const paramMap = new Map();
     if (sysNotice.noticeTitle) {
-      paramMap.set('notice_title', sysNotice.noticeTitle);
+      paramMap.set('notice_title', sysNotice.noticeTitle.trim());
     }
     if (sysNotice.noticeType) {
-      paramMap.set('notice_type', sysNotice.noticeType);
+      paramMap.set('notice_type', parseNumber(sysNotice.noticeType));
     }
     if (sysNotice.noticeContent) {
       paramMap.set('notice_content', sysNotice.noticeContent);
@@ -151,16 +151,16 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
-    return result.insertId;
+    return `${result.insertId}`;
   }
 
   async updateNotice(sysNotice: SysNotice): Promise<number> {
     const paramMap = new Map();
     if (sysNotice.noticeTitle) {
-      paramMap.set('notice_title', sysNotice.noticeTitle);
+      paramMap.set('notice_title', sysNotice.noticeTitle.trim());
     }
     if (sysNotice.noticeType) {
-      paramMap.set('notice_type', sysNotice.noticeType);
+      paramMap.set('notice_type', parseNumber(sysNotice.noticeType));
     }
     if (sysNotice.noticeContent) {
       paramMap.set('notice_content', sysNotice.noticeContent);
@@ -183,7 +183,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       ...paramMap.values(),
       sysNotice.noticeId,
     ]);
-    return result.changedRows;
+    return result.affectedRows;
   }
 
   async deleteNoticeById(noticeId: string): Promise<number> {

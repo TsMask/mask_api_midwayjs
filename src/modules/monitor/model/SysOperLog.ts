@@ -11,7 +11,7 @@ export class SysOperLog {
   title: string;
 
   /**业务类型（0其它 1新增 2修改 3删除） */
-  businessType: number;
+  businessType: string;
 
   /**方法名称 */
   method: string;
@@ -20,7 +20,7 @@ export class SysOperLog {
   requestMethod: string;
 
   /**操作类别（0其它 1后台用户 2手机端用户） */
-  operatorType: number;
+  operatorType: string;
 
   /**操作人员 */
   operName: string;
@@ -44,7 +44,7 @@ export class SysOperLog {
   jsonResult: string;
 
   /**操作状态（0正常 1异常） */
-  status: number;
+  status: string;
 
   /**错误消息 */
   errorMsg: string;

@@ -1,17 +1,18 @@
 import { SysOperLog } from '../model/SysOperLog';
 
 /**
- * 操作日志 服务层接口
+ * 操作日志 数据层接口
  *
  * @author TsMask <340112800@qq.com>
  */
-export interface ISysOperLogService {
+export interface ISysOperLogRepository {
   /**
-   * 新增操作日志
+   * 分页查询系统操作日志集合
    *
-   * @param sysOperLog 操作日志对象
+   * @param query 查询信息
+   * @return 操作日志集合
    */
-  insertOperLog(sysOperLog: SysOperLog): Promise<number>;
+  selectOperLogPage(query: any): Promise<rowPages>;
 
   /**
    * 查询系统操作日志集合
@@ -20,6 +21,13 @@ export interface ISysOperLogService {
    * @return 操作日志集合
    */
   selectOperLogList(sysOperLog: SysOperLog): Promise<SysOperLog[]>;
+
+  /**
+   * 新增操作日志
+   *
+   * @param sysOperLog 操作日志对象
+   */
+  insertOperLog(sysOperLog: SysOperLog): Promise<string>;
 
   /**
    * 批量删除系统操作日志

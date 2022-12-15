@@ -1,4 +1,4 @@
-import { Provide, Inject } from '@midwayjs/decorator';
+import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
 import { SysNotice } from '../../model/SysNotice';
 import { SysNoticeRepositoryImpl } from '../../repository/impl/SysNoticeRepositoryImpl';
 import { ISysNoticeService } from '../ISysNoticeService';
@@ -9,6 +9,7 @@ import { ISysNoticeService } from '../ISysNoticeService';
  * @author TsMask <340112800@qq.com>
  */
 @Provide()
+@Scope(ScopeEnum.Singleton)
 export class SysNoticeServiceImpl implements ISysNoticeService {
   @Inject()
   private sysNoticeRepository: SysNoticeRepositoryImpl;
@@ -22,7 +23,7 @@ export class SysNoticeServiceImpl implements ISysNoticeService {
   async selectNoticeList(sysNotice: SysNotice): Promise<SysNotice[]> {
     return await this.sysNoticeRepository.selectNoticeList(sysNotice);
   }
-  async insertNotice(sysNotice: SysNotice): Promise<number> {
+  async insertNotice(sysNotice: SysNotice): Promise<string> {
     return await this.sysNoticeRepository.insertNotice(sysNotice);
   }
   async updateNotice(sysNotice: SysNotice): Promise<number> {

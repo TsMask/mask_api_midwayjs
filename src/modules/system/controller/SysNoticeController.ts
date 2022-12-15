@@ -8,9 +8,9 @@ import {
   Del,
   Put,
 } from '@midwayjs/decorator';
-import { Context } from '@midwayjs/koa';
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { ContextService } from '../../../framework/service/ContextService';
 import { SysNotice } from '../model/SysNotice';
 import { SysNoticeServiceImpl } from '../service/impl/SysNoticeServiceImpl';
 
@@ -22,7 +22,7 @@ import { SysNoticeServiceImpl } from '../service/impl/SysNoticeServiceImpl';
 @Controller('/system/notice')
 export class SysNoticeController {
   @Inject()
-  private ctx: Context;
+  private contextService: ContextService;
 
   @Inject()
   private sysNoticeService: SysNoticeServiceImpl;
@@ -33,7 +33,7 @@ export class SysNoticeController {
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:notice:list'] })
   async list(): Promise<Result> {
-    const query = this.ctx.query;
+    const query = this.contextService.getContext().query;
     const data = await this.sysNoticeService.selectNoticePage(query);
     return Result.ok(data);
   }
@@ -56,9 +56,9 @@ export class SysNoticeController {
   @PreAuthorize({ hasPermissions: ['system:notice:add'] })
   async add(@Body() notice: SysNotice): Promise<Result> {
     if (!notice.noticeContent) return Result.err();
-    notice.createBy = this.ctx.loginUser?.user?.userName;
-    const rows = await this.sysNoticeService.insertNotice(notice);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    notice.createBy = this.contextService.getUsername();
+    const insertId = await this.sysNoticeService.insertNotice(notice);
+    return Result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -68,7 +68,7 @@ export class SysNoticeController {
   @PreAuthorize({ hasPermissions: ['system:notice:edit'] })
   async edit(@Body() notice: SysNotice): Promise<Result> {
     if (!notice.noticeId) return Result.err();
-    notice.updateBy = this.ctx.loginUser?.user?.userName;
+    notice.updateBy = this.contextService.getUsername();
     const rows = await this.sysNoticeService.updateNotice(notice);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -82,6 +82,7 @@ export class SysNoticeController {
     if (!noticeIds) return Result.err();
     // 处理字符转id数组
     const ids = noticeIds.split(',');
+    if (ids.length <= 0) return Result.err();
     const rows = await this.sysNoticeService.deleteNoticeByIds([
       ...new Set(ids),
     ]);

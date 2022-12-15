@@ -28,9 +28,7 @@ export class SysUserOnlineController {
   private redisCache: RedisCache;
 
   /**
-   * 个人信息
-   *
-   * @returns 返回结果
+   * 在线用户列表
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['monitor:online:list'] })
@@ -81,13 +79,12 @@ export class SysUserOnlineController {
   }
 
   /**
-   * 强退用户
-   * @param tokenId 登录用户唯一标识uuid
-   * @returns 返回结果
+   * 在线用户强制退出
    */
   @Del('/:tokenId')
   @PreAuthorize({ hasPermissions: ['monitor:online:forceLogout'] })
   async forceLogout(@Param('tokenId') tokenId: string): Promise<Result> {
+    if (!tokenId || tokenId === '*') return Result.err();
     this.redisCache.del(`${LOGIN_TOKEN_KEY}${tokenId}`);
     return Result.ok();
   }

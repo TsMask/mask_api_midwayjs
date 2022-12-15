@@ -20,6 +20,7 @@ SYS_CONFIG_RESULT.set('config_name', 'configName');
 SYS_CONFIG_RESULT.set('config_key', 'configKey');
 SYS_CONFIG_RESULT.set('config_value', 'configValue');
 SYS_CONFIG_RESULT.set('config_type', 'configType');
+SYS_CONFIG_RESULT.set('remark', 'remark');
 SYS_CONFIG_RESULT.set('create_by', 'createBy');
 SYS_CONFIG_RESULT.set('create_time', 'createTime');
 SYS_CONFIG_RESULT.set('update_by', 'updateBy');
@@ -137,7 +138,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
 
   async selectconfigValueByKey(configKey: string): Promise<string> {
     const sqlStr =
-      "select config_value as 'str' from sys_config config_key = ?";
+      "select config_value as 'str' from sys_config where config_key = ?";
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, [configKey]);
     return rows.length > 0 ? rows[0].str : null;
   }

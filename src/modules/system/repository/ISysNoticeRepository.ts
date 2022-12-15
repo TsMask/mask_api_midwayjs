@@ -28,7 +28,7 @@ export interface ISysNoticeRepository {
    * @param sysNotice 公告信息
    * @return 结果
    */
-  insertNotice(sysNotice: SysNotice): Promise<number>;
+  insertNotice(sysNotice: SysNotice): Promise<string>;
 
   /**
    * 修改公告
