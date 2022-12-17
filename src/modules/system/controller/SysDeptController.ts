@@ -9,8 +9,10 @@ import {
   Post,
   Query,
 } from '@midwayjs/decorator';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 import { SysDept } from '../../../framework/core/model/SysDept';
 import { Result } from '../../../framework/core/Result';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
@@ -67,6 +69,7 @@ export class SysDeptController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dept:add'] })
+  @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysDept: SysDept): Promise<Result> {
     if (!sysDept.parentId) return Result.err();
     // 检查同级下同名唯一
@@ -88,7 +91,7 @@ export class SysDeptController {
       );
     }
     sysDept.ancestors = `${deptParent.ancestors},${sysDept.parentId}`;
-    sysDept.createBy = this.contextService.getUsername();
+    sysDept.createBy = this.contextService.getUseName();
     const insertId = await this.sysDeptService.insertDept(sysDept);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -98,6 +101,7 @@ export class SysDeptController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
+  @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysDept: SysDept): Promise<Result> {
     if (sysDept.parentId === sysDept.deptId) {
       return Result.errMsg(
@@ -122,7 +126,7 @@ export class SysDeptController {
         return Result.errMsg('该部门包含未停用的子部门！');
       }
     }
-    sysDept.updateBy = this.contextService.getUsername();
+    sysDept.updateBy = this.contextService.getUseName();
     const rows = await this.sysDeptService.updateDept(sysDept);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -132,6 +136,7 @@ export class SysDeptController {
    */
   @Del('/:deptId')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
+  @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('deptId') deptId: string): Promise<Result> {
     if (!deptId) return Result.err();
     const hasChild = await this.sysDeptService.hasChildByDeptId(deptId);
@@ -147,6 +152,6 @@ export class SysDeptController {
       return Result.errMsg('没有权限访问部门数据');
     }
     const rows = await this.sysDeptService.deleteDeptById(deptId);
-    return Result[rows ? 'ok' : 'err']();
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 }

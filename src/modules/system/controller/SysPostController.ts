@@ -8,7 +8,9 @@ import {
   Del,
   Put,
 } from '@midwayjs/decorator';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/core/Result';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysPost } from '../model/SysPost';
@@ -54,6 +56,7 @@ export class SysPostController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:post:add'] })
+  @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysPost: SysPost): Promise<Result> {
     if (!sysPost.postName || !sysPost.postCode) {
       return Result.err();
@@ -76,7 +79,7 @@ export class SysPostController {
       );
     }
 
-    sysPost.createBy = this.contextService.getUsername();
+    sysPost.createBy = this.contextService.getUseName();
     const insertId = await this.sysPostService.insertPost(sysPost);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -86,6 +89,7 @@ export class SysPostController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:post:edit'] })
+  @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysPost: SysPost): Promise<Result> {
     if (!sysPost.postName || !sysPost.postCode || !sysPost.postId) {
       return Result.err();
@@ -108,7 +112,7 @@ export class SysPostController {
       );
     }
 
-    sysPost.updateBy = this.contextService.getUsername();
+    sysPost.updateBy = this.contextService.getUseName();
     const rows = await this.sysPostService.updatePost(sysPost);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -118,6 +122,7 @@ export class SysPostController {
    */
   @Del('/:postIds')
   @PreAuthorize({ hasPermissions: ['system:post:remove'] })
+  @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('postIds') postIds: string): Promise<Result> {
     if (!postIds) return Result.err();
     // 处理字符转id数组

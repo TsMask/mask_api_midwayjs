@@ -96,9 +96,15 @@ export class TokenService {
    * @returns 登录用户信息对象
    */
   private async setUserAgent(loginUser: LoginUser): Promise<LoginUser> {
-    // 解析ip地址
-    loginUser.ipaddr = this.ctx.ip;
-    loginUser.loginLocation = await getRealAddressByIp(loginUser.ipaddr);
+    const ip = this.ctx.ip;
+    if (ip.includes('127.0.0.1')) {
+      loginUser.ipaddr = '127.0.0.1';
+      loginUser.loginLocation = '内网IP';
+    } else {
+      // 解析ip地址
+      loginUser.ipaddr = ip;
+      loginUser.loginLocation = await getRealAddressByIp(ip);
+    }
     // 解析请求用户代理信息
     const ua = await getUaInfo(this.ctx.get('user-agent'));
     const bName = ua.getBrowser().name;
@@ -156,7 +162,7 @@ export class TokenService {
    */
   async delLoginUserCache(token: string): Promise<void> {
     const tokenKey = this.getTokenKey(token);
-    if (this.redisCache.hasKey(tokenKey)) {
+    if (await this.redisCache.hasKey(tokenKey)) {
       await this.redisCache.del(tokenKey);
     }
   }

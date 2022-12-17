@@ -16,10 +16,10 @@ import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
 @Controller()
 export class SysLoginController {
   @Inject()
-  private sysLoginService: SysLoginService;
+  private contextService: ContextService;
 
   @Inject()
-  private contextService: ContextService;
+  private sysLoginService: SysLoginService;
 
   @Inject()
   private permissionService: PermissionService;
@@ -29,8 +29,6 @@ export class SysLoginController {
 
   /**
    * 系统登录
-   * @param loginBody 登录参数
-   * @returns 返回结果
    */
   @Post('/login')
   async login(@Body() loginBody: LoginBody): Promise<Result> {
@@ -41,9 +39,7 @@ export class SysLoginController {
   }
 
   /**
-   * 获取用户信息
-   *
-   * @returns 返回用户信息
+   * 登录用户信息
    */
   @Get('/getInfo')
   @PreAuthorize()
@@ -61,9 +57,7 @@ export class SysLoginController {
   }
 
   /**
-   * 获取路由信息
-   *
-   * @returns 路由信息
+   * 登录用户路由信息
    */
   @Get('/getRouters')
   @PreAuthorize()
@@ -79,13 +73,11 @@ export class SysLoginController {
 
   /**
    * 系统登出
-   * @returns 返回结果
    */
   @Post('/logout')
-  @PreAuthorize()
   async logout(): Promise<Result> {
     const loginUser = this.contextService.getLoginUser();
-    this.sysLoginService.logout(loginUser.uuid);
+    await this.sysLoginService.logout(loginUser.uuid);
     return Result.okMsg('退出成功');
   }
 }

@@ -31,26 +31,6 @@ export const YES_FRAME = '0';
 /**是否菜单外链（否） */
 export const NO_FRAME = '1';
 
-export enum MenuTypeEnum {
-  /**菜单类型（目录） */
-  DIR = 'M',
-  /**菜单类型（菜单） */
-  MENU = 'C',
-  /**菜单类型（按钮） */
-  BUTTON = 'F',
-}
-
-export enum MenuComponentEnum {
-  /**Layout组件标识 */
-  LAYOUT = 'Layout',
-  /**ParentView组件标识 */
-  PARENT_VIEW = 'ParentView',
-  /**InnerLink组件标识 */
-  INNER_LINK = 'InnerLink',
-}
-
-export enum ComponentEnum {}
-
 /**校验返回结果码 假0*/
 export const UNIQUE = '0';
 /**校验返回结果码 真1*/

@@ -8,7 +8,9 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/core/Result';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysConfig } from '../model/SysConfig';
@@ -64,6 +66,10 @@ export class SysConfigController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:config:add'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
   async add(@Body() sysConfig: SysConfig) {
     if (!sysConfig.configName || !sysConfig.configKey || !sysConfig.configValue)
       return Result.err();
@@ -84,7 +90,7 @@ export class SysConfigController {
       );
     }
 
-    sysConfig.createBy = this.contextService.getUsername();
+    sysConfig.createBy = this.contextService.getUseName();
     const insertId = await this.sysConfigService.insertConfig(sysConfig);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -94,6 +100,10 @@ export class SysConfigController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:config:edit'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async edit(@Body() sysConfig: SysConfig) {
     if (!sysConfig.configName || !sysConfig.configKey || !sysConfig.configValue)
       return Result.err();
@@ -120,7 +130,7 @@ export class SysConfigController {
     if (!config) {
       return Result.errMsg('没有权限访问参数配置数据！');
     }
-    sysConfig.updateBy = this.contextService.getUsername();
+    sysConfig.updateBy = this.contextService.getUseName();
     const rows = await this.sysConfigService.updateConfig(sysConfig);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -130,6 +140,10 @@ export class SysConfigController {
    */
   @Del('/:configIds')
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
   async remove(@Param('configIds') configIds: string) {
     if (!configIds) return Result.err();
     // 处理字符转有效数字id数组
@@ -146,6 +160,10 @@ export class SysConfigController {
    */
   @Del('/refreshCache')
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.CLEAN,
+  })
   async refreshCache(): Promise<Result> {
     await this.sysConfigService.resetConfigCache();
     return Result.ok();

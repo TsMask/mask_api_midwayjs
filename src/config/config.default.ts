@@ -16,7 +16,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       // 实例演示开关
       demoEnabled: true,
       // 文件路径 示例（ Windows配置D:/home/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-      profile: 'D:/home/ruoyi/uploadPath',
+      uploadPath: 'D:/home/ruoyi/uploadPath',
       // 获取ip地址开关
       addressEnabled: false,
       /**验证码类型 math 数组计算 char 字符验证 */
@@ -66,6 +66,22 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       jsonLimit: '1mb',
       textLimit: '1mb',
       xmlLimit: '1mb',
+    },
+
+    /**文件上传 http://www.midwayjs.org/docs/extensions/upload#配置示例 */
+    upload: {
+      /**默认为file，即上传到服务器临时目录，可以配置为 stream */
+      mode: 'file',
+      /**最大上传文件大小，默认为 10mb */
+      fileSize: '50mb',
+      /**文件扩展名白名单，程序内文件服务进行配置 */
+      whitelist: null,
+      /**上传的文件临时存储路径 */
+      tmpdir: 'D:/home/ruoyi/tmpdir',
+      /**上传的文件在临时目录中多久之后自动删除，默认为 5 分钟 */
+      cleanTimeout: 10 * 60 * 1000,
+      /**设置原始body是否是base64格式，默认为false，一般用于腾讯云的兼容 */
+      base64: false,
     },
 
     // 任务调度 单进程

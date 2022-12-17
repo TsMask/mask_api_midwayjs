@@ -19,6 +19,8 @@ import { TokenService } from '../../../framework/service/TokenService';
 import { parseNumber } from '../../../common/utils/ValueParseUtils';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
 import { SysDept } from '../../../framework/core/model/SysDept';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 
 /**
  * 角色信息
@@ -43,7 +45,7 @@ export class SysRoleController {
   private sysDeptService: SysDeptServiceImpl;
 
   /**
-   * 角色列表列表
+   * 角色列表
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:role:list'] })
@@ -70,6 +72,7 @@ export class SysRoleController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:role:add'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysRole: SysRole): Promise<Result> {
     // 判断属性值是否唯一
     const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
@@ -87,7 +90,7 @@ export class SysRoleController {
       );
     }
 
-    sysRole.createBy = this.contextService.getUsername();
+    sysRole.createBy = this.contextService.getUseName();
     const insertId = await this.sysRoleService.insertRole(sysRole);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -97,6 +100,7 @@ export class SysRoleController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysRole: SysRole): Promise<Result> {
     // 修改的角色ID是否可用
     const roleId = sysRole.roleId;
@@ -125,7 +129,7 @@ export class SysRoleController {
       );
     }
 
-    sysRole.updateBy = this.contextService.getUsername();
+    sysRole.updateBy = this.contextService.getUseName();
     const rows = await this.sysRoleService.updateRole(sysRole);
     if (rows > 0) {
       // 更新缓存用户权限
@@ -137,7 +141,7 @@ export class SysRoleController {
           loginUser.user.userName
         );
         loginUser.user = user;
-        this.tokenService.setLoginUser(loginUser);
+        await this.tokenService.setLoginUser(loginUser);
       }
       return Result.ok();
     }
@@ -149,6 +153,7 @@ export class SysRoleController {
    */
   @Del('/:roleIds')
   @PreAuthorize({ hasPermissions: ['system:role:remove'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('roleIds') roleIds: string): Promise<Result> {
     if (!roleIds) return Result.err();
     // 处理字符转id数组
@@ -163,6 +168,7 @@ export class SysRoleController {
    */
   @Put('/changeStatus')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async changeStatus(
     @Body('roleId') roleId: string,
     @Body('status') status: string
@@ -180,7 +186,7 @@ export class SysRoleController {
     const sysRole = new SysRole();
     sysRole.roleId = roleId;
     sysRole.status = `${parseNumber(status)}`;
-    sysRole.updateBy = this.contextService.getUsername();
+    sysRole.updateBy = this.contextService.getUseName();
     const rowNum = await this.sysRoleService.updateRole(sysRole);
     return Result[rowNum ? 'ok' : 'err']();
   }
@@ -190,6 +196,7 @@ export class SysRoleController {
    */
   @Put('/dataScope')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async dataScope(@Body() sysRole: SysRole): Promise<Result> {
     const roleId = sysRole.roleId;
     if (!roleId) return Result.err();
@@ -255,6 +262,7 @@ export class SysRoleController {
    */
   @Put('/authUser/selectAll')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.GRANT })
   async selectAuthUserAll(
     @Body('roleId') roleId: string,
     @Body('userIds') userIds: string
@@ -278,6 +286,7 @@ export class SysRoleController {
    */
   @Put('/authUser/cancelAll')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.GRANT })
   async cancelAuthUserAll(
     @Body('roleId') roleId: string,
     @Body('userIds') userIds: string
@@ -301,6 +310,7 @@ export class SysRoleController {
    */
   @Put('/authUser/cancel')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.GRANT })
   async cancelAuthUser(
     @Body('roleId') roleId: string,
     @Body('userId') userId: string

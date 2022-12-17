@@ -8,7 +8,9 @@ import {
   Del,
   Put,
 } from '@midwayjs/decorator';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/core/Result';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysNotice } from '../model/SysNotice';
@@ -54,9 +56,13 @@ export class SysNoticeController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:notice:add'] })
+  @OperLog({
+    title: '通知公告信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
   async add(@Body() notice: SysNotice): Promise<Result> {
     if (!notice.noticeContent) return Result.err();
-    notice.createBy = this.contextService.getUsername();
+    notice.createBy = this.contextService.getUseName();
     const insertId = await this.sysNoticeService.insertNotice(notice);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -66,9 +72,13 @@ export class SysNoticeController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:notice:edit'] })
+  @OperLog({
+    title: '通知公告信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async edit(@Body() notice: SysNotice): Promise<Result> {
     if (!notice.noticeId) return Result.err();
-    notice.updateBy = this.contextService.getUsername();
+    notice.updateBy = this.contextService.getUseName();
     const rows = await this.sysNoticeService.updateNotice(notice);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -78,6 +88,10 @@ export class SysNoticeController {
    */
   @Del('/:noticeIds')
   @PreAuthorize({ hasPermissions: ['system:notice:remove'] })
+  @OperLog({
+    title: '通知公告信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
   async remove(@Param('noticeIds') noticeIds: string): Promise<Result> {
     if (!noticeIds) return Result.err();
     // 处理字符转id数组

@@ -146,23 +146,6 @@ export interface ISysUserService {
   insertAserAuth(userId: string, roleIds: string[]): Promise<void>;
 
   /**
-   * 修改用户基本信息
-   *
-   * @param sysUser 用户信息
-   * @return 结果
-   */
-  updateUserProfile(sysUser: SysUser): Promise<number>;
-
-  /**
-   * 修改用户头像
-   *
-   * @param userName 用户名
-   * @param avatar 头像地址
-   * @return 结果
-   */
-  updateUserAvatar(userName: string, avatar: string): Promise<number>;
-
-  /**
    * 批量删除用户信息
    *
    * @param userIds 需要删除的用户ID

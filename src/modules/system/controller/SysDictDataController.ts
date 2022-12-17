@@ -8,8 +8,10 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 import { SysDictData } from '../../../framework/core/model/SysDictData';
 import { Result } from '../../../framework/core/Result';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
@@ -66,6 +68,10 @@ export class SysDictDataController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dict:add'] })
+  @OperLog({
+    title: '字典数据信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
   async add(@Body() sysDictData: SysDictData): Promise<Result> {
     if (
       !sysDictData.dictType ||
@@ -91,7 +97,7 @@ export class SysDictDataController {
       );
     }
 
-    sysDictData.createBy = this.contextService.getUsername();
+    sysDictData.createBy = this.contextService.getUseName();
     const insertId = await this.sysDictDataServer.insertDictData(sysDictData);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -101,6 +107,10 @@ export class SysDictDataController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
+  @OperLog({
+    title: '字典数据信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async edit(@Body() sysDictData: SysDictData): Promise<Result> {
     if (
       !sysDictData.dictType ||
@@ -126,7 +136,7 @@ export class SysDictDataController {
       );
     }
 
-    sysDictData.updateBy = this.contextService.getUsername();
+    sysDictData.updateBy = this.contextService.getUseName();
     const id = await this.sysDictDataServer.updateDictData(sysDictData);
     return Result[id ? 'ok' : 'err']();
   }
@@ -136,6 +146,10 @@ export class SysDictDataController {
    */
   @Del('/:dictCodes')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
+  @OperLog({
+    title: '字典数据信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
   async remove(@Param('dictCodes') dictCodes: string): Promise<Result> {
     if (!dictCodes) return Result.err();
     // 处理字符转id数组

@@ -127,9 +127,11 @@ export class SysUserServiceImpl implements ISysUserService {
   registerUser(sysUser: SysUser): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
+
   async updateUser(sysUser: SysUser): Promise<number> {
     return await this.sysUserRepository.updateUser(sysUser);
   }
+
   async updateUserAndRolePost(sysUser: SysUser): Promise<number> {
     const userId = sysUser.userId;
     // 删除用户与角色关联
@@ -185,15 +187,9 @@ export class SysUserServiceImpl implements ISysUserService {
   }
   async insertAserAuth(userId: string, roleIds: string[]): Promise<void> {
     await this.sysUserRoleRepository.deleteUserRole([userId]);
-    if (roleIds.length > 0) {
+    if (roleIds && roleIds.length > 0) {
       await this.insertUserRole(userId, roleIds);
     }
-  }
-  async updateUserProfile(sysUser: SysUser): Promise<number> {
-    return await this.sysUserRepository.updateUser(sysUser);
-  }
-  async updateUserAvatar(userName: string, avatar: string): Promise<number> {
-    return await this.sysUserRepository.updateUserAvatar(userName, avatar);
   }
 
   async deleteUserByIds(userIds: string[]): Promise<number> {

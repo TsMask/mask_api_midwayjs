@@ -7,6 +7,7 @@ import * as staticFile from '@midwayjs/static-file';
 import * as info from '@midwayjs/info';
 import * as swagger from '@midwayjs/swagger';
 import * as jwt from '@midwayjs/jwt';
+import * as upload from '@midwayjs/upload';
 import { join } from 'path';
 import { DefaultErrorFilter } from './framework/filter/DefaultErrorFilter';
 import { NotFoundErrorFilter } from './framework/filter/NotFoundErrorFilter';
@@ -14,10 +15,14 @@ import { UnauthorizedErrorFilter } from './framework/filter/UnauthorizedErrorFil
 import { ReportMiddleware } from './framework/middleware/ReportMiddleware';
 import { MidwayDecoratorService } from '@midwayjs/core';
 import {
-  DECORATOR_AUTH_TOKEN_KEY,
+  DECORATOR_PRE_AUTHORIZE_KEY,
   PreAuthorizeVerify,
 } from './framework/decorator/PreAuthorizeDecorator';
 import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
+import {
+  DECORATOR_OPER_LOG_KEY,
+  OperLogSave,
+} from './framework/decorator/OperLogDecorator';
 
 @Configuration({
   imports: [
@@ -27,6 +32,7 @@ import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
     typeorm, // 数据库ORM
     redis, // 缓存数据Redis
     jwt, // 鉴权和校验token
+    upload, // 文件上传
     {
       component: info, // 程序部署信息 /_info
       enabledEnvironment: ['local'], // 声明使用环境
@@ -58,10 +64,15 @@ export class ContainerLifeCycle {
       UnauthorizedErrorFilter,
       DefaultErrorFilter,
     ]);
-    // 注册实现的方法装饰器-授权认证
+    // 用户身份授权认证校验-方法装饰器
     this.decoratorService.registerMethodHandler(
-      DECORATOR_AUTH_TOKEN_KEY,
+      DECORATOR_PRE_AUTHORIZE_KEY,
       PreAuthorizeVerify
+    );
+    // 访问操作日志记录-方法装饰器
+    this.decoratorService.registerMethodHandler(
+      DECORATOR_OPER_LOG_KEY,
+      OperLogSave
     );
   }
 

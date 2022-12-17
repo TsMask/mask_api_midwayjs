@@ -21,6 +21,8 @@ import { SysPost } from '../model/SysPost';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysUser } from '../../../framework/core/model/SysUser';
 import { parseNumber } from '../../../common/utils/ValueParseUtils';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 
 /**
  * 用户信息
@@ -95,6 +97,7 @@ export class SysUserController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:user:add'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysUser: SysUser): Promise<Result> {
     // 判断属性值是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
@@ -118,7 +121,7 @@ export class SysUserController {
       );
     }
 
-    sysUser.createBy = this.contextService.getUsername();
+    sysUser.createBy = this.contextService.getUseName();
     const insertId = await this.sysUserService.insertUser(sysUser);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -128,6 +131,7 @@ export class SysUserController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysUser: SysUser): Promise<Result> {
     // 修改的用户ID是否可用
     const userId: string = sysUser.userId;
@@ -162,8 +166,8 @@ export class SysUserController {
       );
     }
 
-    sysUser.updateBy = this.contextService.getUsername();
-    const rows = await this.sysUserService.updateUser(sysUser);
+    sysUser.updateBy = this.contextService.getUseName();
+    const rows = await this.sysUserService.updateUserAndRolePost(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -172,6 +176,7 @@ export class SysUserController {
    */
   @Del('/:userIds')
   @PreAuthorize({ hasPermissions: ['system:user:remove'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('userIds') userIds: string): Promise<Result> {
     if (!userIds) return Result.err();
     // 处理字符转id数组
@@ -189,6 +194,7 @@ export class SysUserController {
    */
   @Put('/resetPwd')
   @PreAuthorize({ hasPermissions: ['system:user:resetPwd'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async resetPwd(
     @Body('userId') userId: string,
     @Body('password') password: string
@@ -206,7 +212,7 @@ export class SysUserController {
     const sysUser = new SysUser();
     sysUser.userId = userId;
     sysUser.password = password;
-    sysUser.updateBy = this.contextService.getUsername();
+    sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUser(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -216,6 +222,7 @@ export class SysUserController {
    */
   @Put('/changeStatus')
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async changeStatus(
     @Body('userId') userId: string,
     @Body('status') status: string
@@ -232,7 +239,7 @@ export class SysUserController {
     const sysUser = new SysUser();
     sysUser.userId = userId;
     sysUser.status = `${parseNumber(status)}`;
-    sysUser.updateBy = this.contextService.getUsername();
+    sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUser(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -266,6 +273,7 @@ export class SysUserController {
    */
   @Put('/authRole')
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.GRANT })
   async authRoleAdd(
     @Body('userId') userId: string,
     @Body('roleIds') roleIds: string

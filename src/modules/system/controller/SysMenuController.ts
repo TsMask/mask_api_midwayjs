@@ -9,9 +9,11 @@ import {
   Put,
   Query,
 } from '@midwayjs/decorator';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 import { validHttp } from '../../../common/utils/RegularUtils';
 import { SysMenu } from '../../../framework/core/model/SysMenu';
 import { Result } from '../../../framework/core/Result';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
@@ -60,6 +62,7 @@ export class SysMenuController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:menu:add'] })
+  @OperLog({ title: '菜单信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysMenu: SysMenu): Promise<Result> {
     // 检查名称唯一
     const uniqueNenuName = await this.sysMenuService.checkUniqueNenuName(
@@ -76,7 +79,7 @@ export class SysMenuController {
         `菜单新增【${sysMenu.menuName}】失败，地址必须以http(s)://开头`
       );
     }
-    sysMenu.createBy = this.contextService.getUsername();
+    sysMenu.createBy = this.contextService.getUseName();
     const insertId = await this.sysMenuService.insertMenu(sysMenu);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -86,6 +89,7 @@ export class SysMenuController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:menu:edit'] })
+  @OperLog({ title: '菜单信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysMenu: SysMenu): Promise<Result> {
     // 检查名称唯一
     const uniqueNenuName = await this.sysMenuService.checkUniqueNenuName(
@@ -108,7 +112,7 @@ export class SysMenuController {
         `菜单修改【${sysMenu.menuName}】失败，上级菜单不能选择自己`
       );
     }
-    sysMenu.updateBy = this.contextService.getUsername();
+    sysMenu.updateBy = this.contextService.getUseName();
     const rows = await this.sysMenuService.updateMenu(sysMenu);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -118,6 +122,7 @@ export class SysMenuController {
    */
   @Del('/:menuId')
   @PreAuthorize({ hasPermissions: ['system:menu:remove'] })
+  @OperLog({ title: '菜单信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('menuId') menuId: string): Promise<Result> {
     if (!menuId) return Result.err();
     const hasChild = await this.sysMenuService.hasChildByMenuId(menuId);

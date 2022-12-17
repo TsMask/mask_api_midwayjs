@@ -1,4 +1,9 @@
-export enum UserStatus {
+/**
+ * 用户信息-帐号状态和删除标识枚举
+ *
+ * @author TsMask <340112800@qq.com>
+ */
+export enum UserStatusEnum {
   /**正常 */
   OK = '0',
   /**停用 */

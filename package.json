@@ -16,6 +16,7 @@
     "@midwayjs/swagger": "^3.0.0",
     "@midwayjs/task": "^3.0.0",
     "@midwayjs/typeorm": "^3.0.0",
+    "@midwayjs/upload": "^3.0.0",
     "bcrypt": "^5.0.0",
     "date-fns": "^2.29.3",
     "flake-idgen": "^1.4.0",

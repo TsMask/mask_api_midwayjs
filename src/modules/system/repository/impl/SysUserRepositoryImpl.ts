@@ -14,7 +14,7 @@ import { ISysUserRepository } from '../ISysUserRepository';
 
 /**查询视图对象SQL */
 const SELECT_USER_VO = `select 
-u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.avatar, u.phonenumber, u.password, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, 
+u.user_id, u.dept_id, u.user_name, u.nick_name, u.user_type, u.email, u.avatar, u.phonenumber, u.password, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, 
 d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.status as dept_status,
 r.role_id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.status as role_status
 from sys_user u
@@ -28,6 +28,7 @@ SYS_USER_RESULT.set('user_id', 'userId');
 SYS_USER_RESULT.set('dept_id', 'deptId');
 SYS_USER_RESULT.set('user_name', 'userName');
 SYS_USER_RESULT.set('nick_name', 'nickName');
+SYS_USER_RESULT.set('user_type', 'userType');
 SYS_USER_RESULT.set('email', 'email');
 SYS_USER_RESULT.set('phonenumber', 'phonenumber');
 SYS_USER_RESULT.set('sex', 'sex');
@@ -337,6 +338,9 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.nickName) {
       paramMap.set('nick_name', sysUser.nickName);
     }
+    if (sysUser.userType) {
+      paramMap.set('user_type', sysUser.userType);
+    }
     if (sysUser.email) {
       paramMap.set('email', sysUser.email);
     }
@@ -384,6 +388,9 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.nickName) {
       paramMap.set('nick_name', sysUser.nickName);
     }
+    if (sysUser.userType) {
+      paramMap.set('user_type', sysUser.userType);
+    }
     if (sysUser.email) {
       paramMap.set('email', sysUser.email);
     }
@@ -427,15 +434,6 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return rows.affectedRows;
   }
 
-  async updateUserAvatar(userName: string, avatar: string): Promise<number> {
-    const sqlStr = 'update sys_user set avatar = ? where user_name = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      avatar,
-      userName,
-    ]);
-    return result.affectedRows;
-  }
-
   async deleteUserByIds(userIds: string[]): Promise<number> {
     const sqlStr = `update sys_user set del_flag = '2' where user_id in (${userIds
       .map(() => '?')
@@ -443,6 +441,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
+
   async checkUniqueUserName(userName: string): Promise<string> {
     const sqlStr =
       "select user_id as 'str' from sys_user where user_name = ? and del_flag = '0' limit 1";
@@ -450,6 +449,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
+
   async checkUniquePhone(phonenumber: string): Promise<string> {
     const sqlStr =
       "select user_id as 'str' from sys_user where phonenumber = ? and del_flag = '0' limit 1";
@@ -457,6 +457,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
+
   async checkUniqueEmail(email: string): Promise<string> {
     const sqlStr =
       "select user_id as 'str' from sys_user where email = ? and del_flag = '0' limit 1";

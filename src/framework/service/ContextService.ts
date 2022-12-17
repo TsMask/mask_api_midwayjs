@@ -56,13 +56,13 @@ export class ContextService {
   }
 
   /**
-   * 获取用户账户
+   * 获取用户账号
    **/
-  getUsername(): string {
+  getUseName(): string {
     try {
       return this.getSysUser().userName;
     } catch (e) {
-      throw new UnauthorizedError(`获取用户账户异常, ${e.message}.`);
+      throw new UnauthorizedError(`获取用户账号异常, ${e.message}.`);
     }
   }
 

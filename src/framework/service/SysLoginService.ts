@@ -9,7 +9,7 @@ import { RedisCache } from '../redis/RedisCache';
 import { Context } from '@midwayjs/koa';
 import { TokenService } from './TokenService';
 import { LoginUser } from '../core/vo/LoginUser';
-import { UserStatus } from '../../common/enums/UserStatusEnum';
+import { UserStatusEnum } from '../../common/enums/UserStatusEnum';
 import { parseNumber } from '../../common/utils/ValueParseUtils';
 import { bcryptCompare } from '../../common/utils/CryptoUtils';
 import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
@@ -40,7 +40,7 @@ export class SysLoginService {
   /**
    * 登出清除token
    */
-  public async logout(token: string): Promise<void> {
+  async logout(token: string): Promise<void> {
     return await this.tokenService.delLoginUserCache(token);
   }
 
@@ -49,7 +49,7 @@ export class SysLoginService {
    * @param loginBody 登录参数信息
    * @returns 生成的token
    */
-  public async login(loginBody: LoginBody): Promise<string> {
+  async login(loginBody: LoginBody): Promise<string> {
     // 验证码开关及验证码检查
     const captchaEnabled = await this.sysConfigService.selectCaptchaEnabled();
     if (captchaEnabled) {
@@ -107,11 +107,11 @@ export class SysLoginService {
       this.ctx.logger.info('登录用户：%s 不存在.', username);
       throw new Error('user.not.exists');
     }
-    if (sysUser.delFlag === UserStatus.DELETED) {
+    if (sysUser.delFlag === UserStatusEnum.DELETED) {
       this.ctx.logger.info('登录用户：%s 已被删除.', username);
       throw new Error('user.password.delete');
     }
-    if (sysUser.status === UserStatus.DISABLE) {
+    if (sysUser.status === UserStatusEnum.DISABLE) {
       this.ctx.logger.info('登录用户：%s 已被停用.', username);
       throw new Error('user.blocked');
     }
@@ -126,11 +126,12 @@ export class SysLoginService {
    * @returns 是否登记完成
    */
   private async recordLoginInfo(userId: string) {
-    const user = new SysUser();
-    user.userId = userId;
-    user.loginIp = this.ctx.ip;
-    user.loginDate = new Date().getTime();
-    return await this.sysUserService.updateUserProfile(user);
+    const sysUser = new SysUser();
+    sysUser.userId = userId;
+    const ip = this.ctx.ip;
+    sysUser.loginIp = ip.includes('127.0.0.1') ? '127.0.0.1' : ip;
+    sysUser.loginDate = new Date().getTime();
+    return await this.sysUserService.updateUser(sysUser);
   }
 
   /**
@@ -150,7 +151,7 @@ export class SysLoginService {
     // 验证缓存记录次数
     const cacheKey = PWD_ERR_CNT_KEY + loginName;
     let retryCount = await this.redisCache.get(cacheKey);
-    if (retryCount === null) {
+    if (!retryCount) {
       retryCount = '0';
     }
     // 是否超过错误值
@@ -165,7 +166,7 @@ export class SysLoginService {
     // 匹配用户密码，清除错误记录次数
     const compareBool = await bcryptCompare(originPassword, hashPassword);
     if (compareBool) {
-      this.clearLoginRecordCache(loginName);
+      await this.clearLoginRecordCache(loginName);
     } else {
       retryCount = `${parseNumber(retryCount) + 1}`;
       this.ctx.logger.info('密码输入错误 %s 次', retryCount);
@@ -175,14 +176,14 @@ export class SysLoginService {
   }
 
   /**
-   * 清楚登录错误次数
+   * 清除错误记录次数
    * @param loginName 登录用户名
    */
-  public async clearLoginRecordCache(loginName: string): Promise<void> {
+  async clearLoginRecordCache(loginName: string): Promise<boolean> {
     const cacheKey = PWD_ERR_CNT_KEY + loginName;
-    const hasBool = await this.redisCache.hasKey(cacheKey);
-    if (hasBool) {
-      await this.redisCache.del(cacheKey);
+    if (await this.redisCache.hasKey(cacheKey)) {
+      return (await this.redisCache.del(cacheKey)) > 0;
     }
+    return false;
   }
 }

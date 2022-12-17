@@ -21,15 +21,15 @@ interface AuthOptions {
 }
 
 /**装饰器内部的唯一 key */
-export const DECORATOR_AUTH_TOKEN_KEY = 'decorator:auth_token_key';
+export const DECORATOR_PRE_AUTHORIZE_KEY = 'decorator:pre_authorize';
 
 /**
- * 方法装饰器-授权认证
+ * 用户身份授权认证校验-方法装饰器
  * @param options 授权限制参数
- * @returns 返回结果
+ * @author TsMask <340112800@qq.com>
  */
 export function PreAuthorize(options?: AuthOptions): MethodDecorator {
-  return createCustomMethodDecorator(DECORATOR_AUTH_TOKEN_KEY, options);
+  return createCustomMethodDecorator(DECORATOR_PRE_AUTHORIZE_KEY, options);
 }
 
 /**
@@ -65,7 +65,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
           permissionsArr,
           metadataObj
         );
-        if (verifyOk === false) {
+        if (!verifyOk) {
           throw new ForbiddenError(`${ctx.method} ${ctx.path} ，无权访问`);
         }
       }

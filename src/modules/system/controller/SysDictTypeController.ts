@@ -8,8 +8,10 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
+import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 import { SysDictType } from '../../../framework/core/model/SysDictType';
 import { Result } from '../../../framework/core/Result';
+import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysDictTypeServiceImpl } from '../service/impl/SysDictTypeServiceImpl';
@@ -53,6 +55,10 @@ export class SysDictTypeController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dict:add'] })
+  @OperLog({
+    title: '字典类型信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
   async add(@Body() sysDictType: SysDictType): Promise<Result> {
     // 检查属性值唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
@@ -72,7 +78,7 @@ export class SysDictTypeController {
       );
     }
 
-    sysDictType.createBy = this.contextService.getUsername();
+    sysDictType.createBy = this.contextService.getUseName();
     const insertId = await this.sysDictTypeService.insertDictType(sysDictType);
     return Result[insertId ? 'ok' : 'err']();
   }
@@ -82,6 +88,10 @@ export class SysDictTypeController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
+  @OperLog({
+    title: '字典类型信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async edit(@Body() sysDictType: SysDictType): Promise<Result> {
     // 检查属性值唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
@@ -100,7 +110,7 @@ export class SysDictTypeController {
         `字典修改【${sysDictType.dictType}】失败，字典类型已存在`
       );
     }
-    sysDictType.updateBy = this.contextService.getUsername();
+    sysDictType.updateBy = this.contextService.getUseName();
     const rows = await this.sysDictTypeService.updateDictType(sysDictType);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
@@ -110,6 +120,10 @@ export class SysDictTypeController {
    */
   @Del('/:dictIds')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
+  @OperLog({
+    title: '字典类型信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
   async remove(@Param('dictIds') dictIds: string): Promise<Result> {
     if (!dictIds) return Result.err();
     // 处理字符转id数组
@@ -126,6 +140,10 @@ export class SysDictTypeController {
    */
   @Del('/refreshCache')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
+  @OperLog({
+    title: '字典类型信息',
+    businessType: OperatorBusinessTypeEnum.CLEAN,
+  })
   async refreshCache(): Promise<Result> {
     await this.sysDictTypeService.resetDictCache();
     return Result.ok();

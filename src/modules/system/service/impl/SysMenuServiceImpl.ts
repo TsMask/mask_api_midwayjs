@@ -1,9 +1,5 @@
 import { Provide, Inject } from '@midwayjs/decorator';
 import { HTTP, HTTPS, WWW } from '../../../../common/constants/CommonConstants';
-import {
-  MenuComponentEnum,
-  MenuTypeEnum,
-} from '../../../../common/constants/UserConstants';
 import { parseFirstUpper } from '../../../../common/utils/ValueParseUtils';
 import { validHttp } from '../../../../common/utils/RegularUtils';
 import { SysMenu } from '../../../../framework/core/model/SysMenu';
@@ -14,6 +10,8 @@ import { SysMenuRepositoryImpl } from '../../repository/impl/SysMenuRepositoryIm
 import { ISysMenuService } from '../ISysMenuService';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
+import { MenuTypeEnum } from '../../../../common/enums/MenuTypeEnum';
+import { MenuComponentEnum } from '../../../../common/enums/MenuComponentEnum';
 
 /**
  * 菜单 服务层实现

@@ -29,8 +29,7 @@ export async function getRegionSearchByIp(ip: string) {
  * @returns 返回结果 江苏省 苏州市
  */
 export async function getRealAddressByIp(ip: string) {
-  // 未知地址
-  const real_address = '未知 未知';
+  if (ip.includes('127.0.0.1')) return '内网IP';
   try {
     // 创建searcher对象
     const searcher = newWithFileOnly(dbPath);
@@ -45,5 +44,6 @@ export async function getRealAddressByIp(ip: string) {
   } catch (e) {
     console.error('getRealAddressByIp err =>', e.message);
   }
-  return real_address;
+  // 未知地址
+  return '未知IP地址';
 }
