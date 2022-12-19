@@ -109,14 +109,14 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   @Inject()
   private db: MysqlManager;
 
-  async selectUserPage(query: any): Promise<rowPages> {
+  async selectUserPage(query: any, dataScopeSQL: string = ""): Promise<rowPages> {
     const SELECT_USER_SQL = `select 
     u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
     from sys_user u
 		left join sys_dept d on u.dept_id = d.dept_id
 		where u.del_flag = '0' `;
     // 查询条件拼接
-    let sqlStr = '';
+    let sqlStr = dataScopeSQL;
     const paramArr = [];
     if (query.userId && query.userId !== '0') {
       sqlStr += ' and u.user_id = ? ';
@@ -181,14 +181,9 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return { total, rows };
   }
 
-  async selectUserList(sysUser: SysUser): Promise<SysUser[]> {
-    const SELECT_USER_SQL = `select 
-    u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
-    from sys_user u
-		left join sys_dept d on u.dept_id = d.dept_id
-		where u.del_flag = '0' `;
+  async selectUserList(sysUser: SysUser, dataScopeSQL: string = ""): Promise<SysUser[]> {
     // 查询条件拼接
-    let sqlStr = '';
+    let sqlStr = dataScopeSQL;
     const paramArr = [];
     if (sysUser.userId && sysUser.userId !== '0') {
       sqlStr += ' and u.user_id = ? ';
@@ -207,6 +202,11 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(sysUser.phonenumber);
     }
     // 查询数据数
+    const SELECT_USER_SQL = `select 
+    u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
+    from sys_user u
+		left join sys_dept d on u.dept_id = d.dept_id
+		where u.del_flag = '0' `;
     const results = await this.db.execute(
       `${SELECT_USER_SQL} ${sqlStr}`,
       paramArr
@@ -216,11 +216,12 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
   async selectAllocatedPage(
     roleId: string,
-    unallocated = false,
-    query: any
+    allocated: boolean,
+    query: any,
+    dataScopeSQL: string = ""
   ): Promise<rowPages> {
     // 查询条件拼接
-    let sqlStr = '';
+    let sqlStr = dataScopeSQL;
     const paramArr = [];
     if (query.userName) {
       sqlStr += " and u.user_name like concat('%', ?, '%') ";
@@ -230,14 +231,15 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
       paramArr.push(query.phonenumber);
     }
-    // 未分配角色用户
-    if (unallocated) {
+
+    // 分配角色用户
+    if (allocated) {
+      sqlStr += ' and r.role_id = ? ';
+      paramArr.push(roleId);
+    } else {
       sqlStr +=
         ' and (r.role_id != ? or r.role_id IS NULL) and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = ?)';
       paramArr.push(roleId);
-      paramArr.push(roleId);
-    } else {
-      sqlStr += ' and r.role_id = ? ';
       paramArr.push(roleId);
     }
 

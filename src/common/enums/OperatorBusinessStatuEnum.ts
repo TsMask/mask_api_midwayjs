@@ -9,4 +9,5 @@ export enum OperatorBusinessStatuEnum {
 
   /**失败 */
   FAIL = '1',
+  
 }

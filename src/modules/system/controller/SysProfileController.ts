@@ -17,7 +17,8 @@ import { SysUser } from '../../../framework/core/model/SysUser';
 import { TokenService } from '../../../framework/service/TokenService';
 import { bcryptCompare } from '../../../common/utils/CryptoUtils';
 import { FileService } from '../../../framework/service/FileService';
-const fs = require('fs');
+import fs = require('fs/promises');
+
 /**
  * 个人信息
  *
@@ -144,8 +145,16 @@ export class SysProfileController {
     const avatar = await this.fileService.upload();
     console.log(files);
     console.log(avatar);
-    const fileinfo = fs.createReadStream(files[0].data);
-    fs.writeFileSync(avatar, fileinfo);
+    const sd = avatar + "/sfsdofn.png";
+    const st =  fs.stat(sd);
+    console.log(st)
+    const mkd = await fs.mkdir(avatar);
+    console.log(mkd)
+    const newFai = await fs.open(sd, 'r+');
+    let readStream = await fs.writeFile(newFai, files[0].data, 'binary');
+    console.log(readStream)
+    await this.contextService.getContext().cleanupRequestFiles();
+    // fs.access(mkd).then(() => true).catch(() => false)
     const loginUser = this.contextService.getLoginUser();
     // 更新用户头像
     const newSysUser = new SysUser();

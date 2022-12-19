@@ -32,23 +32,25 @@ export class SysUserServiceImpl implements ISysUserService {
   @Inject()
   private sysUserPostRepository: SysUserPostRepositoryImpl;
 
-  async selectUserPage(query: any): Promise<rowPages> {
-    return await this.sysUserRepository.selectUserPage(query);
+  async selectUserPage(query: any, dataScopeSQL: string = ""): Promise<rowPages> {
+    return await this.sysUserRepository.selectUserPage(query, dataScopeSQL);
   }
 
-  async selectUserList(sysUser: SysUser): Promise<SysUser[]> {
-    return await this.sysUserRepository.selectUserList(sysUser);
+  async selectUserList(sysUser: SysUser, dataScopeSQL: string = ""): Promise<SysUser[]> {
+    return await this.sysUserRepository.selectUserList(sysUser, dataScopeSQL);
   }
 
   async selectAllocatedPage(
     roleId: string,
-    unallocated = false,
-    query?: any
+    allocated: boolean,
+    query: any,
+    dataScopeSQL: string = ""
   ): Promise<rowPages> {
     return await this.sysUserRepository.selectAllocatedPage(
       roleId,
-      unallocated,
-      query
+      allocated,
+      query,
+      dataScopeSQL
     );
   }
   async selectUserByUserName(userName: string): Promise<SysUser> {
@@ -116,11 +118,10 @@ export class SysUserServiceImpl implements ISysUserService {
     // 新增用户信息
     const insertId = await this.sysUserRepository.insertUser(sysUser);
     if (insertId) {
-      sysUser.userId = insertId;
       // 新增用户与角色管理
-      await this.insertUserRole(sysUser.userId, sysUser.roleIds);
+      await this.insertUserRole(insertId, sysUser.roleIds);
       // 新增用户与岗位管理
-      await this.insertUserPost(sysUser.userId, sysUser.postIds);
+      await this.insertUserPost(insertId, sysUser.postIds);
     }
     return insertId;
   }
@@ -154,6 +155,7 @@ export class SysUserServiceImpl implements ISysUserService {
     userId: string,
     roleIds: string[]
   ): Promise<number> {
+    if (roleIds && roleIds.length <= 0) return 0;
     const sysUserRoles: SysUserRole[] = [];
     for (const roleId of roleIds) {
       const ur = new SysUserRole();
@@ -173,33 +175,31 @@ export class SysUserServiceImpl implements ISysUserService {
     userId: string,
     postIds: string[]
   ): Promise<number> {
-    if (postIds.length > 0) {
-      const sysUserPosts: SysUserPost[] = [];
-      for (const postId of postIds) {
-        const up = new SysUserPost();
-        up.userId = userId;
-        up.postId = postId;
-        sysUserPosts.push(up);
-      }
-      return await this.sysUserPostRepository.batchUserPost(sysUserPosts);
+    if (postIds && postIds.length <= 0) return 0;
+    const sysUserPosts: SysUserPost[] = [];
+    for (const postId of postIds) {
+      const up = new SysUserPost();
+      up.userId = userId;
+      up.postId = postId;
+      sysUserPosts.push(up);
     }
-    return 0;
+    return await this.sysUserPostRepository.batchUserPost(sysUserPosts);
   }
   async insertAserAuth(userId: string, roleIds: string[]): Promise<void> {
     await this.sysUserRoleRepository.deleteUserRole([userId]);
-    if (roleIds && roleIds.length > 0) {
-      await this.insertUserRole(userId, roleIds);
-    }
+    await this.insertUserRole(userId, roleIds);
   }
 
   async deleteUserByIds(userIds: string[]): Promise<number> {
     // 遍历检查是否都存在
     for (const userId of userIds) {
-      const user = await this.selectUserById(userId);
+      // 检查是否存在
+      const user = await this.sysUserRepository.selectUserById(userId);
       if (!user) {
-        return 0;
+        throw new Error('没有权限访问用户数据！');
       }
     }
+
     // 删除用户与角色关联
     await this.sysUserRoleRepository.deleteUserRole(userIds);
     // 删除用户与岗位关联

@@ -71,7 +71,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
   private getChildPerms(sysMenuList: SysMenu[], parentId: string): SysMenu[] {
     const returnList = [];
     for (const sysMenu of sysMenuList) {
-      // 一、根据传入的某个父节点ID,遍历该父节点的所有子节点
+      // 根据传入的某个父节点ID,遍历该父节点的所有子节点
       if (sysMenu.parentId === parentId) {
         const menu = this.recursionFn(sysMenuList, sysMenu);
         returnList.push(menu);

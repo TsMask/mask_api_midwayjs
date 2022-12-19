@@ -76,8 +76,7 @@ export class SysLoginController {
    */
   @Post('/logout')
   async logout(): Promise<Result> {
-    const loginUser = this.contextService.getLoginUser();
-    await this.sysLoginService.logout(loginUser.uuid);
+    await this.sysLoginService.logout();
     return Result.okMsg('退出成功');
   }
 }

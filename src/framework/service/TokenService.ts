@@ -36,6 +36,19 @@ export class TokenService {
   private permissionService: PermissionService;
 
   /**
+ * 清除用户登录令牌
+ */
+  async removeToken(): Promise<string> {
+    const loginUser = await this.getLoginUser();
+    if (loginUser) {
+      await this.delLoginUserCache(loginUser.uuid);
+      // 判断可用登录信息返回用户账号
+      return loginUser.user.userName;
+    }
+    return null;
+  }
+
+  /**
    * 创建登录用户信息对象
    * @param user 登录用户信息
    * @return 登录用户信息对象
@@ -160,7 +173,7 @@ export class TokenService {
    * 删除用户身份信息
    * @param token jwt信息内唯一标识
    */
-  async delLoginUserCache(token: string): Promise<void> {
+  private async delLoginUserCache(token: string): Promise<void> {
     const tokenKey = this.getTokenKey(token);
     if (await this.redisCache.hasKey(tokenKey)) {
       await this.redisCache.del(tokenKey);

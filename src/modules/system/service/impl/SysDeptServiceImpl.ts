@@ -19,8 +19,8 @@ export class SysDeptServiceImpl implements ISysDeptService {
   @Inject()
   private sysRoleRepository: SysRoleRepositoryImpl;
 
-  async selectDeptList(sysDept: SysDept): Promise<SysDept[]> {
-    return await this.sysDeptRepository.selectDeptList(sysDept);
+  async selectDeptList(sysDept: SysDept, dataScopeSQL:string = ""): Promise<SysDept[]> {
+    return await this.sysDeptRepository.selectDeptList(sysDept, dataScopeSQL);
   }
 
   async selectDeptTreeList(sysDept: SysDept): Promise<TreeSelect[]> {
@@ -56,6 +56,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
   async checkDeptExistUser(deptId: string): Promise<boolean> {
     return (await this.sysDeptRepository.checkDeptExistUser(deptId)) > 0;
   }
+
   async checkUniqueDeptName(sysDept: SysDept): Promise<boolean> {
     const deptId = await this.sysDeptRepository.checkUniqueDeptName(
       sysDept.deptName,
@@ -67,12 +68,15 @@ export class SysDeptServiceImpl implements ISysDeptService {
     }
     return !deptId;
   }
+
   checkScopeDeptData(deptId: string): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
+
   async insertDept(sysDept: SysDept): Promise<string> {
     return await this.sysDeptRepository.insertDept(sysDept);
   }
+
   async updateDept(sysDept: SysDept): Promise<number> {
     const newParentDept = await this.sysDeptRepository.selectDeptById(
       sysDept.parentId
@@ -94,6 +98,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
     }
     return await this.sysDeptRepository.updateDept(sysDept);
   }
+
   async deleteDeptById(deptId: string): Promise<number> {
     return await this.sysDeptRepository.deleteDeptById(deptId);
   }
@@ -176,7 +181,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
     deptId: string,
     newAncestors: string,
     oldAncestors: string
-  ) {
+  ): Promise<void> {
     let childrens: SysDept[] =
       await this.sysDeptRepository.selectChildrenDeptById(deptId);
     // 替换父ID

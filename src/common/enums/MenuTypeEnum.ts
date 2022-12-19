@@ -6,8 +6,11 @@
 export enum MenuTypeEnum {
   /**目录 */
   DIR = 'M',
+
   /**菜单 */
   MENU = 'C',
+
   /**按钮 */
   BUTTON = 'F',
+  
 }

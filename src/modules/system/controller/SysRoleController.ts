@@ -51,7 +51,8 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:list'] })
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
-    const data = await this.sysRoleService.selectRolePage(query);
+    const dataScopeSQL = this.contextService.getDataScopeSQL("d");
+    const data = await this.sysRoleService.selectRolePage(query,dataScopeSQL);
     return Result.ok(data);
   }
 
@@ -233,10 +234,12 @@ export class SysRoleController {
   async allocatedList(@Query('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     const query = this.contextService.getContext().query;
+    const dataScopeSQL = this.contextService.getDataScopeSQL("d","u");
     const data = await this.sysUserService.selectAllocatedPage(
       roleId,
-      false,
-      query
+      true,
+      query,
+      dataScopeSQL
     );
     return Result.ok(data);
   }
@@ -249,10 +252,12 @@ export class SysRoleController {
   async unallocatedList(@Query('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     const query = this.contextService.getContext().query;
+    const dataScopeSQL = this.contextService.getDataScopeSQL("d","u");
     const data = await this.sysUserService.selectAllocatedPage(
       roleId,
-      true,
-      query
+      false,
+      query,
+      dataScopeSQL
     );
     return Result.ok(data);
   }

@@ -53,7 +53,8 @@ export class SysUserController {
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
-    const data = await this.sysUserService.selectUserPage(query);
+    const dataScopeSQL = this.contextService.getDataScopeSQL("d");
+    const data = await this.sysUserService.selectUserPage(query, dataScopeSQL);
     return Result.ok(data);
   }
 
@@ -64,7 +65,8 @@ export class SysUserController {
   @Get('/:userId')
   @PreAuthorize({ hasPermissions: ['system:user:query'] })
   async getInfo(@Param('userId') userId: string): Promise<Result> {
-    let roles = await this.sysRoleService.selectRoleList(new SysRole());
+    const dataScopeSQL = this.contextService.getDataScopeSQL("d");
+    let roles = await this.sysRoleService.selectRoleList(new SysRole(), dataScopeSQL);
     const posts = await this.sysPostService.selectPostList(new SysPost());
     // 不是系统指定超级管理员需要排除其角色
     if (!this.contextService.isSuperAdmin(userId)) {

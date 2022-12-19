@@ -10,30 +10,34 @@ export interface ISysUserRepository {
    * 根据条件分页查询用户列表
    *
    * @param query 用户信息查询信息
+   * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 用户信息集合信息
    */
-  selectUserPage(query: any): Promise<rowPages>;
+  selectUserPage(query: any, dataScopeSQL?: string): Promise<rowPages>;
 
   /**
    * 根据条件查询用户列表
    *
    * @param sysUser 用户信息
+   * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 用户信息集合信息
    */
-  selectUserList(sysUser: SysUser): Promise<SysUser[]>;
+  selectUserList(sysUser: SysUser, dataScopeSQL?: string): Promise<SysUser[]>;
 
   /**
    * 根据条件分页查询分配用户角色列表
    *
    * @param roleId 角色ID
-   * @param unallocated 未分配的
+   * @param allocated 已分配的
    * @param query 用户信息查询信息
+   * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 用户信息集合信息
    */
   selectAllocatedPage(
     roleId: string,
-    unallocated: boolean,
-    query?: any
+    allocated: boolean,
+    query: any,
+    dataScopeSQL?: string
   ): Promise<rowPages>;
 
   /**

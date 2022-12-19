@@ -15,7 +15,7 @@ browser, os, status, msg, login_time from sys_logininfor`;
 
 /**系统访问记录表信息实体映射 */
 const SYS_LOGININFOR_RESULT = new Map<string, string>();
-SYS_LOGININFOR_RESULT.set('oper_id', 'infoId');
+SYS_LOGININFOR_RESULT.set('info_id', 'infoId');
 SYS_LOGININFOR_RESULT.set('user_name', 'userName');
 SYS_LOGININFOR_RESULT.set('status', 'status');
 SYS_LOGININFOR_RESULT.set('ipaddr', 'ipaddr');

@@ -6,7 +6,6 @@ import {
   PWD_ERR_CNT_KEY,
 } from '../../common/constants/CacheKeysConstants';
 import { RedisCache } from '../redis/RedisCache';
-import { Context } from '@midwayjs/koa';
 import { TokenService } from './TokenService';
 import { LoginUser } from '../core/vo/LoginUser';
 import { UserStatusEnum } from '../../common/enums/UserStatusEnum';
@@ -14,6 +13,8 @@ import { parseNumber } from '../../common/utils/ValueParseUtils';
 import { bcryptCompare } from '../../common/utils/CryptoUtils';
 import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../modules/system/service/impl/SysUserServiceImpl';
+import { SysLogininforServiceImpl } from '../../modules/monitor/service/impl/SysLogininforServiceImpl';
+import { ContextService } from './ContextService';
 
 /**
  * 登录校验方法
@@ -23,7 +24,7 @@ import { SysUserServiceImpl } from '../../modules/system/service/impl/SysUserSer
 @Provide()
 export class SysLoginService {
   @Inject()
-  private ctx: Context;
+  private contextService: ContextService;
 
   @Inject()
   private redisCache: RedisCache;
@@ -37,11 +38,20 @@ export class SysLoginService {
   @Inject()
   private sysUserService: SysUserServiceImpl;
 
+  @Inject()
+  private sysLogininforService: SysLogininforServiceImpl;
+
   /**
    * 登出清除token
    */
-  async logout(token: string): Promise<void> {
-    return await this.tokenService.delLoginUserCache(token);
+  async logout(): Promise<void> {
+    const userName = await this.tokenService.removeToken();
+    if (userName) {
+      let msg = `登录用户：${userName} 退出成功.`;
+      this.contextService.getLogger().info(msg);
+      let sysLogininfor = await this.contextService.newSysLogininfor('0', "退出成功", userName)
+      await this.sysLogininforService.insertLogininfor(sysLogininfor);
+    }
   }
 
   /**
@@ -53,7 +63,7 @@ export class SysLoginService {
     // 验证码开关及验证码检查
     const captchaEnabled = await this.sysConfigService.selectCaptchaEnabled();
     if (captchaEnabled) {
-      await this.validateCaptcha(loginBody.code, loginBody.uuid);
+      await this.validateCaptcha(loginBody.username, loginBody.code, loginBody.uuid);
     }
     // 用户验证
     const loginUser = await this.loadUserByUsername(
@@ -62,33 +72,40 @@ export class SysLoginService {
     );
     // 记录登录信息
     await this.recordLoginInfo(loginUser.userId);
+    let msg = `登录用户：${loginBody.username} 登录成功.`;
+    this.contextService.getLogger().info(msg);
+    let sysLogininfor = await this.contextService.newSysLogininfor('0', "登录成功", loginBody.username)
+    await this.sysLogininforService.insertLogininfor(sysLogininfor);
     // 生成token
     return await this.tokenService.createToken(loginUser);
   }
 
   /**
    * 校验验证码
+   * @param username 登录用户名
    * @param code 验证码
    * @param uuid 唯一标识
    * @return 结果
    */
-  private async validateCaptcha(code: string, uuid: string): Promise<void> {
+  private async validateCaptcha(username: string, code: string, uuid: string): Promise<void> {
     const verifyKey = CAPTCHA_CODE_KEY + uuid;
     const captcha = await this.redisCache.get(verifyKey);
     await this.redisCache.del(verifyKey);
     if (!captcha) {
-      // 记录登录信息
-      // TODO com/ruoyi/framework/manager/factory/AsyncFactory.java
-      this.ctx.logger.info('验证码失效 %s', code);
       // 验证码失效
-      throw new Error('user.captcha.expire');
+      let msg = `登录用户：${username} 验证码失效 ${code}`;
+      this.contextService.getLogger().info(msg);
+      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      await this.sysLogininforService.insertLogininfor(sysLogininfor);
+      throw new Error('验证码已失效');
     }
     if (code !== captcha) {
-      // 记录登录信息
-      // TODO com/ruoyi/framework/manager/factory/AsyncFactory.java
-      this.ctx.logger.info('验证码错误 %s', code);
       // 验证码错误
-      throw new Error('user.captcha.error');
+      let msg = `登录用户：${username} 验证码错误 ${code}`;
+      this.contextService.getLogger().info(msg);
+      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      await this.sysLogininforService.insertLogininfor(sysLogininfor);
+      throw new Error('验证码错误');
     }
   }
 
@@ -104,16 +121,25 @@ export class SysLoginService {
   ): Promise<LoginUser> {
     const sysUser = await this.sysUserService.selectUserByUserName(username);
     if (!sysUser) {
-      this.ctx.logger.info('登录用户：%s 不存在.', username);
-      throw new Error('user.not.exists');
+      let msg = `登录用户：${username} 不存在.`;
+      this.contextService.getLogger().info(msg);
+      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      await this.sysLogininforService.insertLogininfor(sysLogininfor);
+      throw new Error('用户不存在/密码错误');
     }
     if (sysUser.delFlag === UserStatusEnum.DELETED) {
-      this.ctx.logger.info('登录用户：%s 已被删除.', username);
-      throw new Error('user.password.delete');
+      let msg = `登录用户：${username} 已被删除.`;
+      this.contextService.getLogger().info(msg);
+      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      await this.sysLogininforService.insertLogininfor(sysLogininfor);
+      throw new Error('对不起，您的账号已被删除');
     }
     if (sysUser.status === UserStatusEnum.DISABLE) {
-      this.ctx.logger.info('登录用户：%s 已被停用.', username);
-      throw new Error('user.blocked');
+      let msg = `登录用户：${username} 已被停用.`;
+      this.contextService.getLogger().info(msg);
+      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      await this.sysLogininforService.insertLogininfor(sysLogininfor);
+      throw new Error('用户已封禁，请联系管理员');
     }
     // 检查密码
     await this.validatePassword(sysUser.userName, sysUser.password, password);
@@ -128,7 +154,7 @@ export class SysLoginService {
   private async recordLoginInfo(userId: string) {
     const sysUser = new SysUser();
     sysUser.userId = userId;
-    const ip = this.ctx.ip;
+    const ip = this.contextService.getContext().ip;
     sysUser.loginIp = ip.includes('127.0.0.1') ? '127.0.0.1' : ip;
     sysUser.loginDate = new Date().getTime();
     return await this.sysUserService.updateUser(sysUser);
@@ -146,7 +172,7 @@ export class SysLoginService {
     originPassword: string
   ): Promise<void> {
     // 从本地配置获取user信息
-    const userConfig = this.ctx.app.getConfig('user');
+    const userConfig = this.contextService.getConfig('user');
     const { maxRetryCount, lockTime } = userConfig.password;
     // 验证缓存记录次数
     const cacheKey = PWD_ERR_CNT_KEY + loginName;
@@ -156,22 +182,24 @@ export class SysLoginService {
     }
     // 是否超过错误值
     if (parseNumber(retryCount) >= parseNumber(maxRetryCount)) {
-      this.ctx.logger.info(
-        '密码输入错误 %s 次，帐户锁定 %s 分钟',
-        maxRetryCount,
-        lockTime
-      );
-      throw new Error('user.password.retry.limit.exceed');
+      let msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;
+      this.contextService.getLogger().info(msg);
+      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, loginName)
+      await this.sysLogininforService.insertLogininfor(sysLogininfor);
+      throw new Error(msg);
     }
     // 匹配用户密码，清除错误记录次数
     const compareBool = await bcryptCompare(originPassword, hashPassword);
     if (compareBool) {
       await this.clearLoginRecordCache(loginName);
     } else {
-      retryCount = `${parseNumber(retryCount) + 1}`;
-      this.ctx.logger.info('密码输入错误 %s 次', retryCount);
-      // throw new Error("user.password.retry.limit.count");
-      throw new Error('user.password.not.match');
+      const errCount = parseNumber(retryCount) + 1;
+      await this.redisCache.setByExpire(cacheKey, errCount, parseNumber(lockTime) * 60);
+      let msg = `密码输入错误 ${errCount} 次`;
+      this.contextService.getLogger().info(msg);
+      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, loginName)
+      await this.sysLogininforService.insertLogininfor(sysLogininfor);
+      throw new Error('用户不存在/密码错误');
     }
   }
 
@@ -182,7 +210,8 @@ export class SysLoginService {
   async clearLoginRecordCache(loginName: string): Promise<boolean> {
     const cacheKey = PWD_ERR_CNT_KEY + loginName;
     if (await this.redisCache.hasKey(cacheKey)) {
-      return (await this.redisCache.del(cacheKey)) > 0;
+      const count = await this.redisCache.del(cacheKey);
+      return count > 0;
     }
     return false;
   }

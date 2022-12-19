@@ -10,9 +10,10 @@ export interface ISysDeptRepository {
    * 查询部门管理数据
    *
    * @param sysDept 部门信息
+   * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 部门信息集合
    */
-  selectDeptList(sysDept: SysDept): Promise<SysDept[]>;
+  selectDeptList(sysDept: SysDept, dataScopeSQL?:string): Promise<SysDept[]>;
 
   /**
    * 根据角色ID查询部门树信息

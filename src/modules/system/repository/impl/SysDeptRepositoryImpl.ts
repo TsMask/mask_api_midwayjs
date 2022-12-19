@@ -59,8 +59,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   @Inject()
   private db: MysqlManager;
 
-  async selectDeptList(sysDept: SysDept): Promise<SysDept[]> {
-    let sqlStr = `${SELECT_DEPT_VO} where d.del_flag = '0' `;
+  async selectDeptList(sysDept: SysDept, dataScopeSQL: string = ""): Promise<SysDept[]> {
+    let sqlStr = `${SELECT_DEPT_VO} where d.del_flag = '0' ${dataScopeSQL}`;
     const paramArr = [];
     if (sysDept?.deptId) {
       sqlStr += ' and dept_id = ? ';

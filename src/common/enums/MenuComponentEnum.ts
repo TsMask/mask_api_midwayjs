@@ -6,8 +6,11 @@
 export enum MenuComponentEnum {
   /**Layout组件标识 */
   LAYOUT = 'Layout',
+
   /**ParentView组件标识 */
   PARENT_VIEW = 'ParentView',
+
   /**InnerLink组件标识 */
   INNER_LINK = 'InnerLink',
+  
 }

@@ -148,7 +148,7 @@ export class SysMenuController {
     const menuTreeSelect =
       await this.sysMenuService.selectMenuTreeSelectByUserId(
         sysMenu,
-        isSuperAdmin ? null : userId
+        isSuperAdmin ? undefined : userId
       );
     return Result.okData(menuTreeSelect);
   }
@@ -165,7 +165,7 @@ export class SysMenuController {
     const menuTreeSelect =
       await this.sysMenuService.selectMenuTreeSelectByUserId(
         new SysMenu(),
-        isSuperAdmin ? null : userId
+        isSuperAdmin ? undefined : userId
       );
     const checkedKeys = await this.sysMenuService.selectMenuListByRoleId(
       roleId
