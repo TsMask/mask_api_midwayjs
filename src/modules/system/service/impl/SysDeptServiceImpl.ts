@@ -19,13 +19,20 @@ export class SysDeptServiceImpl implements ISysDeptService {
   @Inject()
   private sysRoleRepository: SysRoleRepositoryImpl;
 
-  async selectDeptList(sysDept: SysDept, dataScopeSQL:string = ""): Promise<SysDept[]> {
+  async selectDeptList(
+    sysDept: SysDept,
+    dataScopeSQL = ''
+  ): Promise<SysDept[]> {
     return await this.sysDeptRepository.selectDeptList(sysDept, dataScopeSQL);
   }
 
-  async selectDeptTreeList(sysDept: SysDept): Promise<TreeSelect[]> {
+  async selectDeptTreeList(
+    sysDept: SysDept,
+    dataScopeSQL = ''
+  ): Promise<TreeSelect[]> {
     const depts: SysDept[] = await this.sysDeptRepository.selectDeptList(
-      sysDept
+      sysDept,
+      dataScopeSQL
     );
     return this.buildDeptTreeSelect(depts);
   }

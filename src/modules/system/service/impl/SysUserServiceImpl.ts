@@ -32,11 +32,14 @@ export class SysUserServiceImpl implements ISysUserService {
   @Inject()
   private sysUserPostRepository: SysUserPostRepositoryImpl;
 
-  async selectUserPage(query: any, dataScopeSQL: string = ""): Promise<rowPages> {
+  async selectUserPage(query: any, dataScopeSQL = ''): Promise<rowPages> {
     return await this.sysUserRepository.selectUserPage(query, dataScopeSQL);
   }
 
-  async selectUserList(sysUser: SysUser, dataScopeSQL: string = ""): Promise<SysUser[]> {
+  async selectUserList(
+    sysUser: SysUser,
+    dataScopeSQL = ''
+  ): Promise<SysUser[]> {
     return await this.sysUserRepository.selectUserList(sysUser, dataScopeSQL);
   }
 
@@ -44,7 +47,7 @@ export class SysUserServiceImpl implements ISysUserService {
     roleId: string,
     allocated: boolean,
     query: any,
-    dataScopeSQL: string = ""
+    dataScopeSQL = ''
   ): Promise<rowPages> {
     return await this.sysUserRepository.selectAllocatedPage(
       roleId,
@@ -158,11 +161,13 @@ export class SysUserServiceImpl implements ISysUserService {
     if (roleIds && roleIds.length <= 0) return 0;
     const sysUserRoles: SysUserRole[] = [];
     for (const roleId of roleIds) {
+      if (!roleId) continue;
       const ur = new SysUserRole();
       ur.userId = userId;
-      ur.roleId = roleId;
+      ur.roleId = roleId.trim();
       sysUserRoles.push(ur);
     }
+    if (sysUserRoles.length <= 0) return 0;
     return await this.sysUserRoleRepository.batchUserRole(sysUserRoles);
   }
   /**
@@ -178,13 +183,16 @@ export class SysUserServiceImpl implements ISysUserService {
     if (postIds && postIds.length <= 0) return 0;
     const sysUserPosts: SysUserPost[] = [];
     for (const postId of postIds) {
+      if (!postId) continue;
       const up = new SysUserPost();
       up.userId = userId;
-      up.postId = postId;
+      up.postId = postId.trim();
       sysUserPosts.push(up);
     }
+    if (sysUserPosts.length <= 0) return 0;
     return await this.sysUserPostRepository.batchUserPost(sysUserPosts);
   }
+
   async insertAserAuth(userId: string, roleIds: string[]): Promise<void> {
     await this.sysUserRoleRepository.deleteUserRole([userId]);
     await this.insertUserRole(userId, roleIds);

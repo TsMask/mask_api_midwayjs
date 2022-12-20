@@ -1,6 +1,7 @@
-import { Controller, Get } from '@midwayjs/decorator';
+import { Controller, Get, Inject } from '@midwayjs/decorator';
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { SystemInfoService } from '../../../framework/service/SystemInfoService';
 
 /**
  * 服务器监控
@@ -9,6 +10,9 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator
  */
 @Controller('/monitor/server')
 export class ServerController {
+  @Inject()
+  private systemInfoService: SystemInfoService;
+
   /**
    * 信息
    * @returns 返回结果
@@ -47,26 +51,7 @@ export class ServerController {
         osName: 'Windows 10',
         osArch: 'amd64',
       },
-      sysFiles: [
-        {
-          dirName: 'C:\\',
-          sysTypeName: 'NTFS',
-          typeName: '本地固定磁盘 (C:)',
-          total: '97.4 GB',
-          free: '11.1 GB',
-          used: '86.3 GB',
-          usage: 88.61,
-        },
-        {
-          dirName: 'D:\\',
-          sysTypeName: 'NTFS',
-          typeName: '本地固定磁盘 (D:)',
-          total: '140.5 GB',
-          free: '31.6 GB',
-          used: '108.9 GB',
-          usage: 77.53,
-        },
-      ],
+      sysFiles: await this.systemInfoService.getDiskInfo(),
     });
   }
 }

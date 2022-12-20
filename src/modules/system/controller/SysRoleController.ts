@@ -51,8 +51,8 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:list'] })
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
-    const dataScopeSQL = this.contextService.getDataScopeSQL("d");
-    const data = await this.sysRoleService.selectRolePage(query,dataScopeSQL);
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
     return Result.ok(data);
   }
 
@@ -108,7 +108,7 @@ export class SysRoleController {
     if (!roleId) return Result.err();
     // 检查是否管理员角色
     if (roleId === '1') {
-      return Result.errMsg('不允许操作超级管理员角色');
+      return Result.errMsg('不允许操作管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
@@ -134,10 +134,10 @@ export class SysRoleController {
     const rows = await this.sysRoleService.updateRole(sysRole);
     if (rows > 0) {
       // 更新缓存用户权限
-      // 非超级管理员用户 同时 自己拥有角色权限
+      // 非管理员用户 同时 自己拥有角色权限
       const loginUser = this.contextService.getLoginUser();
-      const isSuperAdmin = this.contextService.isSuperAdmin(loginUser.userId);
-      if (!isSuperAdmin && loginUser.user.roleIds.includes(sysRole.roleId)) {
+      const isAdmin = this.contextService.isAdmin(loginUser.userId);
+      if (!isAdmin && loginUser.user.roleIds.includes(sysRole.roleId)) {
         const user = await this.sysUserService.selectUserByUserName(
           loginUser.user.userName
         );
@@ -177,7 +177,7 @@ export class SysRoleController {
     if (!roleId) return Result.err();
     // 检查是否管理员角色
     if (roleId === '1') {
-      return Result.errMsg('不允许操作超级管理员角色');
+      return Result.errMsg('不允许操作管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
@@ -203,7 +203,7 @@ export class SysRoleController {
     if (!roleId) return Result.err();
     // 检查是否管理员角色
     if (roleId === '1') {
-      return Result.errMsg('不允许操作超级管理员角色');
+      return Result.errMsg('不允许操作管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
@@ -220,9 +220,14 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:query'] })
   async deptTree(@Param('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    const deptTrees = await this.sysDeptService.selectDeptTreeList(
+      new SysDept(),
+      dataScopeSQL
+    );
     return Result.ok({
       checkedKeys: await this.sysDeptService.selectDeptListByRoleId(roleId),
-      depts: await this.sysDeptService.selectDeptTreeList(new SysDept()),
+      depts: deptTrees,
     });
   }
 
@@ -234,7 +239,7 @@ export class SysRoleController {
   async allocatedList(@Query('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     const query = this.contextService.getContext().query;
-    const dataScopeSQL = this.contextService.getDataScopeSQL("d","u");
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const data = await this.sysUserService.selectAllocatedPage(
       roleId,
       true,
@@ -252,7 +257,7 @@ export class SysRoleController {
   async unallocatedList(@Query('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     const query = this.contextService.getContext().query;
-    const dataScopeSQL = this.contextService.getDataScopeSQL("d","u");
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const data = await this.sysUserService.selectAllocatedPage(
       roleId,
       false,

@@ -66,7 +66,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
   @Inject()
   public db: MysqlManager;
 
-  async selectRolePage(query: any, dataScopeSQL:string = ""): Promise<rowPages> {
+  async selectRolePage(query: any, dataScopeSQL = ''): Promise<rowPages> {
     // 查询条件拼接
     let sqlStr = dataScopeSQL;
     const paramArr = [];
@@ -134,7 +134,10 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return { total, rows };
   }
 
-  async selectRoleList(sysRole: SysRole, dataScopeSQL:string = ''): Promise<SysRole[]> {
+  async selectRoleList(
+    sysRole: SysRole,
+    dataScopeSQL = ''
+  ): Promise<SysRole[]> {
     let sqlStr = dataScopeSQL;
     const paramArr = [];
     if (sysRole.roleId) {

@@ -12,5 +12,4 @@ export enum MenuTypeEnum {
 
   /**按钮 */
   BUTTON = 'F',
-  
 }

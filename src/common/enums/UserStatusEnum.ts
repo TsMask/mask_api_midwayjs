@@ -12,5 +12,4 @@ export enum UserStatusEnum {
 
   /**删除 */
   DELETED = '2',
-  
 }

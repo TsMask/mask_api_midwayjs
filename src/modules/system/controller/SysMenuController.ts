@@ -38,10 +38,10 @@ export class SysMenuController {
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
   async list(@Query() sysMenu: SysMenu): Promise<Result> {
     const userId = this.contextService.getUserId();
-    const isSuperAdmin = this.contextService.isSuperAdmin(userId);
+    const isAdmin = this.contextService.isAdmin(userId);
     const data = await this.sysMenuService.selectMenuList(
       sysMenu,
-      isSuperAdmin ? null : userId
+      isAdmin ? undefined : userId
     );
     return Result.okData(data || []);
   }
@@ -144,11 +144,11 @@ export class SysMenuController {
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
   async treeselect(@Query() sysMenu: SysMenu): Promise<Result> {
     const userId = this.contextService.getUserId();
-    const isSuperAdmin = this.contextService.isSuperAdmin(userId);
+    const isAdmin = this.contextService.isAdmin(userId);
     const menuTreeSelect =
       await this.sysMenuService.selectMenuTreeSelectByUserId(
         sysMenu,
-        isSuperAdmin ? undefined : userId
+        isAdmin ? undefined : userId
       );
     return Result.okData(menuTreeSelect);
   }
@@ -161,11 +161,11 @@ export class SysMenuController {
   async roleMenuTreeselect(@Param('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     const userId = this.contextService.getUserId();
-    const isSuperAdmin = this.contextService.isSuperAdmin(userId);
+    const isAdmin = this.contextService.isAdmin(userId);
     const menuTreeSelect =
       await this.sysMenuService.selectMenuTreeSelectByUserId(
         new SysMenu(),
-        isSuperAdmin ? undefined : userId
+        isAdmin ? undefined : userId
       );
     const checkedKeys = await this.sysMenuService.selectMenuListByRoleId(
       roleId

@@ -12,5 +12,4 @@ export enum OperatorTypeEnum {
 
   /**手机端用户 */
   MOBILE = '2',
-  
 }

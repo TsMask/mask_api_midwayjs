@@ -36,8 +36,8 @@ export class TokenService {
   private permissionService: PermissionService;
 
   /**
- * 清除用户登录令牌
- */
+   * 清除用户登录令牌
+   */
   async removeToken(): Promise<string> {
     const loginUser = await this.getLoginUser();
     if (loginUser) {

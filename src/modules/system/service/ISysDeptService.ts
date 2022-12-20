@@ -14,15 +14,19 @@ export interface ISysDeptService {
    * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 部门信息集合
    */
-  selectDeptList(sysDept: SysDept, dataScopeSQL?:string): Promise<SysDept[]>;
+  selectDeptList(sysDept: SysDept, dataScopeSQL?: string): Promise<SysDept[]>;
 
   /**
    * 查询部门树结构信息
    *
    * @param sysDept 部门信息
+   * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 部门树信息集合
    */
-  selectDeptTreeList(sysDept: SysDept): Promise<TreeSelect[]>;
+  selectDeptTreeList(
+    sysDept: SysDept,
+    dataScopeSQL?: string
+  ): Promise<TreeSelect[]>;
 
   /**
    * 根据角色ID查询部门树信息

@@ -29,11 +29,14 @@ export class SysRoleServiceImpl implements ISysRoleService {
   @Inject()
   private sysRoleDeptRepository: SysRoleDeptRepositoryImpl;
 
-  async selectRolePage(query: any, dataScopeSQL:string = ""): Promise<rowPages> {
+  async selectRolePage(query: any, dataScopeSQL = ''): Promise<rowPages> {
     return await this.sysRoleRepository.selectRolePage(query, dataScopeSQL);
   }
 
-  async selectRoleList(sysRole: SysRole, dataScopeSQL:string = ""): Promise<SysRole[]> {
+  async selectRoleList(
+    sysRole: SysRole,
+    dataScopeSQL = ''
+  ): Promise<SysRole[]> {
     return await this.sysRoleRepository.selectRoleList(sysRole, dataScopeSQL);
   }
 
@@ -174,7 +177,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
     for (const roleId of roleIds) {
       // 检查是否管理员角色
       if (roleId === '1') {
-        throw new Error('不允许操作超级管理员角色');
+        throw new Error('不允许操作管理员角色');
       }
       // 检查是否存在
       const role = await this.selectRoleById(roleId);

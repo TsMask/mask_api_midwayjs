@@ -53,7 +53,7 @@ export class SysUserController {
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
-    const dataScopeSQL = this.contextService.getDataScopeSQL("d");
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const data = await this.sysUserService.selectUserPage(query, dataScopeSQL);
     return Result.ok(data);
   }
@@ -65,11 +65,14 @@ export class SysUserController {
   @Get('/:userId')
   @PreAuthorize({ hasPermissions: ['system:user:query'] })
   async getInfo(@Param('userId') userId: string): Promise<Result> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL("d");
-    let roles = await this.sysRoleService.selectRoleList(new SysRole(), dataScopeSQL);
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    let roles = await this.sysRoleService.selectRoleList(
+      new SysRole(),
+      dataScopeSQL
+    );
     const posts = await this.sysPostService.selectPostList(new SysPost());
-    // 不是系统指定超级管理员需要排除其角色
-    if (!this.contextService.isSuperAdmin(userId)) {
+    // 不是系统指定管理员需要排除其角色
+    if (!this.contextService.isAdmin(userId)) {
       roles = roles.filter(r => r.roleId !== '1');
     }
     // 检查用户是否存在
@@ -139,8 +142,8 @@ export class SysUserController {
     const userId: string = sysUser.userId;
     if (!userId) return Result.err();
     // 检查是否管理员用户
-    if (this.contextService.isSuperAdmin(userId)) {
-      return Result.errMsg('不允许操作超级管理员用户');
+    if (this.contextService.isAdmin(userId)) {
+      return Result.errMsg('不允许操作管理员用户');
     }
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
@@ -204,8 +207,8 @@ export class SysUserController {
     // 修改的用户ID和密码是否可用
     if (!userId || !password) return Result.err();
     // 检查是否管理员用户
-    if (this.contextService.isSuperAdmin(userId)) {
-      return Result.errMsg('不允许操作超级管理员用户');
+    if (this.contextService.isAdmin(userId)) {
+      return Result.errMsg('不允许操作管理员用户');
     }
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
@@ -231,8 +234,8 @@ export class SysUserController {
   ): Promise<Result> {
     if (!userId) return Result.err();
     // 检查是否管理员用户
-    if (this.contextService.isSuperAdmin(userId)) {
-      return Result.errMsg('不允许操作超级管理员用户');
+    if (this.contextService.isAdmin(userId)) {
+      return Result.errMsg('不允许操作管理员用户');
     }
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
@@ -259,9 +262,9 @@ export class SysUserController {
       return Result.errMsg('没有权限访问用户数据！');
     }
     delete user.password;
-    // 不是系统指定超级管理员需要排除其角色
+    // 不是系统指定管理员需要排除其角色
     let roles = await this.sysRoleService.selectRolesByUserId(userId);
-    if (!this.contextService.isSuperAdmin(userId)) {
+    if (!this.contextService.isAdmin(userId)) {
       roles = roles.filter(r => r.roleId !== '1');
     }
     return Result.ok({
@@ -298,7 +301,11 @@ export class SysUserController {
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
   @Get('/deptTree')
   async deptTree(@Query() sysDept: SysDept): Promise<Result> {
-    const data = await this.sysDeptService.selectDeptTreeList(sysDept);
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    const data = await this.sysDeptService.selectDeptTreeList(
+      sysDept,
+      dataScopeSQL
+    );
     return Result.okData(data || []);
   }
 }

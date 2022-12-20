@@ -164,8 +164,8 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         /**密码锁定时间（默认10分钟） */
         lockTime: 10,
       },
-      /**超级管理员列表 */
-      superAdmin: ['1'],
+      /**管理员列表 */
+      adminList: ['1'],
     },
 
     /**有序唯一分布式ID */

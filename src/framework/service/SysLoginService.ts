@@ -47,9 +47,13 @@ export class SysLoginService {
   async logout(): Promise<void> {
     const userName = await this.tokenService.removeToken();
     if (userName) {
-      let msg = `登录用户：${userName} 退出成功.`;
+      const msg = `登录用户：${userName} 退出成功.`;
       this.contextService.getLogger().info(msg);
-      let sysLogininfor = await this.contextService.newSysLogininfor('0', "退出成功", userName)
+      const sysLogininfor = await this.contextService.newSysLogininfor(
+        '0',
+        '退出成功',
+        userName
+      );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
     }
   }
@@ -63,7 +67,11 @@ export class SysLoginService {
     // 验证码开关及验证码检查
     const captchaEnabled = await this.sysConfigService.selectCaptchaEnabled();
     if (captchaEnabled) {
-      await this.validateCaptcha(loginBody.username, loginBody.code, loginBody.uuid);
+      await this.validateCaptcha(
+        loginBody.username,
+        loginBody.code,
+        loginBody.uuid
+      );
     }
     // 用户验证
     const loginUser = await this.loadUserByUsername(
@@ -72,9 +80,13 @@ export class SysLoginService {
     );
     // 记录登录信息
     await this.recordLoginInfo(loginUser.userId);
-    let msg = `登录用户：${loginBody.username} 登录成功.`;
+    const msg = `登录用户：${loginBody.username} 登录成功.`;
     this.contextService.getLogger().info(msg);
-    let sysLogininfor = await this.contextService.newSysLogininfor('0', "登录成功", loginBody.username)
+    const sysLogininfor = await this.contextService.newSysLogininfor(
+      '0',
+      '登录成功',
+      loginBody.username
+    );
     await this.sysLogininforService.insertLogininfor(sysLogininfor);
     // 生成token
     return await this.tokenService.createToken(loginUser);
@@ -87,23 +99,35 @@ export class SysLoginService {
    * @param uuid 唯一标识
    * @return 结果
    */
-  private async validateCaptcha(username: string, code: string, uuid: string): Promise<void> {
+  private async validateCaptcha(
+    username: string,
+    code: string,
+    uuid: string
+  ): Promise<void> {
     const verifyKey = CAPTCHA_CODE_KEY + uuid;
     const captcha = await this.redisCache.get(verifyKey);
     await this.redisCache.del(verifyKey);
     if (!captcha) {
       // 验证码失效
-      let msg = `登录用户：${username} 验证码失效 ${code}`;
+      const msg = `登录用户：${username} 验证码失效 ${code}`;
       this.contextService.getLogger().info(msg);
-      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      const sysLogininfor = await this.contextService.newSysLogininfor(
+        '1',
+        msg,
+        username
+      );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('验证码已失效');
     }
     if (code !== captcha) {
       // 验证码错误
-      let msg = `登录用户：${username} 验证码错误 ${code}`;
+      const msg = `登录用户：${username} 验证码错误 ${code}`;
       this.contextService.getLogger().info(msg);
-      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      const sysLogininfor = await this.contextService.newSysLogininfor(
+        '1',
+        msg,
+        username
+      );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('验证码错误');
     }
@@ -121,23 +145,35 @@ export class SysLoginService {
   ): Promise<LoginUser> {
     const sysUser = await this.sysUserService.selectUserByUserName(username);
     if (!sysUser) {
-      let msg = `登录用户：${username} 不存在.`;
+      const msg = `登录用户：${username} 不存在.`;
       this.contextService.getLogger().info(msg);
-      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      const sysLogininfor = await this.contextService.newSysLogininfor(
+        '1',
+        msg,
+        username
+      );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('用户不存在/密码错误');
     }
     if (sysUser.delFlag === UserStatusEnum.DELETED) {
-      let msg = `登录用户：${username} 已被删除.`;
+      const msg = `登录用户：${username} 已被删除.`;
       this.contextService.getLogger().info(msg);
-      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      const sysLogininfor = await this.contextService.newSysLogininfor(
+        '1',
+        msg,
+        username
+      );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('对不起，您的账号已被删除');
     }
     if (sysUser.status === UserStatusEnum.DISABLE) {
-      let msg = `登录用户：${username} 已被停用.`;
+      const msg = `登录用户：${username} 已被停用.`;
       this.contextService.getLogger().info(msg);
-      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, username)
+      const sysLogininfor = await this.contextService.newSysLogininfor(
+        '1',
+        msg,
+        username
+      );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('用户已封禁，请联系管理员');
     }
@@ -182,9 +218,13 @@ export class SysLoginService {
     }
     // 是否超过错误值
     if (parseNumber(retryCount) >= parseNumber(maxRetryCount)) {
-      let msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;
+      const msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;
       this.contextService.getLogger().info(msg);
-      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, loginName)
+      const sysLogininfor = await this.contextService.newSysLogininfor(
+        '1',
+        msg,
+        loginName
+      );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error(msg);
     }
@@ -194,10 +234,18 @@ export class SysLoginService {
       await this.clearLoginRecordCache(loginName);
     } else {
       const errCount = parseNumber(retryCount) + 1;
-      await this.redisCache.setByExpire(cacheKey, errCount, parseNumber(lockTime) * 60);
-      let msg = `密码输入错误 ${errCount} 次`;
+      await this.redisCache.setByExpire(
+        cacheKey,
+        errCount,
+        parseNumber(lockTime) * 60
+      );
+      const msg = `密码输入错误 ${errCount} 次`;
       this.contextService.getLogger().info(msg);
-      let sysLogininfor = await this.contextService.newSysLogininfor('1', msg, loginName)
+      const sysLogininfor = await this.contextService.newSysLogininfor(
+        '1',
+        msg,
+        loginName
+      );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('用户不存在/密码错误');
     }

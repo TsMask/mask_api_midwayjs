@@ -33,5 +33,4 @@ export enum OperatorBusinessTypeEnum {
 
   /**清空数据 */
   CLEAN = '9',
-  
 }

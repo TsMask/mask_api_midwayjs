@@ -88,7 +88,7 @@ function verifyRolePermission(
   permissions: string[],
   metadata: AuthOptions
 ): boolean {
-  // 直接放行 超级管理员角色或任意权限
+  // 直接放行 管理员角色或任意权限
   if (roles.includes('admin') || permissions.includes('*:*:*')) {
     return true;
   }

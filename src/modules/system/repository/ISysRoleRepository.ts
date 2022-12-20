@@ -13,7 +13,7 @@ export interface ISysRoleRepository {
    * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 角色信息集合信息
    */
-  selectRolePage(query: any, dataScopeSQL?:string): Promise<rowPages>;
+  selectRolePage(query: any, dataScopeSQL?: string): Promise<rowPages>;
 
   /**
    * 根据条件查询角色数据
@@ -22,7 +22,7 @@ export interface ISysRoleRepository {
    * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 角色数据集合信息
    */
-  selectRoleList(sysRole: SysRole, dataScopeSQL?:string): Promise<SysRole[]>;
+  selectRoleList(sysRole: SysRole, dataScopeSQL?: string): Promise<SysRole[]>;
 
   /**
    * 根据用户ID查询角色

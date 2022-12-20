@@ -12,5 +12,4 @@ export enum MenuComponentEnum {
 
   /**InnerLink组件标识 */
   INNER_LINK = 'InnerLink',
-  
 }

@@ -95,6 +95,40 @@ export function parseObjLineToHump(obj: any) {
 }
 
 /**
+ * 解析比特位为单位
+ * @param bit 数值大小B
+ * @returns GB MB KB B
+ */
+export function parseBit(bit: number): string {
+  let GB = '',
+    MB = '',
+    KB = '';
+  bit > 1 << 30 && (GB = Number(bit / (1 << 30)).toFixed(2));
+  bit > 1 << 20 && bit < 1 << 30 && (MB = Number(bit / (1 << 20)).toFixed(2));
+  bit > 1 << 10 && bit > 1 << 20 && (KB = Number(bit / (1 << 10)).toFixed(2));
+  return GB ? GB + 'GB' : MB ? MB + 'MB' : KB ? KB + 'KB' : bit + 'B';
+}
+
+/**
+ * 解析掩码内容值
+ * @param value 内容值字符串
+ * @returns 掩码 ******2
+ */
+export function parseSafeContent(value = '') {
+  if (value.length < 3) {
+    return '*'.repeat(value.length);
+  } else if (value.length < 6) {
+    return value[0] + '*'.repeat(value.length - 1);
+  } else if (value.length < 10) {
+    return value[0] + '*'.repeat(value.length - 2) + value[value.length - 1];
+  } else if (value.length < 15) {
+    return value.slice(0, 2) + '*'.repeat(value.length - 4) + value.slice(-2);
+  } else {
+    return value.slice(0, 3) + '*'.repeat(value.length - 6) + value.slice(-3);
+  }
+}
+
+/**
  * 解析掩码手机号
  * @param mobile 11位手机号 字符串
  * @returns 掩码 136****2738

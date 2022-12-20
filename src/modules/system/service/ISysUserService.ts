@@ -36,7 +36,8 @@ export interface ISysUserService {
   selectAllocatedPage(
     roleId: string,
     allocated: boolean,
-    query: any, dataScopeSQL?: string
+    query: any,
+    dataScopeSQL?: string
   ): Promise<rowPages>;
 
   /**

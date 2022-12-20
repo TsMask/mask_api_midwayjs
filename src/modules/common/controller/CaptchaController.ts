@@ -1,5 +1,4 @@
 import { Controller, Get, HttpCode, Inject } from '@midwayjs/decorator';
-import { Context } from '@midwayjs/koa';
 import { create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../common/constants/CacheKeysConstants';
@@ -8,6 +7,7 @@ import { generateID } from '../../../common/utils/GenIdUtils';
 import { Result } from '../../../framework/core/Result';
 import { RedisCache } from '../../../framework/redis/RedisCache';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
+import { ContextService } from '../../../framework/service/ContextService';
 
 /**
  * 验证码操作处理
@@ -17,7 +17,7 @@ import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigService
 @Controller()
 export class CaptchaController {
   @Inject()
-  private ctx: Context;
+  private contextService: ContextService;
 
   @Inject()
   private redisCache: RedisCache;
@@ -43,15 +43,17 @@ export class CaptchaController {
     // 生成唯一标识
     const uuid = generateID(16);
     const verifyKey = CAPTCHA_CODE_KEY + uuid;
-    let data = {
+    const data = {
       captchaEnabled: captchaEnabled,
       uuid: uuid,
       img: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
     };
     // 从本地配置project获取验证码类型
-    const { captchaType } = this.ctx.app.getConfig('project');
+    const { captchaType } = this.contextService.getConfig('project');
     if (captchaType === 'math') {
-      const captcha = createMathExpr(this.ctx.app.getConfig('mathCaptcha'));
+      const captcha = createMathExpr(
+        this.contextService.getConfig('mathCaptcha')
+      );
       data.img = svgBase64(captcha.data);
       await this.redisCache.setByExpire(
         verifyKey,
@@ -60,7 +62,7 @@ export class CaptchaController {
       );
     }
     if (captchaType === 'char') {
-      const captcha = create(this.ctx.app.getConfig('charCaptcha'));
+      const captcha = create(this.contextService.getConfig('charCaptcha'));
       data.img = svgBase64(captcha.data);
       await this.redisCache.setByExpire(
         verifyKey,
@@ -68,14 +70,12 @@ export class CaptchaController {
         CAPTCHA_EXPIRATION
       );
     }
-    // 本地开发下返回结果
-    if (this.ctx.app.getEnv() === 'local') {
-      data = Object.assign(
-        {
-          text: await this.redisCache.get(verifyKey),
-        },
-        data
-      );
+    // 本地开发下返回验证码结果
+    if (this.contextService.getEnv() === 'local') {
+      return Result.ok({
+        text: await this.redisCache.get(verifyKey),
+        ...data,
+      });
     }
     return Result.ok(data);
   }

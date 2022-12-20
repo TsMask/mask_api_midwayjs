@@ -81,6 +81,7 @@ export class CacheController {
     @Param('cacheName') cacheName: string,
     @Param('cacheKey') cacheKey: string
   ): Promise<Result> {
+    if (!cacheName || !cacheKey) return Result.err();
     const cacheValue = await this.redisCache.get(cacheKey);
     return Result.okData(
       new SysCache().newCacheNKV(cacheName, cacheKey, cacheValue)

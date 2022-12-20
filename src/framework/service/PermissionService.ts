@@ -29,8 +29,8 @@ export class PermissionService {
   public async getRolePermission(user: SysUser): Promise<string[]> {
     const roles: string[] = [];
     // 管理员拥有所有权限
-    const isSuperAdmin = this.contextService.isSuperAdmin(user.userId);
-    if (isSuperAdmin) {
+    const isAdmin = this.contextService.isAdmin(user.userId);
+    if (isAdmin) {
       roles.push('admin');
     } else {
       const rolePerms = await this.sysRoleService.selectRolePermissionByUserId(
@@ -50,8 +50,8 @@ export class PermissionService {
   public async getMenuPermission(user: SysUser): Promise<string[]> {
     const perms: string[] = [];
     // 管理员拥有所有权限
-    const isSuperAdmin = this.contextService.isSuperAdmin(user.userId);
-    if (isSuperAdmin) {
+    const isAdmin = this.contextService.isAdmin(user.userId);
+    if (isAdmin) {
       perms.push('*:*:*');
     } else {
       const roles = user.roles;

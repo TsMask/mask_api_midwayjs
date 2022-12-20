@@ -109,7 +109,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   @Inject()
   private db: MysqlManager;
 
-  async selectUserPage(query: any, dataScopeSQL: string = ""): Promise<rowPages> {
+  async selectUserPage(query: any, dataScopeSQL = ''): Promise<rowPages> {
     const SELECT_USER_SQL = `select 
     u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
     from sys_user u
@@ -181,7 +181,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return { total, rows };
   }
 
-  async selectUserList(sysUser: SysUser, dataScopeSQL: string = ""): Promise<SysUser[]> {
+  async selectUserList(
+    sysUser: SysUser,
+    dataScopeSQL = ''
+  ): Promise<SysUser[]> {
     // 查询条件拼接
     let sqlStr = dataScopeSQL;
     const paramArr = [];
@@ -218,7 +221,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     roleId: string,
     allocated: boolean,
     query: any,
-    dataScopeSQL: string = ""
+    dataScopeSQL = ''
   ): Promise<rowPages> {
     // 查询条件拼接
     let sqlStr = dataScopeSQL;
@@ -295,7 +298,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
         sysUser = v;
       } else {
         if (v.roles && v.roles.length !== 0) {
-          sysUser.roles.concat(v.roles);
+          sysUser.roles = sysUser.roles.concat(v.roles);
         }
       }
     });
@@ -319,7 +322,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
         sysUser = v;
       } else {
         if (v.roles && v.roles.length !== 0) {
-          sysUser.roles.concat(v.roles);
+          sysUser.roles = sysUser.roles.concat(v.roles);
         }
       }
     });

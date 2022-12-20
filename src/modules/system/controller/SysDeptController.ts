@@ -36,8 +36,11 @@ export class SysDeptController {
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:dept:list'] })
   async list(@Query() sysDept: SysDept): Promise<Result> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL("d");
-    const list = await this.sysDeptService.selectDeptList(sysDept, dataScopeSQL);
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    const list = await this.sysDeptService.selectDeptList(
+      sysDept,
+      dataScopeSQL
+    );
     return Result.okData(list);
   }
 
@@ -47,8 +50,11 @@ export class SysDeptController {
   @Get('/list/exclude/:deptId')
   @PreAuthorize({ hasPermissions: ['system:dept:list'] })
   async excludeChild(@Param('deptId') deptId: string): Promise<Result> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL("d");
-    let data = await this.sysDeptService.selectDeptList(new SysDept(), dataScopeSQL);
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    let data = await this.sysDeptService.selectDeptList(
+      new SysDept(),
+      dataScopeSQL
+    );
     data = data.filter(
       dept =>
         !(dept.deptId === deptId || dept.ancestors.split(',').includes(deptId))
