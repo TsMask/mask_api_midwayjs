@@ -100,9 +100,9 @@ export function parseObjLineToHump(obj: any) {
  * @returns GB MB KB B
  */
 export function parseBit(bit: number): string {
-  let GB = '',
-    MB = '',
-    KB = '';
+  let GB = '';
+  let MB = '';
+  let KB = '';
   bit > 1 << 30 && (GB = Number(bit / (1 << 30)).toFixed(2));
   bit > 1 << 20 && bit < 1 << 30 && (MB = Number(bit / (1 << 20)).toFixed(2));
   bit > 1 << 10 && bit > 1 << 20 && (KB = Number(bit / (1 << 10)).toFixed(2));

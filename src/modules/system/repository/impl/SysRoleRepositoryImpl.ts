@@ -233,7 +233,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     }
     if (sysRole.updateBy) {
       paramMap.set('update_by', sysRole.updateBy);
-      paramMap.set('update_time', new Date().getTime());
+      paramMap.set('update_time', Date.now());
     }
 
     const sqlStr = `update sys_role set ${[...paramMap.keys()]
@@ -282,7 +282,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     }
     if (sysRole.createBy) {
       paramMap.set('create_by', sysRole.createBy);
-      paramMap.set('create_time', new Date().getTime());
+      paramMap.set('create_time', Date.now());
     }
 
     const sqlStr = `insert into sys_role(${[...paramMap.keys()].join(

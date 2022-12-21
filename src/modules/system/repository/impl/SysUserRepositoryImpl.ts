@@ -370,7 +370,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     }
     if (sysUser.createBy) {
       paramMap.set('create_by', sysUser.createBy);
-      paramMap.set('create_time', new Date().getTime());
+      paramMap.set('create_time', Date.now());
     }
 
     const sqlStr = `insert into sys_user (${[...paramMap.keys()].join(
@@ -423,7 +423,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     }
     if (sysUser.updateBy) {
       paramMap.set('update_by', sysUser.updateBy);
-      paramMap.set('update_time', new Date().getTime());
+      paramMap.set('update_time', Date.now());
     }
     if (sysUser.remark) {
       paramMap.set('remark', sysUser.remark);

@@ -182,7 +182,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     }
     if (sysDictType.createBy) {
       paramMap.set('create_by', sysDictType.createBy);
-      paramMap.set('create_time', new Date().getTime());
+      paramMap.set('create_time', Date.now());
     }
 
     const sqlStr = `insert into sys_dict_type (${[...paramMap.keys()].join(
@@ -210,7 +210,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     }
     if (sysDictType.updateBy) {
       paramMap.set('update_by', sysDictType.updateBy);
-      paramMap.set('update_time', new Date().getTime());
+      paramMap.set('update_time', Date.now());
     }
 
     const sqlStr = `update sys_dict_type set ${[...paramMap.keys()]

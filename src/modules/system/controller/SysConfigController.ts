@@ -55,7 +55,7 @@ export class SysConfigController {
    */
   @Get('/:configId')
   @PreAuthorize({ hasPermissions: ['system:config:query'] })
-  async get(@Param('configId') configId: string): Promise<Result> {
+  async getInfo(@Param('configId') configId: string): Promise<Result> {
     if (!configId) return Result.err();
     const data = await this.sysConfigService.selectConfigById(configId);
     return Result.okData(data || {});

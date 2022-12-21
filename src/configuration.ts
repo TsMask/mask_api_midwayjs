@@ -10,6 +10,7 @@ import * as jwt from '@midwayjs/jwt';
 import * as upload from '@midwayjs/upload';
 import { join } from 'path';
 import { DefaultErrorFilter } from './framework/filter/DefaultErrorFilter';
+import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
 import { NotFoundErrorFilter } from './framework/filter/NotFoundErrorFilter';
 import { UnauthorizedErrorFilter } from './framework/filter/UnauthorizedErrorFilter';
 import { ReportMiddleware } from './framework/middleware/ReportMiddleware';
@@ -18,7 +19,6 @@ import {
   DECORATOR_PRE_AUTHORIZE_KEY,
   PreAuthorizeVerify,
 } from './framework/decorator/PreAuthorizeDecorator';
-import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
 import {
   DECORATOR_OPER_LOG_KEY,
   OperLogSave,

@@ -96,7 +96,7 @@ export class TokenService {
     const timeout = ms(jwtRefreshIn);
     // 相差不足xx分钟，自动刷新缓存
     const expireTime = loginUser.expireTime;
-    const currentTime = new Date().getTime();
+    const currentTime = Date.now();
     if (expireTime - currentTime <= timeout) {
       await this.setUserToken(loginUser);
     }
@@ -136,7 +136,7 @@ export class TokenService {
     const { expiresIn } = this.ctx.app.getConfig('jwt');
     const timestamp: number = ms(String(expiresIn));
     const second = Number(timestamp / 1000);
-    loginUser.loginTime = new Date().getTime();
+    loginUser.loginTime = Date.now();
     loginUser.expireTime = loginUser.loginTime + timestamp;
     // 根据token将loginUser缓存
     const tokenKey = this.getTokenKey(loginUser.uuid);

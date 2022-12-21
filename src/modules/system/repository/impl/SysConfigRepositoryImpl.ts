@@ -182,7 +182,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     }
     if (sysConfig.createBy) {
       paramMap.set('create_by', sysConfig.createBy);
-      paramMap.set('create_time', new Date().getTime());
+      paramMap.set('create_time', Date.now());
     }
 
     const sqlStr = `insert into sys_config (${[...paramMap.keys()].join(
@@ -213,7 +213,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     }
     if (sysConfig.updateBy) {
       paramMap.set('update_by', sysConfig.updateBy);
-      paramMap.set('update_time', new Date().getTime());
+      paramMap.set('update_time', Date.now());
     }
 
     const sqlStr = `update sys_config set ${[...paramMap.keys()]

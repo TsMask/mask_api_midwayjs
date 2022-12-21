@@ -226,7 +226,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     }
     if (sysMenu.createBy) {
       paramMap.set('create_by', sysMenu.createBy);
-      paramMap.set('create_time', new Date().getTime());
+      paramMap.set('create_time', Date.now());
     }
 
     const sqlStr = `insert into sys_menu (${[...paramMap.keys()].join(
@@ -284,7 +284,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     }
     if (sysMenu.updateBy) {
       paramMap.set('update_by', sysMenu.updateBy);
-      paramMap.set('update_time', new Date().getTime());
+      paramMap.set('update_time', Date.now());
     }
 
     const sqlStr = `update sys_menu set ${[...paramMap.keys()]

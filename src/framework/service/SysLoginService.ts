@@ -192,7 +192,7 @@ export class SysLoginService {
     sysUser.userId = userId;
     const ip = this.contextService.getContext().ip;
     sysUser.loginIp = ip.includes('127.0.0.1') ? '127.0.0.1' : ip;
-    sysUser.loginDate = new Date().getTime();
+    sysUser.loginDate = Date.now();
     return await this.sysUserService.updateUser(sysUser);
   }
 

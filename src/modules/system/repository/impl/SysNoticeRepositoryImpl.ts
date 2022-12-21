@@ -143,7 +143,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     }
     if (sysNotice.createBy) {
       paramMap.set('create_by', sysNotice.createBy);
-      paramMap.set('create_time', new Date().getTime());
+      paramMap.set('create_time', Date.now());
     }
 
     const sqlStr = `insert into sys_notice (${[...paramMap.keys()].join(
@@ -174,7 +174,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     }
     if (sysNotice.updateBy) {
       paramMap.set('update_by', sysNotice.updateBy);
-      paramMap.set('update_time', new Date().getTime());
+      paramMap.set('update_time', Date.now());
     }
 
     const sqlStr = `update sys_notice set ${[...paramMap.keys()]

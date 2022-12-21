@@ -139,7 +139,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
 
   async insertLogininfor(sysLogininfor: SysLogininfor): Promise<string> {
     const paramMap = new Map();
-    paramMap.set('login_time', new Date().getTime());
+    paramMap.set('login_time', Date.now());
     if (sysLogininfor.userName) {
       paramMap.set('user_name', sysLogininfor.userName);
     }

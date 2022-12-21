@@ -46,7 +46,7 @@ export function OperLog(options: operLogOptions): MethodDecorator {
 }
 
 /**
- * 实现装饰器操作日志记录
+ * 实现装饰器-访问操作日志记录
  * @param options.metadata 方法装饰器参数
  * @returns 返回结果
  */

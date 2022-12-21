@@ -160,7 +160,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
 
   async insertOperLog(sysOperLog: SysOperLog): Promise<string> {
     const paramMap = new Map();
-    paramMap.set('oper_time', new Date().getTime());
+    paramMap.set('oper_time', Date.now());
     if (sysOperLog.title) {
       paramMap.set('title', sysOperLog.title);
     }

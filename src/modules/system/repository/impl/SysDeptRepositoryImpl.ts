@@ -187,7 +187,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     }
     if (sysDept.createBy) {
       paramMap.set('create_by', sysDept.createBy);
-      paramMap.set('create_time', new Date().getTime());
+      paramMap.set('create_time', Date.now());
     }
 
     const sqlStr = `insert into sys_dept (${[...paramMap.keys()].join(
@@ -227,7 +227,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     }
     if (sysDept.updateBy) {
       paramMap.set('update_by', sysDept.updateBy);
-      paramMap.set('update_time', new Date().getTime());
+      paramMap.set('update_time', Date.now());
     }
     const sqlStr = `update sys_dept set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)

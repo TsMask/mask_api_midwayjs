@@ -33,7 +33,7 @@ export function PreAuthorize(options?: AuthOptions): MethodDecorator {
 }
 
 /**
- * 实现装饰器授权认证
+ * 实现装饰器-用户身份授权认证校验
  * @param options.metadata 方法装饰器参数
  * @returns 返回结果
  */

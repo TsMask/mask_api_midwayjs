@@ -171,7 +171,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     }
     if (sysPost.updateBy) {
       paramMap.set('update_by', sysPost.updateBy);
-      paramMap.set('update_time', new Date().getTime());
+      paramMap.set('update_time', Date.now());
     }
     const sqlStr = `update sys_post set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
@@ -205,7 +205,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     }
     if (sysPost.createBy) {
       paramMap.set('create_by', sysPost.createBy);
-      paramMap.set('create_time', new Date().getTime());
+      paramMap.set('create_time', Date.now());
     }
 
     const sqlStr = `insert into sys_post (${[...paramMap.keys()].join(
