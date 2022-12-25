@@ -1,7 +1,7 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysNotice } from '../../model/SysNotice';
 import { ISysNoticeRepository } from '../ISysNoticeRepository';
 
@@ -52,7 +52,7 @@ function parseSysNoticeResult(rows: any[]): SysNotice[] {
 @Scope(ScopeEnum.Singleton)
 export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
   @Inject()
-  private db: MysqlManager;
+  private db: DynamicDataSource;
 
   async selectNoticePage(query: any): Promise<rowPages> {
     // 查询条件拼接

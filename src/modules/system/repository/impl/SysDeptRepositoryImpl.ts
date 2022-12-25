@@ -2,7 +2,7 @@ import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysDept } from '../../../../framework/core/model/SysDept';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysDeptRepository } from '../ISysDeptRepository';
 
 /**查询视图对象SQL */
@@ -57,7 +57,7 @@ function parseSysDeptResult(rows: any[]): SysDept[] {
 @Scope(ScopeEnum.Singleton)
 export class SysDeptRepositoryImpl implements ISysDeptRepository {
   @Inject()
-  private db: MysqlManager;
+  private db: DynamicDataSource;
 
   async selectDeptList(
     sysDept: SysDept,

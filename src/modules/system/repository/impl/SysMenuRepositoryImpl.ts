@@ -2,7 +2,7 @@ import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysMenu } from '../../../../framework/core/model/SysMenu';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysMenuRepository } from '../ISysMenuRepository';
 
 /**查询视图对象SQL */
@@ -70,7 +70,7 @@ function parseSysMenuResult(rows: any[]): SysMenu[] {
 @Scope(ScopeEnum.Singleton)
 export class SysMenuRepositoryImpl implements ISysMenuRepository {
   @Inject()
-  public db: MysqlManager;
+  public db: DynamicDataSource;
 
   async selectMenuList(sysMenu: SysMenu, userId?: string): Promise<SysMenu[]> {
     let sqlStr = '';

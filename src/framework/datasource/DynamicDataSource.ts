@@ -3,20 +3,20 @@ import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { DataSource, QueryRunner } from 'typeorm';
 
 /**
- * mysql 数据源处理
+ * 动态数据源
  *
  * @author TsMask <340112800@qq.com>
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
-export class MysqlManager {
+export class DynamicDataSource {
   @Inject()
   private dataSourceManager: TypeORMDataSourceManager;
 
   /**
    * 数据源
    * @param source 数据库连接
-   * @returns 连接实例
+   * @return 连接实例
    */
   public dataSource(source = 'default'): DataSource {
     return this.dataSourceManager.getDataSource(source);
@@ -24,7 +24,7 @@ export class MysqlManager {
 
   /**
    * 获取可用数据源名称
-   * @returns 数据源名称
+   * @return 数据源名称
    */
   public dataSourceNames(): string[] {
     return this.dataSourceManager.getDataSourceNames();
@@ -47,14 +47,15 @@ export class MysqlManager {
 
   /**
    * 创建和控制单个数据库连接的状态
+   * 
    * 控制事务
-   * startTransaction- 在查询运行器实例中启动一个新事务。
-   * commitTransaction- 提交使用查询运行器实例所做的所有更改。
-   * rollbackTransaction- 回滚使用查询运行程序实例所做的所有更改。
+   * startTransaction - 在查询运行器实例中启动一个新事务。
+   * commitTransaction - 提交使用查询运行器实例所做的所有更改。
+   * rollbackTransaction - 回滚使用查询运行程序实例所做的所有更改。
    * @param source 数据源 默认'default'
    * @returns 查询结果或异常错误
    */
-  public execute_runner(source = 'default'): QueryRunner {
+  public executeRunner(source = 'default'): QueryRunner {
     return this.dataSource(source).createQueryRunner();
   }
 }

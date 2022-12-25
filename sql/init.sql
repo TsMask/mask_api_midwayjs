@@ -542,7 +542,8 @@ insert into sys_config values(1, '主框架页-默认皮肤样式名称',     's
 insert into sys_config values(2, '用户管理-账号初始密码',         'sys.user.initPassword',         '123456',        'Y', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '初始化密码 123456' );
 insert into sys_config values(3, '主框架页-侧边栏主题',           'sys.index.sideTheme',           'theme-dark',    'Y', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '深色主题theme-dark，浅色主题theme-light' );
 insert into sys_config values(4, '账号自助-验证码开关',           'sys.account.captchaEnabled',    'true',          'Y', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '是否开启验证码功能（true开启，false关闭）');
-insert into sys_config values(5, '账号自助-是否开启用户注册功能', 'sys.account.registerUser',      'false',         'Y', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '是否开启注册用户功能（true开启，false关闭）');
+insert into sys_config values(5, '账号自助-验证码类型',           'sys.account.captchaType',    'math',          'Y', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '使用验证码类型 math 数值计算 char 字符验证');
+insert into sys_config values(6, '账号自助-是否开启用户注册功能', 'sys.account.registerUser',      'false',         'Y', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '是否开启注册用户功能（true开启，false关闭）');
 
 
 -- ----------------------------

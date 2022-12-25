@@ -1,7 +1,7 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysUserPost } from '../../model/SysUserPost';
 import { ISysUserPostRepository } from '../ISysUserPostRepository';
 
@@ -14,7 +14,7 @@ import { ISysUserPostRepository } from '../ISysUserPostRepository';
 @Scope(ScopeEnum.Singleton)
 export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
   @Inject()
-  public db: MysqlManager;
+  public db: DynamicDataSource;
 
   async countUserPostByPostId(postId: string): Promise<number> {
     const sqlStr =

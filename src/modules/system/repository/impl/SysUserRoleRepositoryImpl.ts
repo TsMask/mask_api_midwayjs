@@ -1,7 +1,7 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysUserRole } from '../../model/SysUserRole';
 import { ISysUserRoleRepository } from '../ISysUserRoleRepository';
 
@@ -14,7 +14,7 @@ import { ISysUserRoleRepository } from '../ISysUserRoleRepository';
 @Scope(ScopeEnum.Singleton)
 export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
   @Inject()
-  public db: MysqlManager;
+  public db: DynamicDataSource;
 
   async countUserRoleByRoleId(roleId: string): Promise<number> {
     const sqlStr =

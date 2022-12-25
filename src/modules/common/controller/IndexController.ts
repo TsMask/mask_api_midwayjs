@@ -1,18 +1,23 @@
+import { MidwayInformationService } from '@midwayjs/core';
 import { Controller, Get, Inject } from '@midwayjs/decorator';
 import { Result } from '../../../framework/core/Result';
-import { ContextService } from '../../../framework/service/ContextService';
 
+/**
+ * 路由主页
+ *
+ * @author TsMask <340112800@qq.com>
+ */
 @Controller('/')
 export class IndexController {
   @Inject()
-  private contextService: ContextService;
+  private midwayInformationService: MidwayInformationService;
 
   @Get()
   async index(): Promise<Result> {
     // 读取配置项目名版本
-    const { name, version } = this.contextService.getConfig('project');
+    const pkg = this.midwayInformationService.getPkg();
     return Result.okMsg(
-      `欢迎使用 ${name} 后台管理框架，当前版本：v${version}，请通过前端地址访问。`
+      `欢迎使用${pkg.name}后台管理框架，当前版本：${pkg.version}，请通过前端管理地址访问。`
     );
   }
 }

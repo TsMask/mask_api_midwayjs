@@ -2,7 +2,7 @@ import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysDictData } from '../../../../framework/core/model/SysDictData';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysDictDataRepository } from '../ISysDictDataRepository';
 
 /**查询视图对象SQL */
@@ -57,7 +57,7 @@ function parseSysDictDataResult(rows: any[]): SysDictData[] {
 @Scope(ScopeEnum.Singleton)
 export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   @Inject()
-  private db: MysqlManager;
+  private db: DynamicDataSource;
 
   async selectDictDataPage(query: any): Promise<rowPages> {
     // 查询条件拼接

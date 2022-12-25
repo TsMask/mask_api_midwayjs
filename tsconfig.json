@@ -14,7 +14,7 @@
     "pretty": true,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["./typings", "./node_modules/@types"],
+    "typeRoots": ["src/typings", "./node_modules/@types"],
     "outDir": "dist"
   },
   "exclude": ["dist", "node_modules", "test", "sql"]

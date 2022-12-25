@@ -6,7 +6,7 @@ import {
 } from '../../../../common/utils/DateFnsUtils';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysRole } from '../../../../framework/core/model/SysRole';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysRoleRepository } from '../ISysRoleRepository';
 
 /**查询视图对象SQL */
@@ -64,7 +64,7 @@ function parseSysRoleResult(rows: any[]): SysRole[] {
 @Scope(ScopeEnum.Singleton)
 export class SysRoleRepositoryImpl implements ISysRoleRepository {
   @Inject()
-  public db: MysqlManager;
+  public db: DynamicDataSource;
 
   async selectRolePage(query: any, dataScopeSQL = ''): Promise<rowPages> {
     // 查询条件拼接

@@ -9,7 +9,7 @@ import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysDept } from '../../../../framework/core/model/SysDept';
 import { SysRole } from '../../../../framework/core/model/SysRole';
 import { SysUser } from '../../../../framework/core/model/SysUser';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysUserRepository } from '../ISysUserRepository';
 
 /**查询视图对象SQL */
@@ -107,7 +107,7 @@ function parseSysUserResult(rows: any[]): SysUser[] {
 @Scope(ScopeEnum.Singleton)
 export class SysUserRepositoryImpl implements ISysUserRepository {
   @Inject()
-  private db: MysqlManager;
+  private db: DynamicDataSource;
 
   async selectUserPage(query: any, dataScopeSQL = ''): Promise<rowPages> {
     const SELECT_USER_SQL = `select 

@@ -5,7 +5,7 @@ import {
   YYYY_MM_DD,
 } from '../../../../common/utils/DateFnsUtils';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysLogininfor } from '../../model/SysLogininfor';
 import { ISysLogininforRepository } from '../ISysLogininforRepository';
 
@@ -54,7 +54,7 @@ function parseSysLogininforResult(rows: any[]): SysLogininfor[] {
 @Scope(ScopeEnum.Singleton)
 export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
   @Inject()
-  private db: MysqlManager;
+  private db: DynamicDataSource;
 
   async selectLogininforPage(query: any): Promise<rowPages> {
     // 查询条件拼接

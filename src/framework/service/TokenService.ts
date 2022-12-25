@@ -210,12 +210,12 @@ export class TokenService {
         }
       } catch (e) {
         if ('TokenExpiredError' === e.name) {
-          throw new UnauthorizedError(`用户授权已过期, ${e.expiredAt}.`);
+          throw new UnauthorizedError(`用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`);
         }
         if ('JsonWebTokenError' === e.name) {
-          throw new UnauthorizedError('用户授权无效认证.');
+          throw new UnauthorizedError('用户授权无效认证');
         }
-        throw new UnauthorizedError(`用户授权信息异常, ${e.message}.`);
+        throw new UnauthorizedError(`用户授权信息异常, ${e.message}`);
       }
     }
     return null;

@@ -1,7 +1,7 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysRoleMenu } from '../../model/SysRoleMenu';
 import { ISysRoleMenuRepository } from '../ISysRoleMenuRepository';
 
@@ -14,7 +14,7 @@ import { ISysRoleMenuRepository } from '../ISysRoleMenuRepository';
 @Scope(ScopeEnum.Singleton)
 export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
   @Inject()
-  public db: MysqlManager;
+  public db: DynamicDataSource;
 
   async checkMenuExistRole(menuId: string): Promise<number> {
     const sqlStr =

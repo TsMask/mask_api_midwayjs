@@ -17,7 +17,8 @@ import { SysUser } from '../../../framework/core/model/SysUser';
 import { TokenService } from '../../../framework/service/TokenService';
 import { bcryptCompare } from '../../../common/utils/CryptoUtils';
 import { FileService } from '../../../framework/service/FileService';
-import fs = require('fs/promises');
+import { UploadFileInfo } from '@midwayjs/upload';
+import { UploadSubPathEnum } from '../../../common/enums/UploadSubPathEnum';
 
 /**
  * 个人信息
@@ -140,27 +141,17 @@ export class SysProfileController {
   @Post('/avatar')
   @PreAuthorize()
   @OperLog({ title: '用户头像', businessType: OperatorBusinessTypeEnum.UPDATE })
-  async avatar(@Files('avatarfile') files: any[]): Promise<Result> {
+  async avatar(@Files('avatarfile') files: UploadFileInfo<string>[]): Promise<Result> {
     if (files.length <= 0) return Result.err();
-    const avatar = await this.fileService.upload();
-    console.log(files);
-    console.log(avatar);
-    const sd = avatar + '/sfsdofn.png';
-    const st = fs.stat(sd);
-    console.log(st);
-    const mkd = await fs.mkdir(avatar);
-    console.log(mkd);
-    const newFai = await fs.open(sd, 'r+');
-    const readStream = await fs.writeFile(newFai, files[0].data, 'binary');
-    console.log(readStream);
+    // 上传文件得到资源地址后删除临时文件
+    const imgUrl = await this.fileService.upload(files[0], UploadSubPathEnum.AVATART, ["jpg", "jpeg", "png"]);
     await this.contextService.getContext().cleanupRequestFiles();
-    // fs.access(mkd).then(() => true).catch(() => false)
-    const loginUser = this.contextService.getLoginUser();
     // 更新用户头像
+    const loginUser = this.contextService.getLoginUser();
     const newSysUser = new SysUser();
     newSysUser.userId = loginUser.userId;
     newSysUser.updateBy = loginUser.user.userName;
-    newSysUser.avatar = avatar;
+    newSysUser.avatar = imgUrl;
     const rows = await this.sysUserService.updateUser(newSysUser);
     if (rows > 0) {
       // 更新缓存用户信息
@@ -169,7 +160,7 @@ export class SysProfileController {
       );
       loginUser.user = user;
       await this.tokenService.setLoginUser(loginUser);
-      return Result.ok();
+      return Result.ok({ imgUrl });
     }
     return Result.errMsg('上传图片异常，请联系管理员');
   }

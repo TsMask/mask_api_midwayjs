@@ -1,27 +1,12 @@
 import { MidwayAppInfo, MidwayConfig } from '@midwayjs/core';
 
 export default (appInfo: MidwayAppInfo): MidwayConfig => {
+  // 程序文件路径 示例（ Windows配置D:/home/ruoyi，Linux配置 /home/ruoyi）
+  const filePath = 'D:/home/ruoyi';
+
   return {
     // use for cookie sign key, should change to your own and keep security
     keys: '1662290627179_89234',
-
-    /**项目相关配置 */
-    project: {
-      /**名称 */
-      name: 'RuoYi-Midwayjs',
-      /**版本 */
-      version: '0.0.2',
-      /**版权年份 */
-      copyrightYear: 2022,
-      // 实例演示开关
-      demoEnabled: true,
-      // 文件路径 示例（ Windows配置D:/home/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-      uploadPath: 'D:/home/ruoyi/uploadPath',
-      // 获取ip地址开关
-      addressEnabled: false,
-      /**验证码类型 math 数组计算 char 字符验证 */
-      captchaType: 'math',
-    },
 
     /**char 字符验证码配置 */
     charCaptcha: {
@@ -37,7 +22,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       ignoreChars: '0o1i',
     },
 
-    /**math 数组计算码配置 */
+    /**math 数值计算码配置 */
     mathCaptcha: {
       /**干扰线条的数量 */
       noise: 4,
@@ -53,7 +38,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       mathMax: 9,
     },
 
-    /**核心服务配置 */
+    /**核心服务配置 http://www.midwayjs.org/docs/extensions/koa */
     koa: {
       /**服务端口 */
       port: 7001,
@@ -68,6 +53,13 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       xmlLimit: '1mb',
     },
 
+    /**Logger 程序日志 http://www.midwayjs.org/docs/logger#配置日志根目录 */
+    midwayLogger: {
+      default: {
+        dir: `${filePath}/logs`,
+      },
+    },
+
     /**文件上传 http://www.midwayjs.org/docs/extensions/upload#配置示例 */
     upload: {
       /**默认为file，即上传到服务器临时目录，可以配置为 stream */
@@ -77,21 +69,11 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       /**文件扩展名白名单，程序内文件服务进行配置 */
       whitelist: null,
       /**上传的文件临时存储路径 */
-      tmpdir: 'D:/home/ruoyi/tmpdir',
+      tmpdir: `${filePath}/tmpPath`,
       /**上传的文件在临时目录中多久之后自动删除，默认为 5 分钟 */
-      cleanTimeout: 10 * 60 * 1000,
+      cleanTimeout: 5 * 60 * 1000,
       /**设置原始body是否是base64格式，默认为false，一般用于腾讯云的兼容 */
       base64: false,
-    },
-
-    // 任务调度 单进程
-    task: {
-      prefix: 'midway-task', // 这些任务存储的 key，都是 midway-task 开头，以便区分用户原有redis 里面的配置。
-      defaultJobOptions: {
-        repeat: {
-          tz: 'Asia/Shanghai', // Task 等参数里面设置的比如（0 0 0 * * *）本来是为了0点执行，但是由于时区不对，所以国内用户时区设置一下。
-        },
-      },
     },
 
     /**静态文件配置 http://www.midwayjs.org/docs/extensions/static_file */
@@ -101,11 +83,11 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
           prefix: '/static',
           dir: `${appInfo.appDir}\\static`,
         },
-        // key 不重复即可，value 会和默认的配置合并。
-        // template: {
-        //   prefix: '/public/template', // 可同前缀或相同
-        //   dir: `${appInfo.appDir}\\template`,
-        // },
+        // 文件上传资源目录映射
+        upload: {
+          prefix: '/upload',
+          dir: `${filePath}/uploadPath`,
+        },
       },
     },
 
@@ -121,14 +103,12 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
           username: '<用户名>',
           password: '<密码>',
           database: '<数据库>',
-          /**用于同步表结构，不建议使用 */
-          synchronize: false,
           /**输出sql日志 */
           logging: false,
-          /** 输出时间字段转字符串格式 yyyy-MM-dd hh:mm:ss */
-          dateStrings: false,
         },
       },
+      // 多个数据源时可以用这个指定默认的数据源
+      defaultDataSourceName: "default",
     },
 
     /**Redis 缓存数据 http://www.midwayjs.org/docs/extensions/redis */
@@ -136,12 +116,33 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       client: {
         port: 6379, // Redis port
         host: '127.0.0.1', // Redis host
-        password: '',
-        db: 1,
+        password: '<密码>',
+        db: 0, // Redis db_num
       },
     },
 
-    /**jwt令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
+    /**Bull 任务队列 http://www.midwayjs.org/docs/extensions/bull */
+    bull: {
+      defaultQueueOptions: {
+        redis: {
+          port: 6379, // Redis port
+          host: '127.0.0.1', // Redis host
+          password: '<密码>',
+          db: 0, // Redis db_num
+        },
+        // 默认的任务配置
+        defaultJobOptions: {
+          // 成功后移除任务记录，最多保留最近 10 条记录
+          removeOnComplete: 10,
+          // 失败后移除任务记录，最多保留最近 10 条记录
+          removeOnFail: 10,
+        },
+      },
+      // 清理之前的任务
+      clearRepeatJobWhenStart: true
+    },
+
+    /**JWT 令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
     jwt: {
       /**令牌算法 */
       algorithm: 'HS512',

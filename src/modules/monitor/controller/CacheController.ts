@@ -32,9 +32,9 @@ export class CacheController {
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async info(): Promise<Result> {
     return Result.okData({
-      info: {},
-      dbSize: {},
-      commandStats: {},
+      info: await this.redisCache.getInfo(),
+      dbSize: await this.redisCache.getKeySize(),
+      commandStats: await this.redisCache.getCommandStats(),
     });
   }
 

@@ -1,5 +1,5 @@
 import { Controller, Get, HttpCode, Inject } from '@midwayjs/decorator';
-import { create, createMathExpr } from 'svg-captcha';
+import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../common/constants/CacheKeysConstants';
 import { CAPTCHA_EXPIRATION } from '../../../common/constants/CommonConstants';
@@ -48,12 +48,12 @@ export class CaptchaController {
       uuid: uuid,
       img: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
     };
-    // 从本地配置project获取验证码类型
-    const { captchaType } = this.contextService.getConfig('project');
+
+    // 从数据库配置获取验证码类型
+    const captchaType = await this.sysConfigService.selectCaptchaType();
     if (captchaType === 'math') {
-      const captcha = createMathExpr(
-        this.contextService.getConfig('mathCaptcha')
-      );
+      const options: ConfigObject = this.contextService.getConfig('mathCaptcha');
+      const captcha = createMathExpr(options);
       data.img = svgBase64(captcha.data);
       await this.redisCache.setByExpire(
         verifyKey,
@@ -62,7 +62,8 @@ export class CaptchaController {
       );
     }
     if (captchaType === 'char') {
-      const captcha = create(this.contextService.getConfig('charCaptcha'));
+      const options: ConfigObject = this.contextService.getConfig('charCaptcha');
+      const captcha = create(options);
       data.img = svgBase64(captcha.data);
       await this.redisCache.setByExpire(
         verifyKey,
@@ -70,12 +71,11 @@ export class CaptchaController {
         CAPTCHA_EXPIRATION
       );
     }
+
     // 本地开发下返回验证码结果
     if (this.contextService.getEnv() === 'local') {
-      return Result.ok({
-        text: await this.redisCache.get(verifyKey),
-        ...data,
-      });
+      const text = await this.redisCache.get(verifyKey);
+      return Result.ok({ text, ...data });
     }
     return Result.ok(data);
   }

@@ -5,7 +5,7 @@ import {
   YYYY_MM_DD,
 } from '../../../../common/utils/DateFnsUtils';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysConfig } from '../../model/SysConfig';
 import { ISysConfigRepository } from '../ISysConfigRepository';
 
@@ -55,7 +55,7 @@ function parseSysConfigResult(rows: any[]): SysConfig[] {
 @Scope(ScopeEnum.Singleton)
 export class SysConfigRepositoryImpl implements ISysConfigRepository {
   @Inject()
-  public db: MysqlManager;
+  public db: DynamicDataSource;
 
   async selectConfigPage(query: any): Promise<rowPages> {
     // 查询条件拼接

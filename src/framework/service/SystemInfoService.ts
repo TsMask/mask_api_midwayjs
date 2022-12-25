@@ -43,7 +43,7 @@ export class SystemInfoService {
     return {
       appDir: this.midwayInformationService.getAppDir(),
       env: this.environment.getCurrentEnvironment(),
-      name: this.midwayInformationService.getProjectName(),
+      name: pkg.name || '',
       version: pkg.version || '',
       dependencies: pkg.dependencies || {},
     };

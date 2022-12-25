@@ -6,7 +6,7 @@ import {
 } from '../../../../common/utils/DateFnsUtils';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
 import { SysDictType } from '../../../../framework/core/model/SysDictType';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysDictTypeRepository } from '../ISysDictTypeRepository';
 
 /**查询视图对象SQL */
@@ -56,7 +56,7 @@ function parseSysDictTypeResult(rows: any[]): SysDictType[] {
 @Scope(ScopeEnum.Singleton)
 export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   @Inject()
-  private db: MysqlManager;
+  private db: DynamicDataSource;
 
   async selectDictTypePage(query: any): Promise<rowPages> {
     // 查询条件拼接

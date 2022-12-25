@@ -1,7 +1,7 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../common/utils/ValueParseUtils';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysPost } from '../../model/SysPost';
 import { ISysPostRepository } from '../ISysPostRepository';
 
@@ -53,7 +53,7 @@ function parseSysPostResult(rows: any[]): SysPost[] {
 @Scope(ScopeEnum.Singleton)
 export class SysPostRepositoryImpl implements ISysPostRepository {
   @Inject()
-  private db: MysqlManager;
+  private db: DynamicDataSource;
 
   async selectPostPage(query: any): Promise<rowPages> {
     // 查询条件拼接

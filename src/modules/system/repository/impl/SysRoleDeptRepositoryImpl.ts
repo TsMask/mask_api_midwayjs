@@ -1,6 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { MysqlManager } from '../../../../framework/data_source/MysqlManager';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysRoleDept } from '../../model/SysRoleDept';
 import { ISysRoleDeptRepository } from '../ISysRoleDeptRepository';
 
@@ -13,7 +13,7 @@ import { ISysRoleDeptRepository } from '../ISysRoleDeptRepository';
 @Scope(ScopeEnum.Singleton)
 export class SysRoleDeptRepositoryImpl implements ISysRoleDeptRepository {
   @Inject()
-  public db: MysqlManager;
+  public db: DynamicDataSource;
 
   async deleteRoleDept(roleIds: string[]): Promise<number> {
     const sqlStr = `delete from sys_role_dept where role_id in (${roleIds

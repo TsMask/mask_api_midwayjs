@@ -1,6 +1,5 @@
 import { Configuration, App, Inject } from '@midwayjs/decorator';
 import * as koa from '@midwayjs/koa';
-import * as task from '@midwayjs/task';
 import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';
 import * as staticFile from '@midwayjs/static-file';
@@ -8,6 +7,7 @@ import * as info from '@midwayjs/info';
 import * as swagger from '@midwayjs/swagger';
 import * as jwt from '@midwayjs/jwt';
 import * as upload from '@midwayjs/upload';
+import * as bull from '@midwayjs/bull';
 import { join } from 'path';
 import { DefaultErrorFilter } from './framework/filter/DefaultErrorFilter';
 import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
@@ -27,12 +27,12 @@ import {
 @Configuration({
   imports: [
     koa, // 核心程序服务
-    task, // 任务调度
     staticFile, // 静态文件映射
     typeorm, // 数据库ORM
     redis, // 缓存数据Redis
-    jwt, // 鉴权和校验token
+    jwt, // 鉴权和校验Token
     upload, // 文件上传
+    bull, // 任务队列Bull
     {
       component: info, // 程序部署信息 /_info
       enabledEnvironment: ['local'], // 声明使用环境

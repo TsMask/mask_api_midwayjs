@@ -42,3 +42,13 @@ export function parseDateToStr(
 ): string {
   return format(date, formatStr, { locale: zhCN });
 }
+
+/**
+ * 格式时间成日期路径
+ * 
+ * 年/月/日 => 2022/12/12
+ * @returns 时间格式字符串
+ */
+export function parseDatePath(): string {
+  return format(new Date(), "yyyy/MM/dd", { locale: zhCN });
+}

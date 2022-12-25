@@ -68,6 +68,13 @@ export class SysConfigServiceImpl implements ISysConfigService {
     return parseBoolean(captchaEnabled);
   }
 
+  async selectCaptchaType(): Promise<string> {
+    const captchaType = await this.selectConfigValueByKey(
+      'sys.account.captchaType'
+    );
+    return captchaType;
+  }
+
   async selectConfigList(sysConfig: SysConfig): Promise<SysConfig[]> {
     return await this.sysConfigRepository.selectConfigList(sysConfig);
   }
@@ -129,19 +136,24 @@ export class SysConfigServiceImpl implements ISysConfigService {
 
   async loadingConfigCache(configKey?: string): Promise<void> {
     if (configKey) {
+      // 指定参数
       const cacheValue = await this.sysConfigRepository.selectconfigValueByKey(
         configKey
       );
       if (cacheValue) {
-        this.redisCache.set(this.cacheKey(configKey), cacheValue);
+        const key = this.cacheKey(configKey);
+        await this.redisCache.del(key);
+        await this.redisCache.set(key, cacheValue);
       }
       return;
-    }
-    // 查询全部参数
-    const sysConfigs = await this.selectConfigList(new SysConfig());
-    for (const sysConfig of sysConfigs) {
-      const key = this.cacheKey(sysConfig.configKey);
-      this.redisCache.set(key, sysConfig.configValue);
+    } else {
+      // 查询全部参数
+      const sysConfigs = await this.selectConfigList(new SysConfig());
+      for (const sysConfig of sysConfigs) {
+        const key = this.cacheKey(sysConfig.configKey);
+        await this.redisCache.del(key);
+        await this.redisCache.set(key, sysConfig.configValue);
+      }
     }
   }
 
