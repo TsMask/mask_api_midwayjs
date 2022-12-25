@@ -1,4 +1,7 @@
 import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { UserStatusEnum } from '../../../../common/enums/UserStatusEnum';
+import { validEmail, validMobile } from '../../../../common/utils/RegularUtils';
+import { SysDictData } from '../../../../framework/core/model/SysDictData';
 import { SysUser } from '../../../../framework/core/model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
@@ -8,6 +11,8 @@ import { SysUserPostRepositoryImpl } from '../../repository/impl/SysUserPostRepo
 import { SysUserRepositoryImpl } from '../../repository/impl/SysUserRepositoryImpl';
 import { SysUserRoleRepositoryImpl } from '../../repository/impl/SysUserRoleRepositoryImpl';
 import { ISysUserService } from '../ISysUserService';
+import { SysConfigServiceImpl } from './SysConfigServiceImpl';
+import { SysDictDataServiceImpl } from './SysDictDataServiceImpl';
 
 /**
  * 用户 业务层处理
@@ -31,6 +36,12 @@ export class SysUserServiceImpl implements ISysUserService {
 
   @Inject()
   private sysUserPostRepository: SysUserPostRepositoryImpl;
+
+  @Inject()
+  private sysConfigService: SysConfigServiceImpl;
+
+  @Inject()
+  private sysDictDataService: SysDictDataServiceImpl;
 
   async selectUserPage(query: any, dataScopeSQL = ''): Promise<rowPages> {
     return await this.sysUserRepository.selectUserPage(query, dataScopeSQL);
@@ -156,7 +167,7 @@ export class SysUserServiceImpl implements ISysUserService {
    */
   private async insertUserRole(
     userId: string,
-    roleIds: string[]
+    roleIds: string[] = []
   ): Promise<number> {
     if (roleIds && roleIds.length <= 0) return 0;
     const sysUserRoles: SysUserRole[] = [];
@@ -178,7 +189,7 @@ export class SysUserServiceImpl implements ISysUserService {
    */
   private async insertUserPost(
     userId: string,
-    postIds: string[]
+    postIds: string[] = []
   ): Promise<number> {
     if (postIds && postIds.length <= 0) return 0;
     const sysUserPosts: SysUserPost[] = [];
@@ -214,11 +225,137 @@ export class SysUserServiceImpl implements ISysUserService {
     await this.sysUserPostRepository.deleteUserPost(userIds);
     return await this.sysUserRepository.deleteUserByIds(userIds);
   }
-  importUser(
-    userList: SysUser[],
+
+  async importUser(
+    sheetItemArr: Record<string, string>[],
     isUpdateSupport: boolean,
     operName: string
   ): Promise<string> {
-    throw new Error('Method not implemented.');
+    // 读取默认初始密码
+    const initPassword = await this.sysConfigService.selectConfigValueByKey(
+      'sys.user.initPassword'
+    );
+    // 读取用户性别字典数据
+    const sysUserSexSDD = new SysDictData();
+    sysUserSexSDD.dictType = 'sys_user_sex';
+    const sysUserSexSDDList = await this.sysDictDataService.selectDictDataList(
+      sysUserSexSDD
+    );
+    // 导入记录
+    let successNum = 0;
+    let failureNum = 0;
+    const successMsgArr: string[] = [];
+    const failureMsgArr: string[] = [];
+    const mustItemArr = ['登录名称', '用户名称'];
+    for (const item of sheetItemArr) {
+      // 检查必填列
+      const ownItem = mustItemArr.every(m => Object.keys(item).includes(m));
+      if (!ownItem) {
+        failureNum++;
+        failureMsgArr.push(`表格中必填列表项，${mustItemArr.join('、')}`);
+        continue;
+      }
+
+      // 构建用户实体信息
+      const newSysUser = new SysUser();
+      newSysUser.password = initPassword;
+      newSysUser.deptId = item['部门编号'];
+      newSysUser.userName = item['登录名称'];
+      newSysUser.nickName = item['用户名称'];
+      newSysUser.phonenumber = item['手机号码'];
+      newSysUser.email = item['用户邮箱'];
+      newSysUser.status =
+        item['帐号状态'] === '停用'
+          ? UserStatusEnum.DISABLE
+          : UserStatusEnum.OK;
+      const sysUserSex = sysUserSexSDDList.find(
+        sdd => sdd.dictLabel === item['用户性别']
+      );
+      if (sysUserSex && sysUserSex.dictValue) {
+        newSysUser.sex = sysUserSex.dictValue; // 用户性别转值
+      } else {
+        newSysUser.sex = '0';
+      }
+
+      // 判断属性值是否唯一
+      const uniqueUserName = await this.checkUniqueUserName(newSysUser);
+      if (!uniqueUserName) {
+        failureNum++;
+        failureMsgArr.push(
+          `序号：${item['序号']} 登录名称 ${newSysUser.userName} 已存在`
+        );
+        continue;
+      }
+      if (newSysUser.phonenumber) {
+        if (validMobile(newSysUser.phonenumber)) {
+          const uniquePhone = await this.checkUniquePhone(newSysUser);
+          if (!uniquePhone) {
+            failureNum++;
+            failureMsgArr.push(
+              `序号：${item['序号']} 手机号码 ${newSysUser.phonenumber} 已存在`
+            );
+            continue;
+          }
+        } else {
+          failureNum++;
+          failureMsgArr.push(
+            `序号：${item['序号']} 手机号码 ${newSysUser.phonenumber} 格式错误`
+          );
+          continue;
+        }
+      }
+      if (newSysUser.email) {
+        if (validEmail(newSysUser.email)) {
+          const uniqueEmail = await this.checkUniqueEmail(newSysUser);
+          if (!uniqueEmail) {
+            failureNum++;
+            failureMsgArr.push(
+              `序号：${item['序号']} 用户邮箱 ${newSysUser.email} 已存在`
+            );
+            continue;
+          }
+        } else {
+          failureNum++;
+          failureMsgArr.push(
+            `序号：${item['序号']} 用户邮箱 ${newSysUser.email} 格式错误`
+          );
+          continue;
+        }
+      }
+      // 验证是否存在这个用户
+      const user = await this.sysUserRepository.selectUserByUserName(
+        newSysUser.userName
+      );
+      if (!user) {
+        newSysUser.createBy = operName;
+        await this.insertUser(newSysUser);
+        successNum++;
+        successMsgArr.push(
+          `序号：${item['序号']} 登录名称 ${newSysUser.userName} 导入成功`
+        );
+        continue;
+      }
+      // 如果用户已存在 同时 是否更新支持
+      if (user && isUpdateSupport) {
+        newSysUser.updateBy = operName;
+        await this.updateUser(newSysUser);
+        successNum++;
+        successMsgArr.push(
+          `序号：${item['序号']} 登录名称 ${item['登录名称']} 更新成功`
+        );
+        continue;
+      }
+    }
+
+    if (failureNum > 0) {
+      failureMsgArr.unshift(
+        `很抱歉，导入失败！共 ${failureNum} 条数据格式不正确，错误如下：`
+      );
+      throw new Error(failureMsgArr.join('<br/>'));
+    }
+    successMsgArr.unshift(
+      `恭喜您，数据已全部导入成功！共 ${successNum} 条，数据如下：`
+    );
+    return successMsgArr.join('<br/>');
   }
 }

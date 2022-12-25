@@ -46,7 +46,7 @@ create table sys_user (
   user_type         varchar(2)      default '00'               comment '用户类型（00系统用户）',
   email             varchar(50)     default ''                 comment '用户邮箱',
   phonenumber       varchar(11)     default ''                 comment '手机号码',
-  sex               char(1)         default '0'                comment '用户性别（0男 1女 2未知）',
+  sex               char(1)         default '0'                comment '用户性别（1男 2女 0未知）',
   avatar            varchar(100)    default ''                 comment '头像地址',
   password          varchar(100)    default ''                 comment '密码',
   status            char(1)         default '0'                comment '帐号状态（0正常 1停用）',
@@ -489,9 +489,9 @@ create table sys_dict_data
   primary key (dict_code)
 ) engine=innodb auto_increment=100 comment = '字典数据表';
 
-insert into sys_dict_data values(1,  1,  '男',       '0',       'sys_user_sex',        '',   '',        'Y', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '性别男');
-insert into sys_dict_data values(2,  2,  '女',       '1',       'sys_user_sex',        '',   '',        'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '性别女');
-insert into sys_dict_data values(3,  3,  '未知',     '2',       'sys_user_sex',        '',   '',        'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '性别未知');
+insert into sys_dict_data values(1,  1,  '男',       '1',       'sys_user_sex',        '',   '',        'Y', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '性别男');
+insert into sys_dict_data values(2,  2,  '女',       '2',       'sys_user_sex',        '',   '',        'Y', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '性别女');
+insert into sys_dict_data values(3,  3,  '未知',     '0',       'sys_user_sex',        '',   '',        'Y', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '性别未知');
 insert into sys_dict_data values(4,  1,  '显示',     '0',       'sys_show_hide',       '',   'primary', 'Y', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '显示菜单');
 insert into sys_dict_data values(5,  2,  '隐藏',     '1',       'sys_show_hide',       '',   'danger',  'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '隐藏菜单');
 insert into sys_dict_data values(6,  1,  '正常',     '0',       'sys_normal_disable',  '',   'primary', 'Y', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '正常状态');

@@ -28,7 +28,7 @@ export class SysUser {
   /**手机号码 */
   phonenumber: string;
 
-  /**用户性别（0未知 1男 2女） */
+  /**用户性别（1男 2女 0未知） */
   sex: string;
 
   /**头像地址 */

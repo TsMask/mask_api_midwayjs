@@ -110,7 +110,13 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
 
       // 是否需要保存response，参数和值
       if (metadataObj.isSaveResponseData) {
-        operLog.jsonResult = JSON.stringify(result).substring(0, 2000);
+        // 二进制流文件记录响应文件名
+        if (Buffer.isBuffer(result)) {
+          operLog.jsonResult =
+            ctx.response.headers['content-disposition'].toString();
+        } else {
+          operLog.jsonResult = JSON.stringify(result).substring(0, 2000);
+        }
       }
 
       // 保存操作记录到数据库

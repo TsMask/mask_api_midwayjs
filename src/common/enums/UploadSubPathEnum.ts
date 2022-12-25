@@ -13,6 +13,9 @@ export enum UploadSubPathEnum {
   /**导入 */
   IMPORT = 'import',
 
+  /**导出 */
+  EXPORT = 'export',
+
   /**通用上传 */
   COMMON = 'common',
 

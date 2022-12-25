@@ -38,10 +38,10 @@ export interface ISysConfigService {
   selectCaptchaEnabled(): Promise<boolean>;
 
   /**
- * 获取验证码类型 
- *
- * @return math 数值计算 char 字符验证
- */
+   * 获取验证码类型
+   *
+   * @return math 数值计算 char 字符验证
+   */
   selectCaptchaType(): Promise<string>;
 
   /**

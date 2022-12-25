@@ -141,10 +141,16 @@ export class SysProfileController {
   @Post('/avatar')
   @PreAuthorize()
   @OperLog({ title: '用户头像', businessType: OperatorBusinessTypeEnum.UPDATE })
-  async avatar(@Files('avatarfile') files: UploadFileInfo<string>[]): Promise<Result> {
+  async avatar(
+    @Files('avatarfile') files: UploadFileInfo<string>[]
+  ): Promise<Result> {
     if (files.length <= 0) return Result.err();
     // 上传文件得到资源地址后删除临时文件
-    const imgUrl = await this.fileService.upload(files[0], UploadSubPathEnum.AVATART, ["jpg", "jpeg", "png"]);
+    const imgUrl = await this.fileService.upload(
+      files[0],
+      UploadSubPathEnum.AVATART,
+      ['jpg', 'jpeg', 'png']
+    );
     await this.contextService.getContext().cleanupRequestFiles();
     // 更新用户头像
     const loginUser = this.contextService.getLoginUser();

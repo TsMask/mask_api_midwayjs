@@ -52,7 +52,8 @@ export class CaptchaController {
     // 从数据库配置获取验证码类型
     const captchaType = await this.sysConfigService.selectCaptchaType();
     if (captchaType === 'math') {
-      const options: ConfigObject = this.contextService.getConfig('mathCaptcha');
+      const options: ConfigObject =
+        this.contextService.getConfig('mathCaptcha');
       const captcha = createMathExpr(options);
       data.img = svgBase64(captcha.data);
       await this.redisCache.setByExpire(
@@ -62,7 +63,8 @@ export class CaptchaController {
       );
     }
     if (captchaType === 'char') {
-      const options: ConfigObject = this.contextService.getConfig('charCaptcha');
+      const options: ConfigObject =
+        this.contextService.getConfig('charCaptcha');
       const captcha = create(options);
       data.img = svgBase64(captcha.data);
       await this.redisCache.setByExpire(

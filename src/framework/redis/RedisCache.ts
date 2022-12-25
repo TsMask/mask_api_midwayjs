@@ -19,24 +19,24 @@ export class RedisCache {
   async getInfo(): Promise<Record<string, Record<string, string>>> {
     const info = await this.redisService.info();
     // 处理字符串信息
-    let infoObj: Record<string, Record<string, string>> = {};
-    let title: string = "";
-    const lines: string[] = info.split("\r\n");
+    const infoObj: Record<string, Record<string, string>> = {};
+    let title = '';
+    const lines: string[] = info.split('\r\n');
     for (const line of lines) {
       // 记录标题节点
       if (line.includes('#')) {
-        title = line.split(" ").pop().toLowerCase();
+        title = line.split(' ').pop().toLowerCase();
         infoObj[title] = {};
         continue;
       }
       // 节点后续键值
-      const kvArr: string[] = line.split(":");
+      const kvArr: string[] = line.split(':');
       if (kvArr.length >= 2) {
         const key: string = kvArr.shift();
         infoObj[title][key] = kvArr.pop();
       }
-    };
-    return infoObj
+    }
+    return infoObj;
   }
 
   /**
@@ -44,21 +44,21 @@ export class RedisCache {
    * @return 命令状态列表
    */
   async getCommandStats(): Promise<Record<string, string>[]> {
-    const info = await this.redisService.info("commandstats");
+    const info = await this.redisService.info('commandstats');
     // 处理字符串信息
-    let infoObj: Record<string, string>[] = [];
-    const lines: string[] = info.split("\r\n");
+    const infoObj: Record<string, string>[] = [];
+    const lines: string[] = info.split('\r\n');
     for (const line of lines) {
-      if (!line.startsWith("cmdstat_")) continue;
-      const kvArr: string[] = line.split(":");
+      if (!line.startsWith('cmdstat_')) continue;
+      const kvArr: string[] = line.split(':');
       const key: string = kvArr.shift();
       const valueStr: string = kvArr.pop();
       infoObj.push({
         name: key.substring(8),
-        value: valueStr.substring(6, valueStr.indexOf(',usec='))
+        value: valueStr.substring(6, valueStr.indexOf(',usec=')),
       });
     }
-    return infoObj
+    return infoObj;
   }
 
   /**
@@ -66,7 +66,7 @@ export class RedisCache {
    * @return key总数
    */
   async getKeySize(): Promise<number> {
-    return await this.redisService.dbsize()
+    return await this.redisService.dbsize();
   }
 
   /**
@@ -76,11 +76,7 @@ export class RedisCache {
    * @param value 值
    * @return 成功返回 "OK"
    */
-  async set(
-    key: string,
-    value: string | Buffer | number
-  ): Promise<string> {
-
+  async set(key: string, value: string | Buffer | number): Promise<string> {
     return await this.redisService.set(key, value);
   }
 
@@ -107,10 +103,7 @@ export class RedisCache {
    * @param timeout 超时时间, 单位秒
    * @return true=设置成功 false=设置失败
    */
-  async setExpire(
-    key: string,
-    timeout: string | number
-  ): Promise<boolean> {
+  async setExpire(key: string, timeout: string | number): Promise<boolean> {
     const keys = await this.redisService.expire(key, timeout);
     return keys > 0;
   }

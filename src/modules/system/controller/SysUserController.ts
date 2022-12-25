@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Del,
+  Files,
   Get,
   Inject,
   Param,
@@ -20,9 +21,17 @@ import { SysRole } from '../../../framework/core/model/SysRole';
 import { SysPost } from '../model/SysPost';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysUser } from '../../../framework/core/model/SysUser';
-import { parseNumber } from '../../../common/utils/ValueParseUtils';
+import {
+  parseBoolean,
+  parseNumber,
+} from '../../../common/utils/ValueParseUtils';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
+import { FileService } from '../../../framework/service/FileService';
+import { UploadFileInfo } from '@midwayjs/upload';
+import { SysDictData } from '../../../framework/core/model/SysDictData';
+import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
+import { parseDateToStr } from '../../../common/utils/DateFnsUtils';
 
 /**
  * 用户信息
@@ -35,6 +44,9 @@ export class SysUserController {
   private contextService: ContextService;
 
   @Inject()
+  private fileService: FileService;
+
+  @Inject()
   private sysUserService: SysUserServiceImpl;
 
   @Inject()
@@ -45,6 +57,113 @@ export class SysUserController {
 
   @Inject()
   private sysPostService: SysPostServiceImpl;
+
+  @Inject()
+  private sysDictDataService: SysDictDataServiceImpl;
+
+  /**
+   * 下载导入用户模板
+   */
+  @Post('/importTemplate')
+  async importTemplate() {
+    const ctx = this.contextService.getContext();
+    const fileName = `user_import_template_${Date.now()}.xlsx`;
+    ctx.set(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set('Content-disposition', `attachment;filename=${fileName}`);
+    return await this.fileService.readAssetsFile(
+      '/template/excel/user_import_template.xlsx'
+    );
+  }
+
+  /**
+   * 导入用户模板数据
+   */
+  @Post('/importData')
+  @PreAuthorize({ hasPermissions: ['system:user:import'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.IMPORT })
+  async importData(
+    @Files('file') files: UploadFileInfo<string>[],
+    updateSupport: string
+  ) {
+    if (files.length <= 0) return Result.err();
+    // 读取表格数据
+    const sheetItemArr = await this.fileService.readExcelFile(
+      files[0].data,
+      files[0].filename
+    );
+    if (sheetItemArr.length <= 0)
+      return Result.errMsg('导入用户数据不能为空！');
+    // 获取操作人名称
+    const operName = this.contextService.getUseName();
+    const message = await this.sysUserService.importUser(
+      sheetItemArr,
+      parseBoolean(updateSupport),
+      operName
+    );
+    return Result.okMsg(message);
+  }
+
+  /**
+   * 导出用户数据
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['system:user:export'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.EXPORT })
+  async exportData() {
+    const ctx = this.contextService.getContext();
+    // 查询结果
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
+    ctx.query.pageNum = "1";
+    ctx.query.pageSize = "1000";
+    const data = await this.sysUserService.selectUserPage(
+      ctx.query,
+      dataScopeSQL
+    );
+    // 读取用户性别字典数据
+    const sysUserSexSDD = new SysDictData();
+    sysUserSexSDD.dictType = 'sys_user_sex';
+    const sysUserSexSDDList = await this.sysDictDataService.selectDictDataList(
+      sysUserSexSDD
+    );
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysUser) => {
+        const sysUserSex = sysUserSexSDDList.find(
+          sdd => sdd.dictValue === cur.sex
+        );
+        pre.push({
+          用户序号: cur.userId,
+          登录名称: cur.userName,
+          用户名称: cur.nickName,
+          用户邮箱: cur.email,
+          手机号码: cur.phonenumber,
+          用户性别: sysUserSex.dictLabel,
+          帐号状态: cur.status === '0' ? '正常' : '停用',
+          最后登录IP: cur.loginIp,
+          最后登录时间: parseDateToStr(new Date(+cur.loginDate)),
+          部门名称: cur?.dept?.deptName,
+          部门负责人: cur?.dept?.leader,
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `user_export_${data.total}_${Date.now()}.xlsx`;
+    ctx.set(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set('Content-disposition', `attachment;filename=${fileName}`);
+    return await this.fileService.writeExcelFile(
+      rows,
+      '用户信息数据',
+      fileName
+    );
+  }
 
   /**
    * 用户列表

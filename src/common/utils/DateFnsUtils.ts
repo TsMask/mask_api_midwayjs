@@ -20,7 +20,7 @@ export const YYYY_MM_DD_HH_MM_SS = 'yyyy-MM-dd HH:mm:ss';
 /**
  * 格式时间字符串
  * @param dateStr 时间字符串
- * @param formatStr 时间格式
+ * @param formatStr 时间格式 默认yyyy-MM-dd HH:mm:ss
  * @returns Date对象
  */
 export function parseStrToDate(
@@ -33,7 +33,7 @@ export function parseStrToDate(
 /**
  * 格式时间
  * @param date Date对象
- * @param formatStr 时间格式
+ * @param formatStr 时间格式 默认yyyy-MM-dd HH:mm:ss
  * @returns 时间格式字符串
  */
 export function parseDateToStr(
@@ -45,10 +45,10 @@ export function parseDateToStr(
 
 /**
  * 格式时间成日期路径
- * 
+ *
  * 年/月/日 => 2022/12/12
  * @returns 时间格式字符串
  */
 export function parseDatePath(): string {
-  return format(new Date(), "yyyy/MM/dd", { locale: zhCN });
+  return format(new Date(), 'yyyy/MM/dd', { locale: zhCN });
 }

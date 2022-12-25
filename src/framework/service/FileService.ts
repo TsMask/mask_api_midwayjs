@@ -1,8 +1,19 @@
+import { Inject, MidwayInformationService } from '@midwayjs/core';
 import { Config, Provide } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
+import path = require('path');
 import { UploadSubPathEnum } from '../../common/enums/UploadSubPathEnum';
 import { parseDatePath } from '../../common/utils/DateFnsUtils';
-import { deleteFile, fileSize, getFileExt, getFileStream, getMimeTypeExt, transferToNewFile } from '../../common/utils/FileUtils';
+import { readSheet, writeSheet } from '../../common/utils/ExeclUtils';
+import {
+  checkExistsAndMkdir,
+  deleteFile,
+  fileSize,
+  getFileExt,
+  getFileStream,
+  getMimeTypeExt,
+  transferToNewFile,
+} from '../../common/utils/FileUtils';
 import { generateID } from '../../common/utils/GenIdUtils';
 
 /**默认大小 50M */
@@ -14,16 +25,33 @@ const DEFAULT_FILE_NAME_LENGTH = 127;
 /**默认允许上传的文件拓展类型 */
 const DEFAULT_ALLOW_EXT = [
   // 图片
-  "bmp", "gif", "jpg", "jpeg", "png",
+  'bmp',
+  'gif',
+  'jpg',
+  'jpeg',
+  'png',
   // word excel powerpoint
-  "doc", "docx", "xls", "xlsx", "ppt", "pptx", "html", "htm", "txt",
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'ppt',
+  'pptx',
+  'html',
+  'htm',
+  'txt',
   // 压缩文件
-  "rar", "zip", "gz", "bz2",
+  'rar',
+  'zip',
+  'gz',
+  'bz2',
   // 视频格式
-  "mp4", "avi", "rmvb",
+  'mp4',
+  'avi',
+  'rmvb',
   // pdf
-  "pdf"
-]
+  'pdf',
+];
 
 /**
  * 文件服务
@@ -32,8 +60,11 @@ const DEFAULT_ALLOW_EXT = [
  */
 @Provide()
 export class FileService {
+  @Inject()
+  private midwayInformationService: MidwayInformationService;
+
   @Config('staticFile.dirs.upload')
-  private resourceUpload: { prefix: string, dir: string };
+  private resourceUpload: { prefix: string; dir: string };
 
   /**
    * 上传文件
@@ -42,12 +73,20 @@ export class FileService {
    * @param allowExts 允许上传拓展类型（不含“.”) DEFAULT_ALLOW_EXT
    * @returns 文件存放资源路径，URL相对地址
    */
-  async upload(file: UploadFileInfo<string>, subPath: string = UploadSubPathEnum.DEFAULT, allowExts: string[] = DEFAULT_ALLOW_EXT): Promise<string> {
+  async upload(
+    file: UploadFileInfo<string>,
+    subPath: string = UploadSubPathEnum.DEFAULT,
+    allowExts: string[] = DEFAULT_ALLOW_EXT
+  ): Promise<string> {
     await this.isAllowUpload(file, allowExts);
     const fileName = this.generateFileName(file);
-    const filePath = `${subPath}/${parseDatePath()}`;
-    await transferToNewFile(file.data, `${this.resourceUpload.dir}/${filePath}`, fileName);
-    return `${this.resourceUpload.prefix}/${filePath}/${fileName}`;
+    const filePath = path.join(subPath, parseDatePath());
+    await transferToNewFile(
+      file.data,
+      path.join(this.resourceUpload.dir, filePath),
+      fileName
+    );
+    return path.join(this.resourceUpload.prefix, filePath, fileName);
   }
 
   /**
@@ -55,9 +94,12 @@ export class FileService {
    * @param file 上传文件对象
    * @param allowExts 允许上传拓展类型
    */
-  private async isAllowUpload(file: UploadFileInfo<string>, allowExts: string[]): Promise<void> {
+  private async isAllowUpload(
+    file: UploadFileInfo<string>,
+    allowExts: string[]
+  ): Promise<void> {
     // 判断上传文件名称长度
-    const fileName: string = file.filename || "";
+    const fileName: string = file.filename || '';
     if (fileName.length > DEFAULT_FILE_NAME_LENGTH) {
       throw new Error(`上传文件名称长度限制最长为 ${DEFAULT_FILE_NAME_LENGTH}`);
     }
@@ -65,16 +107,18 @@ export class FileService {
     // 判断上传文件大小
     const size: number = await fileSize(file.data);
     if (size > DEFAULT_MAX_SIZE) {
-      throw new Error(`上传文件大小限制为 ${DEFAULT_MAX_SIZE / 1024 / 1024}MB`)
+      throw new Error(`上传文件大小限制为 ${DEFAULT_MAX_SIZE / 1024 / 1024}MB`);
     }
 
     // 判断文件拓展是否为允许的拓展类型
     let fileExt = getFileExt(file.filename);
     if (!fileExt) {
-      fileExt = getMimeTypeExt(file.mimeType)
+      fileExt = getMimeTypeExt(file.mimeType);
     }
     if (!allowExts.includes(fileExt)) {
-      throw new Error(`上传文件类型不支持，支持以下类型：${allowExts.join(',')}`)
+      throw new Error(
+        `上传文件类型不支持，支持以下类型：${allowExts.join(',')}`
+      );
     }
   }
 
@@ -86,11 +130,11 @@ export class FileService {
   private generateFileName(file: UploadFileInfo<string>): string {
     let ext = getFileExt(file.filename);
     if (!ext) {
-      ext = getMimeTypeExt(file.mimeType)
+      ext = getMimeTypeExt(file.mimeType);
     }
     // 替换掉后缀和特殊字符保留文件名
     let fileName = file.filename.replace(`.${ext}`, '');
-    fileName = fileName.replace(/[<>:"\/\\|?*]+/g, '');
+    fileName = fileName.replace(/[<>:"\\|?*]+/g, '');
     return `${fileName}_${generateID(8)}.${ext}`;
   }
 
@@ -101,7 +145,7 @@ export class FileService {
    */
   private isAllowRead(filePath: string): boolean {
     // 禁止目录上跳级别
-    if (filePath.includes("..")) return false
+    if (filePath.includes('..')) return false;
 
     // 检查允许下载的文件规则
     const fileExt = getFileExt(filePath);
@@ -113,30 +157,91 @@ export class FileService {
   }
 
   /**
- * 资源文件下载
- * @param filePath 文件存放资源路径，URL相对地址
- * @return 文件读取流
- */
+   * 资源文件下载
+   * @param filePath 文件存放资源路径，URL相对地址
+   * @return 文件读取流
+   */
   async download(filePath: string) {
     // 检查文件允许访问
     if (!this.isAllowRead(filePath)) {
-      throw new Error(`文件 ${filePath} 非法，不允许下载。`)
+      throw new Error(`文件 ${filePath} 非法，不允许下载。`);
     }
-    const asbPath = filePath.replace(this.resourceUpload.prefix, this.resourceUpload.dir);
+    const asbPath = filePath.replace(
+      this.resourceUpload.prefix,
+      this.resourceUpload.dir
+    );
     return await getFileStream(asbPath);
   }
 
   /**
- * 资源文件删除
- * @param filePath 文件存放资源路径，URL相对地址
- * @return true 删除正常 false 删除失败
- */
+   * 资源文件删除
+   * @param filePath 文件存放资源路径，URL相对地址
+   * @return true 删除正常 false 删除失败
+   */
   async delete(filePath: string): Promise<boolean> {
     // 检查文件允许访问
     if (!this.isAllowRead(filePath)) {
-      throw new Error(`文件 ${filePath} 非法，不允许删除。`)
+      throw new Error(`文件 ${filePath} 非法，不允许删除。`);
     }
-    const asbPath = filePath.replace(this.resourceUpload.prefix, this.resourceUpload.dir);
+    const asbPath = filePath.replace(
+      this.resourceUpload.prefix,
+      this.resourceUpload.dir
+    );
     return await deleteFile(asbPath);
+  }
+
+  /**
+   * 内部文件读取
+   * @param asserPath 内部文件相对地址
+   * @return 文件读取流
+   */
+  async readAssetsFile(asserPath: string) {
+    // 检查文件允许访问
+    if (!this.isAllowRead(asserPath)) {
+      throw new Error(`内部文件 ${asserPath} 非法，不允许读取。`);
+    }
+    const absPath = path.join(
+      this.midwayInformationService.getBaseDir(),
+      'assets',
+      asserPath
+    );
+    return await getFileStream(absPath);
+  }
+
+  /**
+   * 读取表格数据， 只读第一张工作表
+   * @param filePath — 文件路径
+   * @param sheetName 工作表名称
+   * @param fileName 文件名 含文件后缀.xlsx
+   * @return 表格信息对象列表
+   */
+  async readExcelFile(
+    filePath: string,
+    fileName: string
+  ): Promise<Record<string, string>[]> {
+    const savePath = path.join(
+      this.resourceUpload.dir,
+      UploadSubPathEnum.IMPORT,
+      parseDatePath()
+    );
+    await checkExistsAndMkdir(savePath);
+    return await readSheet(filePath, path.join(savePath, fileName));
+  }
+
+  /**
+   * 写入表格数据，一般用于导出
+   * @param filePath — 文件路径
+   * @param sheetName 工作表名称
+   * @param fileName 文件名 含文件后缀.xlsx
+   * @return xlsx文件流
+   */
+  async writeExcelFile(data: any[], sheetName: string, fileName: string) {
+    const savePath = path.join(
+      this.resourceUpload.dir,
+      UploadSubPathEnum.EXPORT,
+      parseDatePath()
+    );
+    await checkExistsAndMkdir(savePath);
+    return await writeSheet(data, sheetName, path.join(savePath, fileName));
   }
 }

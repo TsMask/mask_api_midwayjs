@@ -1,4 +1,4 @@
-import { Provide, Inject } from '@midwayjs/decorator';
+import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
 import { SysDictData } from '../../../../framework/core/model/SysDictData';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
 import { ISysDictDataService } from '../ISysDictDataService';
@@ -10,6 +10,7 @@ import { SysDictTypeServiceImpl } from './SysDictTypeServiceImpl';
  * @author TsMask <340112800@qq.com>
  */
 @Provide()
+@Scope(ScopeEnum.Singleton)
 export class SysDictDataServiceImpl implements ISysDictDataService {
   @Inject()
   private sysDictDataRepository: SysDictDataRepositoryImpl;

@@ -110,8 +110,10 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     // 分页
     sqlStr += ' order by oper_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    let pageSize = parseNumber(query.pageSize);
+    pageNum = pageNum <= 50 ? pageNum : 50;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
+    let pageSize = parseNumber(query.pageSize);
+    pageSize = pageSize <= 100 ? pageSize : 100;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);

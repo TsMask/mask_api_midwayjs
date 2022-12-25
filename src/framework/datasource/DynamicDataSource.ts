@@ -47,7 +47,7 @@ export class DynamicDataSource {
 
   /**
    * 创建和控制单个数据库连接的状态
-   * 
+   *
    * 控制事务
    * startTransaction - 在查询运行器实例中启动一个新事务。
    * commitTransaction - 提交使用查询运行器实例所做的所有更改。

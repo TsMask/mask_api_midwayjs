@@ -210,7 +210,9 @@ export class TokenService {
         }
       } catch (e) {
         if ('TokenExpiredError' === e.name) {
-          throw new UnauthorizedError(`用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`);
+          throw new UnauthorizedError(
+            `用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`
+          );
         }
         if ('JsonWebTokenError' === e.name) {
           throw new UnauthorizedError('用户授权无效认证');

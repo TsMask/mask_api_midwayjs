@@ -160,13 +160,13 @@ export interface ISysUserService {
   /**
    * 导入用户数据
    *
-   * @param userList 用户数据列表
+   * @param sheetItemArr 导入的用户数据列表
    * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
    * @param operName 操作用户
    * @return 结果
    */
   importUser(
-    userList: SysUser[],
+    sheetItemArr: Record<string, string>[],
     isUpdateSupport: boolean,
     operName: string
   ): Promise<string>;

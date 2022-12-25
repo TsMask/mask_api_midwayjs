@@ -1,4 +1,4 @@
-import { Body, ContentType, Controller, Files, Inject, Post } from '@midwayjs/decorator';
+import { Body, Controller, Files, Inject, Post } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { UploadSubPathEnum } from '../../../common/enums/UploadSubPathEnum';
 import { parseBoolean } from '../../../common/utils/ValueParseUtils';
@@ -22,11 +22,10 @@ export class CommonController {
   /**
    * 通用下载
    */
-  @Post("/download")
-  @ContentType("application/octet-stream")
+  @Post('/download')
   async downloadFile(
-    @Body("filePath") filePath: string,
-    @Body("isDel") isDel: string
+    @Body('filePath') filePath: string,
+    @Body('isDel') isDel: string
   ) {
     if (!filePath) return null;
     const fileStream = await this.fileService.download(filePath);
@@ -36,24 +35,31 @@ export class CommonController {
       await this.fileService.delete(filePath);
     }
     // 返回 stream
+    const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+    const ctx = this.contextService.getContext();
+    ctx.set('Content-Type', 'application/octet-stream');
+    ctx.set('Content-disposition', `attachment;filename=${fileName}`);
     return fileStream;
   }
 
   /**
- * 通用上传
- */
-  @Post("/upload")
+   * 通用上传
+   */
+  @Post('/upload')
   async uploadFile(@Files('file') files: UploadFileInfo<string>[]) {
     if (files.length <= 0) return Result.err();
     const domain = this.contextService.getContext().origin;
-    const upFilePath = await this.fileService.upload(files[0], UploadSubPathEnum.COMMON);
+    const upFilePath = await this.fileService.upload(
+      files[0],
+      UploadSubPathEnum.COMMON
+    );
     const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
     await this.contextService.getContext().cleanupRequestFiles();
     return Result.ok({
       url: `${domain}${upFilePath}`,
       fileName: upFilePath,
       newFileName: upFileName,
-      originalFilename: files[0].filename
+      originalFilename: files[0].filename,
     });
   }
 }

@@ -108,7 +108,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         },
       },
       // 多个数据源时可以用这个指定默认的数据源
-      defaultDataSourceName: "default",
+      defaultDataSourceName: 'default',
     },
 
     /**Redis 缓存数据 http://www.midwayjs.org/docs/extensions/redis */
@@ -139,7 +139,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         },
       },
       // 清理之前的任务
-      clearRepeatJobWhenStart: true
+      clearRepeatJobWhenStart: true,
     },
 
     /**JWT 令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
