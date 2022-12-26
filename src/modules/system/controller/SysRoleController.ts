@@ -21,6 +21,8 @@ import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
 import { SysDept } from '../../../framework/core/model/SysDept';
 import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
+import { ROLE_DATA_SCOPE } from '../../../common/enums/RoleDataScopeEnum';
+import { FileService } from '../../../framework/service/FileService';
 
 /**
  * 角色信息
@@ -33,6 +35,9 @@ export class SysRoleController {
   private contextService: ContextService;
 
   @Inject()
+  private fileService: FileService;
+
+  @Inject()
   private tokenService: TokenService;
 
   @Inject()
@@ -43,6 +48,50 @@ export class SysRoleController {
 
   @Inject()
   private sysDeptService: SysDeptServiceImpl;
+
+  /**
+   * 导出角色信息
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['system:role:export'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.EXPORT })
+  async export() {
+    const ctx = this.contextService.getContext();
+    // 查询结果，根据查询条件结果，单页最大值限制
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    ctx.request.body.pageNum = 1;
+    ctx.request.body.pageSize = 1000;
+    const data = await this.sysRoleService.selectRolePage(
+      ctx.request.body,
+      dataScopeSQL
+    );
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysRole) => {
+        pre.push({
+          角色序号: cur.roleId,
+          角色名称: cur.roleName,
+          角色权限: cur.roleKey,
+          角色排序: `${cur.roleSort}`,
+          数据范围: ROLE_DATA_SCOPE[cur.dataScope],
+          角色状态: cur.status === '0' ? '正常' : '停用',
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `role_export_${rows.length}_${Date.now()}.xlsx`;
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.writeExcelFile(rows, '角色信息', fileName);
+  }
 
   /**
    * 角色列表

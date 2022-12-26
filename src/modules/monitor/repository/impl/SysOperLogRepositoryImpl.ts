@@ -178,7 +178,9 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     if (sysOperLog.operatorType) {
       paramMap.set('operator_type', parseNumber(sysOperLog.operatorType));
     }
-
+    if (sysOperLog.deptName) {
+      paramMap.set('dept_name', sysOperLog.deptName);
+    }
     if (sysOperLog.operName) {
       paramMap.set('oper_name', sysOperLog.operName);
     }

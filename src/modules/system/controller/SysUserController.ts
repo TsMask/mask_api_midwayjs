@@ -32,6 +32,7 @@ import { UploadFileInfo } from '@midwayjs/upload';
 import { SysDictData } from '../../../framework/core/model/SysDictData';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { parseDateToStr } from '../../../common/utils/DateFnsUtils';
+import { validEmail, validMobile } from '../../../common/utils/RegularUtils';
 
 /**
  * 用户信息
@@ -112,14 +113,14 @@ export class SysUserController {
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:user:export'] })
   @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.EXPORT })
-  async exportData() {
+  async export() {
     const ctx = this.contextService.getContext();
-    // 查询结果
+    // 查询结果，根据查询条件结果，单页最大值限制
     const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
-    ctx.query.pageNum = "1";
-    ctx.query.pageSize = "1000";
+    ctx.request.body.pageNum = 1;
+    ctx.request.body.pageSize = 1000;
     const data = await this.sysUserService.selectUserPage(
-      ctx.query,
+      ctx.request.body,
       dataScopeSQL
     );
     // 读取用户性别字典数据
@@ -152,17 +153,16 @@ export class SysUserController {
       []
     );
     // 导出数据表格
-    const fileName = `user_export_${data.total}_${Date.now()}.xlsx`;
+    const fileName = `user_export_${rows.length}_${Date.now()}.xlsx`;
     ctx.set(
-      'Content-Type',
+      'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set('Content-disposition', `attachment;filename=${fileName}`);
-    return await this.fileService.writeExcelFile(
-      rows,
-      '用户信息数据',
-      fileName
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
     );
+    return await this.fileService.writeExcelFile(rows, '用户信息', fileName);
   }
 
   /**
@@ -223,7 +223,14 @@ export class SysUserController {
   @PreAuthorize({ hasPermissions: ['system:user:add'] })
   @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysUser: SysUser): Promise<Result> {
-    // 判断属性值是否唯一
+    if (
+      sysUser.userId ||
+      !sysUser.nickName ||
+      !sysUser.userName ||
+      !sysUser.password
+    )
+      return Result.err();
+    // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
       sysUser
     );
@@ -232,17 +239,35 @@ export class SysUserController {
         `新增用户【${sysUser.userName}】失败，登录账号已存在`
       );
     }
-    const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
-    if (!uniquePhone) {
-      return Result.errMsg(
-        `新增用户【${sysUser.userName}】失败，手机号码已存在`
-      );
+    // 检查手机号码格式并判断是否唯一
+    if (sysUser.phonenumber) {
+      if (validMobile(sysUser.phonenumber)) {
+        const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
+        if (!uniquePhone) {
+          return Result.errMsg(
+            `新增用户【${sysUser.userName}】失败，手机号码已存在`
+          );
+        }
+      } else {
+        return Result.errMsg(
+          `新增用户【${sysUser.userName}】失败，手机号码格式错误`
+        );
+      }
     }
-    const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
-    if (!uniqueEmail) {
-      return Result.errMsg(
-        `新增用户【${sysUser.userName}】失败，邮箱账号已存在`
-      );
+    // 检查邮箱格式并判断是否唯一
+    if (sysUser.email) {
+      if (validEmail(sysUser.email)) {
+        const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
+        if (!uniqueEmail) {
+          return Result.errMsg(
+            `新增用户【${sysUser.userName}】失败，邮箱已存在`
+          );
+        }
+      } else {
+        return Result.errMsg(
+          `新增用户【${sysUser.userName}】失败，邮箱格式错误`
+        );
+      }
     }
 
     sysUser.createBy = this.contextService.getUseName();
@@ -259,7 +284,8 @@ export class SysUserController {
   async edit(@Body() sysUser: SysUser): Promise<Result> {
     // 修改的用户ID是否可用
     const userId: string = sysUser.userId;
-    if (!userId) return Result.err();
+    if (!userId || !sysUser.userName || !sysUser.nickName || sysUser.password)
+      return Result.err();
     // 检查是否管理员用户
     if (this.contextService.isAdmin(userId)) {
       return Result.errMsg('不允许操作管理员用户');
@@ -268,7 +294,7 @@ export class SysUserController {
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
-    // 判断属性值是否唯一
+    // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
       sysUser
     );
@@ -277,17 +303,35 @@ export class SysUserController {
         `修改用户【${sysUser.userName}】失败，登录账号已存在`
       );
     }
-    const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
-    if (!uniquePhone) {
-      return Result.errMsg(
-        `修改用户【${sysUser.userName}】失败，手机号码已存在`
-      );
+    // 检查手机号码格式并判断是否唯一
+    if (sysUser.phonenumber) {
+      if (validMobile(sysUser.phonenumber)) {
+        const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
+        if (!uniquePhone) {
+          return Result.errMsg(
+            `修改用户【${sysUser.userName}】失败，手机号码已存在`
+          );
+        }
+      } else {
+        return Result.errMsg(
+          `修改用户【${sysUser.userName}】失败，手机号码格式错误`
+        );
+      }
     }
-    const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
-    if (!uniqueEmail) {
-      return Result.errMsg(
-        `修改用户【${sysUser.userName}】失败，邮箱账号已存在`
-      );
+    // 检查邮箱格式并判断是否唯一
+    if (sysUser.email) {
+      if (validEmail(sysUser.email)) {
+        const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
+        if (!uniqueEmail) {
+          return Result.errMsg(
+            `修改用户【${sysUser.userName}】失败，邮箱已存在`
+          );
+        }
+      } else {
+        return Result.errMsg(
+          `修改用户【${sysUser.userName}】失败，邮箱格式错误`
+        );
+      }
     }
 
     sysUser.updateBy = this.contextService.getUseName();

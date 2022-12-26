@@ -28,9 +28,19 @@ export enum OperatorBusinessTypeEnum {
   /**强退 */
   FORCE = '7',
 
-  /**生成代码 */
-  GENCODE = '8',
-
   /**清空数据 */
-  CLEAN = '9',
+  CLEAN = '8',
 }
+
+/**操作日志-业务操作类型 */
+export const OPERATOR_BUSINESS_TYPE: Record<string, string> = {
+  '0': '其它',
+  '1': '新增',
+  '2': '修改',
+  '3': '删除',
+  '4': '授权',
+  '5': '导出',
+  '6': '导入',
+  '7': '强退',
+  '8': '清空数据',
+};

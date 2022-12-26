@@ -20,20 +20,20 @@ export class RedisCache {
     const info = await this.redisService.info();
     // 处理字符串信息
     const infoObj: Record<string, Record<string, string>> = {};
-    let title = '';
+    let label = '';
     const lines: string[] = info.split('\r\n');
     for (const line of lines) {
       // 记录标题节点
       if (line.includes('#')) {
-        title = line.split(' ').pop().toLowerCase();
-        infoObj[title] = {};
+        label = line.split(' ').pop().toLowerCase();
+        infoObj[label] = {};
         continue;
       }
       // 节点后续键值
       const kvArr: string[] = line.split(':');
       if (kvArr.length >= 2) {
         const key: string = kvArr.shift();
-        infoObj[title][key] = kvArr.pop();
+        infoObj[label][key] = kvArr.pop();
       }
     }
     return infoObj;
@@ -44,21 +44,21 @@ export class RedisCache {
    * @return 命令状态列表
    */
   async getCommandStats(): Promise<Record<string, string>[]> {
-    const info = await this.redisService.info('commandstats');
+    const commandstats = await this.redisService.info('commandstats');
     // 处理字符串信息
-    const infoObj: Record<string, string>[] = [];
-    const lines: string[] = info.split('\r\n');
+    const statsObjArr: Record<string, string>[] = [];
+    const lines: string[] = commandstats.split('\r\n');
     for (const line of lines) {
       if (!line.startsWith('cmdstat_')) continue;
       const kvArr: string[] = line.split(':');
       const key: string = kvArr.shift();
       const valueStr: string = kvArr.pop();
-      infoObj.push({
+      statsObjArr.push({
         name: key.substring(8),
         value: valueStr.substring(6, valueStr.indexOf(',usec=')),
       });
     }
-    return infoObj;
+    return statsObjArr;
   }
 
   /**

@@ -34,7 +34,7 @@ export async function writeSheet(
   const workSheet = utils.json_to_sheet(data);
   // 设置列宽度，单位厘米
   workSheet['!cols'] = Object.keys(data[0]).map(() => {
-    return { wch: 16 };
+    return { wch: 20 };
   });
   const workBook = utils.book_new();
   utils.book_append_sheet(workBook, workSheet, sheetName);

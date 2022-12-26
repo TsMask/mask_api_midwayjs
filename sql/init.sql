@@ -514,10 +514,9 @@ insert into sys_dict_data values(22, 4,  '授权',     '4',       'sys_oper_type
 insert into sys_dict_data values(23, 5,  '导出',     '5',       'sys_oper_type',       '',   'warning', 'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '导出操作');
 insert into sys_dict_data values(24, 6,  '导入',     '6',       'sys_oper_type',       '',   'warning', 'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '导入操作');
 insert into sys_dict_data values(25, 7,  '强退',     '7',       'sys_oper_type',       '',   'danger',  'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '强退操作');
-insert into sys_dict_data values(26, 8,  '生成代码', '8',       'sys_oper_type',       '',   'warning', 'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '生成操作');
-insert into sys_dict_data values(27, 9,  '清空数据', '9',       'sys_oper_type',       '',   'danger',  'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '清空操作');
-insert into sys_dict_data values(28, 1,  '成功',     '0',       'sys_common_status',   '',   'primary', 'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '正常状态');
-insert into sys_dict_data values(29, 2,  '失败',     '1',       'sys_common_status',   '',   'danger',  'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '停用状态');
+insert into sys_dict_data values(26, 8,  '清空数据', '8',        'sys_oper_type',       '',   'danger', 'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '清空操作');
+insert into sys_dict_data values(27, 1,  '成功',     '0',       'sys_common_status',   '',   'primary', 'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '正常状态');
+insert into sys_dict_data values(28, 2,  '失败',     '1',       'sys_common_status',   '',   'danger',  'N', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '停用状态');
 
 
 -- ----------------------------

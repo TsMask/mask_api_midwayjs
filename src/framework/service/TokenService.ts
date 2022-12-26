@@ -121,9 +121,19 @@ export class TokenService {
     // 解析请求用户代理信息
     const ua = await getUaInfo(this.ctx.get('user-agent'));
     const bName = ua.getBrowser().name;
-    loginUser.browser = `${bName || '未知'}`;
+    const bVersion = ua.getBrowser().version;
+    if (bName && bVersion) {
+      loginUser.browser = `${bName} ${bVersion}`;
+    } else {
+      loginUser.browser = '未知 未知';
+    }
     const oName = ua.getOS().name;
-    loginUser.os = `${oName || '未知'}`;
+    const oVersion = ua.getOS().version;
+    if (oName && oVersion) {
+      loginUser.os = `${oName} ${oVersion}`;
+    } else {
+      loginUser.os = '未知 未知';
+    }
     return loginUser;
   }
 

@@ -13,6 +13,7 @@ import { Result } from '../../../framework/core/Result';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
+import { FileService } from '../../../framework/service/FileService';
 import { SysConfig } from '../model/SysConfig';
 import { SysConfigServiceImpl } from '../service/impl/SysConfigServiceImpl';
 
@@ -27,7 +28,56 @@ export class SysConfigController {
   private contextService: ContextService;
 
   @Inject()
+  private fileService: FileService;
+
+  @Inject()
   private sysConfigService: SysConfigServiceImpl;
+
+  /**
+   * 导出参数配置信息
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['system:config:export'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.EXPORT,
+  })
+  async export() {
+    const ctx = this.contextService.getContext();
+    // 查询结果，根据查询条件结果，单页最大值限制
+    ctx.request.body.pageNum = 1;
+    ctx.request.body.pageSize = 1000;
+    const data = await this.sysConfigService.selectConfigPage(ctx.request.body);
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysConfig) => {
+        pre.push({
+          参数主键: cur.configId,
+          参数名称: cur.configName,
+          参数键名: cur.configKey,
+          参数键值: cur.configValue,
+          系统内置: cur.configType === 'Y' ? '是' : '否',
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `config_export_${rows.length}_${Date.now()}.xlsx`;
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.writeExcelFile(
+      rows,
+      '参数配置信息',
+      fileName
+    );
+  }
 
   /**
    * 参数配置列表

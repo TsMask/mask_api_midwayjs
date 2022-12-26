@@ -2,12 +2,12 @@ import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { OperatorBusinessTypeEnum } from '../../common/enums/OperatorBusinessTypeEnum';
-import { OperatorBusinessStatuEnum } from '../../common/enums/OperatorBusinessStatuEnum';
 import { OperatorTypeEnum } from '../../common/enums/OperatorTypeEnum';
 import { getRealAddressByIp } from '../../common/utils/ip2region';
 import { SysOperLog } from '../../modules/monitor/model/SysOperLog';
 import { SysOperLogServiceImpl } from '../../modules/monitor/service/impl/SysOperLogServiceImpl';
 import { LoginUser } from '../core/vo/LoginUser';
+import { Result } from '../core/Result';
 
 /** 操作日志参数 */
 interface operLogOptions {
@@ -83,6 +83,7 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       const loginUser: LoginUser = ctx.loginUser;
       if (loginUser && loginUser.userId) {
         operLog.operName = loginUser.user.userName;
+        operLog.deptName = loginUser.user.dept?.deptName;
         if (loginUser.user.userType !== '00') {
           operLog.operatorType = OperatorTypeEnum.OTHER;
         }
@@ -122,9 +123,9 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       // 保存操作记录到数据库
       const sysOperLogService: SysOperLogServiceImpl =
         await ctx.requestContext.getAsync(SysOperLogServiceImpl);
-      operLog.status = OperatorBusinessStatuEnum.SUCCESS;
-      if (Number(result.code) !== 200) {
-        operLog.status = OperatorBusinessStatuEnum.FAIL;
+      operLog.status = '0';
+      if (result instanceof Result) {
+        operLog.status = result.code === 200 ? '0' : '1';
       }
       await sysOperLogService.insertOperLog(operLog);
 
