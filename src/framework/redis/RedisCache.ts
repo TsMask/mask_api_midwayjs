@@ -1,4 +1,4 @@
-import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, ScopeEnum, Scope, Init } from '@midwayjs/decorator';
 import { RedisService } from '@midwayjs/redis';
 
 /**
@@ -11,6 +11,26 @@ import { RedisService } from '@midwayjs/redis';
 export class RedisCache {
   @Inject()
   private redisService: RedisService;
+
+  @Init()
+  async init() {
+    // 启动时，声明定义限流脚本命令
+    this.redisService.defineCommand("rateLimitCommand", {
+      numberOfKeys: 1,
+      lua: `local key = KEYS[1]
+      local count = tonumber(ARGV[1])
+      local time = tonumber(ARGV[2])
+      local current = redis.call('get', key);
+      if current and tonumber(current) > count then
+          return tonumber(current);
+      end
+      current = redis.call('incr', key)
+      if tonumber(current) == 1 then
+          redis.call('expire', key, time)
+      end
+      return tonumber(current);`
+    });
+  }
 
   /**
    * 获取redis服务信息
@@ -67,6 +87,17 @@ export class RedisCache {
    */
   async getKeySize(): Promise<number> {
     return await this.redisService.dbsize();
+  }
+
+  /**
+      * 限流查询并设置
+      * @param limitKey 限流缓存key
+      * @param count 限流次数
+      * @param time 限流时间,单位秒
+      * @return 请求记录总数
+      */
+  async rateLimit(limitKey: string, count: number, time: number): Promise<number> {
+    return await this.redisService.rateLimitCommand(limitKey, count, time);
   }
 
   /**

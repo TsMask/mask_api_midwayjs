@@ -23,6 +23,7 @@ import {
   DECORATOR_OPER_LOG_KEY,
   OperLogSave,
 } from './framework/decorator/OperLogDecorator';
+import { DECORATOR_RATE_LIMIT_KEY, RateLimitVerify } from './framework/decorator/RateLimitDecorator';
 
 @Configuration({
   imports: [
@@ -73,6 +74,11 @@ export class ContainerLifeCycle {
     this.decoratorService.registerMethodHandler(
       DECORATOR_OPER_LOG_KEY,
       OperLogSave
+    );
+    // 限流-方法装饰器
+    this.decoratorService.registerMethodHandler(
+      DECORATOR_RATE_LIMIT_KEY,
+      RateLimitVerify
     );
   }
 

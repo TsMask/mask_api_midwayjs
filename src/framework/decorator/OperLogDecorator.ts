@@ -57,9 +57,15 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       const ctx: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
       // 初始可选参数数据
       const metadataObj = options.metadata;
-      metadataObj.operatorType = OperatorTypeEnum.MANAGE;
-      metadataObj.isSaveRequestData = true;
-      metadataObj.isSaveResponseData = true;
+      if (!metadataObj.operatorType) {
+        metadataObj.operatorType = OperatorTypeEnum.MANAGE;
+      }
+      if (metadataObj.isSaveRequestData === undefined) {
+        metadataObj.isSaveRequestData = true;
+      }
+      if (metadataObj.isSaveResponseData === undefined) {
+        metadataObj.isSaveResponseData = true;
+      }
 
       // 操作日志记录
       const operLog = new SysOperLog();

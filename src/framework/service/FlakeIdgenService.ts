@@ -16,6 +16,7 @@ export class FlakeIdgenService {
 
   @Init()
   async init() {
+    // 启动时，实例化ID生成器
     this.flakeIdGen = new FlakeId(this.flakeIdgenConfig);
   }
 

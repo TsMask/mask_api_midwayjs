@@ -1,6 +1,8 @@
 import { MidwayInformationService } from '@midwayjs/core';
 import { Controller, Get, Inject } from '@midwayjs/decorator';
+import { LimitTypeEnum } from '../../../common/enums/LimitTypeEnum';
 import { Result } from '../../../framework/core/Result';
+import { RateLimit } from '../../../framework/decorator/RateLimitDecorator';
 
 /**
  * 路由主页
@@ -13,6 +15,7 @@ export class IndexController {
   private midwayInformationService: MidwayInformationService;
 
   @Get()
+  @RateLimit({ time: 5, count: 10, limitType: LimitTypeEnum.USER })
   async index(): Promise<Result> {
     // 读取配置项目名版本
     const pkg = this.midwayInformationService.getPkg();
