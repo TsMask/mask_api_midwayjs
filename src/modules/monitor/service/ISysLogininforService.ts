@@ -12,7 +12,7 @@ export interface ISysLogininforService {
    * @param query 查询信息
    * @return 操作日志集合
    */
-  selectLogininforPage(query: any): Promise<rowPages>;
+  selectLogininforPage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
   /**
    * 查询系统登录日志集合

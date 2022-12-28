@@ -10,6 +10,6 @@ export enum LimitTypeEnum {
   /**根据请求者IP进行限流 */
   IP = 2,
 
-  /**根据用户账号进行限流 */
+  /**根据用户ID进行限流 */
   USER = 3,
 }

@@ -17,7 +17,7 @@ export class SysPostServiceImpl implements ISysPostService {
   @Inject()
   private sysUserPostRepository: SysUserPostRepositoryImpl;
 
-  async selectPostPage(query: any): Promise<rowPages> {
+  async selectPostPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysPostRepository.selectPostPage(query);
   }
 

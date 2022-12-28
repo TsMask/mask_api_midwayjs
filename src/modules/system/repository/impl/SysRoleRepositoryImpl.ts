@@ -66,7 +66,10 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
   @Inject()
   public db: DynamicDataSource;
 
-  async selectRolePage(query: any, dataScopeSQL = ''): Promise<rowPages> {
+  async selectRolePage(
+    query: ListQueryPageOptions,
+    dataScopeSQL = ''
+  ): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = dataScopeSQL;
     const paramArr = [];
@@ -106,7 +109,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_role r
       left join sys_user_role ur on ur.role_id = r.role_id
       left join sys_user u on u.user_id = ur.user_id
@@ -191,14 +194,14 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr =
       "select role_id as 'str' from sys_role r where r.role_name = ? and r.del_flag = '0' limit 1";
     const paramArr = [roleName];
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
   async checkUniqueRoleKey(roleKey: string): Promise<string> {
     const sqlStr =
       "select role_id as 'str' from sys_role r where r.role_key = ? and r.del_flag = '0' limit 1";
     const paramArr = [roleKey];
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
   async updateRole(sysRole: SysRole): Promise<number> {

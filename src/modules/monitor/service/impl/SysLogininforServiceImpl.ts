@@ -14,7 +14,9 @@ export class SysLogininforServiceImpl implements ISysLogininforService {
   @Inject()
   private sysLogininforRepository: SysLogininforRepositoryImpl;
 
-  async selectLogininforPage(query: any): Promise<rowPages> {
+  async selectLogininforPage(
+    query: ListQueryPageOptions
+  ): Promise<RowPagesType> {
     return await this.sysLogininforRepository.selectLogininforPage(query);
   }
 

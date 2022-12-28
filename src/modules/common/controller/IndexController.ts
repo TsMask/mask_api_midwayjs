@@ -15,7 +15,7 @@ export class IndexController {
   private midwayInformationService: MidwayInformationService;
 
   @Get()
-  @RateLimit({ time: 5, count: 10, limitType: LimitTypeEnum.USER })
+  @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
   async index(): Promise<Result> {
     // 读取配置项目名版本
     const pkg = this.midwayInformationService.getPkg();

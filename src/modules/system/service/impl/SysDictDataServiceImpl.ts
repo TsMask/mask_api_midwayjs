@@ -18,7 +18,7 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
   @Inject()
   private sysDictTypeService: SysDictTypeServiceImpl;
 
-  async selectDictDataPage(query: any): Promise<rowPages> {
+  async selectDictDataPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysDictDataRepository.selectDictDataPage(query);
   }
 

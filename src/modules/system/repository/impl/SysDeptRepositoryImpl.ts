@@ -106,7 +106,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       paramArr.push(roleId);
     }
     sqlStr += ' order by d.parent_id, d.order_num ';
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.map(v => v.str);
   }
 
@@ -127,21 +127,21 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   async selectNormalChildrenDeptById(deptId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_dept where status = 0 and del_flag = '0' and find_in_set(?, ancestors) ";
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [deptId]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [deptId]);
     return parseNumber(countRow[0].total);
   }
 
   async hasChildByDeptId(deptId: string): Promise<number> {
     const sqlStr = `select count(1) as 'total' from sys_dept
 		where del_flag = '0' and parent_id = ? limit 1`;
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [deptId]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [deptId]);
     return parseNumber(countRow[0].total);
   }
 
   async checkDeptExistUser(deptId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_user where dept_id = ? and del_flag = '0'";
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [deptId]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [deptId]);
     return parseNumber(countRow[0].total);
   }
 
@@ -152,7 +152,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const sqlStr =
       "select dept_id as 'str' from sys_dept where dept_name = ? and parent_id = ? and del_flag = '0' limit 1";
     const paramArr = [deptName, parentId];
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
 

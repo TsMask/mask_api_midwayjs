@@ -43,7 +43,10 @@ export class SysUserServiceImpl implements ISysUserService {
   @Inject()
   private sysDictDataService: SysDictDataServiceImpl;
 
-  async selectUserPage(query: any, dataScopeSQL = ''): Promise<rowPages> {
+  async selectUserPage(
+    query: ListQueryPageOptions,
+    dataScopeSQL = ''
+  ): Promise<RowPagesType> {
     return await this.sysUserRepository.selectUserPage(query, dataScopeSQL);
   }
 
@@ -57,9 +60,9 @@ export class SysUserServiceImpl implements ISysUserService {
   async selectAllocatedPage(
     roleId: string,
     allocated: boolean,
-    query: any,
+    query: ListQueryPageOptions,
     dataScopeSQL = ''
-  ): Promise<rowPages> {
+  ): Promise<RowPagesType> {
     return await this.sysUserRepository.selectAllocatedPage(
       roleId,
       allocated,

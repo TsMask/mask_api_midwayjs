@@ -57,7 +57,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
   @Inject()
   public db: DynamicDataSource;
 
-  async selectConfigPage(query: any): Promise<rowPages> {
+  async selectConfigPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
@@ -87,7 +87,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_config where 1 = 1 ${sqlStr}`,
       paramArr
     );
@@ -141,7 +141,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
   async selectconfigValueByKey(configKey: string): Promise<string> {
     const sqlStr =
       "select config_value as 'str' from sys_config where config_key = ?";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [configKey]);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [configKey]);
     return rows.length > 0 ? rows[0].str : null;
   }
 
@@ -154,14 +154,16 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
   async checkUniqueConfigKey(configKey: string): Promise<string> {
     const sqlStr =
       "select config_id as 'str' from sys_config where config_key = ? limit 1";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [configKey]);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [configKey]);
     return rows.length > 0 ? rows[0].str : null;
   }
 
   async checkUniqueConfigValue(configValue: string): Promise<string> {
     const sqlStr =
       "select config_id as 'str' from sys_config where config_value= ? limit 1";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [configValue]);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
+      configValue,
+    ]);
     return rows.length > 0 ? rows[0].str : null;
   }
 

@@ -29,7 +29,10 @@ export class SysRoleServiceImpl implements ISysRoleService {
   @Inject()
   private sysRoleDeptRepository: SysRoleDeptRepositoryImpl;
 
-  async selectRolePage(query: any, dataScopeSQL = ''): Promise<rowPages> {
+  async selectRolePage(
+    query: ListQueryPageOptions,
+    dataScopeSQL = ''
+  ): Promise<RowPagesType> {
     return await this.sysRoleRepository.selectRolePage(query, dataScopeSQL);
   }
 

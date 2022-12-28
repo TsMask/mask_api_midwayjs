@@ -14,7 +14,7 @@ export class SysNoticeServiceImpl implements ISysNoticeService {
   @Inject()
   private sysNoticeRepository: SysNoticeRepositoryImpl;
 
-  async selectNoticePage(query: any): Promise<rowPages> {
+  async selectNoticePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysNoticeRepository.selectNoticePage(query);
   }
   async selectNoticeById(noticeId: string): Promise<SysNotice> {

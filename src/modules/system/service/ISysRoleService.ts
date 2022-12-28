@@ -13,7 +13,10 @@ export interface ISysRoleService {
    * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 角色信息集合信息
    */
-  selectRolePage(query: any, dataScopeSQL?: string): Promise<rowPages>;
+  selectRolePage(
+    query: ListQueryPageOptions,
+    dataScopeSQL?: string
+  ): Promise<RowPagesType>;
 
   /**
    * 根据条件查询角色数据

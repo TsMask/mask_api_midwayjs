@@ -97,7 +97,7 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
 
       // 是否需要保存request，参数和值
       if (metadataObj.isSaveRequestData) {
-        const params: object = Object.assign(
+        const params: Record<string, any> = Object.assign(
           {},
           ctx.request.body,
           ctx.request.query

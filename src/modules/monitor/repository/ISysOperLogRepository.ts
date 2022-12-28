@@ -12,7 +12,7 @@ export interface ISysOperLogRepository {
    * @param query 查询信息
    * @return 操作日志集合
    */
-  selectOperLogPage(query: any): Promise<rowPages>;
+  selectOperLogPage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
   /**
    * 查询系统操作日志集合

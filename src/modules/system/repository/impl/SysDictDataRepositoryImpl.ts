@@ -59,7 +59,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectDictDataPage(query: any): Promise<rowPages> {
+  async selectDictDataPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
@@ -133,7 +133,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   async selectDictLabel(dictType: string, dictValue: string): Promise<string> {
     const sqlStr =
       "select dict_label as 'str' from sys_dict_data where dict_type = ? and dict_value = ?";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
       dictType,
       dictValue,
     ]);
@@ -150,7 +150,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   async countDictDataByType(dictType: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_dict_data where dict_type = ?";
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [dictType]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [dictType]);
     return parseNumber(countRow[0].total);
   }
 
@@ -160,7 +160,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   ): Promise<string> {
     const sqlStr =
       "select dict_code as 'str' from sys_dict_data where dict_type = ? and dict_label = ? limit 1";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
       dictType,
       dictLabel,
     ]);
@@ -173,7 +173,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   ): Promise<string> {
     const sqlStr =
       "select dict_code as 'str' from sys_dict_data where dict_type = ? and dict_value = ? limit 1";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
       dictType,
       dictValue,
     ]);

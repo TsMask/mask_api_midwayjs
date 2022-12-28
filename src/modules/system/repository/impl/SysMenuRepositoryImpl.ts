@@ -125,7 +125,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     left join sys_role_menu rm on m.menu_id = rm.menu_id
     where m.status = '0' and rm.role_id = ?`;
 
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [roleId]);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [roleId]);
     return rows.map(item => item.str);
   }
 
@@ -136,7 +136,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     left join sys_role r on r.role_id = ur.role_id
 		where m.status = '0' and r.status = '0' and ur.user_id = ? `;
 
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [userId]);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [userId]);
     return rows.map(item => item.str);
   }
 
@@ -153,7 +153,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
         ' and m.menu_id not in (select m.parent_id from sys_menu m inner join sys_role_menu rm on m.menu_id = rm.menu_id and rm.role_id = ?) ';
       paramArr.push(roleId);
     }
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.map(item => item.str);
   }
 
@@ -166,14 +166,14 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   async hasChildByMenuId(menuId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_menu where parent_id = ? ";
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
     return parseNumber(countRow[0].total);
   }
 
   async checkMenuExistRole(menuId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
     return parseNumber(countRow[0].total);
   }
 
@@ -309,7 +309,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   ): Promise<string> {
     const sqlStr =
       "select menu_id as 'str' from sys_menu where menu_name = ? and parent_id = ? limit 1";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
       menuName,
       parentId,
     ]);

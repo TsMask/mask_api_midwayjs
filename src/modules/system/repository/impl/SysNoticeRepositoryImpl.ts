@@ -54,7 +54,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectNoticePage(query: any): Promise<rowPages> {
+  async selectNoticePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
@@ -72,7 +72,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_notice where 1 = 1 ${sqlStr}`,
       paramArr
     );

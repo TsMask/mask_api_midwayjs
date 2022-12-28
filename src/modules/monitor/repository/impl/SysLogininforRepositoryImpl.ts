@@ -56,7 +56,9 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectLogininforPage(query: any): Promise<rowPages> {
+  async selectLogininforPage(
+    query: ListQueryPageOptions
+  ): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
@@ -86,7 +88,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_logininfor where 1 = 1 ${sqlStr}`,
       paramArr
     );

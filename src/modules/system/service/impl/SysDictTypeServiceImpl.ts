@@ -30,7 +30,7 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     await this.resetDictCache();
   }
 
-  async selectDictTypePage(query: any): Promise<rowPages> {
+  async selectDictTypePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysDictTypeRepository.selectDictTypePage(query);
   }
 

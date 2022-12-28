@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, Inject } from '@midwayjs/decorator';
+import { Controller, Get, Inject } from '@midwayjs/decorator';
 import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../common/constants/CacheKeysConstants';
@@ -8,6 +8,8 @@ import { Result } from '../../../framework/core/Result';
 import { RedisCache } from '../../../framework/redis/RedisCache';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
+import { RateLimit } from '../../../framework/decorator/RateLimitDecorator';
+import { LimitTypeEnum } from '../../../common/enums/LimitTypeEnum';
 
 /**
  * 验证码操作处理
@@ -27,10 +29,9 @@ export class CaptchaController {
 
   /**
    * 获取验证码
-   * @returns 返回结果
    */
   @Get('/captchaImage')
-  @HttpCode(200)
+  @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
   async captchaImage(): Promise<Result> {
     // 从数据库配置获取验证码开关
     const captchaEnabled = await this.sysConfigService.selectCaptchaEnabled();

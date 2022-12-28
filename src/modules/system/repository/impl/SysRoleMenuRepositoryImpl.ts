@@ -19,7 +19,7 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
   async checkMenuExistRole(menuId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [menuId]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
     return parseNumber(countRow[0].total);
   }
   async deleteRoleMenuByRoleId(roleId: string): Promise<number> {

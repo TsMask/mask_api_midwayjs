@@ -19,7 +19,7 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
   async countUserPostByPostId(postId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_user_post where post_id = ?";
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [postId]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [postId]);
     return parseNumber(countRow[0].total);
   }
 

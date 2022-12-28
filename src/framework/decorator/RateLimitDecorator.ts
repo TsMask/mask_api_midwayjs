@@ -24,9 +24,9 @@ export const DECORATOR_RATE_LIMIT_KEY = 'decorator:rate_limit';
  * 限流-方法装饰器
  *
  * 示例参数：`{ time: 5, count: 10, limitType: LimitTypeEnum.IP }`
- * 
- * 参数表示：5秒内，请求10次，类型记录IP
- * 
+ *
+ * 参数表示：5秒内，最多请求10次，类型记录IP
+ *
  * 使用 `LimitTypeEnum.USER` 时，请在用户身份授权认证校验后使用
  * 以便获取登录用户信息，无用户信息时默认为 `LimitTypeEnum.GLOBAL`
  * @param options 限流参数
@@ -57,28 +57,34 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       const classMethod = `${className}.${joinPoint.methodName}()`;
       let combinedKey = RATE_LIMIT_KEY + classMethod;
 
-
       // IP
       if (metadataObj.limitType === LimitTypeEnum.IP) {
         let clientIP = '127.0.0.1';
         if (!ctx.ip.includes('127.0.0.1')) {
           clientIP = ctx.ip;
         }
-        combinedKey = RATE_LIMIT_KEY + clientIP;
+        combinedKey = RATE_LIMIT_KEY + `${clientIP}:${classMethod}`;
       }
 
-      // 用户账号
+      // 用户
       if (metadataObj.limitType === LimitTypeEnum.USER) {
         const loginUser: LoginUser = ctx.loginUser;
         if (loginUser && loginUser.userId) {
-          combinedKey = RATE_LIMIT_KEY + loginUser.user.userName;;
+          combinedKey =
+            RATE_LIMIT_KEY + `${loginUser.user.userId}:${classMethod}`;
         }
       }
 
       // 在Redis查询并记录请求次数
-      const redisCacheService: RedisCache = await ctx.requestContext.getAsync(RedisCache);
-      const rateCount = await redisCacheService.rateLimit(combinedKey, metadataObj.count, metadataObj.time);
-      if (rateCount > metadataObj.count) {
+      const redisCache: RedisCache = await ctx.requestContext.getAsync(
+        RedisCache
+      );
+      const rateCount = await redisCache.rateLimit(
+        combinedKey,
+        metadataObj.time,
+        metadataObj.count
+      );
+      if (rateCount >= metadataObj.count) {
         return Result.errMsg('访问过于频繁，请稍候再试');
       }
 

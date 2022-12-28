@@ -1,5 +1,5 @@
 // 依赖来源 https://github.com/date-fns/date-fns
-import { parse, format } from 'date-fns';
+import { parse, format, differenceInSeconds } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 
 /**年 列如：2022 */
@@ -51,4 +51,23 @@ export function parseDateToStr(
  */
 export function parseDatePath(): string {
   return format(new Date(), 'yyyy/MM/dd', { locale: zhCN });
+}
+
+/**
+ * 判断两次时间差是否小于间隔时间
+ * @param endDate 结束时间
+ * @param startDate 开始时间
+ * @param interval 时间间隔，单位秒
+ * @returns true | false
+ */
+export function diffSeconds(
+  endDate: number | Date,
+  startDate: number | Date,
+  interval: number
+): boolean {
+  const diff: number = differenceInSeconds(endDate, startDate, {
+    roundingMethod: 'ceil',
+  });
+  if (Number.isNaN(diff)) return false;
+  return diff < interval;
 }

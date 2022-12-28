@@ -19,7 +19,7 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
   async countUserRoleByRoleId(roleId: string): Promise<number> {
     const sqlStr =
       'select count(1) as total from sys_user_role where role_id = ?';
-    const countRow: rowTotal[] = await this.db.execute(sqlStr, [roleId]);
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [roleId]);
     return parseNumber(countRow[0].total);
   }
 

@@ -33,6 +33,7 @@ import { SysDictData } from '../../../framework/core/model/SysDictData';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { parseDateToStr } from '../../../common/utils/DateFnsUtils';
 import { validEmail, validMobile } from '../../../common/utils/RegularUtils';
+import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitDecorator';
 
 /**
  * 用户信息
@@ -389,6 +390,7 @@ export class SysUserController {
    * 用户状态修改
    */
   @Put('/changeStatus')
+  @RepeatSubmit()
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
   @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async changeStatus(

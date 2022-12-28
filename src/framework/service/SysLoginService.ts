@@ -258,8 +258,7 @@ export class SysLoginService {
   async clearLoginRecordCache(loginName: string): Promise<boolean> {
     const cacheKey = PWD_ERR_CNT_KEY + loginName;
     if (await this.redisCache.hasKey(cacheKey)) {
-      const count = await this.redisCache.del(cacheKey);
-      return count > 0;
+      return (await this.redisCache.del(cacheKey)) > 0;
     }
     return false;
   }

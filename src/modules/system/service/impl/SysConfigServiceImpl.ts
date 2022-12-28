@@ -35,7 +35,7 @@ export class SysConfigServiceImpl implements ISysConfigService {
     return SYS_CONFIG_KEY + configKey;
   }
 
-  async selectConfigPage(query: any): Promise<rowPages> {
+  async selectConfigPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysConfigRepository.selectConfigPage(query);
   }
 

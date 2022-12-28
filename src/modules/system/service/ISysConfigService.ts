@@ -12,7 +12,7 @@ export interface ISysConfigService {
    * @param query 请求参数
    * @return 列表数据结果
    */
-  selectConfigPage(query: any): Promise<rowPages>;
+  selectConfigPage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
   /**
    * 查询参数配置信息

@@ -109,7 +109,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectUserPage(query: any, dataScopeSQL = ''): Promise<rowPages> {
+  async selectUserPage(
+    query: ListQueryPageOptions,
+    dataScopeSQL = ''
+  ): Promise<RowPagesType> {
     const SELECT_USER_SQL = `select 
     u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
     from sys_user u
@@ -154,7 +157,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_user u
       left join sys_dept d on u.dept_id = d.dept_id
       where u.del_flag = '0' ${sqlStr}`,
@@ -222,9 +225,9 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   async selectAllocatedPage(
     roleId: string,
     allocated: boolean,
-    query: any,
+    query: ListQueryPageOptions,
     dataScopeSQL = ''
-  ): Promise<rowPages> {
+  ): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = dataScopeSQL;
     const paramArr = [];
@@ -249,7 +252,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(distinct u.user_id) as 'total' from sys_user u
       left join sys_dept d on u.dept_id = d.dept_id
       left join sys_user_role ur on u.user_id = ur.user_id
@@ -455,7 +458,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr =
       "select user_id as 'str' from sys_user where user_name = ? and del_flag = '0' limit 1";
     const paramArr = [userName];
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
 
@@ -463,7 +466,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr =
       "select user_id as 'str' from sys_user where phonenumber = ? and del_flag = '0' limit 1";
     const paramArr = [phonenumber];
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
 
@@ -471,7 +474,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr =
       "select user_id as 'str' from sys_user where email = ? and del_flag = '0' limit 1";
     const paramArr = [email];
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
 }

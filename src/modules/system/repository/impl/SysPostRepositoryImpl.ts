@@ -55,7 +55,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectPostPage(query: any): Promise<rowPages> {
+  async selectPostPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
@@ -73,7 +73,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_post where 1 = 1 ${sqlStr}`,
       paramArr
     );
@@ -223,7 +223,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const sqlStr =
       "select post_id as 'str' from sys_post where post_name= ? limit 1";
     const paramArr = [postName];
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
 
@@ -231,7 +231,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const sqlStr =
       "select post_id as 'str' from sys_post where post_code = ? limit 1";
     const paramArr = [postCode];
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, paramArr);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
 }

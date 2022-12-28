@@ -12,7 +12,7 @@ export interface ISysPostRepository {
    * @param query 分页数据
    * @return 岗位数据集合
    */
-  selectPostPage(query: any): Promise<rowPages>;
+  selectPostPage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
   /**
    * 查询岗位数据集合

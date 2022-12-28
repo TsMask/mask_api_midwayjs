@@ -13,7 +13,10 @@ export interface ISysUserRepository {
    * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 用户信息集合信息
    */
-  selectUserPage(query: any, dataScopeSQL?: string): Promise<rowPages>;
+  selectUserPage(
+    query: ListQueryPageOptions,
+    dataScopeSQL?: string
+  ): Promise<RowPagesType>;
 
   /**
    * 根据条件查询用户列表
@@ -36,9 +39,9 @@ export interface ISysUserRepository {
   selectAllocatedPage(
     roleId: string,
     allocated: boolean,
-    query: any,
+    query: ListQueryPageOptions,
     dataScopeSQL?: string
-  ): Promise<rowPages>;
+  ): Promise<RowPagesType>;
 
   /**
    * 通过用户名查询用户

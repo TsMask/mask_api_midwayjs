@@ -14,7 +14,7 @@ export class SysOperLogServiceImpl implements ISysOperLogService {
   @Inject()
   private sysOperLogRepository: SysOperLogRepositoryImpl;
 
-  async selectOperLogPage(query: any): Promise<rowPages> {
+  async selectOperLogPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysOperLogRepository.selectOperLogPage(query);
   }
 

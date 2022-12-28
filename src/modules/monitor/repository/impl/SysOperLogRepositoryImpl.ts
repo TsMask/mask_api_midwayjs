@@ -65,7 +65,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectOperLogPage(query: any): Promise<rowPages> {
+  async selectOperLogPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
@@ -99,7 +99,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_oper_log where 1 = 1 ${sqlStr}`,
       paramArr
     );

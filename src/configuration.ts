@@ -23,7 +23,14 @@ import {
   DECORATOR_OPER_LOG_KEY,
   OperLogSave,
 } from './framework/decorator/OperLogDecorator';
-import { DECORATOR_RATE_LIMIT_KEY, RateLimitVerify } from './framework/decorator/RateLimitDecorator';
+import {
+  DECORATOR_RATE_LIMIT_KEY,
+  RateLimitVerify,
+} from './framework/decorator/RateLimitDecorator';
+import {
+  DECORATOR_REPEAT_SUBMIT_KEY,
+  RepeatSubmitVerify,
+} from './framework/decorator/RepeatSubmitDecorator';
 
 @Configuration({
   imports: [
@@ -79,6 +86,11 @@ export class ContainerLifeCycle {
     this.decoratorService.registerMethodHandler(
       DECORATOR_RATE_LIMIT_KEY,
       RateLimitVerify
+    );
+    // 防止表单重复提交-方法装饰器
+    this.decoratorService.registerMethodHandler(
+      DECORATOR_REPEAT_SUBMIT_KEY,
+      RepeatSubmitVerify
     );
   }
 

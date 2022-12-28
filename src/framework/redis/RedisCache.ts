@@ -15,20 +15,20 @@ export class RedisCache {
   @Init()
   async init() {
     // 启动时，声明定义限流脚本命令
-    this.redisService.defineCommand("rateLimitCommand", {
+    this.redisService.defineCommand('rateLimitCommand', {
       numberOfKeys: 1,
       lua: `local key = KEYS[1]
-      local count = tonumber(ARGV[1])
-      local time = tonumber(ARGV[2])
+      local time = tonumber(ARGV[1])
+      local count = tonumber(ARGV[2])
       local current = redis.call('get', key);
-      if current and tonumber(current) > count then
+      if current and tonumber(current) >= count then
           return tonumber(current);
       end
       current = redis.call('incr', key)
       if tonumber(current) == 1 then
           redis.call('expire', key, time)
       end
-      return tonumber(current);`
+      return tonumber(current);`,
     });
   }
 
@@ -90,14 +90,18 @@ export class RedisCache {
   }
 
   /**
-      * 限流查询并设置
-      * @param limitKey 限流缓存key
-      * @param count 限流次数
-      * @param time 限流时间,单位秒
-      * @return 请求记录总数
-      */
-  async rateLimit(limitKey: string, count: number, time: number): Promise<number> {
-    return await this.redisService.rateLimitCommand(limitKey, count, time);
+   * 限流查询并记录
+   * @param limitKey 限流缓存key
+   * @param time 限流时间,单位秒
+   * @param count 限流次数
+   * @return 请求记录总数
+   */
+  async rateLimit(
+    limitKey: string,
+    time: number,
+    count: number
+  ): Promise<number> {
+    return await this.redisService.rateLimitCommand(limitKey, time, count);
   }
 
   /**

@@ -12,7 +12,7 @@ export interface ISysNoticeService {
    * @param query 请求参数
    * @return 列表数据结果
    */
-  selectNoticePage(query: any): Promise<rowPages>;
+  selectNoticePage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
   /**
    * 查询公告信息

@@ -7,7 +7,15 @@ import { SysPost } from '../model/SysPost';
  */
 export interface ISysPostService {
   /**
-   * 查询岗位信息集合
+   * 查询分页岗位信息列表
+   *
+   * @param query 岗位信息查询
+   * @return 岗位列表
+   */
+  selectPostPage(query: ListQueryPageOptions): Promise<RowPagesType>;
+
+  /**
+   * 查询岗位信息列表
    *
    * @param sysPost 岗位信息
    * @return 岗位列表

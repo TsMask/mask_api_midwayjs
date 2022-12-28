@@ -58,7 +58,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectDictTypePage(query: any): Promise<rowPages> {
+  async selectDictTypePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
@@ -88,7 +88,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: rowTotal[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_dict_type where 1 = 1 ${sqlStr}`,
       paramArr
     );
@@ -157,14 +157,14 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   async checkUniqueDictName(dictName: string): Promise<string> {
     const sqlStr =
       "select dict_id as 'str' from sys_dict_type where dict_name = ? limit 1";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [dictName]);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [dictName]);
     return rows.length > 0 ? rows[0].str : null;
   }
 
   async checkUniqueDictType(dictType: string): Promise<string> {
     const sqlStr =
       "select dict_id as 'str' from sys_dict_type where dict_type = ? limit 1";
-    const rows: rowOneColumn[] = await this.db.execute(sqlStr, [dictType]);
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [dictType]);
     return rows.length > 0 ? rows[0].str : null;
   }
 

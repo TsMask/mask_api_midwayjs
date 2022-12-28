@@ -12,6 +12,7 @@ import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusiness
 import { Result } from '../../../framework/core/Result';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysConfig } from '../model/SysConfig';
@@ -209,6 +210,7 @@ export class SysConfigController {
    * 参数配置刷新缓存
    */
   @Del('/refreshCache')
+  @RepeatSubmit()
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
   @OperLog({
     title: '参数配置信息',

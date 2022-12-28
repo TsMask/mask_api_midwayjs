@@ -12,7 +12,7 @@ export interface ISysDictDataRepository {
    * @param query 字典数据查询信息
    * @return 字典数据集合信息
    */
-  selectDictDataPage(query: any): Promise<rowPages>;
+  selectDictDataPage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
   /**
    * 根据条件查询字典数据
