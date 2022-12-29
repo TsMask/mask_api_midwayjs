@@ -1,4 +1,9 @@
-import { SUCCESS, ERROR } from '../../common/constants/HttpStatusConstants';
+import {
+  RESULT_ERROR_CODE,
+  RESULT_ERROR_MSG,
+  RESULT_SUCCESS_CODE,
+  RESULT_SUCCESS_MSG,
+} from '../constants/CommonConstants';
 
 /**
  * 响应信息主体
@@ -19,7 +24,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static ok(args?: Record<string, any>) {
-    return this.rest(SUCCESS, '成功', args);
+    return this.rest(RESULT_SUCCESS_CODE, RESULT_SUCCESS_MSG, args);
   }
 
   /**
@@ -28,7 +33,7 @@ export class Result {
    * @param code 响应状态码
    * @return 响应结果对象
    */
-  public static okMsg(msg: string, code: number = SUCCESS) {
+  public static okMsg(msg: string, code: number = RESULT_SUCCESS_CODE) {
     return this.rest(code, msg);
   }
 
@@ -38,7 +43,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static okData<T>(data: T) {
-    return this.rest(SUCCESS, '成功', { data });
+    return this.rest(RESULT_SUCCESS_CODE, RESULT_SUCCESS_MSG, { data });
   }
 
   /**
@@ -47,7 +52,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static err(args?: Record<string, any>) {
-    return this.rest(ERROR, '失败', args);
+    return this.rest(RESULT_ERROR_CODE, RESULT_ERROR_MSG, args);
   }
 
   /**
@@ -56,7 +61,7 @@ export class Result {
    * @param code 响应状态码
    * @return 响应结果对象
    */
-  public static errMsg(msg: string, code: number = ERROR) {
+  public static errMsg(msg: string, code: number = RESULT_ERROR_CODE) {
     return this.rest(code, msg);
   }
 
@@ -66,7 +71,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static errData<T>(data: T) {
-    return this.rest(ERROR, '失败', { data });
+    return this.rest(RESULT_ERROR_CODE, RESULT_ERROR_MSG, { data });
   }
 
   /**
@@ -74,7 +79,7 @@ export class Result {
    * @param code 状态码
    * @param msg 响应信息
    * @param args 可展开的参数对象
-   * @returns
+   * @returns 返回结果
    */
   public static rest(
     code: number,

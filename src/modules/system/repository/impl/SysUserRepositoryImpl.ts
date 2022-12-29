@@ -1,11 +1,11 @@
 import { Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { bcryptHash } from '../../../../common/utils/CryptoUtils';
+import { bcryptHash } from '../../../../framework/utils/CryptoUtils';
 import {
   parseStrToDate,
   YYYY_MM_DD,
-} from '../../../../common/utils/DateFnsUtils';
-import { parseNumber } from '../../../../common/utils/ValueParseUtils';
+} from '../../../../framework/utils/DateFnsUtils';
+import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { SysDept } from '../../../../framework/core/model/SysDept';
 import { SysRole } from '../../../../framework/core/model/SysRole';
 import { SysUser } from '../../../../framework/core/model/SysUser';

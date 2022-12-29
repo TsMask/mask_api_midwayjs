@@ -1,13 +1,14 @@
 import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { OperatorBusinessTypeEnum } from '../../common/enums/OperatorBusinessTypeEnum';
-import { OperatorTypeEnum } from '../../common/enums/OperatorTypeEnum';
-import { getRealAddressByIp } from '../../common/utils/ip2region';
+import { OperatorBusinessTypeEnum } from '../../framework/enums/OperatorBusinessTypeEnum';
+import { OperatorTypeEnum } from '../../framework/enums/OperatorTypeEnum';
+import { getRealAddressByIp } from '../../framework/utils/ip2region';
 import { SysOperLog } from '../../modules/monitor/model/SysOperLog';
 import { SysOperLogServiceImpl } from '../../modules/monitor/service/impl/SysOperLogServiceImpl';
 import { LoginUser } from '../core/vo/LoginUser';
 import { Result } from '../core/Result';
+import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
 
 /** 操作日志参数 */
 interface operLogOptions {
@@ -60,10 +61,10 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       if (!metadataObj.operatorType) {
         metadataObj.operatorType = OperatorTypeEnum.MANAGE;
       }
-      if (metadataObj.isSaveRequestData === undefined) {
+      if (typeof metadataObj.isSaveRequestData === 'undefined') {
         metadataObj.isSaveRequestData = true;
       }
-      if (metadataObj.isSaveResponseData === undefined) {
+      if (typeof metadataObj.isSaveResponseData === 'undefined') {
         metadataObj.isSaveResponseData = true;
       }
 
@@ -129,9 +130,9 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       // 保存操作记录到数据库
       const sysOperLogService: SysOperLogServiceImpl =
         await ctx.requestContext.getAsync(SysOperLogServiceImpl);
-      operLog.status = '0';
+      operLog.status = STATUS_YES;
       if (result instanceof Result) {
-        operLog.status = result.code === 200 ? '0' : '1';
+        operLog.status = result.code === 200 ? STATUS_YES : STATUS_NO;
       }
       await sysOperLogService.insertOperLog(operLog);
 

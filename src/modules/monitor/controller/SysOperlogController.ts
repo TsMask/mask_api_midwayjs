@@ -2,9 +2,9 @@ import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/decorator';
 import {
   OperatorBusinessTypeEnum,
   OPERATOR_BUSINESS_TYPE,
-} from '../../../common/enums/OperatorBusinessTypeEnum';
-import { OPERATOR_TYPE } from '../../../common/enums/OperatorTypeEnum';
-import { parseDateToStr } from '../../../common/utils/DateFnsUtils';
+} from '../../../framework/enums/OperatorBusinessTypeEnum';
+import { OPERATOR_TYPE } from '../../../framework/enums/OperatorTypeEnum';
+import { parseDateToStr } from '../../../framework/utils/DateFnsUtils';
 import { Result } from '../../../framework/core/Result';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';

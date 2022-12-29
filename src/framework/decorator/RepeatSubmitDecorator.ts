@@ -2,9 +2,9 @@ import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { Result } from '../core/Result';
-import { REPEAT_SUBMIT_KEY } from '../../common/constants/CacheKeysConstants';
+import { REPEAT_SUBMIT_KEY } from '../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../redis/RedisCache';
-import { diffSeconds } from '../../common/utils/DateFnsUtils';
+import { diffSeconds } from '../../framework/utils/DateFnsUtils';
 
 /**重复参数Redis格式数据类型 */
 type RepeatParamType = {

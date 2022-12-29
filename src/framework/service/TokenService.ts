@@ -2,16 +2,16 @@ import { Inject, Provide } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { JwtService } from '@midwayjs/jwt';
 import {
-  LOGIN_USER_KEY,
-  TOKEN_PREFIX,
-} from '../../common/constants/CommonConstants';
+  TOKEN_JWT_FIELD,
+  TOKEN_HEADER_PREFIX,
+} from '../../framework/constants/CommonConstants';
 import { LoginUser } from '../core/vo/LoginUser';
 import { RedisCache } from '../redis/RedisCache';
-import { LOGIN_TOKEN_KEY } from '../../common/constants/CacheKeysConstants';
+import { LOGIN_TOKEN_KEY } from '../../framework/constants/CacheKeysConstants';
 import { SysUser } from '../core/model/SysUser';
-import { generateID } from '../../common/utils/GenIdUtils';
-import { getRealAddressByIp } from '../../common/utils/ip2region';
-import { getUaInfo } from '../../common/utils/UAParserUtils';
+import { generateID } from '../../framework/utils/GenIdUtils';
+import { getRealAddressByIp } from '../../framework/utils/ip2region';
+import { getUaInfo } from '../../framework/utils/UAParserUtils';
 import ms = require('ms');
 import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
 import { PermissionService } from './PermissionService';
@@ -81,7 +81,7 @@ export class TokenService {
     await this.setUserToken(loginUser);
     // 生成令牌负荷uuid标识
     return this.jwtService.sign({
-      [LOGIN_USER_KEY]: uuid,
+      [TOKEN_JWT_FIELD]: uuid,
     });
   }
 
@@ -198,8 +198,8 @@ export class TokenService {
     const jwtHeader = this.ctx.app.getConfig('jwtHeader');
     // 获取请求携带的令牌
     let token = this.ctx.get(jwtHeader);
-    if (token && token.startsWith(TOKEN_PREFIX)) {
-      token = token.replace(TOKEN_PREFIX, '');
+    if (token && token.startsWith(TOKEN_HEADER_PREFIX)) {
+      token = token.replace(TOKEN_HEADER_PREFIX, '');
     }
     return token;
   }
@@ -215,7 +215,7 @@ export class TokenService {
       try {
         const jwtInfo = await this.jwtService.verify(token);
         if (jwtInfo) {
-          const uuid = jwtInfo[LOGIN_USER_KEY];
+          const uuid = jwtInfo[TOKEN_JWT_FIELD];
           return await this.getLoginUserCache(uuid);
         }
       } catch (e) {

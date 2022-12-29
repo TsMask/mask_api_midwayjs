@@ -2,9 +2,9 @@ import { ILogger } from '@midwayjs/core';
 import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
 import { Inject, Provide } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { RoleDataScopeEnum } from '../../common/enums/RoleDataScopeEnum';
-import { getRealAddressByIp } from '../../common/utils/ip2region';
-import { getUaInfo } from '../../common/utils/UAParserUtils';
+import { RoleDataScopeEnum } from '../../framework/enums/RoleDataScopeEnum';
+import { getRealAddressByIp } from '../../framework/utils/ip2region';
+import { getUaInfo } from '../../framework/utils/UAParserUtils';
 import { SysLogininfor } from '../../modules/monitor/model/SysLogininfor';
 import { SysUser } from '../core/model/SysUser';
 import { LoginUser } from '../core/vo/LoginUser';
@@ -108,8 +108,8 @@ export class ContextService {
 
   /**
    * 系统访问记录
-   * @param status 登录状态（0成功 1失败）
-   * @param msg 提示消息
+   * @param status 记录状态（0成功 1失败）
+   * @param msg 记录提示消息
    * @param userName 登录账号，无身份认证时指定具体参数
    * @return 对象信息
    */

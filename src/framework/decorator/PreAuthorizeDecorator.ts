@@ -5,6 +5,7 @@ import {
 } from '@midwayjs/core/dist/error/http';
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
+import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/CommonConstants';
 import { LoginUser } from '../core/vo/LoginUser';
 import { TokenService } from '../service/TokenService';
 
@@ -91,7 +92,10 @@ function verifyRolePermission(
   metadata: AuthOptions
 ): boolean {
   // 直接放行 管理员角色或任意权限
-  if (roles.includes('admin') || permissions.includes('*:*:*')) {
+  if (
+    roles.includes(ADMIN_ROLE_KEY) ||
+    permissions.includes(ADMIN_PERMISSION)
+  ) {
     return true;
   }
 

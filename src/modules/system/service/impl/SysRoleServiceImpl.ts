@@ -1,4 +1,5 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { ADMIN_ROLE_ID } from '../../../../framework/constants/CommonConstants';
 import { SysRole } from '../../../../framework/core/model/SysRole';
 import { SysRoleDept } from '../../model/SysRoleDept';
 import { SysRoleMenu } from '../../model/SysRoleMenu';
@@ -179,7 +180,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
   async deleteRoleByIds(roleIds: string[]): Promise<number> {
     for (const roleId of roleIds) {
       // 检查是否管理员角色
-      if (roleId === '1') {
+      if (roleId === ADMIN_ROLE_ID) {
         throw new Error('不允许操作管理员角色');
       }
       // 检查是否存在

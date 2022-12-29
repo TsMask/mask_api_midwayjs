@@ -11,14 +11,14 @@ import { Result } from '../../../framework/core/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
-import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
+import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { SysUser } from '../../../framework/core/model/SysUser';
 import { TokenService } from '../../../framework/service/TokenService';
-import { bcryptCompare } from '../../../common/utils/CryptoUtils';
+import { bcryptCompare } from '../../../framework/utils/CryptoUtils';
 import { FileService } from '../../../framework/service/FileService';
 import { UploadFileInfo } from '@midwayjs/upload';
-import { UploadSubPathEnum } from '../../../common/enums/UploadSubPathEnum';
+import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
 
 /**
  * 个人信息

@@ -1,5 +1,5 @@
 import { Controller, Body, Post, Get, Inject } from '@midwayjs/decorator';
-import { TOKEN } from '../../../common/constants/CommonConstants';
+import { TOKEN_RESPONSE_FIELD } from '../../../framework/constants/CommonConstants';
 import { Result } from '../../../framework/core/Result';
 import { LoginBody } from '../../../framework/core/vo/LoginBody';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
@@ -34,7 +34,7 @@ export class SysLoginController {
   async login(@Body() loginBody: LoginBody): Promise<Result> {
     const token = await this.sysLoginService.login(loginBody);
     return Result.ok({
-      [TOKEN]: token,
+      [TOKEN_RESPONSE_FIELD]: token,
     });
   }
 
@@ -65,7 +65,7 @@ export class SysLoginController {
     const userId = this.contextService.getUserId();
     const isAdmin = this.contextService.isAdmin(userId);
     const menus = await this.sysMenuService.selectMenuTreeByUserId(
-      isAdmin ? undefined : userId
+      isAdmin ? null : userId
     );
     const buildMenus = await this.sysMenuService.buildRouteMenus(menus);
     return Result.okData(buildMenus);

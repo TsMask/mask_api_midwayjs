@@ -9,7 +9,8 @@ import {
   Post,
   Query,
 } from '@midwayjs/decorator';
-import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
+import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
+import { STATUS_NO } from '../../../framework/constants/CommonConstants';
 import { SysDept } from '../../../framework/core/model/SysDept';
 import { Result } from '../../../framework/core/Result';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
@@ -93,7 +94,7 @@ export class SysDeptController {
     const deptParent = await this.sysDeptService.selectDeptById(
       sysDept.parentId
     );
-    if (deptParent && deptParent.status === '1') {
+    if (deptParent && deptParent.status === STATUS_NO) {
       return Result.errMsg(
         `上级部门【${deptParent.deptName}】停用，不允许新增`
       );
@@ -126,7 +127,7 @@ export class SysDeptController {
       );
     }
     // 上级停用
-    if (sysDept.status === '1') {
+    if (sysDept.status === STATUS_NO) {
       const hasChild = await this.sysDeptService.hasChildByDeptId(
         sysDept.deptId
       );

@@ -1,6 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
-import { parseNumber } from '../../../../common/utils/ValueParseUtils';
+import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { SysMenu } from '../../../../framework/core/model/SysMenu';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysMenuRepository } from '../ISysMenuRepository';

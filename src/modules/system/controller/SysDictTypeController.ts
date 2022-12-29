@@ -8,7 +8,7 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
-import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
+import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { SysDictType } from '../../../framework/core/model/SysDictType';
 import { Result } from '../../../framework/core/Result';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';

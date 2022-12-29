@@ -33,7 +33,7 @@ export async function checkExistsAndMkdir(filePath: string): Promise<string> {
   if (!exist) {
     return fs.mkdirSync(filePath, { recursive: true });
   }
-  return undefined;
+  return null;
 }
 
 /**

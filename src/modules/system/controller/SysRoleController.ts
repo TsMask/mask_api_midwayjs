@@ -16,13 +16,14 @@ import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { SysRole } from '../../../framework/core/model/SysRole';
 import { ContextService } from '../../../framework/service/ContextService';
 import { TokenService } from '../../../framework/service/TokenService';
-import { parseNumber } from '../../../common/utils/ValueParseUtils';
+import { parseNumber } from '../../../framework/utils/ValueParseUtils';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
 import { SysDept } from '../../../framework/core/model/SysDept';
-import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
+import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
-import { ROLE_DATA_SCOPE } from '../../../common/enums/RoleDataScopeEnum';
+import { ROLE_DATA_SCOPE } from '../../../framework/enums/RoleDataScopeEnum';
 import { FileService } from '../../../framework/service/FileService';
+import { ADMIN_ROLE_ID } from '../../../framework/constants/CommonConstants';
 
 /**
  * 角色信息
@@ -156,7 +157,7 @@ export class SysRoleController {
     const roleId = sysRole.roleId;
     if (!roleId) return Result.err();
     // 检查是否管理员角色
-    if (roleId === '1') {
+    if (roleId === ADMIN_ROLE_ID) {
       return Result.errMsg('不允许操作管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
@@ -225,7 +226,7 @@ export class SysRoleController {
   ): Promise<Result> {
     if (!roleId) return Result.err();
     // 检查是否管理员角色
-    if (roleId === '1') {
+    if (roleId === ADMIN_ROLE_ID) {
       return Result.errMsg('不允许操作管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
@@ -251,7 +252,7 @@ export class SysRoleController {
     const roleId = sysRole.roleId;
     if (!roleId) return Result.err();
     // 检查是否管理员角色
-    if (roleId === '1') {
+    if (roleId === ADMIN_ROLE_ID) {
       return Result.errMsg('不允许操作管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);

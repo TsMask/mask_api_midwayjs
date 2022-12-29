@@ -162,7 +162,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       password: {
         /**密码最大错误次数 */
         maxRetryCount: 5,
-        /**密码锁定时间（默认10分钟） */
+        /**密码锁定时间,单位分钟（默认10分钟） */
         lockTime: 10,
       },
       /**管理员列表 */

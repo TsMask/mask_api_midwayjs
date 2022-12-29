@@ -1,6 +1,9 @@
 import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
-import { UserStatusEnum } from '../../../../common/enums/UserStatusEnum';
-import { validEmail, validMobile } from '../../../../common/utils/RegularUtils';
+import { UserStatusEnum } from '../../../../framework/enums/UserStatusEnum';
+import {
+  validEmail,
+  validMobile,
+} from '../../../../framework/utils/RegularUtils';
 import { SysDictData } from '../../../../framework/core/model/SysDictData';
 import { SysUser } from '../../../../framework/core/model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';

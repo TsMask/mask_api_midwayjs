@@ -98,6 +98,6 @@ export class ContainerLifeCycle {
    * 在应用服务启动后执行
    */
   async onServerReady(): Promise<void> {
-    this.app.getLogger().warn('配置环境 => %s', this.app.getEnv());
+    this.app.getLogger().warn('当期服务环境运行配置 => %s', this.app.getEnv());
   }
 }

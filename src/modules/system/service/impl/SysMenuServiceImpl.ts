@@ -1,7 +1,11 @@
 import { Provide, Inject } from '@midwayjs/decorator';
-import { HTTP, HTTPS, WWW } from '../../../../common/constants/CommonConstants';
-import { parseFirstUpper } from '../../../../common/utils/ValueParseUtils';
-import { validHttp } from '../../../../common/utils/RegularUtils';
+import {
+  HTTP,
+  HTTPS,
+  WWW,
+} from '../../../../framework/constants/CommonConstants';
+import { parseFirstUpper } from '../../../../framework/utils/ValueParseUtils';
+import { validHttp } from '../../../../framework/utils/RegularUtils';
 import { SysMenu } from '../../../../framework/core/model/SysMenu';
 import { TreeSelect } from '../../../../framework/core/TreeSelect';
 import { MetaVo } from '../../model/vo/MetaVo';
@@ -10,8 +14,9 @@ import { SysMenuRepositoryImpl } from '../../repository/impl/SysMenuRepositoryIm
 import { ISysMenuService } from '../ISysMenuService';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
-import { MenuTypeEnum } from '../../../../common/enums/MenuTypeEnum';
-import { MenuComponentEnum } from '../../../../common/enums/MenuComponentEnum';
+import { MenuTypeEnum } from '../../../../framework/enums/MenuTypeEnum';
+import { MenuComponentEnum } from '../../../../framework/enums/MenuComponentEnum';
+import { STATUS_NO } from '../../../../framework/constants/CommonConstants';
 
 /**
  * 菜单 服务层实现
@@ -235,7 +240,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     const routers: RouterVo[] = [];
     for (const menu of sysMenus) {
       const router = new RouterVo();
-      router.hidden = menu.visible === '1';
+      router.hidden = menu.visible === STATUS_NO;
       router.name = this.getRouteName(menu);
       router.path = this.getRouterPath(menu);
       router.component = this.getComponent(menu);
@@ -244,7 +249,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       metaVo.newTitleIconCacheLike(
         menu.menuName,
         menu.icon,
-        menu.isCache === '1',
+        menu.isCache === STATUS_NO,
         menu.path
       );
       router.meta = metaVo;
@@ -268,7 +273,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
         mateVoChildren.newTitleIconCacheLike(
           menu.menuName,
           menu.icon,
-          menu.isCache === '1',
+          menu.isCache === STATUS_NO,
           menu.path
         );
         children.meta = mateVoChildren;
@@ -330,7 +335,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     // 非外链并且是一级目录（类型为目录）
     if (
       menu.parentId === '0' &&
-      menu.isFrame === '1' &&
+      menu.isFrame === STATUS_NO &&
       menu.menuType === MenuTypeEnum.DIR
     ) {
       routerPath = `/${menu.path}`;
@@ -371,7 +376,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 结果
    */
   private isInnerLink(menu: SysMenu): boolean {
-    return menu.isFrame === '1' && validHttp(menu.path);
+    return menu.isFrame === STATUS_NO && validHttp(menu.path);
   }
 
   /**
@@ -383,7 +388,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
   private isMenuFrame(menu: SysMenu): boolean {
     return (
       menu.parentId === '0' &&
-      menu.isFrame === '1' &&
+      menu.isFrame === STATUS_NO &&
       menu.menuType === MenuTypeEnum.MENU
     );
   }
@@ -404,10 +409,10 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return
    */
   private innerLinkReplaceEach(path: string): string {
-    path.replace(HTTP, '');
-    path.replace(HTTPS, '');
-    path.replace(WWW, '');
-    path.replace('.', '/');
+    path = path.replace(HTTP, '');
+    path = path.replace(HTTPS, '');
+    path = path.replace(WWW, '');
+    path = path.replace('.', '/');
     return path;
   }
 }

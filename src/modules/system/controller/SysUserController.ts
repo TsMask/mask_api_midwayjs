@@ -24,16 +24,17 @@ import { SysUser } from '../../../framework/core/model/SysUser';
 import {
   parseBoolean,
   parseNumber,
-} from '../../../common/utils/ValueParseUtils';
+} from '../../../framework/utils/ValueParseUtils';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
-import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
+import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { FileService } from '../../../framework/service/FileService';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { SysDictData } from '../../../framework/core/model/SysDictData';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
-import { parseDateToStr } from '../../../common/utils/DateFnsUtils';
-import { validEmail, validMobile } from '../../../common/utils/RegularUtils';
+import { parseDateToStr } from '../../../framework/utils/DateFnsUtils';
+import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitDecorator';
+import { ADMIN_ROLE_ID } from '../../../framework/constants/CommonConstants';
 
 /**
  * 用户信息
@@ -193,7 +194,7 @@ export class SysUserController {
     const posts = await this.sysPostService.selectPostList(new SysPost());
     // 不是系统指定管理员需要排除其角色
     if (!this.contextService.isAdmin(userId)) {
-      roles = roles.filter(r => r.roleId !== '1');
+      roles = roles.filter(r => r.roleId !== ADMIN_ROLE_ID);
     }
     // 检查用户是否存在
     const sysUser = await this.sysUserService.selectUserById(userId);
@@ -430,7 +431,7 @@ export class SysUserController {
     // 不是系统指定管理员需要排除其角色
     let roles = await this.sysRoleService.selectRolesByUserId(userId);
     if (!this.contextService.isAdmin(userId)) {
-      roles = roles.filter(r => r.roleId !== '1');
+      roles = roles.filter(r => r.roleId !== ADMIN_ROLE_ID);
     }
     return Result.ok({
       user,

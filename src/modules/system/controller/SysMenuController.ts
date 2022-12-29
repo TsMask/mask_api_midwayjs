@@ -9,8 +9,8 @@ import {
   Put,
   Query,
 } from '@midwayjs/decorator';
-import { OperatorBusinessTypeEnum } from '../../../common/enums/OperatorBusinessTypeEnum';
-import { validHttp } from '../../../common/utils/RegularUtils';
+import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
+import { validHttp } from '../../../framework/utils/RegularUtils';
 import { SysMenu } from '../../../framework/core/model/SysMenu';
 import { Result } from '../../../framework/core/Result';
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
@@ -41,7 +41,7 @@ export class SysMenuController {
     const isAdmin = this.contextService.isAdmin(userId);
     const data = await this.sysMenuService.selectMenuList(
       sysMenu,
-      isAdmin ? undefined : userId
+      isAdmin ? null : userId
     );
     return Result.okData(data || []);
   }
@@ -148,7 +148,7 @@ export class SysMenuController {
     const menuTreeSelect =
       await this.sysMenuService.selectMenuTreeSelectByUserId(
         sysMenu,
-        isAdmin ? undefined : userId
+        isAdmin ? null : userId
       );
     return Result.okData(menuTreeSelect);
   }
@@ -165,7 +165,7 @@ export class SysMenuController {
     const menuTreeSelect =
       await this.sysMenuService.selectMenuTreeSelectByUserId(
         new SysMenu(),
-        isAdmin ? undefined : userId
+        isAdmin ? null : userId
       );
     const checkedKeys = await this.sysMenuService.selectMenuListByRoleId(
       roleId

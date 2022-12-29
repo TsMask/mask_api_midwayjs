@@ -7,7 +7,7 @@ import {
   REPEAT_SUBMIT_KEY,
   SYS_CONFIG_KEY,
   SYS_DICT_KEY,
-} from '../../../common/constants/CacheKeysConstants';
+} from '../../../framework/constants/CacheKeysConstants';
 import { Result } from '../../../framework/core/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
 import { RedisCache } from '../../../framework/redis/RedisCache';

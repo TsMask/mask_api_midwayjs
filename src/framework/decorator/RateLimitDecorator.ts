@@ -3,8 +3,8 @@ import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { LoginUser } from '../core/vo/LoginUser';
 import { Result } from '../core/Result';
-import { LimitTypeEnum } from '../../common/enums/LimitTypeEnum';
-import { RATE_LIMIT_KEY } from '../../common/constants/CacheKeysConstants';
+import { LimitTypeEnum } from '../../framework/enums/LimitTypeEnum';
+import { RATE_LIMIT_KEY } from '../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../redis/RedisCache';
 
 /** 限流参数 */

@@ -1,5 +1,5 @@
 import { Provide, Inject, Init, ScopeEnum, Scope } from '@midwayjs/decorator';
-import { SYS_DICT_KEY } from '../../../../common/constants/CacheKeysConstants';
+import { SYS_DICT_KEY } from '../../../../framework/constants/CacheKeysConstants';
 import { SysDictData } from '../../../../framework/core/model/SysDictData';
 import { SysDictType } from '../../../../framework/core/model/SysDictType';
 import { RedisCache } from '../../../../framework/redis/RedisCache';

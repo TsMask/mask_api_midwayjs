@@ -1,4 +1,4 @@
-import { validHttp } from '../../../../common/utils/RegularUtils';
+import { validHttp } from '../../../../framework/utils/RegularUtils';
 
 /**
  * 路由显示信息

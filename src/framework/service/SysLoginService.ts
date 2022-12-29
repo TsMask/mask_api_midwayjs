@@ -4,17 +4,18 @@ import { SysUser } from '../core/model/SysUser';
 import {
   CAPTCHA_CODE_KEY,
   PWD_ERR_CNT_KEY,
-} from '../../common/constants/CacheKeysConstants';
+} from '../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../redis/RedisCache';
 import { TokenService } from './TokenService';
 import { LoginUser } from '../core/vo/LoginUser';
-import { UserStatusEnum } from '../../common/enums/UserStatusEnum';
-import { parseNumber } from '../../common/utils/ValueParseUtils';
-import { bcryptCompare } from '../../common/utils/CryptoUtils';
+import { UserStatusEnum } from '../../framework/enums/UserStatusEnum';
+import { parseNumber } from '../../framework/utils/ValueParseUtils';
+import { bcryptCompare } from '../../framework/utils/CryptoUtils';
 import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../modules/system/service/impl/SysUserServiceImpl';
 import { SysLogininforServiceImpl } from '../../modules/monitor/service/impl/SysLogininforServiceImpl';
 import { ContextService } from './ContextService';
+import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
 
 /**
  * 登录校验方法
@@ -50,7 +51,7 @@ export class SysLoginService {
       const msg = `登录用户：${userName} 退出成功.`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
-        '0',
+        STATUS_YES,
         '退出成功',
         userName
       );
@@ -83,7 +84,7 @@ export class SysLoginService {
     const msg = `登录用户：${loginBody.username} 登录成功.`;
     this.contextService.getLogger().info(msg);
     const sysLogininfor = await this.contextService.newSysLogininfor(
-      '0',
+      STATUS_YES,
       '登录成功',
       loginBody.username
     );
@@ -112,7 +113,7 @@ export class SysLoginService {
       const msg = `登录用户：${username} 验证码失效 ${code}`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
-        '1',
+        STATUS_NO,
         msg,
         username
       );
@@ -124,7 +125,7 @@ export class SysLoginService {
       const msg = `登录用户：${username} 验证码错误 ${code}`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
-        '1',
+        STATUS_NO,
         msg,
         username
       );
@@ -148,7 +149,7 @@ export class SysLoginService {
       const msg = `登录用户：${username} 不存在.`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
-        '1',
+        STATUS_NO,
         msg,
         username
       );
@@ -159,7 +160,7 @@ export class SysLoginService {
       const msg = `登录用户：${username} 已被删除.`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
-        '1',
+        STATUS_NO,
         msg,
         username
       );
@@ -170,7 +171,7 @@ export class SysLoginService {
       const msg = `登录用户：${username} 已被停用.`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
-        '1',
+        STATUS_NO,
         msg,
         username
       );
@@ -221,7 +222,7 @@ export class SysLoginService {
       const msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
-        '1',
+        STATUS_NO,
         msg,
         loginName
       );
@@ -242,7 +243,7 @@ export class SysLoginService {
       const msg = `密码输入错误 ${errCount} 次`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
-        '1',
+        STATUS_NO,
         msg,
         loginName
       );

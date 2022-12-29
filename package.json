@@ -1,6 +1,6 @@
 {
   "name": "ruoyi_api_midwayjs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "🎉 基于RuoYi-Vue3的Midwayjs框架版本",
   "private": true,
   "dependencies": {

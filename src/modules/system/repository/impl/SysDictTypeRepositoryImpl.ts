@@ -3,8 +3,8 @@ import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
-} from '../../../../common/utils/DateFnsUtils';
-import { parseNumber } from '../../../../common/utils/ValueParseUtils';
+} from '../../../../framework/utils/DateFnsUtils';
+import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { SysDictType } from '../../../../framework/core/model/SysDictType';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysDictTypeRepository } from '../ISysDictTypeRepository';
