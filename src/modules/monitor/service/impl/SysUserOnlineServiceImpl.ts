@@ -11,41 +11,8 @@ import { ISysUserOnlineService } from '../ISysUserOnlineService';
 @Provide()
 @Scope(ScopeEnum.Singleton)
 export class SysUserOnlineServiceImpl implements ISysUserOnlineService {
-  async selectOnlineByIpaddr(
-    ipaddr: string,
-    loginUser: LoginUser
-  ): Promise<SysUserOnline> {
-    if (ipaddr === loginUser.ipaddr) {
-      return await this.loginUserToUserOnline(loginUser);
-    }
-    return null;
-  }
-
-  async selectOnlineByUserName(
-    userName: string,
-    loginUser: LoginUser
-  ): Promise<SysUserOnline> {
-    if (userName === loginUser.user?.userName) {
-      return await this.loginUserToUserOnline(loginUser);
-    }
-    return null;
-  }
-
-  async selectOnlineByInfo(
-    ipaddr: string,
-    userName: string,
-    loginUser: LoginUser
-  ): Promise<SysUserOnline> {
-    if (ipaddr === loginUser.ipaddr && userName === loginUser.user?.userName) {
-      return await this.loginUserToUserOnline(loginUser);
-    }
-    return null;
-  }
-
   async loginUserToUserOnline(loginUser: LoginUser): Promise<SysUserOnline> {
-    if (!loginUser && !loginUser.user) {
-      return null;
-    }
+    if (!loginUser && !loginUser.user) return null;
     const sysUserOnline = new SysUserOnline();
     sysUserOnline.tokenId = loginUser.uuid;
     sysUserOnline.userName = loginUser.user?.userName;

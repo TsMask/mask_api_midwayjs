@@ -3,7 +3,7 @@ import { MidwayConfig } from '@midwayjs/core';
 export default {
   // 核心服务配置
   koa: {
-    port: 7001, // 服务端口
+    port: 6275, // 服务端口
   },
 
   // 接口文档
@@ -58,7 +58,7 @@ export default {
         port: 3306,
         username: 'root',
         password: 'root@1234',
-        database: 'ruoyi_api_midwayjs',
+        database: 'mask_api_midwayjs',
         logging: true, // 输出sql日志
       },
     },

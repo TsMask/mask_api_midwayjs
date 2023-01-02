@@ -2,7 +2,6 @@ import { Controller, Get, Inject } from '@midwayjs/decorator';
 import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../framework/constants/CacheKeysConstants';
-import { CAPTCHA_EXPIRATION } from '../../../framework/constants/CommonConstants';
 import { generateID } from '../../../framework/utils/GenIdUtils';
 import { Result } from '../../../framework/core/Result';
 import { RedisCache } from '../../../framework/redis/RedisCache';
@@ -10,6 +9,11 @@ import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigService
 import { ContextService } from '../../../framework/service/ContextService';
 import { RateLimit } from '../../../framework/decorator/RateLimitDecorator';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
+import {
+  CAPTCHA_TYPE_CHAR,
+  CAPTCHA_TYPE_MATH,
+  CAPTCHA_EXPIRATION,
+} from '../../../framework/constants/CaptchaConstants';
 
 /**
  * 验证码操作处理
@@ -52,7 +56,7 @@ export class CaptchaController {
 
     // 从数据库配置获取验证码类型
     const captchaType = await this.sysConfigService.selectCaptchaType();
-    if (captchaType === 'math') {
+    if (captchaType === CAPTCHA_TYPE_MATH) {
       const options: ConfigObject =
         this.contextService.getConfig('mathCaptcha');
       const captcha = createMathExpr(options);
@@ -63,7 +67,7 @@ export class CaptchaController {
         CAPTCHA_EXPIRATION
       );
     }
-    if (captchaType === 'char') {
+    if (captchaType === CAPTCHA_TYPE_CHAR) {
       const options: ConfigObject =
         this.contextService.getConfig('charCaptcha');
       const captcha = create(options);

@@ -23,7 +23,7 @@ import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusin
 import { OperLog } from '../../../framework/decorator/OperLogDecorator';
 import { ROLE_DATA_SCOPE } from '../../../framework/enums/RoleDataScopeEnum';
 import { FileService } from '../../../framework/service/FileService';
-import { ADMIN_ROLE_ID } from '../../../framework/constants/CommonConstants';
+import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
 
 /**
  * 角色信息

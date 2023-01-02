@@ -140,9 +140,9 @@ export class SysMenuController {
   /**
    * 菜单下拉树列表
    */
-  @Get('/treeselect')
+  @Get('/menuTreeselect')
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
-  async treeselect(@Query() sysMenu: SysMenu): Promise<Result> {
+  async menuTreeselect(@Query() sysMenu: SysMenu): Promise<Result> {
     const userId = this.contextService.getUserId();
     const isAdmin = this.contextService.isAdmin(userId);
     const menuTreeSelect =

@@ -36,42 +36,29 @@ export class SysUserOnlineController {
     @Query('ipaddr') ipaddr: string,
     @Query('userName') userName: string
   ): Promise<Result> {
-    const userOnlines: SysUserOnline[] = [];
+    let userOnlines: SysUserOnline[] = [];
+    // 去除所有在线用户
     const keys = await this.redisCache.getKeys(`${LOGIN_TOKEN_KEY}*`);
     for (const key of keys) {
       const loginUserStr = await this.redisCache.get(key);
       const loginUser: LoginUser = JSON.parse(loginUserStr);
-      if (
-        ipaddr &&
-        ipaddr === loginUser.ipaddr &&
-        userName &&
-        loginUser.user?.userName
-      ) {
-        const online = await this.sysUserOnlineService.selectOnlineByInfo(
-          ipaddr,
-          userName,
-          loginUser
-        );
-        userOnlines.push(online);
-      } else if (ipaddr && ipaddr === loginUser.ipaddr) {
-        const online = await this.sysUserOnlineService.selectOnlineByIpaddr(
-          ipaddr,
-          loginUser
-        );
-        userOnlines.push(online);
-      } else if (userName && loginUser.user?.userName) {
-        const online = await this.sysUserOnlineService.selectOnlineByUserName(
-          userName,
-          loginUser
-        );
-        userOnlines.push(online);
-      } else {
-        const online = await this.sysUserOnlineService.loginUserToUserOnline(
-          loginUser
-        );
-        userOnlines.push(online);
-      }
+      const onlineUser = await this.sysUserOnlineService.loginUserToUserOnline(
+        loginUser
+      );
+      userOnlines.push(onlineUser);
     }
+
+    // 根据查询条件过滤
+    if (ipaddr && userName) {
+      userOnlines = userOnlines.filter(
+        o => ipaddr === o.ipaddr && userName === o.userName
+      );
+    } else if (ipaddr) {
+      userOnlines = userOnlines.filter(o => ipaddr === o.ipaddr);
+    } else if (userName) {
+      userOnlines = userOnlines.filter(o => userName === o.userName);
+    }
+
     return Result.ok({
       rows: userOnlines.reverse(),
       total: keys.length,

@@ -4,7 +4,7 @@ import { JwtService } from '@midwayjs/jwt';
 import {
   TOKEN_JWT_FIELD,
   TOKEN_HEADER_PREFIX,
-} from '../../framework/constants/CommonConstants';
+} from '../../framework/constants/TokenConstants';
 import { LoginUser } from '../core/vo/LoginUser';
 import { RedisCache } from '../redis/RedisCache';
 import { LOGIN_TOKEN_KEY } from '../../framework/constants/CacheKeysConstants';

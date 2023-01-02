@@ -3,7 +3,7 @@ import {
   RESULT_ERROR_MSG,
   RESULT_SUCCESS_CODE,
   RESULT_SUCCESS_MSG,
-} from '../constants/CommonConstants';
+} from '../constants/ResultConstants';
 
 /**
  * 响应信息主体

@@ -1,7 +1,7 @@
 {
-  "name": "ruoyi_api_midwayjs",
+  "name": "mask_api_midwayjs",
   "version": "0.0.3",
-  "description": "🎉 基于RuoYi-Vue3的Midwayjs框架版本",
+  "description": "🎉 基于 Midwayjs v3的管理系统后端接口服务",
   "private": true,
   "dependencies": {
     "@dropb/diskinfo": "^3.0.0",
@@ -45,7 +45,7 @@
     "typescript": "^4.0.0"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   },
   "scripts": {
     "start": "NODE_ENV=production node ./bootstrap.js",
@@ -63,7 +63,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/TsMask/ruoyi_api_midwayjs"
+    "url": "https://gitee.com/TsMask/mask_api_midwayjs"
   },
   "author": "TsMask",
   "license": "MIT"

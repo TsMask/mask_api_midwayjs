@@ -34,7 +34,7 @@ import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { parseDateToStr } from '../../../framework/utils/DateFnsUtils';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitDecorator';
-import { ADMIN_ROLE_ID } from '../../../framework/constants/CommonConstants';
+import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
 
 /**
  * 用户信息

@@ -42,23 +42,23 @@ export class SysMenuServiceImpl implements ISysMenuService {
   }
   async selectMenuPermsByUserId(userId: string): Promise<string[]> {
     const perms = await this.sysMenuRepository.selectMenuPermsByUserId(userId);
-    const perms_arr: string[] = [];
+    const permsArr: string[] = [];
     for (const perm of perms) {
       if (perm) {
-        perms_arr.push(...perm.trim().split(','));
+        permsArr.push(...perm.trim().split(','));
       }
     }
-    return [...new Set(perms_arr)];
+    return [...new Set(permsArr)];
   }
   async selectMenuPermsByRoleId(roleId: string): Promise<string[]> {
     const perms = await this.sysMenuRepository.selectMenuPermsByRoleId(roleId);
-    const perms_arr: string[] = [];
+    const permsArr: string[] = [];
     for (const perm of perms) {
       if (perm) {
-        perms_arr.push(...perm.trim().split(','));
+        permsArr.push(...perm.trim().split(','));
       }
     }
-    return [...new Set(perms_arr)];
+    return [...new Set(permsArr)];
   }
 
   async selectMenuTreeByUserId(userId: string): Promise<SysMenu[]> {
@@ -224,6 +224,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
   async deleteMenuById(menuId: string): Promise<number> {
     return await this.sysMenuRepository.deleteMenuById(menuId);
   }
+
   async checkUniqueNenuName(sysMenu: SysMenu): Promise<boolean> {
     const menuId = await this.sysMenuRepository.checkUniqueMenuName(
       sysMenu.menuName,

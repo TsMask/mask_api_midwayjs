@@ -1,8 +1,8 @@
 import { MidwayAppInfo, MidwayConfig } from '@midwayjs/core';
 
 export default (appInfo: MidwayAppInfo): MidwayConfig => {
-  // 程序文件路径 示例（ Windows配置D:/home/ruoyi，Linux配置 /home/ruoyi）
-  const filePath = 'D:/home/ruoyi';
+  // 程序文件路径 示例（ Windows配置D:/home/mask，Linux配置 /home/mask）
+  const filePath = 'D:/home/mask';
 
   return {
     // use for cookie sign key, should change to your own and keep security
@@ -41,7 +41,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     /**核心服务配置 http://www.midwayjs.org/docs/extensions/koa */
     koa: {
       /**服务端口 */
-      port: 7001,
+      port: 6275,
     },
 
     /**请求数据解析大小限制 */

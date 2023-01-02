@@ -1,7 +1,7 @@
 import { Inject, Provide } from '@midwayjs/decorator';
 import { SysMenuServiceImpl } from '../../modules/system/service/impl/SysMenuServiceImpl';
 import { SysRoleServiceImpl } from '../../modules/system/service/impl/SysRoleServiceImpl';
-import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/CommonConstants';
+import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
 import { SysUser } from '../core/model/SysUser';
 import { ContextService } from './ContextService';
 
