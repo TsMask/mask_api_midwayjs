@@ -1,11 +1,11 @@
 import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { LoginUser } from '../core/vo/LoginUser';
-import { Result } from '../core/Result';
-import { LimitTypeEnum } from '../../framework/enums/LimitTypeEnum';
-import { RATE_LIMIT_KEY } from '../../framework/constants/CacheKeysConstants';
-import { RedisCache } from '../redis/RedisCache';
+import { LoginUser } from '../model/LoginUser';
+import { Result } from '../model/Result';
+import { LimitTypeEnum } from '../enums/LimitTypeEnum';
+import { RATE_LIMIT_KEY } from '../constants/CacheKeysConstants';
+import { RedisCache } from '../cache/RedisCache';
 
 /** 限流参数 */
 interface rateLimitOptions {
@@ -18,7 +18,7 @@ interface rateLimitOptions {
 }
 
 /**装饰器内部的唯一 key */
-export const DECORATOR_RATE_LIMIT_KEY = 'decorator:rate_limit';
+export const DECORATOR_METHOD_RATE_LIMIT_KEY = 'decorator_method:rate_limit';
 
 /**
  * 限流-方法装饰器
@@ -33,7 +33,7 @@ export const DECORATOR_RATE_LIMIT_KEY = 'decorator:rate_limit';
  * @author TsMask <340112800@qq.com>
  */
 export function RateLimit(options: rateLimitOptions): MethodDecorator {
-  return createCustomMethodDecorator(DECORATOR_RATE_LIMIT_KEY, options);
+  return createCustomMethodDecorator(DECORATOR_METHOD_RATE_LIMIT_KEY, options);
 }
 
 /**

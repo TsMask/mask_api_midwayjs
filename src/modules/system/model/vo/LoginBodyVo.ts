@@ -3,7 +3,7 @@
  *
  * @author TsMask <340112800@qq.com>
  */
-export class LoginBody {
+export class LoginBodyVo {
   /**用户名 */
   username: string;
 

@@ -48,10 +48,10 @@ mask_api_midwayjs
 ├   ├── framework               目录-程序核心通用代码
 ├   ├── modules                 目录-业务模块
 ├   ├   ├── system              目录-系统内部接口模块
-├   ├   ├   ├── controller      目录-路由接口层
-├   ├   ├   ├── model           目录-数据库表对象模型
-├   ├   ├   ├── repository      目录-CURD操作数据库的数据层
-├   ├   ├   ├── service         目录-业务逻辑处理服务层
+├   ├   ├   ├── controller      目录-接口路由控制层
+├   ├   ├   ├── model           目录-数据对象模型层
+├   ├   ├   ├── repository      目录-CURD数据存储层
+├   ├   ├   ├── service         目录-业务逻辑服务层
 ├   ├   └── ...
 ├   ├── typings                 目录-程序通用类型定义
 ├   ├── configuration.ts        文件-程序框架启动入口
@@ -73,8 +73,6 @@ mask_api_midwayjs
 ## 快速启动
 
 你需要先安装准备 **开发环境** 后使用 **程序命令**
-
-文件上传使用静态目录映射，需要先创建文件夹后在启动避免程序映射异常。
 
 ### 开发环境
 

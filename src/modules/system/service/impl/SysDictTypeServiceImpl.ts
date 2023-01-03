@@ -1,11 +1,11 @@
 import { Provide, Inject, Init, ScopeEnum, Scope } from '@midwayjs/decorator';
 import { SYS_DICT_KEY } from '../../../../framework/constants/CacheKeysConstants';
-import { SysDictData } from '../../../../framework/core/model/SysDictData';
-import { SysDictType } from '../../../../framework/core/model/SysDictType';
-import { RedisCache } from '../../../../framework/redis/RedisCache';
+import { RedisCache } from '../../../../framework/cache/RedisCache';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
 import { SysDictTypeRepositoryImpl } from '../../repository/impl/SysDictTypeRepositoryImpl';
 import { ISysDictTypeService } from '../ISysDictTypeService';
+import { SysDictData } from '../../model/SysDictData';
+import { SysDictType } from '../../model/SysDictType';
 
 /**
  * 字典类型 业务层处理

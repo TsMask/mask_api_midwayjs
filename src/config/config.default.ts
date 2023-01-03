@@ -1,6 +1,6 @@
-import { MidwayAppInfo, MidwayConfig } from '@midwayjs/core';
+import { MidwayConfig } from '@midwayjs/core';
 
-export default (appInfo: MidwayAppInfo): MidwayConfig => {
+export default (): MidwayConfig => {
   // 程序文件路径 示例（ Windows配置D:/home/mask，Linux配置 /home/mask）
   const filePath = 'D:/home/mask';
 
@@ -81,7 +81,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       dirs: {
         default: {
           prefix: '/static',
-          dir: `${appInfo.appDir}\\static`,
+          dir: `${filePath}/static`,
         },
         // 文件上传资源目录映射
         upload: {

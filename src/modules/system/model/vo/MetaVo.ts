@@ -33,6 +33,7 @@ export class MetaVo {
     this.icon = icon;
     this.noCache = false;
     this.link = null;
+    return this;
   }
 
   newTitleIconCache(title: string, icon: string, noCache: boolean) {
@@ -40,6 +41,7 @@ export class MetaVo {
     this.icon = icon;
     this.noCache = noCache;
     this.link = null;
+    return this;
   }
 
   newTitleIconLink(title: string, icon: string, link: string) {
@@ -47,6 +49,7 @@ export class MetaVo {
     this.icon = icon;
     this.noCache = false;
     this.link = validHttp(link) ? link : null;
+    return this;
   }
 
   newTitleIconCacheLike(
@@ -59,5 +62,6 @@ export class MetaVo {
     this.icon = icon;
     this.noCache = noCache;
     this.link = validHttp(link) ? link : null;
+    return this;
   }
 }

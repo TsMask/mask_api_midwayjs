@@ -11,12 +11,12 @@ import {
 } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { validHttp } from '../../../framework/utils/RegularUtils';
-import { SysMenu } from '../../../framework/core/model/SysMenu';
-import { Result } from '../../../framework/core/Result';
-import { OperLog } from '../../../framework/decorator/OperLogDecorator';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { Result } from '../../../framework/model/Result';
+import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
+import { SysMenu } from '../model/SysMenu';
 
 /**
  * 菜单信息
@@ -140,17 +140,16 @@ export class SysMenuController {
   /**
    * 菜单下拉树列表
    */
-  @Get('/menuTreeselect')
+  @Get('/treeselect')
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
-  async menuTreeselect(@Query() sysMenu: SysMenu): Promise<Result> {
+  async treeselect(@Query() sysMenu: SysMenu): Promise<Result> {
     const userId = this.contextService.getUserId();
     const isAdmin = this.contextService.isAdmin(userId);
-    const menuTreeSelect =
-      await this.sysMenuService.selectMenuTreeSelectByUserId(
-        sysMenu,
-        isAdmin ? null : userId
-      );
-    return Result.okData(menuTreeSelect);
+    const trees = await this.sysMenuService.selectMenuTreeSelectByUserId(
+      sysMenu,
+      isAdmin ? null : userId
+    );
+    return Result.okData(trees);
   }
 
   /**

@@ -6,7 +6,7 @@ import {
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
-import { LoginUser } from '../core/vo/LoginUser';
+import { LoginUser } from '../model/LoginUser';
 import { TokenService } from '../service/TokenService';
 
 /** 授权限制参数 */
@@ -22,7 +22,8 @@ interface AuthOptions {
 }
 
 /**装饰器内部的唯一 key */
-export const DECORATOR_PRE_AUTHORIZE_KEY = 'decorator:pre_authorize';
+export const DECORATOR_METHOD_PRE_AUTHORIZE_KEY =
+  'decorator_method:pre_authorize';
 
 /**
  * 用户身份授权认证校验-方法装饰器
@@ -31,7 +32,10 @@ export const DECORATOR_PRE_AUTHORIZE_KEY = 'decorator:pre_authorize';
  * @author TsMask <340112800@qq.com>
  */
 export function PreAuthorize(options?: AuthOptions): MethodDecorator {
-  return createCustomMethodDecorator(DECORATOR_PRE_AUTHORIZE_KEY, options);
+  return createCustomMethodDecorator(
+    DECORATOR_METHOD_PRE_AUTHORIZE_KEY,
+    options
+  );
 }
 
 /**

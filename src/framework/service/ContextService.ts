@@ -6,8 +6,8 @@ import { RoleDataScopeEnum } from '../../framework/enums/RoleDataScopeEnum';
 import { getRealAddressByIp } from '../../framework/utils/ip2region';
 import { getUaInfo } from '../../framework/utils/UAParserUtils';
 import { SysLogininfor } from '../../modules/monitor/model/SysLogininfor';
-import { SysUser } from '../core/model/SysUser';
-import { LoginUser } from '../core/vo/LoginUser';
+import { SysUser } from '../../modules/system/model/SysUser';
+import { LoginUser } from '../model/LoginUser';
 
 /**
  * 上下文对象服务

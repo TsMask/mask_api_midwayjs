@@ -6,11 +6,11 @@ import {
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateFnsUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { SysDept } from '../../../../framework/core/model/SysDept';
-import { SysRole } from '../../../../framework/core/model/SysRole';
-import { SysUser } from '../../../../framework/core/model/SysUser';
+import { SysDept } from '../../model/SysDept';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysUserRepository } from '../ISysUserRepository';
+import { SysUser } from '../../model/SysUser';
+import { SysRole } from '../../model/SysRole';
 
 /**查询视图对象SQL */
 const SELECT_USER_VO = `select 

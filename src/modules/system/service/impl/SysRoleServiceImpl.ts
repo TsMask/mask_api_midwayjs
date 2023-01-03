@@ -1,6 +1,6 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ADMIN_ROLE_ID } from '../../../../framework/constants/AdminConstants';
-import { SysRole } from '../../../../framework/core/model/SysRole';
+import { SysRole } from '../../model/SysRole';
 import { SysRoleDept } from '../../model/SysRoleDept';
 import { SysRoleMenu } from '../../model/SysRoleMenu';
 import { SysUserRole } from '../../model/SysUserRole';

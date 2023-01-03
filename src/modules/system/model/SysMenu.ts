@@ -10,7 +10,7 @@ export class SysMenu {
   /**菜单名称 */
   menuName: string;
 
-  /**父菜单ID */
+  /**父菜单ID 0表示顶层 */
   parentId: string;
 
   /**显示顺序 */

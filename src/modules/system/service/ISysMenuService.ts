@@ -1,5 +1,5 @@
-import { SysMenu } from '../../../framework/core/model/SysMenu';
-import { TreeSelect } from '../../../framework/core/TreeSelect';
+import { TreeSelect } from '../../../framework/model/TreeSelect';
+import { SysMenu } from '../model/SysMenu';
 import { RouterVo } from '../model/vo/RouterVo';
 
 /**

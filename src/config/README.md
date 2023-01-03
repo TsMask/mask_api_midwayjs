@@ -1,4 +1,4 @@
-## 程序相关参数配置
+# 程序相关运行参数配置
 
 [多环境配置](http://www.midwayjs.org/docs/env_config)
 

@@ -8,9 +8,9 @@ import {
   SYS_CONFIG_KEY,
   SYS_DICT_KEY,
 } from '../../../framework/constants/CacheKeysConstants';
-import { Result } from '../../../framework/core/Result';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
-import { RedisCache } from '../../../framework/redis/RedisCache';
+import { Result } from '../../../framework/model/Result';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { RedisCache } from '../../../framework/cache/RedisCache';
 import { SysCache } from '../model/SysCache';
 
 /**

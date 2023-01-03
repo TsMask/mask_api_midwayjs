@@ -3,11 +3,11 @@ import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../framework/constants/CacheKeysConstants';
 import { generateID } from '../../../framework/utils/GenIdUtils';
-import { Result } from '../../../framework/core/Result';
-import { RedisCache } from '../../../framework/redis/RedisCache';
+import { Result } from '../../../framework/model/Result';
+import { RedisCache } from '../../../framework/cache/RedisCache';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
-import { RateLimit } from '../../../framework/decorator/RateLimitDecorator';
+import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import {
   CAPTCHA_TYPE_CHAR,

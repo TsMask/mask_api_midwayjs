@@ -5,9 +5,9 @@ import {
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateFnsUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { SysRole } from '../../../../framework/core/model/SysRole';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysRoleRepository } from '../ISysRoleRepository';
+import { SysRole } from '../../model/SysRole';
 
 /**查询视图对象SQL */
 const SELECT_ROLE_VO = `select distinct 

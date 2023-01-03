@@ -1,11 +1,11 @@
 import { Controller, Body, Post, Get, Inject } from '@midwayjs/decorator';
 import { TOKEN_RESPONSE_FIELD } from '../../../framework/constants/TokenConstants';
-import { Result } from '../../../framework/core/Result';
-import { LoginBody } from '../../../framework/core/vo/LoginBody';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { Result } from '../../../framework/model/Result';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { PermissionService } from '../../../framework/service/PermissionService';
 import { SysLoginService } from '../../../framework/service/SysLoginService';
+import { LoginBodyVo } from '../model/vo/LoginBodyVo';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
 
 /**
@@ -31,8 +31,8 @@ export class SysLoginController {
    * 系统登录
    */
   @Post('/login')
-  async login(@Body() loginBody: LoginBody): Promise<Result> {
-    const token = await this.sysLoginService.login(loginBody);
+  async login(@Body() loginBodyVo: LoginBodyVo): Promise<Result> {
+    const token = await this.sysLoginService.login(loginBodyVo);
     return Result.ok({
       [TOKEN_RESPONSE_FIELD]: token,
     });

@@ -1,6 +1,6 @@
 import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
-import { SysDept } from '../../../../framework/core/model/SysDept';
-import { TreeSelect } from '../../../../framework/core/TreeSelect';
+import { SysDept } from '../../model/SysDept';
+import { TreeSelect } from '../../../../framework/model/TreeSelect';
 import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { ISysDeptService } from '../ISysDeptService';

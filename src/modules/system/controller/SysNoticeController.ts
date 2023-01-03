@@ -9,9 +9,9 @@ import {
   Put,
 } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { Result } from '../../../framework/core/Result';
-import { OperLog } from '../../../framework/decorator/OperLogDecorator';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { Result } from '../../../framework/model/Result';
+import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysNotice } from '../model/SysNotice';
 import { SysNoticeServiceImpl } from '../service/impl/SysNoticeServiceImpl';

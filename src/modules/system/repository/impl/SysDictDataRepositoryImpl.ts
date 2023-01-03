@@ -1,9 +1,9 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { SysDictData } from '../../../../framework/core/model/SysDictData';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysDictDataRepository } from '../ISysDictDataRepository';
+import { SysDictData } from '../../model/SysDictData';
 
 /**查询视图对象SQL */
 const SELECT_DICT_DATA_VO = `select 
@@ -29,7 +29,7 @@ SYS_DICT_DATA_RESULT.set('update_by', 'updateBy');
 SYS_DICT_DATA_RESULT.set('update_time', 'updateTime');
 
 /**
- *将结果记录转实体结果组
+ * 将结果记录转实体结果组
  * @param rows 查询结果记录
  * @returns 实体组
  */

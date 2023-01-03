@@ -10,31 +10,31 @@ import {
   Put,
   Query,
 } from '@midwayjs/decorator';
-import { Result } from '../../../framework/core/Result';
+import { Result } from '../../../framework/model/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
-import { SysDept } from '../../../framework/core/model/SysDept';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { SysDept } from '../model/SysDept';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
-import { SysRole } from '../../../framework/core/model/SysRole';
 import { SysPost } from '../model/SysPost';
 import { ContextService } from '../../../framework/service/ContextService';
-import { SysUser } from '../../../framework/core/model/SysUser';
 import {
   parseBoolean,
   parseNumber,
 } from '../../../framework/utils/ValueParseUtils';
-import { OperLog } from '../../../framework/decorator/OperLogDecorator';
+import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { FileService } from '../../../framework/service/FileService';
 import { UploadFileInfo } from '@midwayjs/upload';
-import { SysDictData } from '../../../framework/core/model/SysDictData';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { parseDateToStr } from '../../../framework/utils/DateFnsUtils';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
-import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitDecorator';
+import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
+import { SysDictData } from '../model/SysDictData';
+import { SysRole } from '../model/SysRole';
+import { SysUser } from '../model/SysUser';
 
 /**
  * 用户信息

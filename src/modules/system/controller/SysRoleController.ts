@@ -9,21 +9,21 @@ import {
   Put,
   Query,
 } from '@midwayjs/decorator';
-import { Result } from '../../../framework/core/Result';
+import { Result } from '../../../framework/model/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
-import { SysRole } from '../../../framework/core/model/SysRole';
 import { ContextService } from '../../../framework/service/ContextService';
 import { TokenService } from '../../../framework/service/TokenService';
 import { parseNumber } from '../../../framework/utils/ValueParseUtils';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
-import { SysDept } from '../../../framework/core/model/SysDept';
+import { SysDept } from '../model/SysDept';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { OperLog } from '../../../framework/decorator/OperLogDecorator';
+import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { ROLE_DATA_SCOPE } from '../../../framework/enums/RoleDataScopeEnum';
 import { FileService } from '../../../framework/service/FileService';
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
+import { SysRole } from '../model/SysRole';
 
 /**
  * 角色信息

@@ -32,7 +32,7 @@ export class RouterVo {
   component: string;
 
   /**
-   * 路由参数：如 {"id": 1, "name": "ry"}
+   * 路由参数：如 {"id": 1, "key": "value"}
    */
   query: string;
 

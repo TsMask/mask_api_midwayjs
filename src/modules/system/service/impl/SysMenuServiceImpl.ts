@@ -6,17 +6,22 @@ import {
 } from '../../../../framework/constants/CommonConstants';
 import { parseFirstUpper } from '../../../../framework/utils/ValueParseUtils';
 import { validHttp } from '../../../../framework/utils/RegularUtils';
-import { SysMenu } from '../../../../framework/core/model/SysMenu';
-import { TreeSelect } from '../../../../framework/core/TreeSelect';
+import { TreeSelect } from '../../../../framework/model/TreeSelect';
 import { MetaVo } from '../../model/vo/MetaVo';
 import { RouterVo } from '../../model/vo/RouterVo';
 import { SysMenuRepositoryImpl } from '../../repository/impl/SysMenuRepositoryImpl';
 import { ISysMenuService } from '../ISysMenuService';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
-import { MenuTypeEnum } from '../../../../framework/enums/MenuTypeEnum';
-import { MenuComponentEnum } from '../../../../framework/enums/MenuComponentEnum';
 import { STATUS_NO } from '../../../../framework/constants/CommonConstants';
+import { SysMenu } from '../../model/SysMenu';
+import {
+  MENU_COMPONENT_INNER_LINK,
+  MENU_COMPONENT_LAYOUT,
+  MENU_COMPONENT_PARENT_VIEW,
+  MENU_TYPE_DIR,
+  MENU_TYPE_MENU,
+} from '../../../../framework/constants/MenuConstants';
 
 /**
  * 菜单 服务层实现
@@ -37,9 +42,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
   async selectMenuList(sysMenu: SysMenu, userId?: string): Promise<SysMenu[]> {
     return await this.sysMenuRepository.selectMenuList(sysMenu, userId);
   }
-  selectMenuListByUserId(sysMenu: SysMenu, userId: string): Promise<SysMenu[]> {
-    throw new Error('Method not implemented.');
-  }
+
   async selectMenuPermsByUserId(userId: string): Promise<string[]> {
     const perms = await this.sysMenuRepository.selectMenuPermsByUserId(userId);
     const permsArr: string[] = [];
@@ -50,6 +53,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     }
     return [...new Set(permsArr)];
   }
+
   async selectMenuPermsByRoleId(roleId: string): Promise<string[]> {
     const perms = await this.sysMenuRepository.selectMenuPermsByRoleId(roleId);
     const permsArr: string[] = [];
@@ -94,9 +98,9 @@ export class SysMenuServiceImpl implements ISysMenuService {
     // 得到子节点列表
     const childList = this.getChildList(sysMenuList, sysMenu);
     sysMenu.children = childList;
-    childList.forEach(v => {
-      if (this.hasChild(sysMenuList, v)) {
-        v = this.recursionFn(sysMenuList, v);
+    childList.forEach(child => {
+      if (this.hasChild(sysMenuList, child)) {
+        child = this.recursionFn(sysMenuList, child);
       }
     });
     return sysMenu;
@@ -209,18 +213,23 @@ export class SysMenuServiceImpl implements ISysMenuService {
   async selectMenuById(menuId: string): Promise<SysMenu> {
     return await this.sysMenuRepository.selectMenuById(menuId);
   }
+
   async hasChildByMenuId(menuId: string): Promise<boolean> {
     return (await this.sysMenuRepository.hasChildByMenuId(menuId)) > 0;
   }
+
   async checkMenuExistRole(menuId: string): Promise<boolean> {
     return (await this.sysRoleMenuRepository.checkMenuExistRole(menuId)) > 0;
   }
+
   async insertMenu(sysMenu: SysMenu): Promise<string> {
     return await this.sysMenuRepository.insertMenu(sysMenu);
   }
+
   async updateMenu(sysMenu: SysMenu): Promise<number> {
     return await this.sysMenuRepository.updateMenu(sysMenu);
   }
+
   async deleteMenuById(menuId: string): Promise<number> {
     return await this.sysMenuRepository.deleteMenuById(menuId);
   }
@@ -241,26 +250,26 @@ export class SysMenuServiceImpl implements ISysMenuService {
     const routers: RouterVo[] = [];
     for (const menu of sysMenus) {
       const router = new RouterVo();
+      router.query = menu.query;
       router.hidden = menu.visible === STATUS_NO;
       router.name = this.getRouteName(menu);
       router.path = this.getRouterPath(menu);
       router.component = this.getComponent(menu);
-      router.query = menu.query;
-      const metaVo = new MetaVo();
-      metaVo.newTitleIconCacheLike(
+      router.meta = new MetaVo().newTitleIconCacheLike(
         menu.menuName,
         menu.icon,
         menu.isCache === STATUS_NO,
         menu.path
       );
-      router.meta = metaVo;
+
       // 子项菜单目录
       const cMenus = menu.children;
-      if (cMenus && cMenus.length > 0 && menu.menuType === MenuTypeEnum.DIR) {
+      if (cMenus && cMenus.length > 0 && menu.menuType === MENU_TYPE_DIR) {
         router.alwaysShow = true;
         router.redirect = 'noRedirect';
         router.children = await this.buildRouteMenus(cMenus);
       }
+
       // 为菜单内部跳转
       const isMenuFrame = this.isMenuFrame(menu);
       if (isMenuFrame) {
@@ -270,37 +279,37 @@ export class SysMenuServiceImpl implements ISysMenuService {
         children.path = menu.path;
         children.component = menu.component;
         children.name = parseFirstUpper(menu.path);
-        const mateVoChildren = new MetaVo();
-        mateVoChildren.newTitleIconCacheLike(
+        children.meta = new MetaVo().newTitleIconCacheLike(
           menu.menuName,
           menu.icon,
           menu.isCache === STATUS_NO,
           menu.path
         );
-        children.meta = mateVoChildren;
         children.query = menu.query;
         childrenList.push(children);
         router.children = childrenList;
       }
+
       // 父id且为内链组件
       const isInnerLink = this.isInnerLink(menu);
       if (menu.parentId === '0' && isInnerLink) {
-        const mateVo = new MetaVo();
-        mateVo.newTitleIcon(menu.menuName, menu.icon);
-        router.meta = mateVo;
         router.path = '/';
+        router.meta = new MetaVo().newTitleIcon(menu.menuName, menu.icon);
         const childrenList: RouterVo[] = [];
         const children = new RouterVo();
         const routerPath = this.innerLinkReplaceEach(menu.path);
         children.path = routerPath;
-        children.component = MenuComponentEnum.INNER_LINK;
         children.name = parseFirstUpper(routerPath);
-        const mateVoChildren = new MetaVo();
-        mateVoChildren.newTitleIconLink(menu.menuName, menu.icon, menu.path);
-        children.meta = mateVoChildren;
+        children.component = MENU_COMPONENT_INNER_LINK;
+        children.meta = new MetaVo().newTitleIconLink(
+          menu.menuName,
+          menu.icon,
+          menu.path
+        );
         childrenList.push(children);
         router.children = childrenList;
       }
+
       routers.push(router);
     }
     return routers;
@@ -337,7 +346,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     if (
       menu.parentId === '0' &&
       menu.isFrame === STATUS_NO &&
-      menu.menuType === MenuTypeEnum.DIR
+      menu.menuType === MENU_TYPE_DIR
     ) {
       routerPath = `/${menu.path}`;
     }
@@ -355,7 +364,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 组件信息
    */
   private getComponent(menu: SysMenu): string {
-    let component: string = MenuComponentEnum.LAYOUT;
+    let component: string = MENU_COMPONENT_LAYOUT;
     if (menu.component && !this.isMenuFrame(menu)) {
       component = menu.component;
     } else if (
@@ -363,9 +372,9 @@ export class SysMenuServiceImpl implements ISysMenuService {
       menu.parentId !== '0' &&
       this.isInnerLink(menu)
     ) {
-      component = MenuComponentEnum.INNER_LINK;
+      component = MENU_COMPONENT_INNER_LINK;
     } else if (menu.component && this.isParentView(menu)) {
-      component = MenuComponentEnum.PARENT_VIEW;
+      component = MENU_COMPONENT_PARENT_VIEW;
     }
     return component;
   }
@@ -390,7 +399,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return (
       menu.parentId === '0' &&
       menu.isFrame === STATUS_NO &&
-      menu.menuType === MenuTypeEnum.MENU
+      menu.menuType === MENU_TYPE_MENU
     );
   }
 
@@ -401,7 +410,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 结果
    */
   private isParentView(menu: SysMenu): boolean {
-    return menu.parentId !== '0' && menu.menuType === MenuTypeEnum.MENU;
+    return menu.parentId !== '0' && menu.menuType === MENU_TYPE_MENU;
   }
 
   /**

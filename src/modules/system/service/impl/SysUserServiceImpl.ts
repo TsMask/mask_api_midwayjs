@@ -4,8 +4,8 @@ import {
   validEmail,
   validMobile,
 } from '../../../../framework/utils/RegularUtils';
-import { SysDictData } from '../../../../framework/core/model/SysDictData';
-import { SysUser } from '../../../../framework/core/model/SysUser';
+import { SysDictData } from '../../model/SysDictData';
+import { SysUser } from '../../model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
 import { SysPostRepositoryImpl } from '../../repository/impl/SysPostRepositoryImpl';

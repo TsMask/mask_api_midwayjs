@@ -1,4 +1,4 @@
-import { SysDept } from '../../../framework/core/model/SysDept';
+import { SysDept } from '../model/SysDept';
 
 /**
  * 部门管理 数据层接口

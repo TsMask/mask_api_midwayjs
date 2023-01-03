@@ -1,5 +1,5 @@
 import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
-import { SysDictData } from '../../../../framework/core/model/SysDictData';
+import { SysDictData } from '../../model/SysDictData';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
 import { ISysDictDataService } from '../ISysDictDataService';
 import { SysDictTypeServiceImpl } from './SysDictTypeServiceImpl';

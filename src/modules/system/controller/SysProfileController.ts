@@ -7,18 +7,18 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
-import { Result } from '../../../framework/core/Result';
+import { Result } from '../../../framework/model/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeDecorator';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { OperLog } from '../../../framework/decorator/OperLogDecorator';
-import { SysUser } from '../../../framework/core/model/SysUser';
+import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { TokenService } from '../../../framework/service/TokenService';
 import { bcryptCompare } from '../../../framework/utils/CryptoUtils';
 import { FileService } from '../../../framework/service/FileService';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
+import { SysUser } from '../model/SysUser';
 
 /**
  * 个人信息

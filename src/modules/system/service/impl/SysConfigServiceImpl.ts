@@ -1,7 +1,7 @@
 import { Provide, Inject, Init, ScopeEnum, Scope } from '@midwayjs/decorator';
 import { SYS_CONFIG_KEY } from '../../../../framework/constants/CacheKeysConstants';
 import { parseBoolean } from '../../../../framework/utils/ValueParseUtils';
-import { RedisCache } from '../../../../framework/redis/RedisCache';
+import { RedisCache } from '../../../../framework/cache/RedisCache';
 import { SysConfig } from '../../model/SysConfig';
 import { SysConfigRepositoryImpl } from '../../repository/impl/SysConfigRepositoryImpl';
 import { ISysConfigService } from '../ISysConfigService';

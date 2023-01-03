@@ -5,9 +5,9 @@ import {
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateFnsUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { SysDictType } from '../../../../framework/core/model/SysDictType';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysDictTypeRepository } from '../ISysDictTypeRepository';
+import { SysDictType } from '../../model/SysDictType';
 
 /**查询视图对象SQL */
 const SELECT_DICT_TYPE_VO = `select 

@@ -9,7 +9,7 @@ export default {
   // 接口文档
   swagger: {
     version: '1.0.0', // 默认值: 1.0.0
-    title: '若依 Midwayjs', //  默认值: My Project
+    title: 'MASK Midwayjs', //  默认值: My Project
     description: '使用swagger-ui@midwayjs本地调试用', // 默认值: This is a swagger-ui for midwayjs project
     termsOfService: 'https://gitee.com', // 团队
     // 联系人

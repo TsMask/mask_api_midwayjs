@@ -1,13 +1,11 @@
 import { Provide, Inject } from '@midwayjs/decorator';
-import { LoginBody } from '../core/vo/LoginBody';
-import { SysUser } from '../core/model/SysUser';
 import {
   CAPTCHA_CODE_KEY,
   PWD_ERR_CNT_KEY,
 } from '../../framework/constants/CacheKeysConstants';
-import { RedisCache } from '../redis/RedisCache';
+import { RedisCache } from '../cache/RedisCache';
 import { TokenService } from './TokenService';
-import { LoginUser } from '../core/vo/LoginUser';
+import { LoginUser } from '../model/LoginUser';
 import { UserStatusEnum } from '../../framework/enums/UserStatusEnum';
 import { parseNumber } from '../../framework/utils/ValueParseUtils';
 import { bcryptCompare } from '../../framework/utils/CryptoUtils';
@@ -16,6 +14,8 @@ import { SysUserServiceImpl } from '../../modules/system/service/impl/SysUserSer
 import { SysLogininforServiceImpl } from '../../modules/monitor/service/impl/SysLogininforServiceImpl';
 import { ContextService } from './ContextService';
 import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
+import { LoginBodyVo } from '../../modules/system/model/vo/LoginBodyVo';
+import { SysUser } from '../../modules/system/model/SysUser';
 
 /**
  * 登录校验方法
@@ -61,32 +61,32 @@ export class SysLoginService {
 
   /**
    * 登录生成token
-   * @param loginBody 登录参数信息
+   * @param loginBodyVo 登录参数信息
    * @returns 生成的token
    */
-  async login(loginBody: LoginBody): Promise<string> {
+  async login(loginBodyVo: LoginBodyVo): Promise<string> {
     // 验证码开关及验证码检查
     const captchaEnabled = await this.sysConfigService.selectCaptchaEnabled();
     if (captchaEnabled) {
       await this.validateCaptcha(
-        loginBody.username,
-        loginBody.code,
-        loginBody.uuid
+        loginBodyVo.username,
+        loginBodyVo.code,
+        loginBodyVo.uuid
       );
     }
     // 用户验证
     const loginUser = await this.loadUserByUsername(
-      loginBody.username,
-      loginBody.password
+      loginBodyVo.username,
+      loginBodyVo.password
     );
     // 记录登录信息
     await this.recordLoginInfo(loginUser.userId);
-    const msg = `登录用户：${loginBody.username} 登录成功.`;
+    const msg = `登录用户：${loginBodyVo.username} 登录成功.`;
     this.contextService.getLogger().info(msg);
     const sysLogininfor = await this.contextService.newSysLogininfor(
       STATUS_YES,
       '登录成功',
-      loginBody.username
+      loginBodyVo.username
     );
     await this.sysLogininforService.insertLogininfor(sysLogininfor);
     // 生成token

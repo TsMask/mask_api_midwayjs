@@ -16,21 +16,22 @@ import { UnauthorizedErrorFilter } from './framework/filter/UnauthorizedErrorFil
 import { ReportMiddleware } from './framework/middleware/ReportMiddleware';
 import { MidwayDecoratorService } from '@midwayjs/core';
 import {
-  DECORATOR_PRE_AUTHORIZE_KEY,
+  DECORATOR_METHOD_PRE_AUTHORIZE_KEY,
   PreAuthorizeVerify,
-} from './framework/decorator/PreAuthorizeDecorator';
+} from './framework/decorator/PreAuthorizeMethodDecorator';
 import {
-  DECORATOR_OPER_LOG_KEY,
+  DECORATOR_METHOD_OPER_LOG_KEY,
   OperLogSave,
-} from './framework/decorator/OperLogDecorator';
+} from './framework/decorator/OperLogMethodDecorator';
 import {
-  DECORATOR_RATE_LIMIT_KEY,
+  DECORATOR_METHOD_RATE_LIMIT_KEY,
   RateLimitVerify,
-} from './framework/decorator/RateLimitDecorator';
+} from './framework/decorator/RateLimitMethodDecorator';
 import {
-  DECORATOR_REPEAT_SUBMIT_KEY,
+  DECORATOR_METHOD_REPEAT_SUBMIT_KEY,
   RepeatSubmitVerify,
-} from './framework/decorator/RepeatSubmitDecorator';
+} from './framework/decorator/RepeatSubmitMethodDecorator';
+import { checkExistsAndMkdir } from './framework/utils/FileUtils';
 
 @Configuration({
   imports: [
@@ -74,22 +75,22 @@ export class MainConfiguration {
     ]);
     // 用户身份授权认证校验-方法装饰器
     this.decoratorService.registerMethodHandler(
-      DECORATOR_PRE_AUTHORIZE_KEY,
+      DECORATOR_METHOD_PRE_AUTHORIZE_KEY,
       PreAuthorizeVerify
     );
     // 访问操作日志记录-方法装饰器
     this.decoratorService.registerMethodHandler(
-      DECORATOR_OPER_LOG_KEY,
+      DECORATOR_METHOD_OPER_LOG_KEY,
       OperLogSave
     );
     // 限流-方法装饰器
     this.decoratorService.registerMethodHandler(
-      DECORATOR_RATE_LIMIT_KEY,
+      DECORATOR_METHOD_RATE_LIMIT_KEY,
       RateLimitVerify
     );
     // 防止表单重复提交-方法装饰器
     this.decoratorService.registerMethodHandler(
-      DECORATOR_REPEAT_SUBMIT_KEY,
+      DECORATOR_METHOD_REPEAT_SUBMIT_KEY,
       RepeatSubmitVerify
     );
   }
@@ -98,6 +99,12 @@ export class MainConfiguration {
    * 在应用服务启动后执行
    */
   async onServerReady(): Promise<void> {
+    // 读取静态文件配置目录检查并初始创建目录
+    const staticDir: string = this.app.getConfig('staticFile.dirs.default.dir');
+    const uploadDir: string = this.app.getConfig('staticFile.dirs.upload.dir');
+    await checkExistsAndMkdir(staticDir);
+    await checkExistsAndMkdir(uploadDir);
+    // 输出当期服务环境运行配置
     this.app.getLogger().warn('当期服务环境运行配置 => %s', this.app.getEnv());
   }
 }

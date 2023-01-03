@@ -1,10 +1,10 @@
 import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { Result } from '../core/Result';
-import { REPEAT_SUBMIT_KEY } from '../../framework/constants/CacheKeysConstants';
-import { RedisCache } from '../redis/RedisCache';
-import { diffSeconds } from '../../framework/utils/DateFnsUtils';
+import { Result } from '../model/Result';
+import { REPEAT_SUBMIT_KEY } from '../constants/CacheKeysConstants';
+import { RedisCache } from '../cache/RedisCache';
+import { diffSeconds } from '../utils/DateFnsUtils';
 
 /**重复参数Redis格式数据类型 */
 type RepeatParamType = {
@@ -15,7 +15,8 @@ type RepeatParamType = {
 };
 
 /**装饰器内部的唯一 key */
-export const DECORATOR_REPEAT_SUBMIT_KEY = 'decorator:repeat_submit';
+export const DECORATOR_METHOD_REPEAT_SUBMIT_KEY =
+  'decorator_method:repeat_submit';
 
 /**
  * 防止表单重复提交-方法装饰器
@@ -25,7 +26,10 @@ export const DECORATOR_REPEAT_SUBMIT_KEY = 'decorator:repeat_submit';
  * @author TsMask <340112800@qq.com>
  */
 export function RepeatSubmit(interval = 5): MethodDecorator {
-  return createCustomMethodDecorator(DECORATOR_REPEAT_SUBMIT_KEY, interval);
+  return createCustomMethodDecorator(
+    DECORATOR_METHOD_REPEAT_SUBMIT_KEY,
+    interval
+  );
 }
 
 /**

@@ -5,16 +5,16 @@ import {
   TOKEN_JWT_FIELD,
   TOKEN_HEADER_PREFIX,
 } from '../../framework/constants/TokenConstants';
-import { LoginUser } from '../core/vo/LoginUser';
-import { RedisCache } from '../redis/RedisCache';
+import { LoginUser } from '../model/LoginUser';
+import { RedisCache } from '../cache/RedisCache';
 import { LOGIN_TOKEN_KEY } from '../../framework/constants/CacheKeysConstants';
-import { SysUser } from '../core/model/SysUser';
 import { generateID } from '../../framework/utils/GenIdUtils';
 import { getRealAddressByIp } from '../../framework/utils/ip2region';
 import { getUaInfo } from '../../framework/utils/UAParserUtils';
 import ms = require('ms');
 import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
 import { PermissionService } from './PermissionService';
+import { SysUser } from '../../modules/system/model/SysUser';
 
 /**
  * token验证处理

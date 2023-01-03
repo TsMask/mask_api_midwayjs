@@ -1,9 +1,9 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { SysMenu } from '../../../../framework/core/model/SysMenu';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysMenuRepository } from '../ISysMenuRepository';
+import { SysMenu } from '../../model/SysMenu';
 
 /**查询视图对象SQL */
 const SELECT_MENU_VO = `select 

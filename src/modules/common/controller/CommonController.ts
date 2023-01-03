@@ -2,7 +2,7 @@ import { Body, Controller, Files, Inject, Post } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
-import { Result } from '../../../framework/core/Result';
+import { Result } from '../../../framework/model/Result';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 

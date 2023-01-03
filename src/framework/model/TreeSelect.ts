@@ -1,5 +1,5 @@
-import { SysDept } from './model/SysDept';
-import { SysMenu } from './model/SysMenu';
+import { SysDept } from '../../modules/system/model/SysDept';
+import { SysMenu } from '../../modules/system/model/SysMenu';
 
 /**
  * Treeselect树结构实体类

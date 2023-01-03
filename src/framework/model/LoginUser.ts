@@ -1,4 +1,4 @@
-import { SysUser } from '../model/SysUser';
+import { SysUser } from '../../modules/system/model/SysUser';
 
 /**
  * 登录用户身份权限信息

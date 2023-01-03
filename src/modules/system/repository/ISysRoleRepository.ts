@@ -1,4 +1,4 @@
-import { SysRole } from '../../../framework/core/model/SysRole';
+import { SysRole } from '../model/SysRole';
 
 /**
  * 角色表 数据层接口

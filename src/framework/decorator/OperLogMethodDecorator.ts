@@ -1,13 +1,13 @@
 import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { OperatorBusinessTypeEnum } from '../../framework/enums/OperatorBusinessTypeEnum';
-import { OperatorTypeEnum } from '../../framework/enums/OperatorTypeEnum';
-import { getRealAddressByIp } from '../../framework/utils/ip2region';
+import { OperatorBusinessTypeEnum } from '../enums/OperatorBusinessTypeEnum';
+import { OperatorTypeEnum } from '../enums/OperatorTypeEnum';
+import { getRealAddressByIp } from '../utils/ip2region';
 import { SysOperLog } from '../../modules/monitor/model/SysOperLog';
 import { SysOperLogServiceImpl } from '../../modules/monitor/service/impl/SysOperLogServiceImpl';
-import { LoginUser } from '../core/vo/LoginUser';
-import { Result } from '../core/Result';
+import { LoginUser } from '../model/LoginUser';
+import { Result } from '../model/Result';
 import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
 
 /** 操作日志参数 */
@@ -25,7 +25,7 @@ interface operLogOptions {
 }
 
 /**装饰器内部的唯一 key */
-export const DECORATOR_OPER_LOG_KEY = 'decorator:oper_log';
+export const DECORATOR_METHOD_OPER_LOG_KEY = 'decorator_method:oper_log';
 
 /**排除敏感属性字段 */
 const EXCLUDE_PROPERTIES = [
@@ -43,7 +43,7 @@ const EXCLUDE_PROPERTIES = [
  * @author TsMask <340112800@qq.com>
  */
 export function OperLog(options: operLogOptions): MethodDecorator {
-  return createCustomMethodDecorator(DECORATOR_OPER_LOG_KEY, options);
+  return createCustomMethodDecorator(DECORATOR_METHOD_OPER_LOG_KEY, options);
 }
 
 /**

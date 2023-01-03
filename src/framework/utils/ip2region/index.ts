@@ -44,6 +44,6 @@ export async function getRealAddressByIp(ip: string) {
   } catch (e) {
     console.error('getRealAddressByIp err =>', e.message);
   }
-  // 未知地址
-  return '未知IP地址';
+  // 未知IP
+  return '未知IP';
 }

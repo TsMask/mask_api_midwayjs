@@ -1,7 +1,7 @@
 import { Catch } from '@midwayjs/decorator';
 import { httpError, HttpStatus, MidwayHttpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { Result } from '../core/Result';
+import { Result } from '../model/Result';
 
 /**
  * 路由未找到-拦截器
