@@ -1,20 +1,20 @@
-import { Inject, Provide } from '@midwayjs/decorator';
-import { Context } from '@midwayjs/koa';
+import { Config, Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { JwtService } from '@midwayjs/jwt';
 import {
   TOKEN_JWT_FIELD,
   TOKEN_HEADER_PREFIX,
-} from '../../framework/constants/TokenConstants';
+} from '../constants/TokenConstants';
 import { LoginUser } from '../model/LoginUser';
 import { RedisCache } from '../cache/RedisCache';
-import { LOGIN_TOKEN_KEY } from '../../framework/constants/CacheKeysConstants';
-import { generateID } from '../../framework/utils/GenIdUtils';
-import { getRealAddressByIp } from '../../framework/utils/ip2region';
-import { getUaInfo } from '../../framework/utils/UAParserUtils';
+import { LOGIN_TOKEN_KEY } from '../constants/CacheKeysConstants';
+import { generateID } from '../utils/GenIdUtils';
+import { getRealAddressByIp } from '../utils/ip2region';
+import { getUaInfo } from '../utils/UAParserUtils';
 import ms = require('ms');
 import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
 import { PermissionService } from './PermissionService';
 import { SysUser } from '../../modules/system/model/SysUser';
+import { IP_INNER_ADDR, IP_INNER_LOCATION } from '../constants/CommonConstants';
 
 /**
  * token验证处理
@@ -22,10 +22,8 @@ import { SysUser } from '../../modules/system/model/SysUser';
  * @author TsMask <340112800@qq.com>
  */
 @Provide()
+@Scope(ScopeEnum.Singleton)
 export class TokenService {
-  @Inject()
-  private ctx: Context;
-
   @Inject()
   private jwtService: JwtService;
 
@@ -35,11 +33,20 @@ export class TokenService {
   @Inject()
   private permissionService: PermissionService;
 
+  /**从本地配置获取jwt过期时间信息 */
+  @Config('jwt.expiresIn')
+  private jwtExpiresIn: string;
+
+  /**从本地配置获取token有效期内自动刷新信息 */
+  @Config('jwtRefreshIn')
+  private jwtRefreshIn: string;
+
   /**
    * 清除用户登录令牌
+   * @param token 身份令牌
    */
-  async removeToken(): Promise<string> {
-    const loginUser = await this.getLoginUser();
+  async removeToken(token: string): Promise<string> {
+    const loginUser = await this.getLoginUser(token);
     if (loginUser) {
       await this.delLoginUserCache(loginUser.uuid);
       // 判断可用登录信息返回用户账号
@@ -51,9 +58,10 @@ export class TokenService {
   /**
    * 创建登录用户信息对象
    * @param user 登录用户信息
+   * @param isAdmin — 是否管理员，默认否
    * @return 登录用户信息对象
    */
-  async createLoginUser(user: SysUser): Promise<LoginUser> {
+  async createLoginUser(user: SysUser, isAdmin = false): Promise<LoginUser> {
     delete user.password;
     const loginUser = new LoginUser();
     loginUser.userId = user.userId;
@@ -61,7 +69,8 @@ export class TokenService {
     loginUser.user = user;
     // 用户权限组标识
     loginUser.permissions = await this.permissionService.getMenuPermission(
-      user
+      user.userId,
+      isAdmin
     );
     return loginUser;
   }
@@ -69,14 +78,20 @@ export class TokenService {
   /**
    * 创建用户登录令牌
    * @param loginUser 登录用户信息对象
+   * @param clientIP 客户端IP
+   * @param userAgent 客户端UA标识
    * @returns 登录令牌
    */
-  async createToken(loginUser: LoginUser): Promise<string> {
+  async createToken(
+    loginUser: LoginUser,
+    clientIP: string,
+    userAgent: string
+  ): Promise<string> {
     // 生成用户唯一tokne32位
     const uuid = generateID(32);
     loginUser.uuid = uuid;
     // 设置请求用户登录客户端
-    loginUser = await this.setUserAgent(loginUser);
+    loginUser = await this.setUserAgent(loginUser, clientIP, userAgent);
     // 设置用户令牌有效期并存入缓存
     await this.setUserToken(loginUser);
     // 生成令牌负荷uuid标识
@@ -91,9 +106,7 @@ export class TokenService {
    * @returns 登录令牌
    */
   async verifyToken(loginUser: LoginUser): Promise<LoginUser> {
-    // 从本地配置获取jwt信息
-    const jwtRefreshIn: string = this.ctx.app.getConfig('jwtRefreshIn');
-    const timeout = ms(jwtRefreshIn);
+    const timeout = ms(`${this.jwtRefreshIn}`);
     // 相差不足xx分钟，自动刷新缓存
     const expireTime = loginUser.expireTime;
     const currentTime = Date.now();
@@ -106,20 +119,25 @@ export class TokenService {
   /**
    * 设置用户代理信息
    * @param loginUser 登录用户信息对象
+   * @param clientIP 客户端IP
+   * @param userAgent 客户端UA标识
    * @returns 登录用户信息对象
    */
-  private async setUserAgent(loginUser: LoginUser): Promise<LoginUser> {
-    const ip = this.ctx.ip;
-    if (ip.includes('127.0.0.1')) {
-      loginUser.ipaddr = '127.0.0.1';
-      loginUser.loginLocation = '内网IP';
+  private async setUserAgent(
+    loginUser: LoginUser,
+    clientIP: string,
+    userAgent: string
+  ): Promise<LoginUser> {
+    if (clientIP.includes(IP_INNER_ADDR)) {
+      loginUser.ipaddr = IP_INNER_ADDR;
+      loginUser.loginLocation = IP_INNER_LOCATION;
     } else {
       // 解析ip地址
-      loginUser.ipaddr = ip;
-      loginUser.loginLocation = await getRealAddressByIp(ip);
+      loginUser.ipaddr = clientIP;
+      loginUser.loginLocation = await getRealAddressByIp(clientIP);
     }
     // 解析请求用户代理信息
-    const ua = await getUaInfo(this.ctx.get('user-agent'));
+    const ua = await getUaInfo(userAgent);
     const bName = ua.getBrowser().name;
     const bVersion = ua.getBrowser().version;
     if (bName && bVersion) {
@@ -142,9 +160,7 @@ export class TokenService {
    * @param loginUser 登录用户信息对象
    */
   private async setUserToken(loginUser: LoginUser): Promise<void> {
-    // 从本地配置获取jwt信息
-    const { expiresIn } = this.ctx.app.getConfig('jwt');
-    const timestamp: number = ms(String(expiresIn));
+    const timestamp: number = ms(`${this.jwtExpiresIn}`);
     const second = Number(timestamp / 1000);
     loginUser.loginTime = Date.now();
     loginUser.expireTime = loginUser.loginTime + timestamp;
@@ -191,56 +207,52 @@ export class TokenService {
   }
 
   /**
-   * 获取请求token
+   * 获取请求携带的令牌
+   * @param headerToken 请求头字符串
+   * @returns 去除前缀字符串
    */
-  private async getHeaderToken(): Promise<string> {
-    // 从本地配置获取token信息
-    const jwtHeader = this.ctx.app.getConfig('jwtHeader');
-    // 获取请求携带的令牌
-    let token = this.ctx.get(jwtHeader);
-    if (token && token.startsWith(TOKEN_HEADER_PREFIX)) {
-      token = token.replace(TOKEN_HEADER_PREFIX, '');
+  async getHeaderToken(headerToken: string): Promise<string> {
+    if (headerToken && headerToken.startsWith(TOKEN_HEADER_PREFIX)) {
+      headerToken = headerToken.replace(TOKEN_HEADER_PREFIX, '');
     }
-    return token;
+    return headerToken;
   }
 
   /**
    * 获取用户身份信息
+   * @param token 身份令牌
    * @returns 用户信息对象
    */
-  async getLoginUser(): Promise<LoginUser> {
-    // 获取请求携带的令牌
-    const token = await this.getHeaderToken();
-    if (token) {
-      try {
-        const jwtInfo = await this.jwtService.verify(token);
-        if (jwtInfo) {
-          const uuid = jwtInfo[TOKEN_JWT_FIELD];
-          return await this.getLoginUserCache(uuid);
-        }
-      } catch (e) {
-        if ('TokenExpiredError' === e.name) {
-          throw new UnauthorizedError(
-            `用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`
-          );
-        }
-        if ('JsonWebTokenError' === e.name) {
-          throw new UnauthorizedError('用户授权无效认证');
-        }
-        throw new UnauthorizedError(`用户授权信息异常, ${e.message}`);
+  async getLoginUser(token: string): Promise<LoginUser> {
+    try {
+      const jwtInfo = await this.jwtService.verify(token);
+      if (jwtInfo) {
+        const uuid = jwtInfo[TOKEN_JWT_FIELD];
+        return await this.getLoginUserCache(uuid);
       }
+    } catch (e) {
+      if ('TokenExpiredError' === e.name) {
+        throw new UnauthorizedError(
+          `用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`
+        );
+      }
+      if ('JsonWebTokenError' === e.name) {
+        throw new UnauthorizedError('用户授权无效认证');
+      }
+      throw new UnauthorizedError(`用户授权信息异常, ${e.message}`);
     }
-    return null;
   }
 
   /**
    * 设置用户身份信息
    * @param loginUser 登录用户信息对象
+   * @param isAdmin 是否管理员，默认否
    */
-  async setLoginUser(loginUser: LoginUser): Promise<void> {
+  async setLoginUser(loginUser: LoginUser, isAdmin = false): Promise<void> {
     // 用户权限组标识
     loginUser.permissions = await this.permissionService.getMenuPermission(
-      loginUser.user
+      loginUser.userId,
+      isAdmin
     );
     // 重新设置刷新令牌有效期
     await this.setUserToken(loginUser);

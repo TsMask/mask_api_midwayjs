@@ -1,9 +1,7 @@
-import { Inject, Provide } from '@midwayjs/decorator';
-import { SysUser } from '../../modules/system/model/SysUser';
+import { Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { SysMenuServiceImpl } from '../../modules/system/service/impl/SysMenuServiceImpl';
 import { SysRoleServiceImpl } from '../../modules/system/service/impl/SysRoleServiceImpl';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
-import { ContextService } from './ContextService';
 
 /**
  * 用户权限处理
@@ -11,10 +9,8 @@ import { ContextService } from './ContextService';
  * @author TsMask <340112800@qq.com>
  */
 @Provide()
+@Scope(ScopeEnum.Singleton)
 export class PermissionService {
-  @Inject()
-  private contextService: ContextService;
-
   @Inject()
   private sysMenuService: SysMenuServiceImpl;
 
@@ -24,18 +20,17 @@ export class PermissionService {
   /**
    * 获取角色数据权限
    *
-   * @param user 用户
+   * @param userId 用户ID
+   * @param isAdmin 是否管理员，默认否
    * @return 角色权限信息
    */
-  public async getRolePermission(user: SysUser): Promise<string[]> {
+  async getRolePermission(userId: string, isAdmin = false): Promise<string[]> {
     const roles: string[] = [];
-    // 管理员拥有所有权限
-    const isAdmin = this.contextService.isAdmin(user.userId);
     if (isAdmin) {
       roles.push(ADMIN_ROLE_KEY);
     } else {
       const rolePerms = await this.sysRoleService.selectRolePermissionByUserId(
-        user.userId
+        userId
       );
       roles.push(...rolePerms);
     }
@@ -45,31 +40,22 @@ export class PermissionService {
   /**
    * 获取菜单数据权限
    *
-   * @param user 用户信息
+   * @param userId 用户ID
+   * @param isAdmin 是否管理员，默认否
    * @return 菜单权限信息
    */
-  public async getMenuPermission(user: SysUser): Promise<string[]> {
+  public async getMenuPermission(
+    userId: string,
+    isAdmin = false
+  ): Promise<string[]> {
     const perms: string[] = [];
-    // 管理员拥有所有权限
-    const isAdmin = this.contextService.isAdmin(user.userId);
     if (isAdmin) {
       perms.push(ADMIN_PERMISSION);
     } else {
-      const roles = user.roles;
-      if (roles && roles.length) {
-        // 多角色设置permissions属性，以便数据权限匹配权限
-        for (const role of roles) {
-          const rolePerms = await this.sysMenuService.selectMenuPermsByRoleId(
-            role.roleId
-          );
-          perms.push(...rolePerms);
-        }
-      } else {
-        const userPerms = await this.sysMenuService.selectMenuPermsByUserId(
-          user.userId
-        );
-        perms.push(...userPerms);
-      }
+      const userPerms = await this.sysMenuService.selectMenuPermsByUserId(
+        userId
+      );
+      perms.push(...userPerms);
     }
     return [...new Set(perms)];
   }

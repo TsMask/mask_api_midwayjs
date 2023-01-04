@@ -1,4 +1,8 @@
 import { join } from 'path';
+import {
+  IP_INNER_ADDR,
+  IP_INNER_LOCATION,
+} from '../../constants/CommonConstants';
 // 导入包
 import { newWithFileOnly } from './ip2region';
 // 指定ip2region数据文件路径
@@ -29,7 +33,7 @@ export async function getRegionSearchByIp(ip: string) {
  * @returns 返回结果 江苏省 苏州市
  */
 export async function getRealAddressByIp(ip: string) {
-  if (ip.includes('127.0.0.1')) return '内网IP';
+  if (ip.includes(IP_INNER_ADDR)) return IP_INNER_LOCATION;
   try {
     // 创建searcher对象
     const searcher = newWithFileOnly(dbPath);

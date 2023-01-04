@@ -16,12 +16,12 @@ import {
 } from '@midwayjs/core';
 import { Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { diskinfo } from '@dropb/diskinfo';
-import { parseBit } from '../../framework/utils/ValueParseUtils';
-import { parseDateToStr } from '../../framework/utils/DateFnsUtils';
+import { parseBit } from '../utils/ValueParseUtils';
+import { parseDateToStr } from '../utils/DateFnsUtils';
 import ms = require('ms');
 
 /**
- * 服务器相关信息
+ * 服务器系统相关信息
  *
  * @author TsMask <340112800@qq.com>
  */

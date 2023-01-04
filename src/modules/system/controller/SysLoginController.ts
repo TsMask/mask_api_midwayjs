@@ -45,10 +45,18 @@ export class SysLoginController {
   @PreAuthorize()
   async getInfo(): Promise<Result> {
     const user = this.contextService.getSysUser();
+    // 管理员拥有所有权限
+    const isAdmin = this.contextService.isAdmin(user.userId);
     // 角色集合
-    const roles = await this.permissionService.getRolePermission(user);
+    const roles = await this.permissionService.getRolePermission(
+      user.userId,
+      isAdmin
+    );
     // 权限集合
-    const permissions = await this.permissionService.getMenuPermission(user);
+    const permissions = await this.permissionService.getMenuPermission(
+      user.userId,
+      isAdmin
+    );
     return Result.ok({
       permissions: permissions,
       roles: roles,

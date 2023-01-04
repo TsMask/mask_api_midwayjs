@@ -2,20 +2,25 @@ import { Provide, Inject } from '@midwayjs/decorator';
 import {
   CAPTCHA_CODE_KEY,
   PWD_ERR_CNT_KEY,
-} from '../../framework/constants/CacheKeysConstants';
+} from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';
 import { TokenService } from './TokenService';
 import { LoginUser } from '../model/LoginUser';
-import { UserStatusEnum } from '../../framework/enums/UserStatusEnum';
-import { parseNumber } from '../../framework/utils/ValueParseUtils';
-import { bcryptCompare } from '../../framework/utils/CryptoUtils';
+import { UserStatusEnum } from '../enums/UserStatusEnum';
+import { parseNumber } from '../utils/ValueParseUtils';
+import { bcryptCompare } from '../utils/CryptoUtils';
 import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../modules/system/service/impl/SysUserServiceImpl';
 import { SysLogininforServiceImpl } from '../../modules/monitor/service/impl/SysLogininforServiceImpl';
 import { ContextService } from './ContextService';
-import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
+import {
+  IP_INNER_ADDR,
+  STATUS_NO,
+  STATUS_YES,
+} from '../constants/CommonConstants';
 import { LoginBodyVo } from '../../modules/system/model/vo/LoginBodyVo';
 import { SysUser } from '../../modules/system/model/SysUser';
+import { Result } from '../model/Result';
 
 /**
  * 登录校验方法
@@ -45,8 +50,15 @@ export class SysLoginService {
   /**
    * 登出清除token
    */
-  async logout(): Promise<void> {
-    const userName = await this.tokenService.removeToken();
+  async logout(): Promise<Result> {
+    // 从本地配置获取token在请求头标识信息
+    const jwtHeader = this.contextService.getConfig('jwtHeader');
+    const headerToken = this.contextService.getContext().get(jwtHeader);
+    const token = await this.tokenService.getHeaderToken(headerToken);
+    if (!token) return Result.ok();
+
+    // 存在token时记录退出信息
+    const userName = await this.tokenService.removeToken(token);
     if (userName) {
       const msg = `登录用户：${userName} 退出成功.`;
       this.contextService.getLogger().info(msg);
@@ -57,6 +69,7 @@ export class SysLoginService {
       );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
     }
+    return Result.ok();
   }
 
   /**
@@ -90,7 +103,9 @@ export class SysLoginService {
     );
     await this.sysLogininforService.insertLogininfor(sysLogininfor);
     // 生成token
-    return await this.tokenService.createToken(loginUser);
+    const clientIp = this.contextService.getContext().ip;
+    const userAgent = this.contextService.getContext().get('user-agent');
+    return await this.tokenService.createToken(loginUser, clientIp, userAgent);
   }
 
   /**
@@ -144,7 +159,9 @@ export class SysLoginService {
     username: string,
     password: string
   ): Promise<LoginUser> {
-    const sysUser = await this.sysUserService.selectUserByUserName(username);
+    const sysUser: SysUser = await this.sysUserService.selectUserByUserName(
+      username
+    );
     if (!sysUser) {
       const msg = `登录用户：${username} 不存在.`;
       this.contextService.getLogger().info(msg);
@@ -180,7 +197,9 @@ export class SysLoginService {
     }
     // 检查密码
     await this.validatePassword(sysUser.userName, sysUser.password, password);
-    return await this.tokenService.createLoginUser(sysUser);
+    // 检查是否管理员，给予拥有所有权限
+    const isAdmin = this.contextService.isAdmin(sysUser.userId);
+    return await this.tokenService.createLoginUser(sysUser, isAdmin);
   }
 
   /**
@@ -192,7 +211,7 @@ export class SysLoginService {
     const sysUser = new SysUser();
     sysUser.userId = userId;
     const ip = this.contextService.getContext().ip;
-    sysUser.loginIp = ip.includes('127.0.0.1') ? '127.0.0.1' : ip;
+    sysUser.loginIp = ip.includes(IP_INNER_ADDR) ? IP_INNER_ADDR : ip;
     sysUser.loginDate = Date.now();
     return await this.sysUserService.updateUser(sysUser);
   }

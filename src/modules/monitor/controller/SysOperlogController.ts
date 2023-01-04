@@ -19,7 +19,7 @@ import { SysOperLogServiceImpl } from '../service/impl/SysOperLogServiceImpl';
  * @author TsMask <340112800@qq.com>
  */
 @Controller('/monitor/operlog')
-export class SysOperlogController {
+export class SysOperLogController {
   @Inject()
   private contextService: ContextService;
 

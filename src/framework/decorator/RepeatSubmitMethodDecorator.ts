@@ -5,6 +5,7 @@ import { Result } from '../model/Result';
 import { REPEAT_SUBMIT_KEY } from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';
 import { diffSeconds } from '../utils/DateFnsUtils';
+import { IP_INNER_ADDR } from '../constants/CommonConstants';
 
 /**重复参数Redis格式数据类型 */
 type RepeatParamType = {
@@ -53,10 +54,7 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       );
 
       // 获取客户端IP
-      let clientIP = '127.0.0.1';
-      if (!ctx.ip.includes('127.0.0.1')) {
-        clientIP = ctx.ip;
-      }
+      const clientIP = ctx.ip.includes(IP_INNER_ADDR) ? IP_INNER_ADDR : ctx.ip;
 
       // 唯一标识（指定key + 客户端IP + 请求地址）
       const cacheKey = REPEAT_SUBMIT_KEY + `${clientIP}:${ctx.path}`;

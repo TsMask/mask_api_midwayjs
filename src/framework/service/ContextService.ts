@@ -2,12 +2,13 @@ import { ILogger } from '@midwayjs/core';
 import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
 import { Inject, Provide } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { RoleDataScopeEnum } from '../../framework/enums/RoleDataScopeEnum';
-import { getRealAddressByIp } from '../../framework/utils/ip2region';
-import { getUaInfo } from '../../framework/utils/UAParserUtils';
+import { RoleDataScopeEnum } from '../enums/RoleDataScopeEnum';
+import { getRealAddressByIp } from '../utils/ip2region';
+import { getUaInfo } from '../utils/UAParserUtils';
 import { SysLogininfor } from '../../modules/monitor/model/SysLogininfor';
 import { SysUser } from '../../modules/system/model/SysUser';
 import { LoginUser } from '../model/LoginUser';
+import { IP_INNER_ADDR, IP_INNER_LOCATION } from '../constants/CommonConstants';
 
 /**
  * 上下文对象服务
@@ -121,9 +122,9 @@ export class ContextService {
     const logininfor = new SysLogininfor();
     logininfor.userName = userName || this.getUseName();
     const ip = this.ctx.ip;
-    if (ip.includes('127.0.0.1')) {
-      logininfor.ipaddr = '127.0.0.1';
-      logininfor.loginLocation = '内网IP';
+    if (ip.includes(IP_INNER_ADDR)) {
+      logininfor.ipaddr = IP_INNER_ADDR;
+      logininfor.loginLocation = IP_INNER_LOCATION;
     } else {
       // 解析ip地址
       logininfor.ipaddr = ip;

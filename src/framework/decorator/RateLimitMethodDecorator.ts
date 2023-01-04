@@ -6,6 +6,7 @@ import { Result } from '../model/Result';
 import { LimitTypeEnum } from '../enums/LimitTypeEnum';
 import { RATE_LIMIT_KEY } from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';
+import { IP_INNER_ADDR } from '../constants/CommonConstants';
 
 /** 限流参数 */
 interface rateLimitOptions {
@@ -59,10 +60,9 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
 
       // IP
       if (metadataObj.limitType === LimitTypeEnum.IP) {
-        let clientIP = '127.0.0.1';
-        if (!ctx.ip.includes('127.0.0.1')) {
-          clientIP = ctx.ip;
-        }
+        const clientIP = ctx.ip.includes(IP_INNER_ADDR)
+          ? IP_INNER_ADDR
+          : ctx.ip;
         combinedKey = RATE_LIMIT_KEY + `${clientIP}:${classMethod}`;
       }
 

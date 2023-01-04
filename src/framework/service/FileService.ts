@@ -7,9 +7,9 @@ import {
 import { Config, Provide } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
 import path = require('path');
-import { UploadSubPathEnum } from '../../framework/enums/UploadSubPathEnum';
-import { parseDatePath } from '../../framework/utils/DateFnsUtils';
-import { readSheet, writeSheet } from '../../framework/utils/ExeclUtils';
+import { UploadSubPathEnum } from '../enums/UploadSubPathEnum';
+import { parseDatePath } from '../utils/DateFnsUtils';
+import { readSheet, writeSheet } from '../utils/ExeclUtils';
 import {
   checkExistsAndMkdir,
   deleteFile,
@@ -18,8 +18,8 @@ import {
   getFileStream,
   getMimeTypeExt,
   transferToNewFile,
-} from '../../framework/utils/FileUtils';
-import { generateID } from '../../framework/utils/GenIdUtils';
+} from '../utils/FileUtils';
+import { generateID } from '../utils/GenIdUtils';
 
 /**默认大小 50M */
 const DEFAULT_MAX_SIZE = 50 * 1024 * 1024;

@@ -8,7 +8,12 @@ import { SysOperLog } from '../../modules/monitor/model/SysOperLog';
 import { SysOperLogServiceImpl } from '../../modules/monitor/service/impl/SysOperLogServiceImpl';
 import { LoginUser } from '../model/LoginUser';
 import { Result } from '../model/Result';
-import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
+import {
+  IP_INNER_ADDR,
+  IP_INNER_LOCATION,
+  STATUS_NO,
+  STATUS_YES,
+} from '../constants/CommonConstants';
 
 /** 操作日志参数 */
 interface operLogOptions {
@@ -78,9 +83,9 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       operLog.operUrl = ctx.path;
       operLog.requestMethod = ctx.method;
       // 解析ip地址
-      if (ctx.ip.includes('127.0.0.1')) {
-        operLog.operIp = '127.0.0.1';
-        operLog.operLocation = '内网IP';
+      if (ctx.ip.includes(IP_INNER_ADDR)) {
+        operLog.operIp = IP_INNER_ADDR;
+        operLog.operLocation = IP_INNER_LOCATION;
       } else {
         operLog.operIp = ctx.ip;
         operLog.operLocation = await getRealAddressByIp(ctx.ip);

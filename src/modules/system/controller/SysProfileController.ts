@@ -91,12 +91,13 @@ export class SysProfileController {
     newSysUser.sex = sysUser.sex;
     const rows = await this.sysUserService.updateUser(newSysUser);
     if (rows > 0) {
+      const isAdmin = this.contextService.isAdmin(loginUser.userId);
       // 更新缓存用户信息
       const user = await this.sysUserService.selectUserByUserName(
         loginUser.user.userName
       );
       loginUser.user = user;
-      await this.tokenService.setLoginUser(loginUser);
+      await this.tokenService.setLoginUser(loginUser, isAdmin);
       return Result.ok();
     }
     return Result.errMsg('修改个人信息异常，请联系管理员');
@@ -160,12 +161,13 @@ export class SysProfileController {
     newSysUser.avatar = imgUrl;
     const rows = await this.sysUserService.updateUser(newSysUser);
     if (rows > 0) {
+      const isAdmin = this.contextService.isAdmin(loginUser.userId);
       // 更新缓存用户信息
       const user = await this.sysUserService.selectUserByUserName(
         loginUser.user.userName
       );
       loginUser.user = user;
-      await this.tokenService.setLoginUser(loginUser);
+      await this.tokenService.setLoginUser(loginUser, isAdmin);
       return Result.ok({ imgUrl });
     }
     return Result.errMsg('上传图片异常，请联系管理员');

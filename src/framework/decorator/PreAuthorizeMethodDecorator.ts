@@ -50,11 +50,19 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       // 装饰器所在的实例上下文
       const ctx: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
 
-      // 获取用户信息
       const tokenService: TokenService = await ctx.requestContext.getAsync(
         TokenService
       );
-      let loginUser: LoginUser = await tokenService.getLoginUser();
+
+      // 从本地配置获取token在请求头标识信息
+      const jwtHeader = ctx.app.getConfig('jwtHeader');
+      const token = await tokenService.getHeaderToken(ctx.get(jwtHeader));
+      if (!token) {
+        throw new UnauthorizedError('无效授权');
+      }
+
+      // 获取用户信息
+      let loginUser: LoginUser = await tokenService.getLoginUser(token);
       if (loginUser && loginUser.userId) {
         loginUser = await tokenService.verifyToken(loginUser);
         ctx.loginUser = loginUser;

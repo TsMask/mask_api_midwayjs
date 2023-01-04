@@ -192,7 +192,7 @@ export class SysRoleController {
           loginUser.user.userName
         );
         loginUser.user = user;
-        await this.tokenService.setLoginUser(loginUser);
+        await this.tokenService.setLoginUser(loginUser, isAdmin);
       }
       return Result.ok();
     }
