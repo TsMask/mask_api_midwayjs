@@ -7,6 +7,8 @@ import { PermissionService } from '../../../framework/service/PermissionService'
 import { SysLoginService } from '../../../framework/service/SysLoginService';
 import { LoginBodyVo } from '../model/vo/LoginBodyVo';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
+import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
+import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 
 /**
  * 登录验证
@@ -31,6 +33,7 @@ export class SysLoginController {
    * 系统登录
    */
   @Post('/login')
+  @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
   async login(@Body() loginBodyVo: LoginBodyVo): Promise<Result> {
     const token = await this.sysLoginService.login(loginBodyVo);
     return Result.ok({
@@ -83,6 +86,7 @@ export class SysLoginController {
    * 系统登出
    */
   @Post('/logout')
+  @RateLimit({ time: 300, count: 5, limitType: LimitTypeEnum.IP })
   async logout(): Promise<Result> {
     await this.sysLoginService.logout();
     return Result.okMsg('退出成功');

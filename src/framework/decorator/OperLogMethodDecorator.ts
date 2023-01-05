@@ -14,6 +14,7 @@ import {
   STATUS_NO,
   STATUS_YES,
 } from '../constants/CommonConstants';
+import { parseSafeContent } from '../utils/ValueParseUtils';
 
 /** 操作日志参数 */
 interface operLogOptions {
@@ -32,8 +33,8 @@ interface operLogOptions {
 /**装饰器内部的唯一 key */
 export const DECORATOR_METHOD_OPER_LOG_KEY = 'decorator_method:oper_log';
 
-/**排除敏感属性字段 */
-const EXCLUDE_PROPERTIES = [
+/**敏感属性字段进行掩码 */
+const MASK_PROPERTIES = [
   'password',
   'oldPassword',
   'newPassword',
@@ -110,8 +111,8 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
         );
         for (const key in params) {
           if (Object.prototype.hasOwnProperty.call(params, key)) {
-            if (EXCLUDE_PROPERTIES.includes(key)) {
-              delete params[key];
+            if (MASK_PROPERTIES.includes(key)) {
+              params[key] = parseSafeContent(params[key]);
             }
           }
         }

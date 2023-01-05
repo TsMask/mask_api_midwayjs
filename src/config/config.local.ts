@@ -49,7 +49,7 @@ export default {
     tagSortable: true, //对路由 tag 进行 ascii 排序
   },
 
-  // 数据源
+  // TypeORM 数据源
   typeorm: {
     dataSource: {
       // 单数据库实例
@@ -72,5 +72,26 @@ export default {
       password: 'redis@1234',
       db: 1,
     },
+  },
+
+  // Bull 任务队列
+  bull: {
+    defaultQueueOptions: {
+      redis: {
+        port: 6379,
+        host: '192.168.56.101',
+        password: 'redis@1234',
+        db: 1, // Redis db_num
+      },
+      // 默认的任务配置
+      defaultJobOptions: {
+        // 成功后移除任务记录，最多保留最近 10 条记录
+        removeOnComplete: 10,
+        // 失败后移除任务记录，最多保留最近 10 条记录
+        removeOnFail: 10,
+      },
+    },
+    // 清理之前的任务
+    clearRepeatJobWhenStart: true,
   },
 } as MidwayConfig;

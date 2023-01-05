@@ -1,4 +1,3 @@
-
 /**项目信息 */
 type ProjectInfoType = {
     /**项目路径 */

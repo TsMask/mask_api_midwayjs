@@ -1,4 +1,4 @@
-import { Provide, Inject } from '@midwayjs/decorator';
+import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
 import {
   HTTP,
   HTTPS,
@@ -29,6 +29,7 @@ import {
  * @author TsMask <340112800@qq.com>
  */
 @Provide()
+@Scope(ScopeEnum.Singleton)
 export class SysMenuServiceImpl implements ISysMenuService {
   @Inject()
   private sysMenuRepository: SysMenuRepositoryImpl;
@@ -264,18 +265,18 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
       // 子项菜单目录
       const cMenus = menu.children;
-      if (cMenus && cMenus.length > 0 && menu.menuType === MENU_TYPE_DIR) {
+      if (Array.isArray(cMenus) && cMenus.length > 0 && menu.menuType === MENU_TYPE_DIR) {
         router.alwaysShow = true;
         router.redirect = 'noRedirect';
         router.children = await this.buildRouteMenus(cMenus);
       }
 
       // 为菜单内部跳转
-      const isMenuFrame = this.isMenuFrame(menu);
-      if (isMenuFrame) {
+      if (this.isMenuFrame(menu)) {
         router.meta = null;
         const childrenList: RouterVo[] = [];
         const children = new RouterVo();
+        children.query = menu.query;
         children.path = menu.path;
         children.component = menu.component;
         children.name = parseFirstUpper(menu.path);
@@ -285,14 +286,12 @@ export class SysMenuServiceImpl implements ISysMenuService {
           menu.isCache === STATUS_NO,
           menu.path
         );
-        children.query = menu.query;
         childrenList.push(children);
         router.children = childrenList;
       }
 
       // 父id且为内链组件
-      const isInnerLink = this.isInnerLink(menu);
-      if (menu.parentId === '0' && isInnerLink) {
+      if (menu.parentId === '0' && this.isInnerLink(menu)) {
         router.path = '/';
         router.meta = new MetaVo().newTitleIcon(menu.menuName, menu.icon);
         const childrenList: RouterVo[] = [];
@@ -351,7 +350,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       routerPath = `/${menu.path}`;
     }
     // 非外链并且是一级目录（类型为菜单）
-    else if (this.isMenuFrame(menu)) {
+    if (this.isMenuFrame(menu)) {
       routerPath = '/';
     }
     return routerPath;
@@ -368,12 +367,12 @@ export class SysMenuServiceImpl implements ISysMenuService {
     if (menu.component && !this.isMenuFrame(menu)) {
       component = menu.component;
     } else if (
-      menu.component &&
+      !menu.component &&
       menu.parentId !== '0' &&
       this.isInnerLink(menu)
     ) {
       component = MENU_COMPONENT_INNER_LINK;
-    } else if (menu.component && this.isParentView(menu)) {
+    } else if (!menu.component && this.isParentView(menu)) {
       component = MENU_COMPONENT_PARENT_VIEW;
     }
     return component;
@@ -410,7 +409,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 结果
    */
   private isParentView(menu: SysMenu): boolean {
-    return menu.parentId !== '0' && menu.menuType === MENU_TYPE_MENU;
+    return menu.parentId !== '0' && menu.menuType === MENU_TYPE_DIR;
   }
 
   /**
