@@ -5,6 +5,7 @@ import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { Result } from '../../../framework/model/Result';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 
 /**
  * 通用请求
@@ -23,6 +24,7 @@ export class CommonController {
    * 通用下载
    */
   @Post('/download')
+  @PreAuthorize()
   async downloadFile(
     @Body('filePath') filePath: string,
     @Body('isDel') isDel: string
@@ -46,6 +48,7 @@ export class CommonController {
    * 通用上传
    */
   @Post('/upload')
+  @PreAuthorize()
   async uploadFile(@Files('file') files: UploadFileInfo<string>[]) {
     if (files.length <= 0) return Result.err();
     const domain = this.contextService.getContext().origin;

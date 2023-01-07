@@ -10,9 +10,15 @@ export class FooProcessor implements IProcessor {
     async execute(params) {
         // params.aaa => 1
         console.log("params", params)
-        setTimeout(() => {
-            console.log(this.ctx.jobId + " - " + this.ctx.job.id)
-        }, 2000);
-        this.ctx.job.id
+        let i = 0;
+        while (i < 10) {
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(i++)
+                }, 1000);
+            })
+            await this.ctx.job.progress(i);
+        }
+        return this.ctx.jobId
     }
 }

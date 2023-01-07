@@ -130,7 +130,7 @@ export default (): MidwayConfig => {
           password: '<密码>',
           db: 0, // Redis db_num
         },
-        prefix: 'bull_task', // Redis key
+        prefix: 'job_bull', // Redis key
         // 默认的任务配置
         defaultJobOptions: {
           // 成功后移除任务记录，最多保留最近 10 条记录

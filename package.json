@@ -6,6 +6,7 @@
   "dependencies": {
     "@dropb/diskinfo": "^3.0.0",
     "@midwayjs/bootstrap": "^3.0.0",
+    "@midwayjs/bull-board": "^3.0.0",
     "@midwayjs/bull": "^3.0.0",
     "@midwayjs/core": "^3.0.0",
     "@midwayjs/decorator": "^3.0.0",
