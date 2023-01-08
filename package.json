@@ -17,6 +17,7 @@
     "@midwayjs/static-file": "^3.0.0",
     "@midwayjs/typeorm": "^3.0.0",
     "@midwayjs/upload": "^3.0.0",
+    "cron-parser": "^4.0.0",
     "bcrypt": "^5.0.0",
     "date-fns": "^2.0.0",
     "flake-idgen": "^1.4.0",

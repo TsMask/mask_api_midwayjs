@@ -265,7 +265,11 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
       // 子项菜单目录
       const cMenus = menu.children;
-      if (Array.isArray(cMenus) && cMenus.length > 0 && menu.menuType === MENU_TYPE_DIR) {
+      if (
+        Array.isArray(cMenus) &&
+        cMenus.length > 0 &&
+        menu.menuType === MENU_TYPE_DIR
+      ) {
         router.alwaysShow = true;
         router.redirect = 'noRedirect';
         router.children = await this.buildRouteMenus(cMenus);

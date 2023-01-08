@@ -23,11 +23,11 @@ export interface ISysJobLogRepository {
   selectJobLogList(sysJobLog: SysJobLog): Promise<SysJobLog[]>;
 
   /**
-  * 通过调度ID查询调度任务日志信息
-  * 
-  * @param jobLogId 调度任务日志ID
-  * @return 调度任务日志信息
-  */
+   * 通过调度ID查询调度任务日志信息
+   *
+   * @param jobLogId 调度任务日志ID
+   * @return 调度任务日志信息
+   */
   selectJobLogById(jobLogId: string): Promise<SysJobLog>;
 
   /**

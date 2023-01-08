@@ -1,4 +1,4 @@
-import { SysJobLog } from "../model/SysJobLog";
+import { SysJobLog } from '../model/SysJobLog';
 
 /**
  * 定时任务调度日志信息信息 服务层接口
@@ -23,11 +23,11 @@ export interface ISysJobLogService {
   selectJobLogList(sysJobLog: SysJobLog): Promise<SysJobLog[]>;
 
   /**
-  * 通过调度ID查询调度任务日志信息
-  * 
-  * @param jobLogId 调度任务日志ID
-  * @return 调度任务日志信息
-  */
+   * 通过调度ID查询调度任务日志信息
+   *
+   * @param jobLogId 调度任务日志ID
+   * @return 调度任务日志信息
+   */
   selectJobLogById(jobLogId: string): Promise<SysJobLog>;
 
   /**

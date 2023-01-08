@@ -1,3 +1,5 @@
+const cronParser = require('cron-parser');
+
 /**
  * 解析数值型
  * @param str 字符串
@@ -92,6 +94,41 @@ export function parseObjLineToHump(obj: any) {
     return obj;
   }
   return obj;
+}
+
+/**
+ * 解析object字符串
+ * @param str JSON或Array字符串
+ * @returns object 对象
+ */
+export function parseStringToObject(str: string) {
+  if (typeof str === 'string') {
+    try {
+      const obj = JSON.parse(str);
+      if (typeof obj === 'object' && obj) {
+        return obj;
+      } else {
+        return str;
+      }
+    } catch (_) {
+      return str;
+    }
+  }
+  return str;
+}
+
+/**
+ * 解析cron表达式下一次执行时间
+ * @param cron cron表达式字符串
+ * @returns 时间戳
+ */
+export function parseCronExpression(cron: string): number {
+  try {
+    const interval = cronParser.parseExpression(cron);
+    return interval.next().getTime();
+  } catch (_) {
+    return 0;
+  }
 }
 
 /**

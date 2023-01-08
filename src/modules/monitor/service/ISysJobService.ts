@@ -6,100 +6,90 @@ import { SysJob } from '../model/SysJob';
  * @author TsMask <340112800@qq.com>
  */
 export interface ISysJobService {
-   /**
-    * 分页查询调度任务集合
-    *
-    * @param query 查询信息
-    * @return 操作日志集合
-    */
-   selectJobPage(query: ListQueryPageOptions): Promise<RowPagesType>;
+  /**
+   * 分页查询调度任务集合
+   *
+   * @param query 查询信息
+   * @return 操作日志集合
+   */
+  selectJobPage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
-   /**
-    * 查询调度任务集合
-    *
-    * @param sysJob 调度任务信息
-    * @return 调度任务列表
-    */
-   selectJobList(sysJob: SysJob): Promise<SysJob[]>;
+  /**
+   * 查询调度任务集合
+   *
+   * @param sysJob 调度任务信息
+   * @return 调度任务列表
+   */
+  selectJobList(sysJob: SysJob): Promise<SysJob[]>;
 
-   /**
+  /**
    * 通过调度ID查询调度任务信息
-   * 
+   *
    * @param jobId 调度ID
    * @return 调度任务信息
    */
-   selectJobById(jobId: string): Promise<SysJob>;
+  selectJobById(jobId: string): Promise<SysJob>;
 
-   /**
-    * 新增调度任务信息
-    *
-    * @param sysJob 调度任务信息
-    * @return 调度任务ID
-    */
-   insertJob(sysJob: SysJob): Promise<string>;
+  /**
+   * 新增调度任务信息
+   *
+   * @param sysJob 调度任务信息
+   * @return 调度任务ID
+   */
+  insertJob(sysJob: SysJob): Promise<string>;
 
-   /**
-    * 修改调度任务信息
-    *
-    * @param sysJob 调度任务信息
-    * @return 修改记录数
-    */
-   updateJob(sysJob: SysJob): Promise<number>;
+  /**
+   * 修改调度任务信息
+   *
+   * @param sysJob 调度任务信息
+   * @return 修改记录数
+   */
+  updateJob(sysJob: SysJob): Promise<number>;
 
-   /**
-    * 批量删除调度任务信息
-    *
-    * @param jobIds 需要删除的调度任务ID
-    * @return 结果
-    */
-   deleteJobByIds(jobIds: string[]): Promise<number>;
+  /**
+   * 批量删除调度任务信息
+   *
+   * @param jobIds 需要删除的调度任务ID
+   * @return 结果
+   */
+  deleteJobByIds(jobIds: string[]): Promise<number>;
 
-   /**
-      * 校验cron表达式是否有效
-      * 
-      * @param cronExpression 表达式
-      * @return 结果
-      */
-   checkValidCronExpression(cronExpression: string): Promise<boolean>;
+  /**
+   * 任务调度状态修改
+   *
+   * @param sysJob 调度任务信息
+   * @return 结果
+   */
+  changeStatus(sysJob: SysJob): Promise<boolean>;
 
-   /**
-  * 任务调度状态修改
-  * 
-  * @param sysJob 调度任务信息
-  * @return 结果
-  */
-   changeStatus(sysJob: SysJob): Promise<boolean>;
+  /**
+   * 立即运行一次调度任务
+   *
+   * @param sysJob 调度任务信息
+   * @return 结果
+   */
+  runQueueJob(sysJob: SysJob): Promise<boolean>;
 
-   /**
-    * 立即运行任务
-    * 
-    * @param sysJob 调度任务信息
-    * @return 结果
-    */
-   runJob(sysJob: SysJob): Promise<boolean>;
+  /**
+   * 添加调度任务
+   *
+   * @param sysJob 调度任务信息
+   * @return 结果
+   */
+  insertQueueJob(sysJob: SysJob): Promise<void>;
 
-   /**
-      * 暂停任务
-      * 
-      * @param sysJob 调度任务信息
-      * @return 结果
-      */
-   pauseJob(sysJob: SysJob): Promise<boolean>;
+  /**
+   * 删除调度任务
+   *
+   * @param sysJob 调度任务信息
+   * @return 结果
+   */
+  deleteQueueJob(sysJob: SysJob): Promise<void>;
 
-   /**
-    * 恢复任务
-    * 
-    * @param sysJob 调度任务信息
-    * @return 结果
-    */
-   resumeJob(sysJob: SysJob): Promise<boolean>;
-
-   /**
-    * 删除任务后，所对应的trigger也将被删除
-    * 
-    * @param jobId 调度任务ID
-    * @return 结果
-    */
-   deleteJob(jobId: string): Promise<boolean>;
-
+  /**
+   * 重置初始调度任务
+   *
+   * @return 结果
+   */
+  resetQueueJob(): Promise<void>;
 }

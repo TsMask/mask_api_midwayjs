@@ -1,7 +1,7 @@
 import { MidwayConfig } from '@midwayjs/core';
 
 export default (): MidwayConfig => {
-  // 程序文件路径 示例（ Windows配置D:/home/mask，Linux配置 /home/mask）
+  // 程序资源文件路径 示例（ Windows配置D:/home/mask，Linux配置 /home/mask）
   const filePath = 'D:/home/mask';
 
   return {
@@ -79,6 +79,7 @@ export default (): MidwayConfig => {
     /**静态文件配置 http://www.midwayjs.org/docs/extensions/static_file */
     staticFile: {
       dirs: {
+        // 默认资源
         default: {
           prefix: '/static',
           dir: `${filePath}/static`,

@@ -23,12 +23,20 @@ export interface ISysJobRepository {
   selectJobList(sysJob: SysJob): Promise<SysJob[]>;
 
   /**
-  * 通过调度ID查询调度任务信息
-  * 
-  * @param jobId 调度ID
-  * @return 调度任务信息
-  */
+   * 通过调度ID查询调度任务信息
+   *
+   * @param jobId 调度ID
+   * @return 调度任务信息
+   */
   selectJobById(jobId: string): Promise<SysJob>;
+
+  /**
+   * 通过调用目标字符串查询调度任务信息
+   *
+   * @param invokeTarget 调用目标字符串
+   * @return 调度任务信息
+   */
+  selectJobByInvokeTarget(invokeTarget: string): Promise<SysJob>;
 
   /**
    * 新增调度任务信息
@@ -53,5 +61,4 @@ export interface ISysJobRepository {
    * @return 结果
    */
   deleteJobByIds(jobIds: string[]): Promise<number>;
-
 }

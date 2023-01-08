@@ -16,10 +16,13 @@ export class SysJob {
   /**调用目标字符串 */
   invokeTarget: string;
 
+  /**调用目标传入参数 */
+  targetParams: string;
+
   /**cron执行表达式 */
   cronExpression: string;
 
-  /**cron计划策略 */
+  /**计划执行错误策略（1立即执行 2执行一次 3放弃执行） */
   misfirePolicy: string;
 
   /**是否并发执行（0允许 1禁止） */

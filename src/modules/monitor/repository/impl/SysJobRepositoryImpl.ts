@@ -7,7 +7,7 @@ import { ISysJobRepository } from '../ISysJobRepository';
 
 /**查询视图对象SQL */
 const SELECT_JOB_VO = `select 
-job_id, job_name, job_group, invoke_target, cron_expression, misfire_policy, concurrent, status, create_by, create_time, remark 
+job_id, job_name, job_group, invoke_target, target_params, cron_expression, misfire_policy, concurrent, status, create_by, create_time, remark 
 from sys_job`;
 
 /**操作定时任务调度表信息实体映射 */
@@ -16,6 +16,7 @@ SYS_JOB_RESULT.set('job_id', 'jobId');
 SYS_JOB_RESULT.set('job_name', 'jobName');
 SYS_JOB_RESULT.set('job_group', 'jobGroup');
 SYS_JOB_RESULT.set('invoke_target', 'invokeTarget');
+SYS_JOB_RESULT.set('target_params', 'target_params');
 SYS_JOB_RESULT.set('cron_expression', 'cronExpression');
 SYS_JOB_RESULT.set('misfire_policy', 'misfirePolicy');
 SYS_JOB_RESULT.set('concurrent', 'concurrent');
@@ -134,6 +135,12 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     return parseSysJobResult(results);
   }
 
+  async selectJobByInvokeTarget(invokeTarget: string): Promise<SysJob> {
+    const sqlStr = `${SELECT_JOB_VO} where invoke_target = ? `;
+    const rows = await this.db.execute(sqlStr, [invokeTarget]);
+    return parseSysJobResult(rows)[0] || null;
+  }
+
   async selectJobById(jobId: string): Promise<SysJob> {
     const sqlStr = `${SELECT_JOB_VO} where job_id = ? `;
     const rows = await this.db.execute(sqlStr, [jobId]);
@@ -146,7 +153,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramMap.set('job_id', sysJob.jobId);
     }
     if (sysJob.jobName) {
-      paramMap.set('job_name', parseNumber(sysJob.jobName));
+      paramMap.set('job_name', sysJob.jobName);
     }
     if (sysJob.jobGroup) {
       paramMap.set('job_group', sysJob.jobGroup);
@@ -154,8 +161,11 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     if (sysJob.invokeTarget) {
       paramMap.set('invoke_target', sysJob.invokeTarget);
     }
+    if (sysJob.targetParams) {
+      paramMap.set('target_params', sysJob.targetParams);
+    }
     if (sysJob.cronExpression) {
-      paramMap.set('cron_expression', parseNumber(sysJob.cronExpression));
+      paramMap.set('cron_expression', sysJob.cronExpression);
     }
     if (sysJob.misfirePolicy) {
       paramMap.set('misfire_policy', sysJob.misfirePolicy);
@@ -186,7 +196,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
   async updateJob(sysJob: SysJob): Promise<number> {
     const paramMap = new Map();
     if (sysJob.jobName) {
-      paramMap.set('job_name', parseNumber(sysJob.jobName));
+      paramMap.set('job_name', sysJob.jobName);
     }
     if (sysJob.jobGroup) {
       paramMap.set('job_group', sysJob.jobGroup);
@@ -194,8 +204,11 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     if (sysJob.invokeTarget) {
       paramMap.set('invoke_target', sysJob.invokeTarget);
     }
+    if (sysJob.targetParams) {
+      paramMap.set('target_params', sysJob.targetParams);
+    }
     if (sysJob.cronExpression) {
-      paramMap.set('cron_expression', parseNumber(sysJob.cronExpression));
+      paramMap.set('cron_expression', sysJob.cronExpression);
     }
     if (sysJob.misfirePolicy) {
       paramMap.set('misfire_policy', sysJob.misfirePolicy);
