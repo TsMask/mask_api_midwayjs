@@ -7,7 +7,7 @@ import { ISysJobLogRepository } from '../ISysJobLogRepository';
 import {
   parseStrToDate,
   YYYY_MM_DD,
-} from '../../../../framework/utils/DateFnsUtils';
+} from '../../../../framework/utils/DateUtils';
 
 /**查询视图对象SQL */
 const SELECT_JOB_LOG_VO = `select 
@@ -100,7 +100,7 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
       return { total: 0, rows: [] };
     }
     // 分页
-    sqlStr += ' limit ?,? ';
+    sqlStr += ' order by job_log_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 50 ? pageNum : 50;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
@@ -159,7 +159,7 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
       paramMap.set('job_log_id', sysJobLog.jobLogId);
     }
     if (sysJobLog.jobName) {
-      paramMap.set('job_name', parseNumber(sysJobLog.jobName));
+      paramMap.set('job_name', sysJobLog.jobName);
     }
     if (sysJobLog.jobGroup) {
       paramMap.set('job_group', sysJobLog.jobGroup);
@@ -171,10 +171,13 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
       paramMap.set('target_params', sysJobLog.targetParams);
     }
     if (sysJobLog.jobMessage) {
-      paramMap.set('job_message', parseNumber(sysJobLog.jobMessage));
+      paramMap.set('job_message', sysJobLog.jobMessage);
     }
     if (sysJobLog.exceptionInfo) {
       paramMap.set('exception_info', sysJobLog.exceptionInfo);
+    }
+    if (sysJobLog.status) {
+      paramMap.set('status', sysJobLog.status);
     }
 
     const sqlStr = `insert into sys_job_log (${[...paramMap.keys()].join(

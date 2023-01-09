@@ -28,7 +28,7 @@ import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusin
 import { FileService } from '../../../framework/service/FileService';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
-import { parseDateToStr } from '../../../framework/utils/DateFnsUtils';
+import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';

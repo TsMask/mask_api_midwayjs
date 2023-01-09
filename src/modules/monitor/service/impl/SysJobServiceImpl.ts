@@ -47,7 +47,7 @@ export class SysJobServiceImpl implements ISysJobService {
     const insertId = await this.sysJobRepository.insertJob(sysJob);
     if (insertId && sysJob.status === STATUS_YES) {
       sysJob.jobId = insertId;
-      await this.insertQueueJob(sysJob);
+      await this.insertQueueJob(sysJob, true);
     }
     return insertId;
   }
@@ -57,7 +57,7 @@ export class SysJobServiceImpl implements ISysJobService {
       const status = sysJob.status;
       // 状态正常添加队列任务
       if (status === STATUS_YES) {
-        await this.insertQueueJob(sysJob);
+        await this.insertQueueJob(sysJob, true);
       }
       // 状态禁用删除队列任务
       if (status === STATUS_NO) {
@@ -80,7 +80,7 @@ export class SysJobServiceImpl implements ISysJobService {
     const status = sysJob.status;
     // 状态正常添加队列任务
     if (status === STATUS_YES) {
-      await this.insertQueueJob(sysJob);
+      await this.insertQueueJob(sysJob, true);
     }
     // 状态禁用删除队列任务
     if (status === STATUS_NO) {
@@ -93,65 +93,7 @@ export class SysJobServiceImpl implements ISysJobService {
     newSysJob.updateBy = sysJob.updateBy;
     return (await this.sysJobRepository.updateJob(newSysJob)) > 0;
   }
-  async runQueueJob(sysJob: SysJob): Promise<boolean> {
-    // 获取队列 Processor
-    const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
-    if (!queue) return;
-
-    const jobId = sysJob.jobId;
-    const jobName = sysJob.jobName;
-    const jobGroup = sysJob.jobGroup;
-    const invokeTarget = sysJob.invokeTarget;
-    const targetParams = sysJob.targetParams;
-
-    // 判断是否是在执行任务
-    const job = await queue.getJob(jobId);
-    if (job) {
-      const isActive = await job.isActive();
-      if (isActive) return false;
-      await job.remove();
-    }
-
-    // 添加完成监听
-    queue.once('completed', async (job: Job, result: ProcessorData) => {
-      // 记录调度日志
-      const sysJobLog = new SysJobLog().new(
-        jobName,
-        jobGroup,
-        invokeTarget,
-        targetParams,
-        STATUS_YES,
-        JSON.stringify(result).substring(0, 500)
-      );
-      await this.sysJobLogRepository.insertJobLog(sysJobLog);
-      await job.remove();
-    });
-    // 添加失败监听
-    queue.once('failed', async (job: Job, error: string) => {
-      // 记录调度日志
-      const sysJobLog = new SysJobLog().new(
-        jobName,
-        jobGroup,
-        invokeTarget,
-        targetParams,
-        STATUS_NO,
-        error.substring(0, 500)
-      );
-      await this.sysJobLogRepository.insertJobLog(sysJobLog);
-      await job.remove();
-    });
-
-    // 开始执行任务
-    await queue.runJob(
-      {
-        jobId: jobId,
-        params: sysJob.targetParams,
-      },
-      { jobId: jobId }
-    );
-    return true;
-  }
-  async insertQueueJob(sysJob: SysJob): Promise<void> {
+  async insertQueueJob(sysJob: SysJob, repeat: boolean): Promise<boolean> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
     if (!queue) return;
@@ -162,26 +104,6 @@ export class SysJobServiceImpl implements ISysJobService {
     const jobGroup = sysJob.jobGroup;
     const invokeTarget = sysJob.invokeTarget;
     const targetParams = sysJob.targetParams;
-
-    // 判断是否有单次执行任务
-    const job = await queue.getJob(jobId);
-    if (job) {
-      const isActive = await job.isActive();
-      if (!isActive) {
-        await job.remove();
-      }
-    }
-
-    // 移除重复任务，在执行中的无法移除
-    const repeatableJobs = await queue.getRepeatableJobs();
-    for (const repeatable of repeatableJobs) {
-      const id = repeatable.id;
-      if (jobId !== id) continue;
-      await queue.removeRepeatable({
-        jobId: id,
-        cron: repeatable.cron,
-      });
-    }
 
     // 移除全部监听
     queue.removeAllListeners();
@@ -200,7 +122,11 @@ export class SysJobServiceImpl implements ISysJobService {
       await job.remove();
     });
     // 添加失败监听
-    queue.addListener('failed', async (job: Job, error: string) => {
+    queue.addListener('failed', async (job: Job, error: Error) => {
+      const errorStr = JSON.stringify({
+        name: error.name,
+        message: error.message,
+      });
       // 记录调度日志
       const sysJobLog = new SysJobLog().new(
         jobName,
@@ -208,26 +134,62 @@ export class SysJobServiceImpl implements ISysJobService {
         invokeTarget,
         targetParams,
         STATUS_NO,
-        error.substring(0, 500)
+        errorStr.substring(0, 500)
       );
       await this.sysJobLogRepository.insertJobLog(sysJobLog);
       await job.remove();
     });
 
-    // 添加重复任务
-    await queue.runJob(
+    // 重复任务cron
+    if (repeat) {
+      // 移除重复任务，在执行中的无法移除
+      const repeatableJobs = await queue.getRepeatableJobs();
+      for (const repeatable of repeatableJobs) {
+        const id = repeatable.id;
+        if (jobId === id) {
+          await queue.removeRepeatable({
+            jobId: id,
+            cron: repeatable.cron,
+          });
+        }
+      }
+      // 清除任务记录
+      queue.clean(5000, 'active');
+      queue.clean(5000, 'wait');
+
+      // 添加重复任务
+      await queue.runJob(
+        {
+          jobId: jobId,
+          cron: cron,
+          params: targetParams,
+        },
+        {
+          jobId: jobId,
+          repeat: {
+            cron: cron,
+          },
+        }
+      );
+      return true;
+    }
+
+    // 判断是否有单次执行任务
+    let job = await queue.getJob(jobId);
+    if (job) {
+      const isActive = await job.isActive();
+      if (isActive) return false;
+      await job.remove();
+    }
+    // 执行单次任务
+    job = await queue.runJob(
       {
         jobId: jobId,
-        cron: cron,
         params: targetParams,
       },
-      {
-        jobId: jobId,
-        repeat: {
-          cron: cron,
-        },
-      }
+      { jobId: jobId }
     );
+    return (await job.isActive()) || (await job.isWaiting());
   }
   async deleteQueueJob(sysJob: SysJob): Promise<void> {
     // 获取队列 Processor
@@ -240,12 +202,19 @@ export class SysJobServiceImpl implements ISysJobService {
     const repeatableJobs = await queue.getRepeatableJobs();
     for (const repeatable of repeatableJobs) {
       const id = repeatable.id;
-      if (jobId !== id) continue;
-      await queue.removeRepeatable({
-        jobId: id,
-        cron: repeatable.cron,
-      });
+      if (jobId === id) {
+        await queue.removeRepeatable({
+          jobId: id,
+          cron: repeatable.cron,
+        });
+      }
     }
+    // 清除任务记录
+    queue.clean(5000, 'active');
+    queue.clean(5000, 'wait');
+  }
+  async runQueueJob(sysJob: SysJob): Promise<boolean> {
+    return await this.insertQueueJob(sysJob, false);
   }
 
   async resetQueueJob(): Promise<void> {
@@ -258,7 +227,7 @@ export class SysJobServiceImpl implements ISysJobService {
       if (!sysJob) continue;
       if (sysJob.status === STATUS_NO) continue;
       // 添加到队列任务
-      await this.insertQueueJob(sysJob);
+      await this.insertQueueJob(sysJob, true);
     }
   }
 }

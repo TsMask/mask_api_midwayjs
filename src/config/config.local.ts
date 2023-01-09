@@ -26,7 +26,7 @@ export default {
     // 请求服务域名
     servers: [
       {
-        url: 'http://127.0.0.1:7001',
+        url: 'http://127.0.0.1:6275',
         description: 'Local server',
       },
       {

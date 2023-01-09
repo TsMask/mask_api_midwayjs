@@ -1,6 +1,8 @@
-// 依赖来源 https://github.com/date-fns/date-fns
-import { parse, format, differenceInSeconds } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+// 依赖来源 https://github.com/iamkun/dayjs
+import dayjs = require('dayjs');
+// 导入本地化语言并设为默认使用
+require('dayjs/locale/zh-cn');
+dayjs.locale('zh-cn');
 
 /**年 列如：2022 */
 export const YYYY = 'yyyy';
@@ -27,7 +29,7 @@ export function parseStrToDate(
   dateStr: string,
   formatStr: string = YYYY_MM_DD_HH_MM_SS
 ): Date {
-  return parse(dateStr, formatStr, new Date(), { locale: zhCN });
+  return dayjs(dateStr, formatStr).toDate();
 }
 
 /**
@@ -40,7 +42,7 @@ export function parseDateToStr(
   date: Date,
   formatStr: string = YYYY_MM_DD_HH_MM_SS
 ): string {
-  return format(date, formatStr, { locale: zhCN });
+  return dayjs(date).format(formatStr);
 }
 
 /**
@@ -50,7 +52,7 @@ export function parseDateToStr(
  * @returns 时间格式字符串
  */
 export function parseDatePath(): string {
-  return format(new Date(), 'yyyy/MM/dd', { locale: zhCN });
+  return dayjs(new Date()).format('yyyy/MM/dd');
 }
 
 /**
@@ -65,9 +67,7 @@ export function diffSeconds(
   startDate: number | Date,
   interval: number
 ): boolean {
-  const diff: number = differenceInSeconds(endDate, startDate, {
-    roundingMethod: 'ceil',
-  });
+  const diff = Math.ceil(dayjs(endDate).diff(startDate, 's'));
   if (Number.isNaN(diff)) return false;
   return diff < interval;
 }

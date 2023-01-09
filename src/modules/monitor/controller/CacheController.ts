@@ -120,8 +120,18 @@ export class CacheController {
   @Del('/clearCacheAll')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async clearCacheAll(): Promise<Result> {
-    const cacheKeys = await this.redisCache.getKeys('*');
-    await this.redisCache.delKeys(cacheKeys);
+    const keyArr = [
+      SYS_CONFIG_KEY,
+      SYS_DICT_KEY,
+      CAPTCHA_CODE_KEY,
+      REPEAT_SUBMIT_KEY,
+      RATE_LIMIT_KEY,
+      PWD_ERR_CNT_KEY,
+    ];
+    for (const key of keyArr) {
+      const cacheKeys = await this.redisCache.getKeys(`${key}*`);
+      await this.redisCache.delKeys(cacheKeys);
+    }
     return Result.ok();
   }
 }

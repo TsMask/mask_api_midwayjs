@@ -4,7 +4,7 @@ import { bcryptHash } from '../../../../framework/utils/CryptoUtils';
 import {
   parseStrToDate,
   YYYY_MM_DD,
-} from '../../../../framework/utils/DateFnsUtils';
+} from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { SysDept } from '../../model/SysDept';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';

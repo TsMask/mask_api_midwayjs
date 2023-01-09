@@ -16,7 +16,7 @@ SYS_JOB_RESULT.set('job_id', 'jobId');
 SYS_JOB_RESULT.set('job_name', 'jobName');
 SYS_JOB_RESULT.set('job_group', 'jobGroup');
 SYS_JOB_RESULT.set('invoke_target', 'invokeTarget');
-SYS_JOB_RESULT.set('target_params', 'target_params');
+SYS_JOB_RESULT.set('target_params', 'targetParams');
 SYS_JOB_RESULT.set('cron_expression', 'cronExpression');
 SYS_JOB_RESULT.set('misfire_policy', 'misfirePolicy');
 SYS_JOB_RESULT.set('concurrent', 'concurrent');

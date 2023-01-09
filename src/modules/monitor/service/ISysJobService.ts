@@ -63,20 +63,13 @@ export interface ISysJobService {
   changeStatus(sysJob: SysJob): Promise<boolean>;
 
   /**
-   * 立即运行一次调度任务
-   *
-   * @param sysJob 调度任务信息
-   * @return 结果
-   */
-  runQueueJob(sysJob: SysJob): Promise<boolean>;
-
-  /**
    * 添加调度任务
    *
    * @param sysJob 调度任务信息
+   * @param repeat 触发执行cron重复多次
    * @return 结果
    */
-  insertQueueJob(sysJob: SysJob): Promise<void>;
+  insertQueueJob(sysJob: SysJob, repeat: boolean): Promise<boolean>;
 
   /**
    * 删除调度任务
@@ -85,6 +78,14 @@ export interface ISysJobService {
    * @return 结果
    */
   deleteQueueJob(sysJob: SysJob): Promise<void>;
+
+  /**
+   * 立即运行一次调度任务
+   *
+   * @param sysJob 调度任务信息
+   * @return 结果
+   */
+  runQueueJob(sysJob: SysJob): Promise<boolean>;
 
   /**
    * 重置初始调度任务

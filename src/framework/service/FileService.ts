@@ -8,7 +8,7 @@ import { Config, Provide } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
 import path = require('path');
 import { UploadSubPathEnum } from '../enums/UploadSubPathEnum';
-import { parseDatePath } from '../utils/DateFnsUtils';
+import { parseDatePath } from '../utils/DateUtils';
 import { readSheet, writeSheet } from '../utils/ExeclUtils';
 import {
   checkExistsAndMkdir,

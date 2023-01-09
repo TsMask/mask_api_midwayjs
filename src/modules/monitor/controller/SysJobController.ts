@@ -158,7 +158,7 @@ export class SysJobController {
    * 调度任务删除
    */
   @Del('/:jobIds')
-  @PreAuthorize({ hasPermissions: ['onitor:job:remove'] })
+  @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
   @OperLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.DELETE,
@@ -176,7 +176,7 @@ export class SysJobController {
    * 调度任务修改状态
    */
   @Put('/changeStatus')
-  @RepeatSubmit(30)
+  @RepeatSubmit(5)
   @PreAuthorize({ hasPermissions: ['monitor:job:changeStatus'] })
   @OperLog({
     title: '调度任务信息',
@@ -203,7 +203,7 @@ export class SysJobController {
    * 调度任务立即执行一次
    */
   @Put('/run')
-  @RepeatSubmit(30)
+  @RepeatSubmit(10)
   @PreAuthorize({ hasPermissions: ['monitor:job:changeStatus'] })
   @OperLog({
     title: '调度任务信息',
@@ -215,5 +215,20 @@ export class SysJobController {
     if (!sysJob) return Result.err();
     const ok = await this.sysJobService.runQueueJob(sysJob);
     return Result[ok ? 'ok' : 'err']();
+  }
+
+  /**
+   * 调度任务刷新配置
+   */
+  @Del('/refreshQueueJob')
+  @RepeatSubmit(5)
+  @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
+  @OperLog({
+    title: '调度任务信息',
+    businessType: OperatorBusinessTypeEnum.CLEAN,
+  })
+  async refreshCache(): Promise<Result> {
+    await this.sysJobService.resetQueueJob();
+    return Result.ok();
   }
 }

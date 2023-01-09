@@ -4,7 +4,7 @@ import { Context } from '@midwayjs/koa';
 import { Result } from '../model/Result';
 import { REPEAT_SUBMIT_KEY } from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';
-import { diffSeconds } from '../utils/DateFnsUtils';
+import { diffSeconds } from '../utils/DateUtils';
 import { IP_INNER_ADDR } from '../constants/CommonConstants';
 
 /**重复参数Redis格式数据类型 */

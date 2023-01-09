@@ -17,7 +17,7 @@ import {
 import { Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { diskinfo } from '@dropb/diskinfo';
 import { parseBit } from '../utils/ValueParseUtils';
-import { parseDateToStr } from '../utils/DateFnsUtils';
+import { parseDateToStr } from '../utils/DateUtils';
 import ms = require('ms');
 
 /**

@@ -8,6 +8,7 @@ import * as swagger from '@midwayjs/swagger';
 import * as jwt from '@midwayjs/jwt';
 import * as upload from '@midwayjs/upload';
 import * as bull from '@midwayjs/bull';
+import * as crossDomain from '@midwayjs/cross-domain';
 import * as bullBoard from '@midwayjs/bull-board';
 import { join } from 'path';
 import { DefaultErrorFilter } from './framework/filter/DefaultErrorFilter';
@@ -43,6 +44,7 @@ import { checkExistsAndMkdir } from './framework/utils/FileUtils';
     jwt, // 鉴权和校验Token
     upload, // 文件上传
     bull, // 任务队列Bull
+    crossDomain, // 跨域cros
     bullBoard,
     {
       component: info, // 程序部署信息 /_info

@@ -1,6 +1,6 @@
 import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { parseDateToStr } from '../../../framework/utils/DateFnsUtils';
+import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import { Result } from '../../../framework/model/Result';
 import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';

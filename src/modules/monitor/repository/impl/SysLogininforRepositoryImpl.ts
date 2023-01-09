@@ -3,7 +3,7 @@ import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
-} from '../../../../framework/utils/DateFnsUtils';
+} from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysLogininfor } from '../../model/SysLogininfor';
