@@ -1,20 +1,20 @@
 /**
  * 缓存信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysCache {
   /**缓存名称 */
-  cacheName = '';
+  cacheName: string;
 
   /**缓存键名 */
-  cacheKey = '';
+  cacheKey: string;
 
   /**缓存内容 */
-  cacheValue = '';
+  cacheValue: string;
 
   /**备注 */
-  remark = '';
+  remark: string;
 
   /**
    * 实例new函数
@@ -23,6 +23,8 @@ export class SysCache {
    */
   public newCacheNR(cacheName: string, remark: string) {
     this.cacheName = cacheName;
+    this.cacheKey = '';
+    this.cacheValue = '';
     this.remark = remark;
     return this;
   }
@@ -37,6 +39,7 @@ export class SysCache {
     this.cacheName = cacheName.replace(':', '');
     this.cacheKey = cacheKey.replace(cacheName, '');
     this.cacheValue = cacheValue;
+    this.remark = '';
     return this;
   }
 }

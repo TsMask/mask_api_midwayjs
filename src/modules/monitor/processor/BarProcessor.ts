@@ -2,12 +2,12 @@ import { Processor, IProcessor, Context } from '@midwayjs/bull';
 import { Inject } from '@midwayjs/decorator';
 
 /**
- * Foo 队列任务处理
+ * Bar 队列任务处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
-@Processor('foo')
-export class FooProcessor implements IProcessor {
+@Processor('bar')
+export class BarProcessor implements IProcessor {
   @Inject()
   private ctx: Context;
 
@@ -20,12 +20,16 @@ export class FooProcessor implements IProcessor {
     // log.info("原始jonId: %s | 当前jobId %s", options.jobId, ctxJob.id);
 
     let i = 0;
-    while (i < 100) {
+    while (i < 10) {
       // 获取任务进度
       const progress = await ctxJob.progress();
       log.info('jonId: %s => 任务进度：', options.jobId, progress);
       // 延迟响应
-      await new Promise(resolve => setTimeout(() => resolve(i), 2000));
+      await new Promise(resolve => setTimeout(() => resolve(i), 1000));
+      // 程序中途执行错误
+      if (i > 3) {
+        throw new Error('程序中途执行错误');
+      }
       // 改变任务进度
       await ctxJob.progress(i++);
     }

@@ -31,7 +31,7 @@ export const DECORATOR_METHOD_RATE_LIMIT_KEY = 'decorator_method:rate_limit';
  * 使用 `LimitTypeEnum.USER` 时，请在用户身份授权认证校验后使用
  * 以便获取登录用户信息，无用户信息时默认为 `LimitTypeEnum.GLOBAL`
  * @param options 限流参数
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export function RateLimit(options: rateLimitOptions): MethodDecorator {
   return createCustomMethodDecorator(DECORATOR_METHOD_RATE_LIMIT_KEY, options);

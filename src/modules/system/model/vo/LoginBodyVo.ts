@@ -1,7 +1,7 @@
 /**
  * 用户登录对象
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class LoginBodyVo {
   /**用户名 */

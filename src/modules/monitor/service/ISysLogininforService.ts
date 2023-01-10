@@ -3,7 +3,7 @@ import { SysLogininfor } from '../model/SysLogininfor';
 /**
  * 系统访问日志情况信息 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysLogininforService {
   /**

@@ -46,7 +46,7 @@ const MASK_PROPERTIES = [
  *
  * 请在用户身份授权认证校验后使用以便获取登录用户信息
  * @param options 操作日志参数
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export function OperLog(options: operLogOptions): MethodDecorator {
   return createCustomMethodDecorator(DECORATOR_METHOD_OPER_LOG_KEY, options);
@@ -97,7 +97,9 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       if (loginUser && loginUser.userId) {
         operLog.operName = loginUser.user.userName;
         operLog.deptName = loginUser.user.dept?.deptName;
-        if (loginUser.user.userType !== '00') {
+        if (loginUser.user.userType === 'sys') {
+          operLog.operatorType = OperatorTypeEnum.MANAGE;
+        } else {
           operLog.operatorType = OperatorTypeEnum.OTHER;
         }
       }
@@ -126,19 +128,20 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       if (metadataObj.isSaveResponseData) {
         // 二进制流文件记录响应文件名
         if (Buffer.isBuffer(result)) {
-          operLog.jsonResult =
+          operLog.operMsg =
             ctx.response.headers['content-disposition'].toString();
         } else {
-          operLog.jsonResult = JSON.stringify(result).substring(0, 2000);
+          operLog.operMsg = JSON.stringify(result).substring(0, 2000);
         }
       }
 
       // 保存操作记录到数据库
       const sysOperLogService: SysOperLogServiceImpl =
         await ctx.requestContext.getAsync(SysOperLogServiceImpl);
-      operLog.status = STATUS_YES;
       if (result instanceof Result) {
         operLog.status = result.code === 200 ? STATUS_YES : STATUS_NO;
+      } else {
+        operLog.status = STATUS_YES;
       }
       await sysOperLogService.insertOperLog(operLog);
 

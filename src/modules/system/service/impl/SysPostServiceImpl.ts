@@ -7,7 +7,7 @@ import { ISysPostService } from '../ISysPostService';
 /**
  * 岗位 业务层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 export class SysPostServiceImpl implements ISysPostService {
@@ -31,10 +31,6 @@ export class SysPostServiceImpl implements ISysPostService {
 
   async selectPostListByUserId(userId: string): Promise<string[]> {
     return await this.sysPostRepository.selectPostListByUserId(userId);
-  }
-
-  countUserPostById(postId: string): Promise<string> {
-    throw new Error('Method not implemented.');
   }
 
   async deletePostByIds(postIds: string[]): Promise<number> {

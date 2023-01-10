@@ -6,7 +6,7 @@ import { SystemInfoService } from '../../../framework/service/SystemInfoService'
 /**
  * 服务器监控
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/monitor/server')
 export class ServerController {

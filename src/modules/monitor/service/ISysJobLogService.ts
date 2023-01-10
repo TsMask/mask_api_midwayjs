@@ -3,7 +3,7 @@ import { SysJobLog } from '../model/SysJobLog';
 /**
  * 定时任务调度日志信息信息 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysJobLogService {
   /**

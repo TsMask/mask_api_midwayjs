@@ -7,7 +7,7 @@ import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator
 /**
  * 路由主页
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/')
 export class IndexController {

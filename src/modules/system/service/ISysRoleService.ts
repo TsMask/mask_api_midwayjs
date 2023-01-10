@@ -3,7 +3,7 @@ import { SysRole } from '../model/SysRole';
 /**
  * 角色 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysRoleService {
   /**

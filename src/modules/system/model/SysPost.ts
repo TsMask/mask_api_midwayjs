@@ -1,7 +1,7 @@
 /**
  * 岗位表 sys_post
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysPost {
   /**岗位ID */
@@ -16,7 +16,7 @@ export class SysPost {
   /**显示顺序 */
   postSort: number;
 
-  /**状态（0正常 1停用） */
+  /**状态（0停用 1正常） */
   status: string;
 
   /**创建者 */

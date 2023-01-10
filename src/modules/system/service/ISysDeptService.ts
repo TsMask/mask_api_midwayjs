@@ -4,7 +4,7 @@ import { TreeSelect } from '../../../framework/model/TreeSelect';
 /**
  * 部门管理 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysDeptService {
   /**
@@ -75,13 +75,6 @@ export interface ISysDeptService {
    * @return 结果
    */
   checkUniqueDeptName(sysDept: SysDept): Promise<boolean>;
-
-  /**
-   * 校验部门是否有数据权限
-   *
-   * @param deptId 部门id
-   */
-  checkScopeDeptData(deptId: string): Promise<boolean>;
 
   /**
    * 新增保存部门信息

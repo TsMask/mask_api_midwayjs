@@ -7,7 +7,8 @@ import { ISysJobRepository } from '../ISysJobRepository';
 
 /**查询视图对象SQL */
 const SELECT_JOB_VO = `select 
-job_id, job_name, job_group, invoke_target, target_params, cron_expression, misfire_policy, concurrent, status, create_by, create_time, remark 
+job_id, job_name, job_group, invoke_target, target_params, cron_expression, 
+misfire_policy, concurrent, status, create_by, create_time, remark 
 from sys_job`;
 
 /**操作定时任务调度表信息实体映射 */
@@ -50,7 +51,7 @@ function parseSysJobResult(rows: any[]): SysJob[] {
 /**
  * 调度任务信息 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -168,13 +169,13 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramMap.set('cron_expression', sysJob.cronExpression);
     }
     if (sysJob.misfirePolicy) {
-      paramMap.set('misfire_policy', sysJob.misfirePolicy);
+      paramMap.set('misfire_policy', parseNumber(sysJob.misfirePolicy));
     }
     if (sysJob.concurrent) {
-      paramMap.set('concurrent', sysJob.concurrent);
+      paramMap.set('concurrent', parseNumber(sysJob.concurrent));
     }
     if (sysJob.status) {
-      paramMap.set('status', sysJob.status);
+      paramMap.set('status', parseNumber(sysJob.status));
     }
     if (sysJob.remark) {
       paramMap.set('remark', sysJob.remark);
@@ -211,13 +212,13 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramMap.set('cron_expression', sysJob.cronExpression);
     }
     if (sysJob.misfirePolicy) {
-      paramMap.set('misfire_policy', sysJob.misfirePolicy);
+      paramMap.set('misfire_policy', parseNumber(sysJob.misfirePolicy));
     }
     if (sysJob.concurrent) {
-      paramMap.set('concurrent', sysJob.concurrent);
+      paramMap.set('concurrent', parseNumber(sysJob.concurrent));
     }
     if (sysJob.status) {
-      paramMap.set('status', sysJob.status);
+      paramMap.set('status', parseNumber(sysJob.status));
     }
     if (sysJob.remark) {
       paramMap.set('remark', sysJob.remark);

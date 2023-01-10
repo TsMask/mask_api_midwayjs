@@ -11,7 +11,7 @@ import {
 
 /**查询视图对象SQL */
 const SELECT_JOB_LOG_VO = `select 
-job_log_id, job_name, job_group, invoke_target, target_params, job_message, exception_info, status, create_time 
+job_log_id, job_name, job_group, invoke_target, target_params, job_msg, status, create_time 
 from sys_job_log`;
 
 /**操作定时任务调度日志表信息实体映射 */
@@ -21,8 +21,7 @@ SYS_JOB_LOG_RESULT.set('job_name', 'jobName');
 SYS_JOB_LOG_RESULT.set('job_group', 'jobGroup');
 SYS_JOB_LOG_RESULT.set('invoke_target', 'invokeTarget');
 SYS_JOB_LOG_RESULT.set('target_params', 'targetParams');
-SYS_JOB_LOG_RESULT.set('job_message', 'jobMessage');
-SYS_JOB_LOG_RESULT.set('exception_info', 'exceptionInfo');
+SYS_JOB_LOG_RESULT.set('job_msg', 'jobMsg');
 SYS_JOB_LOG_RESULT.set('status', 'status');
 SYS_JOB_LOG_RESULT.set('create_time', 'createTime');
 
@@ -49,7 +48,7 @@ function parseSysJobLogResult(rows: any[]): SysJobLog[] {
 /**
  * 调度任务日志信息 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -170,14 +169,11 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     if (sysJobLog.targetParams) {
       paramMap.set('target_params', sysJobLog.targetParams);
     }
-    if (sysJobLog.jobMessage) {
-      paramMap.set('job_message', sysJobLog.jobMessage);
-    }
-    if (sysJobLog.exceptionInfo) {
-      paramMap.set('exception_info', sysJobLog.exceptionInfo);
+    if (sysJobLog.jobMsg) {
+      paramMap.set('job_msg', sysJobLog.jobMsg);
     }
     if (sysJobLog.status) {
-      paramMap.set('status', sysJobLog.status);
+      paramMap.set('status', parseNumber(sysJobLog.status));
     }
 
     const sqlStr = `insert into sys_job_log (${[...paramMap.keys()].join(

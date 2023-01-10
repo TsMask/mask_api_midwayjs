@@ -16,11 +16,12 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { SysDictData } from '../model/SysDictData';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 字典类型对应的字典数据信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/dict/data')
 export class SysDictDataController {
@@ -60,7 +61,7 @@ export class SysDictDataController {
           字典键值: cur.dictValue,
           字典类型: cur.dictType,
           是否默认: cur.isDefault === 'Y' ? '是' : '否',
-          状态: cur.status === '0' ? '正常' : '停用',
+          状态: cur.status === STATUS_YES ? '正常' : '停用',
         });
         return pre;
       },
@@ -111,7 +112,7 @@ export class SysDictDataController {
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async dictType(@Param('dictType') dictType: string): Promise<Result> {
     const sysDictData = new SysDictData();
-    sysDictData.status = '0';
+    sysDictData.status = STATUS_YES;
     sysDictData.dictType = dictType;
     const data = await this.sysDictDataServer.selectDictDataList(sysDictData);
     return Result.okData(data || []);

@@ -3,7 +3,7 @@ import { SysRoleMenu } from '../model/SysRoleMenu';
 /**
  * 角色与菜单关联表 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysRoleMenuRepository {
   /**

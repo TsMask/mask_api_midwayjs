@@ -3,7 +3,7 @@ import { SysNotice } from '../model/SysNotice';
 /**
  * 通知公告表 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysNoticeRepository {
   /**
@@ -37,14 +37,6 @@ export interface ISysNoticeRepository {
    * @return 结果
    */
   updateNotice(sysNotice: SysNotice): Promise<number>;
-
-  /**
-   * 批量删除公告
-   *
-   * @param noticeId 公告ID
-   * @return 结果
-   */
-  deleteNoticeById(noticeId: string): Promise<number>;
 
   /**
    * 批量删除公告信息

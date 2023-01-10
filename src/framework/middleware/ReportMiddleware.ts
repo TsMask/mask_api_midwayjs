@@ -5,7 +5,7 @@ import { NextFunction, Context } from '@midwayjs/koa';
 /**
  * 请求响应日志-中间件
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Middleware()
 export class ReportMiddleware implements IMiddleware<Context, NextFunction> {

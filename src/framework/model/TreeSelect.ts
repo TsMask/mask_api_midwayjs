@@ -4,7 +4,7 @@ import { SysMenu } from '../../modules/system/model/SysMenu';
 /**
  * Treeselect树结构实体类
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class TreeSelect {
   /**节点ID */

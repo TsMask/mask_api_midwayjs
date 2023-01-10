@@ -1,7 +1,7 @@
 /**
  * 限流-限流类型枚举
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export enum LimitTypeEnum {
   /**默认策略全局限流 */

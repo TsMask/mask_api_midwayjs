@@ -12,7 +12,7 @@ import { ISysOperLogRepository } from '../ISysOperLogRepository';
 /**查询视图对象SQL */
 const SELECT_OPER_LOG_VO = `select 
 oper_id, title, business_type, method, request_method, operator_type, oper_name, dept_name, 
-oper_url, oper_ip, oper_location, oper_param, json_result, status, error_msg, oper_time
+oper_url, oper_ip, oper_location, oper_param, oper_msg, status, oper_time
 from sys_oper_log`;
 
 /**操作日志表信息实体映射 */
@@ -29,9 +29,8 @@ SYS_OPER_LOG_RESULT.set('oper_url', 'operUrl');
 SYS_OPER_LOG_RESULT.set('oper_ip', 'operIp');
 SYS_OPER_LOG_RESULT.set('oper_location', 'operLocation');
 SYS_OPER_LOG_RESULT.set('oper_param', 'operParam');
-SYS_OPER_LOG_RESULT.set('json_result', 'jsonResult');
+SYS_OPER_LOG_RESULT.set('oper_msg', 'operMsg');
 SYS_OPER_LOG_RESULT.set('status', 'status');
-SYS_OPER_LOG_RESULT.set('error_msg', 'errorMsg');
 SYS_OPER_LOG_RESULT.set('oper_time', 'operTime');
 
 /**
@@ -57,7 +56,7 @@ function parseSysOperLogResult(rows: any[]): SysOperLog[] {
 /**
  * 操作日志 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -196,14 +195,11 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     if (sysOperLog.operParam) {
       paramMap.set('oper_param', sysOperLog.operParam);
     }
-    if (sysOperLog.jsonResult) {
-      paramMap.set('json_result', sysOperLog.jsonResult);
+    if (sysOperLog.operMsg) {
+      paramMap.set('oper_msg', sysOperLog.operMsg);
     }
     if (sysOperLog.status) {
       paramMap.set('status', parseNumber(sysOperLog.status));
-    }
-    if (sysOperLog.errorMsg) {
-      paramMap.set('error_msg', sysOperLog.errorMsg);
     }
 
     const sqlStr = `insert into sys_oper_log (${[...paramMap.keys()].join(

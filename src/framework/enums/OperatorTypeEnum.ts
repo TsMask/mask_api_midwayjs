@@ -1,7 +1,7 @@
 /**
  * 操作日志-操作人类别枚举
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export enum OperatorTypeEnum {
   /**其它 */

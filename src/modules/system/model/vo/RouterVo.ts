@@ -3,7 +3,7 @@ import { MetaVo } from './MetaVo';
 /**
  * 路由配置信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class RouterVo {
   /**

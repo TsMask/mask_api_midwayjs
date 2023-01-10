@@ -1,7 +1,7 @@
 /**
  * 用户和岗位关联 sys_user_post
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysUserPost {
   /**用户ID */

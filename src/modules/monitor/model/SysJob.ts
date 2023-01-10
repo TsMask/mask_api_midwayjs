@@ -1,7 +1,7 @@
 /**
  * 定时任务调度表 sys_job
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysJob {
   /**任务ID */
@@ -25,10 +25,10 @@ export class SysJob {
   /**计划执行错误策略（1立即执行 2执行一次 3放弃执行） */
   misfirePolicy: string;
 
-  /**是否并发执行（0允许 1禁止） */
+  /**是否并发执行（0禁止 1允许） */
   concurrent: string;
 
-  /**任务状态（0正常 1暂停） */
+  /**任务状态（0暂停 1正常） */
   status: string;
 
   /**创建者 */

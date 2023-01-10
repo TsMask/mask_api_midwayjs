@@ -3,7 +3,7 @@ import { SysDictType } from '../model/SysDictType';
 /**
  * 字典类型表 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysDictTypeRepository {
   /**

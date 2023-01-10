@@ -2,7 +2,7 @@
  * 管理员常量信息
  *
  * src\framework\service\PermissionService.ts
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 
 /**管理员-系统指定角色ID */

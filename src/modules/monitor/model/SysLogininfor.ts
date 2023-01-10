@@ -1,7 +1,7 @@
 /**
  * 系统访问记录表 sys_logininfor
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysLogininfor {
   /**访问ID */
@@ -22,7 +22,7 @@ export class SysLogininfor {
   /**操作系统 */
   os: string;
 
-  /**登录状态（0成功 1失败） */
+  /**登录状态（0失败 1成功） */
   status: string;
 
   /**提示消息 */

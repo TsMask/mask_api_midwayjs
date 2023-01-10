@@ -5,7 +5,7 @@ import { RouterVo } from '../model/vo/RouterVo';
 /**
  * 菜单 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysMenuService {
   /**

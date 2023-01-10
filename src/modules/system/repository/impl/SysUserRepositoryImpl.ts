@@ -101,7 +101,7 @@ function parseSysUserResult(rows: any[]): SysUser[] {
 /**
  * 用户表 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -447,7 +447,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   }
 
   async deleteUserByIds(userIds: string[]): Promise<number> {
-    const sqlStr = `update sys_user set del_flag = '2' where user_id in (${userIds
+    const sqlStr = `update sys_user set del_flag = '1' where user_id in (${userIds
       .map(() => '?')
       .join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);

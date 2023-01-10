@@ -13,7 +13,7 @@ import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator
 /**
  * 登录验证
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller()
 export class SysLoginController {

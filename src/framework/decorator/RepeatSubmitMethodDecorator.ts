@@ -24,7 +24,7 @@ export const DECORATOR_METHOD_REPEAT_SUBMIT_KEY =
  *
  * 小于间隔时间视为重复提交
  * @param interval 间隔时间(单位秒) 默认:5
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export function RepeatSubmit(interval = 5): MethodDecorator {
   return createCustomMethodDecorator(

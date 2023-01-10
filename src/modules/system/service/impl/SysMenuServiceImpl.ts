@@ -1,9 +1,4 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
-import {
-  HTTP,
-  HTTPS,
-  WWW,
-} from '../../../../framework/constants/CommonConstants';
 import { parseFirstUpper } from '../../../../framework/utils/ValueParseUtils';
 import { validHttp } from '../../../../framework/utils/RegularUtils';
 import { TreeSelect } from '../../../../framework/model/TreeSelect';
@@ -13,8 +8,13 @@ import { SysMenuRepositoryImpl } from '../../repository/impl/SysMenuRepositoryIm
 import { ISysMenuService } from '../ISysMenuService';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
-import { STATUS_NO } from '../../../../framework/constants/CommonConstants';
 import { SysMenu } from '../../model/SysMenu';
+import {
+  HTTP,
+  HTTPS,
+  WWW,
+  STATUS_NO,
+} from '../../../../framework/constants/CommonConstants';
 import {
   MENU_COMPONENT_INNER_LINK,
   MENU_COMPONENT_LAYOUT,
@@ -26,7 +26,7 @@ import {
 /**
  * 菜单 服务层实现
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -49,7 +49,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     const permsArr: string[] = [];
     for (const perm of perms) {
       if (perm) {
-        permsArr.push(...perm.trim().split(','));
+        permsArr.push(...perm.split(','));
       }
     }
     return [...new Set(permsArr)];
@@ -60,7 +60,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     const permsArr: string[] = [];
     for (const perm of perms) {
       if (perm) {
-        permsArr.push(...perm.trim().split(','));
+        permsArr.push(...perm.split(','));
       }
     }
     return [...new Set(permsArr)];
@@ -276,7 +276,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       }
 
       // 为菜单内部跳转
-      if (this.isMenuFrame(menu)) {
+      else if (this.isMenuFrame(menu)) {
         router.meta = null;
         const childrenList: RouterVo[] = [];
         const children = new RouterVo();
@@ -295,7 +295,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       }
 
       // 父id且为内链组件
-      if (menu.parentId === '0' && this.isInnerLink(menu)) {
+      else if (menu.parentId === '0' && this.isInnerLink(menu)) {
         router.path = '/';
         router.meta = new MetaVo().newTitleIcon(menu.menuName, menu.icon);
         const childrenList: RouterVo[] = [];
@@ -354,7 +354,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       routerPath = `/${menu.path}`;
     }
     // 非外链并且是一级目录（类型为菜单）
-    if (this.isMenuFrame(menu)) {
+    else if (this.isMenuFrame(menu)) {
       routerPath = '/';
     }
     return routerPath;

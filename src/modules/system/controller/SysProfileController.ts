@@ -23,7 +23,7 @@ import { SysUser } from '../model/SysUser';
 /**
  * 个人信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/user/profile')
 export class SysProfileController {

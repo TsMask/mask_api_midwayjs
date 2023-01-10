@@ -3,7 +3,7 @@ import { SysJob } from '../model/SysJob';
 /**
  * 定时任务调度信息信息 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysJobService {
   /**

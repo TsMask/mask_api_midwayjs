@@ -1,7 +1,7 @@
 /**
  * 当前在线会话
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysUserOnline {
   /**会话编号 */

@@ -61,7 +61,7 @@ const DEFAULT_ALLOW_EXT = [
 /**
  * 文件服务
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

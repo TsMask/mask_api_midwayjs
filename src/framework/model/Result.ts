@@ -8,7 +8,7 @@ import {
 /**
  * 响应信息主体
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class Result {
   /**响应状态码 */

@@ -14,7 +14,7 @@ import { IP_INNER_ADDR, IP_INNER_LOCATION } from '../constants/CommonConstants';
  * 上下文对象服务
  *
  * 单例模式下不可用
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 export class ContextService {

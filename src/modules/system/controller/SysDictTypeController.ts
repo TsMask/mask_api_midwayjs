@@ -16,11 +16,12 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictTypeServiceImpl } from '../service/impl/SysDictTypeServiceImpl';
 import { SysDictType } from '../model/SysDictType';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 字典类型信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/dict/type')
 export class SysDictTypeController {
@@ -57,7 +58,7 @@ export class SysDictTypeController {
           字典主键: cur.dictId,
           字典名称: cur.dictName,
           字典类型: cur.dictType,
-          状态: cur.status === '0' ? '正常' : '停用',
+          状态: cur.status === STATUS_YES ? '正常' : '停用',
         });
         return pre;
       },

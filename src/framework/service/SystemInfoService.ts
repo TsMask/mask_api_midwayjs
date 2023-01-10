@@ -23,7 +23,7 @@ import ms = require('ms');
 /**
  * 服务器系统相关信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

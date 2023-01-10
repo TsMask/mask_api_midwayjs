@@ -3,7 +3,7 @@
  *
  * src\framework\service\TokenService.ts
  * src\modules\system\controller\SysLoginController.ts
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 
 /**令牌-数据响应字段 */

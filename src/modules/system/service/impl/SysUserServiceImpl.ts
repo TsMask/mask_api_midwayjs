@@ -1,5 +1,8 @@
 import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
-import { UserStatusEnum } from '../../../../framework/enums/UserStatusEnum';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../../framework/constants/CommonConstants';
 import {
   validEmail,
   validMobile,
@@ -20,7 +23,7 @@ import { SysDictDataServiceImpl } from './SysDictDataServiceImpl';
 /**
  * 用户 业务层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -128,12 +131,6 @@ export class SysUserServiceImpl implements ISysUserService {
     }
     return !userId;
   }
-  checkUserAllowed(sysUser: SysUser): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
-  checkUserDataScope(userId: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
   async insertUser(sysUser: SysUser): Promise<string> {
     // 新增用户信息
     const insertId = await this.sysUserRepository.insertUser(sysUser);
@@ -181,7 +178,7 @@ export class SysUserServiceImpl implements ISysUserService {
       if (!roleId) continue;
       const ur = new SysUserRole();
       ur.userId = userId;
-      ur.roleId = roleId.trim();
+      ur.roleId = roleId;
       sysUserRoles.push(ur);
     }
     if (sysUserRoles.length <= 0) return 0;
@@ -203,7 +200,7 @@ export class SysUserServiceImpl implements ISysUserService {
       if (!postId) continue;
       const up = new SysUserPost();
       up.userId = userId;
-      up.postId = postId.trim();
+      up.postId = postId;
       sysUserPosts.push(up);
     }
     if (sysUserPosts.length <= 0) return 0;
@@ -270,10 +267,7 @@ export class SysUserServiceImpl implements ISysUserService {
       newSysUser.nickName = item['用户名称'];
       newSysUser.phonenumber = item['手机号码'];
       newSysUser.email = item['用户邮箱'];
-      newSysUser.status =
-        item['帐号状态'] === '停用'
-          ? UserStatusEnum.DISABLE
-          : UserStatusEnum.OK;
+      newSysUser.status = item['帐号状态'] === '启用' ? STATUS_YES : STATUS_NO;
       const sysUserSex = sysUserSexSDDList.find(
         sdd => sdd.dictLabel === item['用户性别']
       );

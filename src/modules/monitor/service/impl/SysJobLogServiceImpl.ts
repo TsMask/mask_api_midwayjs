@@ -6,7 +6,7 @@ import { ISysJobLogService } from '../ISysJobLogService';
 /**
  * 定时任务调度日志信息 业务层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

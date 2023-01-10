@@ -3,7 +3,7 @@ import { SysPost } from '../model/SysPost';
 /**
  * 岗位信息 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysPostService {
   /**
@@ -37,14 +37,6 @@ export interface ISysPostService {
    * @return 选中岗位ID列表
    */
   selectPostListByUserId(userId: string): Promise<string[]>;
-
-  /**
-   * 通过岗位ID查询岗位使用数量
-   *
-   * @param postId 岗位ID
-   * @return 结果
-   */
-  countUserPostById(postId: string): Promise<string>;
 
   /**
    * 批量删除岗位信息

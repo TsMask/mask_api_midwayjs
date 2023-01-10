@@ -49,7 +49,7 @@ function parseSysConfigResult(rows: any[]): SysConfig[] {
 /**
  * 用户表 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -170,13 +170,13 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
   async insertConfig(sysConfig: SysConfig): Promise<string> {
     const paramMap = new Map();
     if (sysConfig.configName) {
-      paramMap.set('config_name', sysConfig.configName.trim());
+      paramMap.set('config_name', sysConfig.configName);
     }
     if (sysConfig.configKey) {
-      paramMap.set('config_key', sysConfig.configKey.trim());
+      paramMap.set('config_key', sysConfig.configKey);
     }
     if (sysConfig.configValue) {
-      paramMap.set('config_value', sysConfig.configValue.trim());
+      paramMap.set('config_value', sysConfig.configValue);
     }
     if (sysConfig.configType) {
       paramMap.set('config_type', sysConfig.configType);
@@ -201,13 +201,13 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
   async updateConfig(sysConfig: SysConfig): Promise<number> {
     const paramMap = new Map();
     if (sysConfig.configName) {
-      paramMap.set('config_name', sysConfig.configName.trim());
+      paramMap.set('config_name', sysConfig.configName);
     }
     if (sysConfig.configKey) {
-      paramMap.set('config_key', sysConfig.configKey.trim());
+      paramMap.set('config_key', sysConfig.configKey);
     }
     if (sysConfig.configValue) {
-      paramMap.set('config_value', sysConfig.configValue.trim());
+      paramMap.set('config_value', sysConfig.configValue);
     }
     if (sysConfig.configType) {
       paramMap.set('config_type', sysConfig.configType);

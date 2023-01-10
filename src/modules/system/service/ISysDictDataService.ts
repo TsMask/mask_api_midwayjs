@@ -3,7 +3,7 @@ import { SysDictData } from '../model/SysDictData';
 /**
  * 字典类型数据 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysDictDataService {
   /**

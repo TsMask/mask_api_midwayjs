@@ -64,7 +64,7 @@ function parseSysMenuResult(rows: any[]): SysMenu[] {
 /**
  * 菜单表 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -101,13 +101,13 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   async selectMenuTreeByUserId(userId?: string): Promise<SysMenu[]> {
     const paramArr = [];
     let buildSqlStr = `${SELECT_MENU_VO} where 
-    m.menu_type in ('M', 'C') and m.status = 0
+    m.menu_type in ('M', 'C') and m.status = '1'
 		order by m.parent_id, m.order_num`;
 
     if (userId && userId !== '0') {
       buildSqlStr = `${SELECT_MENU_USER_VO} where 
-      m.menu_type in ('M', 'C') and m.status = 0 
-      and ur.user_id = ? and ro.status = 0
+      m.menu_type in ('M', 'C') and m.status = '1'
+      and ur.user_id = ? and ro.status = '1'
       order by m.parent_id, m.order_num`;
       paramArr.push(userId);
     }
@@ -123,7 +123,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   async selectMenuPermsByRoleId(roleId: string): Promise<string[]> {
     const sqlStr = `select distinct m.perms as 'str' from sys_menu m 
     left join sys_role_menu rm on m.menu_id = rm.menu_id
-    where m.status = '0' and rm.role_id = ?`;
+    where m.status = '1' and rm.role_id = ?`;
 
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [roleId]);
     return rows.map(item => item.str);
@@ -134,7 +134,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     left join sys_role_menu rm on m.menu_id = rm.menu_id 
     left join sys_user_role ur on rm.role_id = ur.role_id 
     left join sys_role r on r.role_id = ur.role_id
-		where m.status = '0' and r.status = '0' and ur.user_id = ? `;
+		where m.status = '1' and r.status = '1' and ur.user_id = ? `;
 
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [userId]);
     return rows.map(item => item.str);

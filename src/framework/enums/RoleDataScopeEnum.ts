@@ -1,7 +1,7 @@
 /**
  * 系统角色-数据范围枚举
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export enum RoleDataScopeEnum {
   /**全部数据权限 */

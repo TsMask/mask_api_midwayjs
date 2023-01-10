@@ -4,7 +4,7 @@ import { SysRole } from './SysRole';
 /**
  * 用户对象 sys_user
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysUser {
   /**用户ID */
@@ -19,7 +19,7 @@ export class SysUser {
   /**用户昵称 */
   nickName: string;
 
-  /**用户类型（00系统用户） */
+  /**用户类型（sys系统用户） */
   userType: string;
 
   /**用户邮箱 */
@@ -28,7 +28,7 @@ export class SysUser {
   /**手机号码 */
   phonenumber: string;
 
-  /**用户性别（1男 2女 0未知） */
+  /**用户性别（0未知 1男 2女） */
   sex: string;
 
   /**头像地址 */
@@ -37,10 +37,10 @@ export class SysUser {
   /**密码 */
   password: string;
 
-  /**帐号状态（0正常 1停用） */
+  /**帐号状态（0停用 1正常） */
   status: string;
 
-  /**删除标志（0代表存在 1代表停用 2代表删除） */
+  /**删除标志（0代表存在 1代表删除） */
   delFlag: string;
 
   /**最后登录IP */

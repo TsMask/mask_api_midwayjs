@@ -3,7 +3,7 @@ import { SysConfig } from '../model/SysConfig';
 /**
  * 参数配置 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysConfigRepository {
   /**

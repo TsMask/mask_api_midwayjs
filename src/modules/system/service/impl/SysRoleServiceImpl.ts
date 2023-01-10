@@ -13,7 +13,7 @@ import { ISysRoleService } from '../ISysRoleService';
 /**
  * 角色 服务层实现
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -67,7 +67,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
     const role_arr: string[] = [];
     for (const perm of perms) {
       if (perm && perm.roleKey) {
-        role_arr.push(...perm.roleKey.trim().split(','));
+        role_arr.push(...perm.roleKey.split(','));
       }
     }
     return [...new Set(role_arr)];

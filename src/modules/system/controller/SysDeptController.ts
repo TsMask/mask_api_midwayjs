@@ -21,7 +21,7 @@ import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
 /**
  * 部门信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/dept')
 export class SysDeptController {

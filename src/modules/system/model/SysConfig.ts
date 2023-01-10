@@ -1,7 +1,7 @@
 /**
  * 参数配置表 sys_config
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysConfig {
   /**参数主键 */

@@ -7,7 +7,7 @@ import { Result } from '../model/Result';
  * 未授权认证用户-拦截器
  *
  * 401 错误会到这里
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Catch(httpError.UnauthorizedError)
 export class UnauthorizedErrorFilter {

@@ -1,7 +1,7 @@
 /**
  * 操作日志-业务操作类型枚举
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export enum OperatorBusinessTypeEnum {
   /**其它 */

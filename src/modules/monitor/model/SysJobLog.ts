@@ -1,12 +1,7 @@
-import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../../../framework/constants/CommonConstants';
-
 /**
  * 定时任务调度日志表 sys_job_log
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysJobLog {
   /**日志序号 */
@@ -25,12 +20,9 @@ export class SysJobLog {
   targetParams: string;
 
   /**日志信息 */
-  jobMessage: string;
+  jobMsg: string;
 
-  /**异常信息 */
-  exceptionInfo: string;
-
-  /**执行状态（0正常 1失败） */
+  /**执行状态（0失败 1正常） */
   status: string;
 
   /**创建时间 */
@@ -42,7 +34,7 @@ export class SysJobLog {
    * @param jobGroup 任务组名
    * @param invokeTarget 调用目标传入参数
    * @param targetParams 调用目标传入参数
-   * @param status 执行状态（0正常 1失败）
+   * @param status 执行状态（0失败 1正常）
    * @param msg 结果信息
    * @returns SysJobLog
    */
@@ -59,12 +51,7 @@ export class SysJobLog {
     this.invokeTarget = invokeTarget;
     this.targetParams = targetParams;
     this.status = status;
-    if (status === STATUS_YES) {
-      this.jobMessage = msg;
-    }
-    if (status === STATUS_NO) {
-      this.exceptionInfo = msg;
-    }
+    this.jobMsg = msg;
     return this;
   }
 }

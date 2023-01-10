@@ -8,7 +8,7 @@ import { ISysDeptService } from '../ISysDeptService';
 /**
  * 参数配置 服务层实现
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -74,10 +74,6 @@ export class SysDeptServiceImpl implements ISysDeptService {
       return true;
     }
     return !deptId;
-  }
-
-  checkScopeDeptData(deptId: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
   }
 
   async insertDept(sysDept: SysDept): Promise<string> {

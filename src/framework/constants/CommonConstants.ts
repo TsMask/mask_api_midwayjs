@@ -1,7 +1,7 @@
 /**
  * 通用常量信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 
 /**www主域 */
@@ -20,7 +20,7 @@ export const IP_INNER_ADDR = '127.0.0.1';
 export const IP_INNER_LOCATION = '内网IP';
 
 /**通用状态标识-正常/成功/是 */
-export const STATUS_YES = '0';
+export const STATUS_YES = '1';
 
 /**通用状态标识-停用/失败/否 */
-export const STATUS_NO = '1';
+export const STATUS_NO = '0';

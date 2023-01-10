@@ -6,7 +6,7 @@ import { ISysUserOnlineService } from '../ISysUserOnlineService';
 /**
  * 在线用户 服务层实现
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

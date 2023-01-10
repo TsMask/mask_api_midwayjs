@@ -3,7 +3,7 @@ import { SysUser } from '../model/SysUser';
 /**
  * 用户表 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysUserRepository {
   /**

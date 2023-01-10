@@ -58,7 +58,7 @@ function parseSysRoleResult(rows: any[]): SysRole[] {
 /**
  * 角色表 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -302,7 +302,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     throw new Error('Method not implemented.');
   }
   async deleteRoleByIds(roleIds: string[]): Promise<number> {
-    const sqlStr = `update sys_role set del_flag = '2' where role_id in (${roleIds
+    const sqlStr = `update sys_role set del_flag = '1' where role_id in (${roleIds
       .map(() => '?')
       .join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);

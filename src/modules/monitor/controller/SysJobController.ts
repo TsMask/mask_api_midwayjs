@@ -8,6 +8,7 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
@@ -25,7 +26,7 @@ import { SysJobServiceImpl } from '../service/impl/SysJobServiceImpl';
 /**
  * 调度任务信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/monitor/job')
 export class SysJobController {
@@ -64,8 +65,8 @@ export class SysJobController {
           调用目标传入参数: cur.targetParams,
           执行表达式: cur.cronExpression,
           计划策略: cur.misfirePolicy,
-          并发执行: cur.concurrent === '0' ? '允许' : '禁止',
-          任务状态: cur.status === '0' ? '正常' : '停用',
+          并发执行: cur.concurrent === STATUS_YES ? '允许' : '禁止',
+          任务状态: cur.status === STATUS_YES ? '正常' : '停用',
         });
         return pre;
       },

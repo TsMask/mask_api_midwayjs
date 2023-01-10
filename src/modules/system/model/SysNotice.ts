@@ -1,7 +1,7 @@
 /**
  * 通知公告表 sys_notice
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysNotice {
   /**公告ID */
@@ -16,8 +16,11 @@ export class SysNotice {
   /**公告内容 */
   noticeContent: string;
 
-  /**公告状态（0正常 1关闭） */
+  /**公告状态（0关闭 1正常） */
   status: string;
+
+  /**删除标志（0代表存在 1代表删除） */
+  delFlag: string;
 
   /**创建者 */
   createBy: string;

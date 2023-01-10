@@ -1,6 +1,6 @@
 {
   "name": "mask_api_midwayjs",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "🎉 基于 Midwayjs 的管理系统后端接口服务",
   "private": true,
   "dependencies": {

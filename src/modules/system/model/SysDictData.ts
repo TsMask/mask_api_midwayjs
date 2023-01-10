@@ -1,7 +1,7 @@
 /**
  * 字典数据表 sys_dict_data
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysDictData {
   /**字典编码 */
@@ -25,10 +25,10 @@ export class SysDictData {
   /**表格回显样式 */
   listClass: string;
 
-  /**是否默认（Y是 N否） */
+  /**是否默认（N否 Y是） */
   isDefault: string;
 
-  /**状态（0正常 1停用） */
+  /**状态（0停用 1正常） */
   status: string;
 
   /**创建者 */

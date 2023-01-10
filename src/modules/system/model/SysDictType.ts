@@ -1,7 +1,7 @@
 /**
  * 字典类型表 sys_dict_type
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysDictType {
   /**字典主键 */
@@ -13,7 +13,7 @@ export class SysDictType {
   /**字典类型 */
   dictType: string;
 
-  /**状态（0正常 1停用） */
+  /**状态（0停用 1正常） */
   status: string;
 
   /**创建者 */

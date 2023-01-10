@@ -7,7 +7,7 @@ import { Result } from '../model/Result';
  * 路由未找到-拦截器
  *
  * 404 错误会到这里
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Catch(httpError.NotFoundError)
 export class NotFoundErrorFilter {

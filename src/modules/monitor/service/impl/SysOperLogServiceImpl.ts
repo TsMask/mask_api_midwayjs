@@ -6,7 +6,7 @@ import { ISysOperLogService } from '../ISysOperLogService';
 /**
  * 操作日志 业务层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

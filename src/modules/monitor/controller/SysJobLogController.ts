@@ -12,7 +12,7 @@ import { SysJobLog } from '../model/SysJobLog';
 /**
  * 调度任务日志信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/monitor/jobLog')
 export class SysJobLogController {
@@ -49,8 +49,7 @@ export class SysJobLogController {
           任务组名: cur.jobGroup,
           调用目标字符串: cur.invokeTarget,
           调用目标传入参数: cur.targetParams,
-          日志信息: cur.jobMessage,
-          异常信息: cur.exceptionInfo,
+          日志信息: cur.jobMsg,
           执行状态: cur.status === '0' ? '正常' : '失败',
           创建时间: parseDateToStr(new Date(+cur.createTime)),
         });

@@ -21,7 +21,7 @@ import { SysConfigServiceImpl } from '../service/impl/SysConfigServiceImpl';
 /**
  * 参数配置信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/config')
 export class SysConfigController {

@@ -6,7 +6,7 @@ import { ISysNoticeService } from '../ISysNoticeService';
 /**
  * 公告 业务层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -28,9 +28,6 @@ export class SysNoticeServiceImpl implements ISysNoticeService {
   }
   async updateNotice(sysNotice: SysNotice): Promise<number> {
     return await this.sysNoticeRepository.updateNotice(sysNotice);
-  }
-  async deleteNoticeById(noticeId: string): Promise<number> {
-    return await this.sysNoticeRepository.deleteNoticeById(noticeId);
   }
   async deleteNoticeByIds(noticeIds: string[]): Promise<number> {
     return await this.sysNoticeRepository.deleteNoticeByIds(noticeIds);

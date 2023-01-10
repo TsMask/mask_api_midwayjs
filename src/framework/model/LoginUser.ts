@@ -3,7 +3,7 @@ import { SysUser } from '../../modules/system/model/SysUser';
 /**
  * 登录用户身份权限信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class LoginUser {
   /**用户ID */

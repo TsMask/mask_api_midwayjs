@@ -3,7 +3,7 @@ import { SysUserPost } from '../model/SysUserPost';
 /**
  * 用户与岗位关联表 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysUserPostRepository {
   /**

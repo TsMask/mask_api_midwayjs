@@ -48,7 +48,7 @@ function parseSysLogininforResult(rows: any[]): SysLogininfor[] {
 /**
  * 系统访问日志情况信息 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

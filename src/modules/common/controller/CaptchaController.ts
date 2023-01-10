@@ -18,7 +18,7 @@ import {
 /**
  * 验证码操作处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller()
 export class CaptchaController {

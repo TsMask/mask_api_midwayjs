@@ -1,7 +1,7 @@
 /**
  * 角色和菜单关联 sys_role_menu
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysRoleMenu {
   /**角色ID */

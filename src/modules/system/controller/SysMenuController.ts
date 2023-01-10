@@ -17,11 +17,12 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDec
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
 import { SysMenu } from '../model/SysMenu';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 菜单信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/menu')
 export class SysMenuController {
@@ -74,7 +75,7 @@ export class SysMenuController {
       );
     }
     // 外链菜单需要符合网站http(s)开头
-    if (sysMenu.isFrame === '0' && !validHttp(sysMenu.path)) {
+    if (sysMenu.isFrame === STATUS_YES && !validHttp(sysMenu.path)) {
       return Result.errMsg(
         `菜单新增【${sysMenu.menuName}】失败，地址必须以http(s)://开头`
       );
@@ -101,7 +102,7 @@ export class SysMenuController {
       );
     }
     // 外链菜单需要符合网站http(s)开头
-    if (sysMenu.isFrame === '0' && !validHttp(sysMenu.path)) {
+    if (sysMenu.isFrame === STATUS_YES && !validHttp(sysMenu.path)) {
       return Result.errMsg(
         `菜单修改【${sysMenu.menuName}】失败，地址必须以http(s)://开头`
       );

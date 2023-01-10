@@ -3,7 +3,7 @@ import { validHttp } from '../../../../framework/utils/RegularUtils';
 /**
  * 路由显示信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class MetaVo {
   /**

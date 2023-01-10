@@ -51,7 +51,7 @@ function parseSysDeptResult(rows: any[]): SysDept[] {
 /**
  * 部门管理 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -126,7 +126,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
 
   async selectNormalChildrenDeptById(deptId: string): Promise<number> {
     const sqlStr =
-      "select count(1) as 'total' from sys_dept where status = 0 and del_flag = '0' and find_in_set(?, ancestors) ";
+      "select count(1) as 'total' from sys_dept where status = '1' and del_flag = '0' and find_in_set(?, ancestors) ";
     const countRow: RowTotalType[] = await this.db.execute(sqlStr, [deptId]);
     return parseNumber(countRow[0].total);
   }
@@ -240,7 +240,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async updateDeptStatusNormal(deptIds: string[]): Promise<number> {
-    const sqlStr = `update sys_dept set status = '0' where dept_id in (${deptIds
+    const sqlStr = `update sys_dept set status = '1' where dept_id in (${deptIds
       .map(() => '?')
       .join(',')}) `;
     const result: ResultSetHeader = await this.db.execute(sqlStr, deptIds);

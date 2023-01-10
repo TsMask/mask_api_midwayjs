@@ -39,7 +39,7 @@ import { SysUser } from '../model/SysUser';
 /**
  * 用户信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/user')
 export class SysUserController {

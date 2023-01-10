@@ -6,9 +6,9 @@ import { SysNotice } from '../../model/SysNotice';
 import { ISysNoticeRepository } from '../ISysNoticeRepository';
 
 /**查询视图对象SQL */
-const SELECT_NOTICE_VO = `select notice_id, notice_title, notice_type, 
-cast(notice_content as char) as notice_content, status, create_by, 
-create_time, update_by, update_time, remark from sys_notice`;
+const SELECT_NOTICE_VO = `select 
+notice_id, notice_title, notice_type, notice_content, status, del_flag, 
+create_by, create_time, update_by, update_time, remark from sys_notice`;
 
 /**公告表信息实体映射 */
 const SYS_NOTICE_RESULT = new Map<string, string>();
@@ -17,6 +17,7 @@ SYS_NOTICE_RESULT.set('notice_title', 'noticeTitle');
 SYS_NOTICE_RESULT.set('notice_type', 'noticeType');
 SYS_NOTICE_RESULT.set('notice_content', 'noticeContent');
 SYS_NOTICE_RESULT.set('status', 'status');
+SYS_NOTICE_RESULT.set('del_flag', 'delFlag');
 SYS_NOTICE_RESULT.set('create_by', 'createBy');
 SYS_NOTICE_RESULT.set('create_time', 'createTime');
 SYS_NOTICE_RESULT.set('update_by', 'updateBy');
@@ -46,7 +47,7 @@ function parseSysNoticeResult(rows: any[]): SysNotice[] {
 /**
  * 公告表 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -129,7 +130,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
   async insertNotice(sysNotice: SysNotice): Promise<string> {
     const paramMap = new Map();
     if (sysNotice.noticeTitle) {
-      paramMap.set('notice_title', sysNotice.noticeTitle.trim());
+      paramMap.set('notice_title', sysNotice.noticeTitle);
     }
     if (sysNotice.noticeType) {
       paramMap.set('notice_type', parseNumber(sysNotice.noticeType));
@@ -160,7 +161,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
   async updateNotice(sysNotice: SysNotice): Promise<number> {
     const paramMap = new Map();
     if (sysNotice.noticeTitle) {
-      paramMap.set('notice_title', sysNotice.noticeTitle.trim());
+      paramMap.set('notice_title', sysNotice.noticeTitle);
     }
     if (sysNotice.noticeType) {
       paramMap.set('notice_type', parseNumber(sysNotice.noticeType));
@@ -189,14 +190,8 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     return result.affectedRows;
   }
 
-  async deleteNoticeById(noticeId: string): Promise<number> {
-    const sqlStr = 'delete from sys_notice where notice_id = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [noticeId]);
-    return result.affectedRows;
-  }
-
   async deleteNoticeByIds(noticeIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_notice where notice_id in (${noticeIds
+    const sqlStr = `update sys_notice set del_flag = '1' where notice_id in (${noticeIds
       .map(() => '?')
       .join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, noticeIds);

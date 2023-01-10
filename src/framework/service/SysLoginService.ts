@@ -6,7 +6,6 @@ import {
 import { RedisCache } from '../cache/RedisCache';
 import { TokenService } from './TokenService';
 import { LoginUser } from '../model/LoginUser';
-import { UserStatusEnum } from '../enums/UserStatusEnum';
 import { parseNumber } from '../utils/ValueParseUtils';
 import { bcryptCompare } from '../utils/CryptoUtils';
 import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
@@ -25,7 +24,7 @@ import { Result } from '../model/Result';
 /**
  * 登录校验方法
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 export class SysLoginService {
@@ -173,7 +172,7 @@ export class SysLoginService {
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('用户不存在/密码错误');
     }
-    if (sysUser.delFlag === UserStatusEnum.DELETED) {
+    if (sysUser.delFlag === STATUS_YES) {
       const msg = `登录用户：${username} 已被删除.`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
@@ -184,7 +183,7 @@ export class SysLoginService {
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('对不起，您的账号已被删除');
     }
-    if (sysUser.status === UserStatusEnum.DISABLE) {
+    if (sysUser.status === STATUS_NO) {
       const msg = `登录用户：${username} 已被停用.`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(

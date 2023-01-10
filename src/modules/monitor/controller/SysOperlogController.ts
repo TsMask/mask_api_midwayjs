@@ -12,11 +12,12 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysOperLog } from '../model/SysOperLog';
 import { SysOperLogServiceImpl } from '../service/impl/SysOperLogServiceImpl';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 操作日志记录信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/monitor/operlog')
 export class SysOperLogController {
@@ -59,9 +60,8 @@ export class SysOperLogController {
           操作地址: cur.operIp,
           操作地点: cur.operLocation,
           请求参数: cur.operParam,
-          返回参数: cur.jsonResult,
-          状态: cur.status === '0' ? '正常' : '异常',
-          错误消息: cur.errorMsg,
+          操作消息: cur.operMsg,
+          状态: cur.status === STATUS_YES ? '正常' : '异常',
           操作时间: parseDateToStr(new Date(+cur.operTime)),
         });
         return pre;

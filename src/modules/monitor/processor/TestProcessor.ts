@@ -4,7 +4,7 @@ import { Inject } from '@midwayjs/decorator';
 /**
  * 测试 队列任务处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Processor('test')
 export class TestProcessor implements IProcessor {
@@ -22,7 +22,7 @@ export class TestProcessor implements IProcessor {
     // 遍历参数传入，必有原始jobId
     for (const key in options) {
       if (Object.prototype.hasOwnProperty.call(options, key)) {
-        log.info('key=%s || value=%s', key, options[key]);
+        log.info('传入参数： %s => %s', key, options[key]);
       }
     }
 

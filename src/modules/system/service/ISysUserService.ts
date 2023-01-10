@@ -3,7 +3,7 @@ import { SysUser } from '../model/SysUser';
 /**
  * 用户 服务层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysUserService {
   /**
@@ -98,20 +98,6 @@ export interface ISysUserService {
    * @return 结果
    */
   checkUniqueEmail(sysUser: SysUser): Promise<boolean>;
-
-  /**
-   * 校验用户是否允许操作
-   *
-   * @param sysUser 用户信息
-   */
-  checkUserAllowed(sysUser: SysUser): Promise<boolean>;
-
-  /**
-   * 校验用户是否有数据权限
-   *
-   * @param userId 用户id
-   */
-  checkUserDataScope(userId: string): Promise<boolean>;
 
   /**
    * 新增用户信息

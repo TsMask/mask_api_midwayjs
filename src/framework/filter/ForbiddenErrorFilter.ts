@@ -7,7 +7,7 @@ import { Result } from '../model/Result';
  * 当前操作没有权限-拦截器
  *
  * 403 错误会到这里
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Catch(httpError.ForbiddenError)
 export class ForbiddenErrorFilter {

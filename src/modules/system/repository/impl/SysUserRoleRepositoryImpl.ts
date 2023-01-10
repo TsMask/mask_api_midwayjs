@@ -8,7 +8,7 @@ import { ISysUserRoleRepository } from '../ISysUserRoleRepository';
 /**
  * 用户与角色关联表 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

@@ -14,7 +14,7 @@ import { ISysJobService } from '../ISysJobService';
 /**
  * 定时任务调度信息 业务层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -177,6 +177,7 @@ export class SysJobServiceImpl implements ISysJobService {
     // 判断是否有单次执行任务
     let job = await queue.getJob(jobId);
     if (job) {
+      // 进行中的拒绝执行，其他状态移除
       const isActive = await job.isActive();
       if (isActive) return false;
       await job.remove();
@@ -189,7 +190,10 @@ export class SysJobServiceImpl implements ISysJobService {
       },
       { jobId: jobId }
     );
-    return (await job.isActive()) || (await job.isWaiting());
+    // 执行中或等待中的都返回正常
+    const isActive = await job.isActive();
+    const isWaiting = await job.isWaiting();
+    return isActive || isWaiting;
   }
   async deleteQueueJob(sysJob: SysJob): Promise<void> {
     // 获取队列 Processor

@@ -20,7 +20,7 @@ import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 /**
  * 岗位信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/post')
 export class SysPostController {

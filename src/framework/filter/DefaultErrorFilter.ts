@@ -7,7 +7,7 @@ import { Result } from '../model/Result';
  * 默认全局错误-拦截器
  *
  * 所有的未分类错误会到这里
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Catch()
 export class DefaultErrorFilter {

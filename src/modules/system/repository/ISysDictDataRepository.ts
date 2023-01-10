@@ -3,7 +3,7 @@ import { SysDictData } from '../model/SysDictData';
 /**
  * 字典类型数据表 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysDictDataRepository {
   /**
@@ -62,14 +62,6 @@ export interface ISysDictDataRepository {
    * @return 结果
    */
   checkUniqueDictValue(dictType: string, dictValue: string): Promise<string>;
-
-  /**
-   * 通过字典ID删除字典数据信息
-   *
-   * @param dictCode 字典数据ID
-   * @return 结果
-   */
-  deleteDictDataById(dictCode: string): Promise<number>;
 
   /**
    * 批量删除字典数据信息

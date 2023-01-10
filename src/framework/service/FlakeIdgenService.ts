@@ -4,7 +4,7 @@ import FlakeId = require('flake-idgen');
 /**
  * 有序唯一分布式ID
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

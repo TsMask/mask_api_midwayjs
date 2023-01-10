@@ -2,7 +2,7 @@
  * 系统菜单常量信息
  *
  * src\framework\service\PermissionService.ts
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 
 /**路径类型-Layout组件标识 */

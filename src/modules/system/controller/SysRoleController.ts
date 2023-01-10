@@ -15,7 +15,6 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDec
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import { TokenService } from '../../../framework/service/TokenService';
-import { parseNumber } from '../../../framework/utils/ValueParseUtils';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
 import { SysDept } from '../model/SysDept';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
@@ -24,11 +23,12 @@ import { ROLE_DATA_SCOPE } from '../../../framework/enums/RoleDataScopeEnum';
 import { FileService } from '../../../framework/service/FileService';
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
 import { SysRole } from '../model/SysRole';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 角色信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/role')
 export class SysRoleController {
@@ -75,7 +75,7 @@ export class SysRoleController {
           角色权限: cur.roleKey,
           角色排序: `${cur.roleSort}`,
           数据范围: ROLE_DATA_SCOPE[cur.dataScope],
-          角色状态: cur.status === '0' ? '正常' : '停用',
+          角色状态: cur.status === STATUS_YES ? '正常' : '停用',
         });
         return pre;
       },
@@ -236,7 +236,7 @@ export class SysRoleController {
     // 更新状态不刷新缓存
     const sysRole = new SysRole();
     sysRole.roleId = roleId;
-    sysRole.status = `${parseNumber(status)}`;
+    sysRole.status = status;
     sysRole.updateBy = this.contextService.getUseName();
     const rowNum = await this.sysRoleService.updateRole(sysRole);
     return Result[rowNum ? 'ok' : 'err']();

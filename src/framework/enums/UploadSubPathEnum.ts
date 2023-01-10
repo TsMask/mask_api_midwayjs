@@ -1,7 +1,7 @@
 /**
  * 文件上传-子路径类型枚举
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export enum UploadSubPathEnum {
   /**默认 */

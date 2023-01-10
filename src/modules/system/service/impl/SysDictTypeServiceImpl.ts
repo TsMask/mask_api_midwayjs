@@ -6,11 +6,12 @@ import { SysDictTypeRepositoryImpl } from '../../repository/impl/SysDictTypeRepo
 import { ISysDictTypeService } from '../ISysDictTypeService';
 import { SysDictData } from '../../model/SysDictData';
 import { SysDictType } from '../../model/SysDictType';
+import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
 
 /**
  * 字典类型 业务层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -115,7 +116,7 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
 
   async loadingDictCache(dictType?: string): Promise<void> {
     const sysDictData = new SysDictData();
-    sysDictData.status = '0';
+    sysDictData.status = STATUS_YES;
     // 指定字典类型
     if (dictType) {
       sysDictData.dictType = dictType;

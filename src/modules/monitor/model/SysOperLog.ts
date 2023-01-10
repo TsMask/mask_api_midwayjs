@@ -1,7 +1,7 @@
 /**
  * 操作日志记录表 sys_oper_log
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysOperLog {
   /**日志主键 */
@@ -40,14 +40,11 @@ export class SysOperLog {
   /**请求参数 */
   operParam: string;
 
-  /**返回参数 */
-  jsonResult: string;
+  /**操作消息 */
+  operMsg: string;
 
-  /**操作状态（0正常 1异常） */
+  /**操作状态（0异常 1正常） */
   status: string;
-
-  /**错误消息 */
-  errorMsg: string;
 
   /**操作时间 */
   operTime: number;

@@ -6,7 +6,7 @@ import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
 /**
  * 用户权限处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

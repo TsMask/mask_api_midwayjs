@@ -10,7 +10,7 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDec
 /**
  * 通用请求
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/common')
 export class CommonController {

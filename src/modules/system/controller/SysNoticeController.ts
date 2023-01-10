@@ -19,7 +19,7 @@ import { SysNoticeServiceImpl } from '../service/impl/SysNoticeServiceImpl';
 /**
  * 通知公告信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/system/notice')
 export class SysNoticeController {

@@ -9,11 +9,12 @@ import { FileService } from '../../../framework/service/FileService';
 import { SysLoginService } from '../../../framework/service/SysLoginService';
 import { SysLogininfor } from '../model/SysLogininfor';
 import { SysLogininforServiceImpl } from '../service/impl/SysLogininforServiceImpl';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 系统访问记录信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/monitor/logininfor')
 export class SysLogininforController {
@@ -52,7 +53,7 @@ export class SysLogininforController {
         pre.push({
           序号: cur.infoId,
           用户账号: cur.userName,
-          登录状态: cur.status === '0' ? '正常' : '异常',
+          登录状态: cur.status === STATUS_YES ? '正常' : '异常',
           登录地址: cur.ipaddr,
           登录地点: cur.loginLocation,
           浏览器: cur.browser,

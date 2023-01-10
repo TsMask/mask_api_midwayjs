@@ -3,7 +3,7 @@ import { SysDept } from '../model/SysDept';
 /**
  * 部门管理 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysDeptRepository {
   /**

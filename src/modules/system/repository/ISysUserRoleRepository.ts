@@ -3,7 +3,7 @@ import { SysUserRole } from '../model/SysUserRole';
 /**
  * 用户与角色关联表 数据层接口
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export interface ISysUserRoleRepository {
   /**

@@ -50,7 +50,7 @@ function parseSysDictTypeResult(rows: any[]): SysDictType[] {
 /**
  * 字典类型表 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -120,15 +120,15 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     // 查询条件拼接
     let sqlStr = '';
     const paramArr = [];
-    if (sysDictType?.dictName) {
+    if (sysDictType.dictName) {
       sqlStr += " and dict_name like concat('%', ?, '%') ";
       paramArr.push(sysDictType.dictName);
     }
-    if (sysDictType?.dictType) {
+    if (sysDictType.dictType) {
       sqlStr += " and dict_type like concat('%', ?, '%') ";
       paramArr.push(sysDictType.dictType);
     }
-    if (sysDictType?.status) {
+    if (sysDictType.status) {
       sqlStr += ' and status = ? ';
       paramArr.push(sysDictType.status);
     }
@@ -171,10 +171,10 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   async insertDictType(sysDictType: SysDictType): Promise<string> {
     const paramMap = new Map();
     if (sysDictType.dictName) {
-      paramMap.set('dict_name', sysDictType.dictName.trim());
+      paramMap.set('dict_name', sysDictType.dictName);
     }
     if (sysDictType.dictType) {
-      paramMap.set('dict_type', sysDictType.dictType.trim());
+      paramMap.set('dict_type', sysDictType.dictType);
     }
     if (sysDictType.status) {
       paramMap.set('status', parseNumber(sysDictType.status));
@@ -199,10 +199,10 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   async updateDictType(sysDictType: SysDictType): Promise<number> {
     const paramMap = new Map();
     if (sysDictType.dictName) {
-      paramMap.set('dict_name', sysDictType.dictName.trim());
+      paramMap.set('dict_name', sysDictType.dictName);
     }
     if (sysDictType.dictType) {
-      paramMap.set('dict_type', sysDictType.dictType.trim());
+      paramMap.set('dict_type', sysDictType.dictType);
     }
     if (sysDictType.status) {
       paramMap.set('status', parseNumber(sysDictType.status));

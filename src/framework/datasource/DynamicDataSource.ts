@@ -5,7 +5,7 @@ import { DataSource, QueryRunner } from 'typeorm';
 /**
  * 动态数据源
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)

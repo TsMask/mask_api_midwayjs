@@ -29,7 +29,7 @@ export const DECORATOR_METHOD_PRE_AUTHORIZE_KEY =
  * 用户身份授权认证校验-方法装饰器
  *
  * @param options 授权限制参数
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export function PreAuthorize(options?: AuthOptions): MethodDecorator {
   return createCustomMethodDecorator(

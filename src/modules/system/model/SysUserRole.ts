@@ -1,7 +1,7 @@
 /**
  * 用户和角色关联 sys_user_role
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysUserRole {
   /**用户ID */

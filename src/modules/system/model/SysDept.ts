@@ -1,7 +1,7 @@
 /**
  * 部门表 sys_dept
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 export class SysDept {
   /**部门id */

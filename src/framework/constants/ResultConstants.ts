@@ -2,7 +2,7 @@
  * 响应结果常量信息
  *
  * src\framework\core\Result.ts
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 
 /**响应-正常成功code */

@@ -2,7 +2,7 @@
  * 验证码常量信息
  *
  * src\modules\common\controller\CaptchaController.ts
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 
 /**验证码有效期，单位秒 */

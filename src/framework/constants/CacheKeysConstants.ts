@@ -1,7 +1,7 @@
 /**
  * 缓存的key 常量
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 
 /**登录用户 */

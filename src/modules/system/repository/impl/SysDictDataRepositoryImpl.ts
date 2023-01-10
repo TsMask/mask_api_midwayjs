@@ -51,7 +51,7 @@ function parseSysDictDataResult(rows: any[]): SysDictData[] {
 /**
  * 字典类型数据表 数据层处理
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Provide()
 @Scope(ScopeEnum.Singleton)
@@ -180,10 +180,6 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return rows.length > 0 ? rows[0].str : null;
   }
 
-  deleteDictDataById(dictCode: string): Promise<number> {
-    throw new Error('Method not implemented.');
-  }
-
   async deleteDictDataByIds(dictCodes: string[]): Promise<number> {
     const sqlStr = `delete from sys_dict_data where dict_code in (${dictCodes
       .map(() => '?')
@@ -198,13 +194,13 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramMap.set('dict_sort', parseNumber(sysDictData.dictSort));
     }
     if (sysDictData.dictLabel) {
-      paramMap.set('dict_label', sysDictData.dictLabel.trim());
+      paramMap.set('dict_label', sysDictData.dictLabel);
     }
     if (sysDictData.dictValue) {
-      paramMap.set('dict_value', sysDictData.dictValue.trim());
+      paramMap.set('dict_value', sysDictData.dictValue);
     }
     if (sysDictData.dictType) {
-      paramMap.set('dict_type', sysDictData.dictType.trim());
+      paramMap.set('dict_type', sysDictData.dictType);
     }
     if (sysDictData.listClass) {
       paramMap.set('list_class', sysDictData.listClass);
@@ -238,13 +234,13 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramMap.set('dict_sort', parseNumber(sysDictData.dictSort));
     }
     if (sysDictData.dictLabel) {
-      paramMap.set('dict_label', sysDictData.dictLabel.trim());
+      paramMap.set('dict_label', sysDictData.dictLabel);
     }
     if (sysDictData.dictValue) {
-      paramMap.set('dict_value', sysDictData.dictValue.trim());
+      paramMap.set('dict_value', sysDictData.dictValue);
     }
     if (sysDictData.dictType) {
-      paramMap.set('dict_type', sysDictData.dictType.trim());
+      paramMap.set('dict_type', sysDictData.dictType);
     }
     if (sysDictData.cssClass) {
       paramMap.set('css_class', sysDictData.cssClass);

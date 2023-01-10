@@ -16,7 +16,7 @@ import { SysCache } from '../model/SysCache';
 /**
  * 缓存监控信息
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/monitor/cache')
 export class CacheController {

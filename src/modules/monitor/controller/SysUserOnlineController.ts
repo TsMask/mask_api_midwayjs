@@ -17,7 +17,7 @@ import { SysUserOnlineServiceImpl } from '../service/impl/SysUserOnlineServiceIm
 /**
  * 在线用户监控
  *
- * @author TsMask <340112800@qq.com>
+ * @author TsMask
  */
 @Controller('/monitor/online')
 export class SysUserOnlineController {
