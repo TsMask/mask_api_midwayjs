@@ -93,7 +93,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     paramArr.push(pageSize);
     // 查询数据数
     const results = await this.db.execute(
-      `${SELECT_NOTICE_VO} where 1 = 1 ${sqlStr}`,
+      `${SELECT_NOTICE_VO} where del_flag = '0' ${sqlStr}`,
       paramArr
     );
     const rows = parseSysNoticeResult(results);
@@ -101,7 +101,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
   }
 
   async selectNoticeList(sysNotice: SysNotice): Promise<SysNotice[]> {
-    let sqlStr = `${SELECT_NOTICE_VO} where 1 = 1 `;
+    let sqlStr = '';
     const paramArr = [];
     // 查询条件拼接
     if (sysNotice.noticeTitle) {
@@ -117,7 +117,10 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramArr.push(sysNotice.createBy);
     }
 
-    const rows = await this.db.execute(sqlStr, paramArr);
+    const rows = await this.db.execute(
+      `${SELECT_NOTICE_VO} where del_flag = '0' ${sqlStr} `,
+      paramArr
+    );
     return parseSysNoticeResult(rows);
   }
 

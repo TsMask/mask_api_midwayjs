@@ -5,24 +5,24 @@ require('dayjs/locale/zh-cn');
 dayjs.locale('zh-cn');
 
 /**年 列如：2022 */
-export const YYYY = 'yyyy';
+export const YYYY = 'YYYY';
 
 /**年-月 列如：2022-12 */
-export const YYYY_MM = 'yyyy-MM';
+export const YYYY_MM = 'YYYY-MM';
 
 /**年-月-日 列如：2022-12-30 */
-export const YYYY_MM_DD = 'yyyy-MM-dd';
+export const YYYY_MM_DD = 'YYYY-MM-DD';
 
 /**年月日时分秒 列如：20221230010159 */
-export const YYYYMMDDHHMMSS = 'yyyyMMddHHmmss';
+export const YYYYMMDDHHMMSS = 'YYYYMMDDHHmmss';
 
 /**年-月-日 时:分:秒 列如：2022-12-30 01:01:59 */
-export const YYYY_MM_DD_HH_MM_SS = 'yyyy-MM-dd HH:mm:ss';
+export const YYYY_MM_DD_HH_MM_SS = 'YYYY-MM-DD HH:mm:ss';
 
 /**
  * 格式时间字符串
  * @param dateStr 时间字符串
- * @param formatStr 时间格式 默认yyyy-MM-dd HH:mm:ss
+ * @param formatStr 时间格式 默认YYYY-MM-DD HH:mm:ss
  * @returns Date对象
  */
 export function parseStrToDate(
@@ -35,7 +35,7 @@ export function parseStrToDate(
 /**
  * 格式时间
  * @param date Date对象
- * @param formatStr 时间格式 默认yyyy-MM-dd HH:mm:ss
+ * @param formatStr 时间格式 默认YYYY-MM-DD HH:mm:ss
  * @returns 时间格式字符串
  */
 export function parseDateToStr(
@@ -48,11 +48,11 @@ export function parseDateToStr(
 /**
  * 格式时间成日期路径
  *
- * 年/月/日 => 2022/12/12
- * @returns 时间格式字符串
+ * 年/月 列如：2022/12
+ * @returns 时间格式字符串 YYYY/MM
  */
 export function parseDatePath(): string {
-  return dayjs(new Date()).format('yyyy/MM/dd');
+  return dayjs(new Date()).format('YYYY/MM');
 }
 
 /**

@@ -1,5 +1,14 @@
-import fs = require('fs');
-import path = require('path');
+import {
+  stat,
+  mkdirSync,
+  rmdirSync,
+  openSync,
+  unlinkSync,
+  createReadStream,
+  readFileSync,
+  writeFileSync,
+} from 'fs';
+import { posix } from 'path';
 
 /**
  * 读取文件大小
@@ -8,7 +17,7 @@ import path = require('path');
  */
 export async function fileSize(filePath: string): Promise<number> {
   return new Promise(resolve => {
-    fs.stat(filePath, (err, stats) => resolve(!err ? stats.size : 0));
+    stat(filePath, (err, stats) => resolve(!err ? stats.size : 0));
   });
 }
 
@@ -19,7 +28,7 @@ export async function fileSize(filePath: string): Promise<number> {
  */
 export async function checkExists(filePath: string): Promise<boolean> {
   return new Promise(resolve => {
-    fs.stat(filePath, err => resolve(!err));
+    stat(filePath, err => resolve(!err));
   });
 }
 
@@ -31,7 +40,7 @@ export async function checkExists(filePath: string): Promise<boolean> {
 export async function checkExistsAndMkdir(filePath: string): Promise<string> {
   const exist = await checkExists(filePath);
   if (!exist) {
-    return fs.mkdirSync(filePath, { recursive: true });
+    return mkdirSync(filePath, { recursive: true });
   }
   return null;
 }
@@ -43,14 +52,14 @@ export async function checkExistsAndMkdir(filePath: string): Promise<string> {
  */
 export async function deleteFile(absPath: string): Promise<boolean> {
   return new Promise(resolve => {
-    fs.stat(absPath, (err, stats) => {
+    stat(absPath, (err, stats) => {
       if (err) return resolve(false);
       if (stats && stats.isFile()) {
-        fs.unlinkSync(absPath);
+        unlinkSync(absPath);
         return resolve(true);
       }
       if (stats && stats.isDirectory()) {
-        fs.rmdirSync(absPath);
+        rmdirSync(absPath);
         return resolve(true);
       }
       return resolve(false);
@@ -64,7 +73,7 @@ export async function deleteFile(absPath: string): Promise<boolean> {
  * @return 文件后缀（不含“.”）
  */
 export function getFileExt(fileName: string) {
-  const ext = path.extname(fileName);
+  const ext = posix.extname(fileName);
   if (!ext) return '';
   return ext.substring(1).toLowerCase();
 }
@@ -76,10 +85,10 @@ export function getFileExt(fileName: string) {
  */
 export async function getFileStream(filePath: string) {
   return new Promise(resolve => {
-    fs.stat(filePath, (err, stats) => {
+    stat(filePath, (err, stats) => {
       if (err) return resolve(null);
       if (stats && stats.isFile()) {
-        return resolve(fs.createReadStream(filePath));
+        return resolve(createReadStream(filePath));
       }
       return resolve(null);
     });
@@ -147,16 +156,15 @@ export async function writeBufferFile(
 ): Promise<string> {
   const extension = getBufferFileExtendName(buf);
   const fileName = `${Date.now()}.${extension}`;
-  const writeFilePath = path.join(writeDirPath, fileName);
+  const writeFilePath = posix.join(writeDirPath, fileName);
   try {
     const exist = await checkExists(writeDirPath);
     if (!exist) {
-      fs.mkdirSync(writeDirPath, { recursive: true });
+      mkdirSync(writeDirPath, { recursive: true });
     }
-    fs.openSync(writeFilePath, 'w+');
-    fs.writeFileSync(writeFilePath, buf);
-  } catch (err) {
-    console.error('fileWriteBuffer => %s', err);
+    openSync(writeFilePath, 'w+');
+    writeFileSync(writeFilePath, buf);
+  } catch (_) {
     return null;
   }
   return fileName;
@@ -179,12 +187,12 @@ export async function transferToNewFile(
   if (!readFileExist) {
     throw new Error('读取临时文件失败');
   }
-  const absPath = path.join(writePath, fileName);
+  const absPath = posix.join(writePath, fileName);
   // 检查保存文件是否存在
   const exist = await checkExists(absPath);
   if (!exist) {
-    fs.mkdirSync(writePath, { recursive: true });
+    mkdirSync(writePath, { recursive: true });
   }
-  fs.openSync(absPath, 'w+');
-  fs.writeFileSync(absPath, fs.readFileSync(readFile));
+  openSync(absPath, 'w+');
+  writeFileSync(absPath, readFileSync(readFile));
 }

@@ -3,13 +3,10 @@ import * as koa from '@midwayjs/koa';
 import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';
 import * as staticFile from '@midwayjs/static-file';
-import * as info from '@midwayjs/info';
-import * as swagger from '@midwayjs/swagger';
 import * as jwt from '@midwayjs/jwt';
 import * as upload from '@midwayjs/upload';
 import * as bull from '@midwayjs/bull';
 import * as crossDomain from '@midwayjs/cross-domain';
-import * as bullBoard from '@midwayjs/bull-board';
 import { join } from 'path';
 import { DefaultErrorFilter } from './framework/filter/DefaultErrorFilter';
 import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
@@ -45,15 +42,6 @@ import { checkExistsAndMkdir } from './framework/utils/FileUtils';
     upload, // 文件上传
     bull, // 任务队列Bull
     crossDomain, // 跨域cros
-    bullBoard,
-    {
-      component: info, // 程序部署信息 /_info
-      enabledEnvironment: ['local'], // 声明使用环境
-    },
-    {
-      component: swagger, // 程序接口文档 /swagger-ui/index.html
-      enabledEnvironment: ['local'], // 声明使用环境
-    },
   ],
   importConfigs: [join(__dirname, './config')],
 })

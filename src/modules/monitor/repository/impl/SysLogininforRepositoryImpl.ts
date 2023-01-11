@@ -187,6 +187,6 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
   async cleanLogininfor(): Promise<number> {
     const sqlStr = 'truncate table sys_logininfor';
     const result: ResultSetHeader = await this.db.execute(sqlStr);
-    return result.affectedRows;
+    return result.serverStatus;
   }
 }

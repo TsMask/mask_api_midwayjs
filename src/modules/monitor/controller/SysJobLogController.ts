@@ -8,6 +8,7 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysJobLogServiceImpl } from '../service/impl/SysJobLogServiceImpl';
 import { SysJobLog } from '../model/SysJobLog';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 调度任务日志信息
@@ -50,7 +51,7 @@ export class SysJobLogController {
           调用目标字符串: cur.invokeTarget,
           调用目标传入参数: cur.targetParams,
           日志信息: cur.jobMsg,
-          执行状态: cur.status === '0' ? '正常' : '失败',
+          执行状态: cur.status === STATUS_YES ? '正常' : '失败',
           创建时间: parseDateToStr(new Date(+cur.createTime)),
         });
         return pre;

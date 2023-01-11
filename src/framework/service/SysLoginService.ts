@@ -59,7 +59,7 @@ export class SysLoginService {
     // 存在token时记录退出信息
     const userName = await this.tokenService.removeToken(token);
     if (userName) {
-      const msg = `登录用户：${userName} 退出成功.`;
+      const msg = `登录用户：${userName} 退出成功`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_YES,
@@ -93,7 +93,7 @@ export class SysLoginService {
     );
     // 记录登录信息
     await this.recordLoginInfo(loginUser.userId);
-    const msg = `登录用户：${loginBodyVo.username} 登录成功.`;
+    const msg = `登录用户：${loginBodyVo.username} 登录成功`;
     this.contextService.getLogger().info(msg);
     const sysLogininfor = await this.contextService.newSysLogininfor(
       STATUS_YES,
@@ -162,7 +162,7 @@ export class SysLoginService {
       username
     );
     if (!sysUser) {
-      const msg = `登录用户：${username} 不存在.`;
+      const msg = `登录用户：${username} 不存在`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_NO,
@@ -170,10 +170,10 @@ export class SysLoginService {
         username
       );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
-      throw new Error('用户不存在/密码错误');
+      throw new Error('用户不存在或密码错误');
     }
     if (sysUser.delFlag === STATUS_YES) {
-      const msg = `登录用户：${username} 已被删除.`;
+      const msg = `登录用户：${username} 已被删除`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_NO,
@@ -184,7 +184,7 @@ export class SysLoginService {
       throw new Error('对不起，您的账号已被删除');
     }
     if (sysUser.status === STATUS_NO) {
-      const msg = `登录用户：${username} 已被停用.`;
+      const msg = `登录用户：${username} 已被停用`;
       this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_NO,
@@ -277,7 +277,8 @@ export class SysLoginService {
   async clearLoginRecordCache(loginName: string): Promise<boolean> {
     const cacheKey = PWD_ERR_CNT_KEY + loginName;
     if (await this.redisCache.hasKey(cacheKey)) {
-      return (await this.redisCache.del(cacheKey)) > 0;
+      const rows = await this.redisCache.del(cacheKey);
+      return rows > 0;
     }
     return false;
   }

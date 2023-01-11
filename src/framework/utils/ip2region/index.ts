@@ -1,8 +1,9 @@
-import { join } from 'path';
+// 依赖来源 https://gitee.com/lionsoul/ip2region
 import {
   IP_INNER_ADDR,
   IP_INNER_LOCATION,
 } from '../../constants/CommonConstants';
+import { join } from 'path';
 // 导入包
 import { newWithFileOnly } from './ip2region';
 // 指定ip2region数据文件路径

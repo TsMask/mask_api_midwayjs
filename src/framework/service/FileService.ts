@@ -6,7 +6,7 @@ import {
 } from '@midwayjs/core';
 import { Config, Provide } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
-import path = require('path');
+import { posix } from 'path';
 import { UploadSubPathEnum } from '../enums/UploadSubPathEnum';
 import { parseDatePath } from '../utils/DateUtils';
 import { readSheet, writeSheet } from '../utils/ExeclUtils';
@@ -86,13 +86,13 @@ export class FileService {
   ): Promise<string> {
     await this.isAllowUpload(file, allowExts);
     const fileName = this.generateFileName(file);
-    const filePath = path.join(subPath, parseDatePath());
+    const filePath = posix.join(subPath, parseDatePath());
     await transferToNewFile(
       file.data,
-      path.join(this.resourceUpload.dir, filePath),
+      posix.join(this.resourceUpload.dir, filePath),
       fileName
     );
-    return path.join(this.resourceUpload.prefix, filePath, fileName);
+    return posix.join(this.resourceUpload.prefix, filePath, fileName);
   }
 
   /**
@@ -206,7 +206,7 @@ export class FileService {
     if (!this.isAllowRead(asserPath)) {
       throw new Error(`内部文件 ${asserPath} 非法，不允许读取。`);
     }
-    const absPath = path.join(
+    const absPath = posix.join(
       this.midwayInformationService.getBaseDir(),
       'assets',
       asserPath
@@ -225,13 +225,13 @@ export class FileService {
     filePath: string,
     fileName: string
   ): Promise<Record<string, string>[]> {
-    const savePath = path.join(
+    const savePath = posix.join(
       this.resourceUpload.dir,
       UploadSubPathEnum.IMPORT,
       parseDatePath()
     );
     await checkExistsAndMkdir(savePath);
-    return await readSheet(filePath, path.join(savePath, fileName));
+    return await readSheet(filePath, posix.join(savePath, fileName));
   }
 
   /**
@@ -242,12 +242,12 @@ export class FileService {
    * @return xlsx文件流
    */
   async writeExcelFile(data: any[], sheetName: string, fileName: string) {
-    const savePath = path.join(
+    const savePath = posix.join(
       this.resourceUpload.dir,
       UploadSubPathEnum.EXPORT,
       parseDatePath()
     );
     await checkExistsAndMkdir(savePath);
-    return await writeSheet(data, sheetName, path.join(savePath, fileName));
+    return await writeSheet(data, sheetName, posix.join(savePath, fileName));
   }
 }

@@ -6,49 +6,6 @@ export default {
     port: 6275, // 服务端口
   },
 
-  // 接口文档
-  swagger: {
-    version: '1.0.0', // 默认值: 1.0.0
-    title: 'MASK Midwayjs', //  默认值: My Project
-    description: '使用swagger-ui@midwayjs本地调试用', // 默认值: This is a swagger-ui for midwayjs project
-    termsOfService: 'https://gitee.com', // 团队
-    // 联系人
-    contact: {
-      name: 'TsMask',
-      url: 'https://gitee.com/TsMask',
-      email: '340112800@qq.com',
-    },
-    // 服务协议
-    license: {
-      name: 'Apache 2.0',
-      url: 'https://www.apache.org/licenses/LICENSE-2.0.html',
-    },
-    // 请求服务域名
-    servers: [
-      {
-        url: 'http://127.0.0.1:6275',
-        description: 'Local server',
-      },
-      {
-        url: 'http://development-server.com',
-        description: 'Development server',
-      },
-      {
-        url: 'https://production-server.com',
-        description: 'Production server',
-      },
-    ],
-    // 给标签说明
-    tags: [
-      {
-        name: 'default',
-        description: '默认',
-      },
-    ],
-    swaggerPath: '/swagger-ui', //  默认值: /swagger-ui
-    tagSortable: true, //对路由 tag 进行 ascii 排序
-  },
-
   // TypeORM 数据源
   typeorm: {
     dataSource: {
@@ -83,15 +40,6 @@ export default {
         password: 'redis@1234',
         db: 1, // Redis db_num
       },
-      // 默认的任务配置
-      defaultJobOptions: {
-        // 成功后移除任务记录，最多保留最近 10 条记录
-        removeOnComplete: 10,
-        // 失败后移除任务记录，最多保留最近 10 条记录
-        removeOnFail: 10,
-      },
     },
-    // 清理之前的任务
-    clearRepeatJobWhenStart: true,
   },
 } as MidwayConfig;

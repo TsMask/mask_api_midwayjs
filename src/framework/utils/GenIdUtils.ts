@@ -1,4 +1,5 @@
 import { customAlphabet } from 'nanoid';
+// V4 不支持commonjs
 // https://github.com/ai/nanoid#readme
 // 查看重复率 https://zelark.github.io/nano-id-cc/
 

@@ -16,6 +16,7 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysPost } from '../model/SysPost';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 岗位信息
@@ -53,7 +54,7 @@ export class SysPostController {
           岗位编码: cur.postCode,
           岗位名称: cur.postName,
           岗位排序: `${cur.postSort}`,
-          状态: cur.status === '0' ? '正常' : '停用',
+          状态: cur.status === STATUS_YES ? '正常' : '停用',
         });
         return pre;
       },

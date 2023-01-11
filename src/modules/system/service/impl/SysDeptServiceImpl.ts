@@ -4,6 +4,7 @@ import { TreeSelect } from '../../../../framework/model/TreeSelect';
 import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { ISysDeptService } from '../ISysDeptService';
+import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
 
 /**
  * 参数配置 服务层实现
@@ -93,7 +94,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
     }
     // 如果该部门是启用状态，则启用该部门的所有上级部门
     if (
-      sysDept.status === '0' &&
+      sysDept.status === STATUS_YES &&
       sysDept.ancestors &&
       sysDept.ancestors !== '0'
     ) {

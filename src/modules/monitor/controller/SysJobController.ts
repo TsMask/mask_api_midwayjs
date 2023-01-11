@@ -215,7 +215,8 @@ export class SysJobController {
     const sysJob = await this.sysJobService.selectJobById(jobId);
     if (!sysJob) return Result.err();
     const ok = await this.sysJobService.runQueueJob(sysJob);
-    return Result[ok ? 'ok' : 'err']();
+    if (ok) return Result.ok();
+    return Result.errMsg('任务已在执行中，请稍后再试！');
   }
 
   /**

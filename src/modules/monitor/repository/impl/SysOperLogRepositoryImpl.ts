@@ -222,6 +222,6 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
   async cleanOperLog(): Promise<number> {
     const sqlStr = 'truncate table sys_oper_log';
     const result: ResultSetHeader = await this.db.execute(sqlStr);
-    return result.affectedRows;
+    return result.serverStatus;
   }
 }

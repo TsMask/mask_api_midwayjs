@@ -121,7 +121,7 @@ create table sys_role (
 -- ----------------------------
 -- 初始化-角色信息表数据
 -- ----------------------------
-insert into sys_role values('1', '管理员',  'admin',  1, 1, '1', '1', '1', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '管理员');
+insert into sys_role values('1', '管理员',   'admin',  1, 1, '1', '1', '1', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '管理员');
 insert into sys_role values('2', '普通角色', 'common', 2, 2, '1', '1', '1', '0', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '普通角色');
 
 
@@ -170,15 +170,12 @@ insert into sys_menu values('105',  '字典管理', '1',   '6', 'dict',       's
 insert into sys_menu values('106',  '参数设置', '1',   '7', 'config',     'system/config/index',      '', '0', '1', 'C', '1', '1', 'system:config:list',      'edit',          'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '参数设置菜单');
 insert into sys_menu values('107',  '通知公告', '1',   '8', 'notice',     'system/notice/index',      '', '0', '1', 'C', '1', '1', 'system:notice:list',      'message',       'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '通知公告菜单');
 insert into sys_menu values('108',  '日志管理', '1',   '9', 'log',        '',                         '', '0', '1', 'M', '1', '1', '',                        'log',           'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '日志管理菜单');
-insert into sys_menu values('109',  '在线用户', '2',   '1', 'online',     'monitor/online/index',     '', '0', '1', 'C', '1', '1', 'monitor:online:list',     'online',        'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '在线用户菜单');
-insert into sys_menu values('110',  '调度任务', '2',   '2', 'job',        'monitor/job/index',        '', '0', '1', 'C', '1', '1', 'monitor:job:list',        'job',           'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '调度任务菜单');
-insert into sys_menu values('111',  '数据监控', '2',   '3', 'druid',      'monitor/druid/index',      '', '0', '1', 'C', '1', '1', 'monitor:druid:list',      'druid',         'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '数据监控菜单');
-insert into sys_menu values('112',  '服务监控', '2',   '4', 'server',     'monitor/server/index',     '', '0', '1', 'C', '1', '1', 'monitor:server:query',    'server',        'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '服务监控菜单');
-insert into sys_menu values('113',  '缓存监控', '2',   '5', 'cache',      'monitor/cache/index',      '', '0', '1', 'C', '1', '1', 'monitor:cache:list',      'redis',         'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '缓存监控菜单');
-insert into sys_menu values('114',  '缓存列表', '2',   '6', 'cacheList',  'monitor/cache/list',       '', '0', '1', 'C', '1', '1', 'monitor:cache:list',      'redis-list',    'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '缓存列表菜单');
-insert into sys_menu values('115',  '表单构建', '3',   '1', 'build',      'tool/build/index',         '', '0', '1', 'C', '1', '1', 'tool:build:list',         'build',         'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '表单构建菜单');
-insert into sys_menu values('116',  '代码生成', '3',   '2', 'gen',        'tool/gen/index',           '', '0', '1', 'C', '1', '1', 'tool:gen:list',           'code',          'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '代码生成菜单');
-insert into sys_menu values('117',  '系统接口', '3',   '3', 'swagger',    'tool/swagger/index',       '', '0', '1', 'C', '1', '1', 'tool:swagger:list',       'swagger',       'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '系统接口菜单');
+insert into sys_menu values('109',  '服务监控', '2',   '1', 'server',     'monitor/server/index',     '', '0', '1', 'C', '1', '1', 'monitor:server:query',    'server',        'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '服务监控菜单');
+insert into sys_menu values('111',  '缓存监控', '2',   '2', 'cache',      'monitor/cache/index',      '', '0', '1', 'C', '1', '1', 'monitor:cache:list',      'redis',         'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '缓存监控菜单');
+insert into sys_menu values('112',  '缓存列表', '2',   '3', 'cacheList',  'monitor/cache/list',       '', '0', '1', 'C', '1', '1', 'monitor:cache:list',      'redis-list',    'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '缓存列表菜单');
+insert into sys_menu values('113',  '在线用户', '2',   '4', 'online',     'monitor/online/index',     '', '0', '1', 'C', '1', '1', 'monitor:online:list',     'online',        'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '在线用户菜单');
+insert into sys_menu values('114',  '调度任务', '2',   '5', 'job',        'monitor/job/index',        '', '0', '1', 'C', '1', '1', 'monitor:job:list',        'job',           'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '调度任务菜单');
+insert into sys_menu values('115',  '系统接口', '3',   '1', 'swagger',    'tool/swagger/index',       '', '0', '1', 'C', '1', '1', 'monitor:swagger:list',    'swagger',       'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '系统接口菜单');
 -- 三级菜单
 insert into sys_menu values('500',  '操作日志', '108', '1', 'operlog',    'monitor/operlog/index',    '', '0', '1', 'C', '1', '1', 'monitor:operlog:list',    'form',          'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '操作日志菜单');
 insert into sys_menu values('501',  '登录日志', '108', '2', 'logininfor', 'monitor/logininfor/index', '', '0', '1', 'C', '1', '1', 'monitor:logininfor:list', 'logininfor',    'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '登录日志菜单');
@@ -239,24 +236,16 @@ insert into sys_menu values('1043', '登录删除', '501', '2', '#', '', '', '0'
 insert into sys_menu values('1044', '日志导出', '501', '3', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:logininfor:export',  '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
 insert into sys_menu values('1045', '账户解锁', '501', '4', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:logininfor:unlock',  '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
 -- 在线用户按钮
-insert into sys_menu values('1046', '在线查询', '109', '1', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:online:query',       '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1047', '批量强退', '109', '2', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:online:batchLogout', '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1048', '单条强退', '109', '3', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:online:forceLogout', '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
+insert into sys_menu values('1046', '在线查询', '103', '1', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:online:query',       '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
+insert into sys_menu values('1047', '批量强退', '103', '2', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:online:batchLogout', '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
+insert into sys_menu values('1048', '单条强退', '103', '3', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:online:forceLogout', '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
 -- 定时任务按钮
-insert into sys_menu values('1049', '任务查询', '110', '1', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:query',          '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1050', '任务新增', '110', '2', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:add',            '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1051', '任务修改', '110', '3', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:edit',           '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1052', '任务删除', '110', '4', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:remove',         '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1053', '状态修改', '110', '5', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:changeStatus',   '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1054', '任务导出', '110', '6', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:export',         '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
--- 代码生成按钮
-insert into sys_menu values('1055', '生成查询', '116', '1', '#', '', '', '0', '1', 'F', '1', '1', 'tool:gen:query',             '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1056', '生成修改', '116', '2', '#', '', '', '0', '1', 'F', '1', '1', 'tool:gen:edit',              '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1057', '生成删除', '116', '3', '#', '', '', '0', '1', 'F', '1', '1', 'tool:gen:remove',            '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1058', '导入代码', '116', '4', '#', '', '', '0', '1', 'F', '1', '1', 'tool:gen:import',            '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1059', '预览代码', '116', '5', '#', '', '', '0', '1', 'F', '1', '1', 'tool:gen:preview',           '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-insert into sys_menu values('1060', '生成代码', '116', '6', '#', '', '', '0', '1', 'F', '1', '1', 'tool:gen:code',              '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
-
+insert into sys_menu values('1049', '任务查询', '114', '1', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:query',          '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
+insert into sys_menu values('1050', '任务新增', '114', '2', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:add',            '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
+insert into sys_menu values('1051', '任务修改', '114', '3', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:edit',           '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
+insert into sys_menu values('1052', '任务删除', '114', '4', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:remove',         '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
+insert into sys_menu values('1053', '状态修改', '114', '5', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:changeStatus',   '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
+insert into sys_menu values('1054', '任务导出', '114', '6', '#', '', '', '0', '1', 'F', '1', '1', 'monitor:job:export',         '#', 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '');
 
 -- ----------------------------
 -- 6、用户和角色关联表  用户N-1角色
@@ -308,8 +297,6 @@ insert into sys_role_menu values ('2', '112');
 insert into sys_role_menu values ('2', '113');
 insert into sys_role_menu values ('2', '114');
 insert into sys_role_menu values ('2', '115');
-insert into sys_role_menu values ('2', '116');
-insert into sys_role_menu values ('2', '117');
 insert into sys_role_menu values ('2', '500');
 insert into sys_role_menu values ('2', '501');
 insert into sys_role_menu values ('2', '1000');
@@ -367,12 +354,6 @@ insert into sys_role_menu values ('2', '1051');
 insert into sys_role_menu values ('2', '1052');
 insert into sys_role_menu values ('2', '1053');
 insert into sys_role_menu values ('2', '1054');
-insert into sys_role_menu values ('2', '1055');
-insert into sys_role_menu values ('2', '1056');
-insert into sys_role_menu values ('2', '1057');
-insert into sys_role_menu values ('2', '1058');
-insert into sys_role_menu values ('2', '1059');
-insert into sys_role_menu values ('2', '1060');
 
 -- ----------------------------
 -- 8、角色和部门关联表  角色1-N部门

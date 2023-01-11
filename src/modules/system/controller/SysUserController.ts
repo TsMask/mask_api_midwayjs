@@ -35,6 +35,7 @@ import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
 import { SysDictData } from '../model/SysDictData';
 import { SysRole } from '../model/SysRole';
 import { SysUser } from '../model/SysUser';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 用户信息
@@ -144,7 +145,7 @@ export class SysUserController {
           用户邮箱: cur.email,
           手机号码: cur.phonenumber,
           用户性别: sysUserSex.dictLabel,
-          帐号状态: cur.status === '0' ? '正常' : '停用',
+          帐号状态: cur.status === STATUS_YES ? '正常' : '停用',
           最后登录IP: cur.loginIp,
           最后登录时间: parseDateToStr(new Date(+cur.loginDate)),
           部门名称: cur?.dept?.deptName,

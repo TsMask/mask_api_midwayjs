@@ -143,7 +143,7 @@ export class SysProfileController {
   @PreAuthorize()
   @OperLog({ title: '用户头像', businessType: OperatorBusinessTypeEnum.UPDATE })
   async avatar(
-    @Files('avatarfile') files: UploadFileInfo<string>[]
+    @Files('file') files: UploadFileInfo<string>[]
   ): Promise<Result> {
     if (files.length <= 0) return Result.err();
     // 上传文件得到资源地址后删除临时文件

@@ -196,6 +196,6 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
   async cleanJobLog(): Promise<number> {
     const sqlStr = 'truncate table sys_job_log';
     const result: ResultSetHeader = await this.db.execute(sqlStr);
-    return result.affectedRows;
+    return result.serverStatus;
   }
 }
