@@ -19,7 +19,7 @@
 
 前端代码仓库地址 [mask_element_vue3](https://gitee.com/TsMask/mask_element_vue3)
 
-> 有任何问题或者建议，可以在 [_Issues_](https://gitee.com/TsMask/mask_api_midwayjs/issues) 或通过QQ群：[_57242844_](_) 提给作者。  
+> 有任何问题或者建议，可以在 [_Issues_](https://gitee.com/TsMask/mask_api_midwayjs/issues) 或通过QQ群：[_57242844_](https://jq.qq.com/?_wv=1027&k=z6Y4YQcB) 提给作者。  
 > 如果觉得项目对您有帮助，可以来个Star ⭐
 
 ## 内置功能

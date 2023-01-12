@@ -64,8 +64,8 @@ create table sys_user (
 -- ----------------------------
 -- 初始化-用户信息表数据
 -- ----------------------------
-insert into sys_user values(1,  103, 'admin', 'admin', 'sys', 'admin@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '1', '0', '127.0.0.1', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '管理员');
-insert into sys_user values(2,  105, 'mask',  'mask',  'sys', 'mask@qq.com',   '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '1', '0', '127.0.0.1', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '普通人员');
+insert into sys_user values(1,  103, 'admin', 'admin', 'sys', 'admin@163.com', '15888888888', '1', '', '$10$zJQGpmn7z4tmqWIOJ.mkZOdfBOAOF8P5SmiLs/zEqUsSbLc5lT1gm', '1', '0', '127.0.0.1', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '管理员');
+insert into sys_user values(2,  105, 'mask',  'mask',  'sys', 'mask@qq.com',   '15666666666', '1', '', '$10$91jsdthxDfqA12xyAWqq8OFUF8ph62.YuOjHRVp0wNkdzZak73eu6', '1', '0', '127.0.0.1', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), 'admin', REPLACE(unix_timestamp(current_timestamp(3)),'.',''), '', null, '普通人员');
 
 
 -- ----------------------------
