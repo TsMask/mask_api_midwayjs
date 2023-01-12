@@ -7,7 +7,7 @@
     <a target="_blank" href="https://nodejs.org">
         <img src="https://img.shields.io/badge/Build-Nodejs-green.svg" alt="Build Node">
     </a>
-    <img src="https://img.shields.io/badge/Release-V0.0.3-orange.svg" alt="Release V0.0.3">
+    <img src="https://img.shields.io/badge/Release-V0.0.3-orange.svg" alt="Release V0.0.4">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License MIT">
 </p>  
 
@@ -16,6 +16,8 @@
 项目选择 [RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue) 进行重构改造，基于 `Node` + `TypeScript` 的后端开发框架 `Midwayjs` 进行开发。
 
 如需进一步了解框架，参见 [Midwayjs](http://www.midwayjs.org) 官方文档。
+
+前端代码仓库地址 [mask_element_vue3](https://gitee.com/TsMask/mask_element_vue3)
 
 > 有任何问题或者建议，可以在 [_Issues_](https://gitee.com/TsMask/mask_api_midwayjs/issues) 或通过QQ群：[_57242844_](_) 提给作者。  
 > 如果觉得项目对您有帮助，可以来个Star ⭐
@@ -33,7 +35,7 @@
 9. 操作日志：系统正常操作日志记录和查询；系统异常信息日志记录和查询。
 10. 登录日志：系统登录日志记录查询包含登录异常。
 11. 在线用户：当前系统中活跃用户状态监控。
-12. 定时任务：在线（添加、修改、删除)任务调度包含执行结果日志。
+12. 调度任务：在线（添加、修改、删除)任务调度包含执行结果日志。
 13. 服务监控：监视当前系统CPU、内存、磁盘、堆栈等相关信息。
 14. 缓存监控：对系统的缓存信息查询，命令统计等。
 
@@ -82,6 +84,11 @@ mask_api_midwayjs
 | Redis | 缓存存储程序 | 6+ |
 | Mysql | 数据存储程序 | 8+ |
 
+需要使用 `db_init.sql` 文件初始化数据库数据，
+
+> 管理员账号密码：admin/admin@1234  
+> 普通人员账号密码：mask/mask@1234
+
 ### 程序命令
 
 依赖安装过程中可能需要Python环境，bcrypt依赖疑是需要
@@ -112,3 +119,7 @@ npm run start           # 启动项目
 - 使用 `npm run lint:fix` 来做代码风格检查并修复格式。
 - 使用 `npm run ci` 来做代码盖率信息检查。
 - 使用 `npm run test` 来执行单元测试。
+
+## MASK前后端分离交流群
+
+[![加入QQ群](https://img.shields.io/badge/QQ群-57242844-blue.svg)](https://jq.qq.com/?_wv=1027&k=z6Y4YQcB)
