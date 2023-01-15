@@ -44,12 +44,12 @@ export interface ISysRoleService {
   selectRolePermissionByUserId(userId: string): Promise<string[]>;
 
   /**
-   * 根据用户ID获取角色选择框列表
+   * 根据用户ID获取拥有角色ID
    *
    * @param userId 用户ID
-   * @return 选中角色ID列表
+   * @return 拥有的角色ID列表
    */
-  selectRoleListByUserId(userId: string): Promise<string[]>;
+  selectRoleIdsByUserId(userId: string): Promise<string[]>;
 
   /**
    * 通过角色ID查询角色
@@ -76,20 +76,6 @@ export interface ISysRoleService {
   checkUniqueRoleKey(sysRole: SysRole): Promise<boolean>;
 
   /**
-   * 校验角色是否允许操作
-   *
-   * @param sysRole 角色信息
-   */
-  checkRoleAllowed(sysRole: SysRole): Promise<boolean>;
-
-  /**
-   * 校验角色是否有数据权限
-   *
-   * @param roleId 角色id
-   */
-  checkRoleDataScope(roleId: string): Promise<boolean>;
-
-  /**
    * 通过角色ID查询角色使用数量
    *
    * @param roleId 角色ID
@@ -114,28 +100,12 @@ export interface ISysRoleService {
   updateRole(sysRole: SysRole): Promise<number>;
 
   /**
-   * 修改角色状态
-   *
-   * @param sysRole 角色信息
-   * @return 结果
-   */
-  updateRoleStatus(sysRole: SysRole): Promise<number>;
-
-  /**
    * 修改数据权限信息
    *
    * @param sysRole 角色信息
    * @return 结果
    */
   authDataScope(sysRole: SysRole): Promise<number>;
-
-  /**
-   * 通过角色ID删除角色
-   *
-   * @param roleId 角色ID
-   * @return 结果
-   */
-  deleteRoleById(roleId: string): Promise<number>;
 
   /**
    * 批量删除角色信息

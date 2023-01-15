@@ -6,10 +6,8 @@ import { SysJob } from '../../model/SysJob';
 import { ISysJobRepository } from '../ISysJobRepository';
 
 /**查询视图对象SQL */
-const SELECT_JOB_VO = `select 
-job_id, job_name, job_group, invoke_target, target_params, cron_expression, 
-misfire_policy, concurrent, status, create_by, create_time, remark 
-from sys_job`;
+const SELECT_JOB_VO = `select job_id, job_name, job_group, invoke_target, target_params, cron_expression, 
+misfire_policy, concurrent, status, create_by, create_time, remark from sys_job`;
 
 /**操作定时任务调度表信息实体映射 */
 const SYS_JOB_RESULT = new Map<string, string>();
@@ -130,7 +128,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
 
     // 查询数据数
     const results = await this.db.execute(
-      `${SYS_JOB_RESULT} where 1 = 1 ${sqlStr}`,
+      `${SELECT_JOB_VO} where 1 = 1 ${sqlStr}`,
       paramArr
     );
     return parseSysJobResult(results);

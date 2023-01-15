@@ -31,20 +31,6 @@ export interface ISysConfigService {
   selectConfigValueByKey(configKey: string): Promise<string>;
 
   /**
-   * 获取验证码开关
-   *
-   * @return true开启，false关闭
-   */
-  selectCaptchaEnabled(): Promise<boolean>;
-
-  /**
-   * 获取验证码类型
-   *
-   * @return math 数值计算 char 字符验证
-   */
-  selectCaptchaType(): Promise<string>;
-
-  /**
    * 查询参数配置列表
    *
    * @param sysConfig 参数配置信息
@@ -59,14 +45,6 @@ export interface ISysConfigService {
    * @return 结果
    */
   checkUniqueConfigKey(sysConfig: SysConfig): Promise<boolean>;
-
-  /**
-   * 校验参数键值是否唯一
-   *
-   * @param sysConfig 参数配置信息
-   * @return 结果
-   */
-  checkUniqueConfigValue(sysConfig: SysConfig): Promise<boolean>;
 
   /**
    * 新增参数配置

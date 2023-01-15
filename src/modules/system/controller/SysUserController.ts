@@ -465,8 +465,8 @@ export class SysUserController {
   /**
    * 用户部门树列表
    */
-  @PreAuthorize({ hasPermissions: ['system:user:list'] })
   @Get('/deptTree')
+  @PreAuthorize({ hasPermissions: ['system:user:list'] })
   async deptTree(@Query() sysDept: SysDept): Promise<Result> {
     const dataScopeSQL = this.contextService.getDataScopeSQL('d');
     const data = await this.sysDeptService.selectDeptTreeList(

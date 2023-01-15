@@ -14,6 +14,7 @@ import {
   CAPTCHA_TYPE_MATH,
   CAPTCHA_EXPIRATION,
 } from '../../../framework/constants/CaptchaConstants';
+import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 
 /**
  * 验证码操作处理
@@ -37,8 +38,12 @@ export class CaptchaController {
   @Get('/captchaImage')
   @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
   async captchaImage(): Promise<Result> {
-    // 从数据库配置获取验证码开关
-    const captchaEnabled = await this.sysConfigService.selectCaptchaEnabled();
+    // 从数据库配置获取验证码开关 true开启，false关闭
+    const captchaEnabledStr =
+      await this.sysConfigService.selectConfigValueByKey(
+        'sys.account.captchaEnabled'
+      );
+    const captchaEnabled = parseBoolean(captchaEnabledStr);
     if (!captchaEnabled) {
       return Result.ok({
         captchaEnabled: captchaEnabled,
@@ -54,8 +59,11 @@ export class CaptchaController {
       img: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
     };
 
-    // 从数据库配置获取验证码类型
-    const captchaType = await this.sysConfigService.selectCaptchaType();
+    // 从数据库配置获取验证码类型 math 数值计算 char 字符验证
+    const captchaType = await this.sysConfigService.selectConfigValueByKey(
+      'sys.account.captchaType'
+    );
+
     if (captchaType === CAPTCHA_TYPE_MATH) {
       const options: ConfigObject =
         this.contextService.getConfig('mathCaptcha');
@@ -79,7 +87,7 @@ export class CaptchaController {
       );
     }
 
-    // 本地开发下返回验证码结果
+    // 本地开发下返回验证码结果，方便接口调试
     if (this.contextService.getEnv() === 'local') {
       const text = await this.redisCache.get(verifyKey);
       return Result.ok({ text, ...data });

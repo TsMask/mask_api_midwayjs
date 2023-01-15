@@ -158,15 +158,6 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     return rows.length > 0 ? rows[0].str : null;
   }
 
-  async checkUniqueConfigValue(configValue: string): Promise<string> {
-    const sqlStr =
-      "select config_id as 'str' from sys_config where config_value= ? limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
-      configValue,
-    ]);
-    return rows.length > 0 ? rows[0].str : null;
-  }
-
   async insertConfig(sysConfig: SysConfig): Promise<string> {
     const paramMap = new Map();
     if (sysConfig.configName) {

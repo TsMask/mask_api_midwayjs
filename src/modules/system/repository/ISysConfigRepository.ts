@@ -46,14 +46,6 @@ export interface ISysConfigRepository {
   checkUniqueConfigKey(configKey: string): Promise<string>;
 
   /**
-   * 校验参数键值是否唯一
-   *
-   * @param configValue 参数键值
-   * @return 结果
-   */
-  checkUniqueConfigValue(configValue: string): Promise<string>;
-
-  /**
    * 新增参数配置
    *
    * @param sysConfig 参数配置信息

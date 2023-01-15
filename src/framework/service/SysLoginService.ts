@@ -6,7 +6,7 @@ import {
 import { RedisCache } from '../cache/RedisCache';
 import { TokenService } from './TokenService';
 import { LoginUser } from '../model/LoginUser';
-import { parseNumber } from '../utils/ValueParseUtils';
+import { parseBoolean, parseNumber } from '../utils/ValueParseUtils';
 import { bcryptCompare } from '../utils/CryptoUtils';
 import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../modules/system/service/impl/SysUserServiceImpl';
@@ -19,7 +19,6 @@ import {
 } from '../constants/CommonConstants';
 import { LoginBodyVo } from '../../modules/system/model/vo/LoginBodyVo';
 import { SysUser } from '../../modules/system/model/SysUser';
-import { Result } from '../model/Result';
 
 /**
  * 登录校验方法
@@ -49,12 +48,12 @@ export class SysLoginService {
   /**
    * 登出清除token
    */
-  async logout(): Promise<Result> {
+  async logout(): Promise<void> {
     // 从本地配置获取token在请求头标识信息
     const jwtHeader = this.contextService.getConfig('jwtHeader');
     const headerToken = this.contextService.getContext().get(jwtHeader);
     const token = await this.tokenService.getHeaderToken(headerToken);
-    if (!token) return Result.ok();
+    if (!token) return;
 
     // 存在token时记录退出信息
     const userName = await this.tokenService.removeToken(token);
@@ -68,7 +67,6 @@ export class SysLoginService {
       );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
     }
-    return Result.ok();
   }
 
   /**
@@ -77,8 +75,12 @@ export class SysLoginService {
    * @returns 生成的token
    */
   async login(loginBodyVo: LoginBodyVo): Promise<string> {
-    // 验证码开关及验证码检查
-    const captchaEnabled = await this.sysConfigService.selectCaptchaEnabled();
+    // 验证码检查，从数据库配置获取验证码开关 true开启，false关闭
+    const captchaEnabledStr =
+      await this.sysConfigService.selectConfigValueByKey(
+        'sys.account.captchaEnabled'
+      );
+    const captchaEnabled = parseBoolean(captchaEnabledStr);
     if (captchaEnabled) {
       await this.validateCaptcha(
         loginBodyVo.username,

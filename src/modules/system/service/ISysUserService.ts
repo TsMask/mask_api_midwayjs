@@ -108,14 +108,6 @@ export interface ISysUserService {
   insertUser(sysUser: SysUser): Promise<string>;
 
   /**
-   * 注册用户信息
-   *
-   * @param sysUser 用户信息
-   * @return 结果
-   */
-  registerUser(sysUser: SysUser): Promise<boolean>;
-
-  /**
    * 修改用户信息
    *
    * @param sysUser 用户信息

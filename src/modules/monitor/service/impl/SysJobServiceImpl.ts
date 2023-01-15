@@ -145,17 +145,13 @@ export class SysJobServiceImpl implements ISysJobService {
       // 移除重复任务，在执行中的无法移除
       const repeatableJobs = await queue.getRepeatableJobs();
       for (const repeatable of repeatableJobs) {
-        const id = repeatable.id;
-        if (jobId === id) {
-          await queue.removeRepeatable({
-            jobId: id,
-            cron: repeatable.cron,
-          });
+        if (jobId === repeatable.id) {
+          await queue.removeRepeatableByKey(repeatable.key);
         }
       }
       // 清除任务记录
-      queue.clean(5000, 'active');
-      queue.clean(5000, 'wait');
+      await queue.clean(5000, 'active');
+      await queue.clean(5000, 'wait');
 
       // 添加重复任务
       await queue.runJob(
@@ -205,33 +201,37 @@ export class SysJobServiceImpl implements ISysJobService {
     // 移除重复任务，在执行中的无法移除
     const repeatableJobs = await queue.getRepeatableJobs();
     for (const repeatable of repeatableJobs) {
-      const id = repeatable.id;
-      if (jobId === id) {
-        await queue.removeRepeatable({
-          jobId: id,
-          cron: repeatable.cron,
-        });
+      if (jobId === repeatable.id) {
+        await queue.removeRepeatableByKey(repeatable.key);
       }
     }
     // 清除任务记录
-    queue.clean(5000, 'active');
-    queue.clean(5000, 'wait');
+    await queue.clean(5000, 'active');
+    await queue.clean(5000, 'wait');
   }
   async runQueueJob(sysJob: SysJob): Promise<boolean> {
     return await this.insertQueueJob(sysJob, false);
   }
 
   async resetQueueJob(): Promise<void> {
-    const queueList = this.bullFramework.getQueueList();
-    for (const queue of queueList) {
-      // 查询调度任务, 不是定义或状态禁止的都不初始化
-      const sysJob = await this.sysJobRepository.selectJobByInvokeTarget(
-        queue.getQueueName()
-      );
-      if (!sysJob) continue;
-      if (sysJob.status === STATUS_NO) continue;
-      // 添加到队列任务
-      await this.insertQueueJob(sysJob, true);
+    // 查询系统中定义状态为正常启用的任务
+    const sysJob = new SysJob();
+    sysJob.status = STATUS_YES;
+    const sysJobs = await this.sysJobRepository.selectJobList(sysJob);
+    if (sysJobs && sysJobs.length > 0) {
+      // 获取bull上注册的队列列表
+      const queueList = this.bullFramework.getQueueList();
+      if (queueList && queueList.length > 0) {
+        for (const queue of queueList) {
+          // 查询调度任务, 不是系统中定义不初始化
+          const job = sysJobs.find(
+            job => job.invokeTarget === queue.getQueueName()
+          );
+          if (job) {
+            await this.insertQueueJob(job, true);
+          }
+        }
+      }
     }
   }
 }

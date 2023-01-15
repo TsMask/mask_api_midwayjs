@@ -7,7 +7,7 @@
     <a target="_blank" href="https://nodejs.org">
         <img src="https://img.shields.io/badge/Build-Nodejs-green.svg" alt="Build Node">
     </a>
-    <img src="https://img.shields.io/badge/Release-V0.0.3-orange.svg" alt="Release V0.0.4">
+    <img src="https://img.shields.io/badge/Release-V0.0.5-orange.svg" alt="Release V0.0.5">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License MIT">
 </p>  
 

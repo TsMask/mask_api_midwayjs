@@ -36,12 +36,12 @@ export interface ISysRoleRepository {
   selectRolePermissionByUserId(userId: string): Promise<SysRole[]>;
 
   /**
-   * 根据用户ID获取角色选择框列表
+   * 根据用户ID获取拥有角色ID
    *
    * @param userId 用户ID
-   * @return 选中角色ID列表
+   * @return 拥有的角色ID列表
    */
-  selectRoleListByUserId(userId: string): Promise<string[]>;
+  selectRoleIdsByUserId(userId: string): Promise<string[]>;
 
   /**
    * 通过角色ID查询角色
@@ -90,14 +90,6 @@ export interface ISysRoleRepository {
    * @return 结果
    */
   insertRole(sysRole: SysRole): Promise<string>;
-
-  /**
-   * 通过角色ID删除角色
-   *
-   * @param roleId 角色ID
-   * @return 结果
-   */
-  deleteRoleById(roleId: string): Promise<number>;
 
   /**
    * 批量删除角色信息

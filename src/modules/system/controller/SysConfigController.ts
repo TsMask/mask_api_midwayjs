@@ -133,13 +133,6 @@ export class SysConfigController {
         `参数配置新增【${sysConfig.configKey}】失败，参数键名已存在`
       );
     }
-    const uniqueConfigValue =
-      await this.sysConfigService.checkUniqueConfigValue(sysConfig);
-    if (!uniqueConfigValue) {
-      return Result.errMsg(
-        `参数配置新增【${sysConfig.configValue}】失败，参数键值已存在`
-      );
-    }
 
     sysConfig.createBy = this.contextService.getUseName();
     const insertId = await this.sysConfigService.insertConfig(sysConfig);
@@ -167,13 +160,7 @@ export class SysConfigController {
         `参数配置修改【${sysConfig.configKey}】失败，参数键名已存在`
       );
     }
-    const uniqueConfigValue =
-      await this.sysConfigService.checkUniqueConfigValue(sysConfig);
-    if (!uniqueConfigValue) {
-      return Result.errMsg(
-        `参数配置修改【${sysConfig.configValue}】失败，参数键值已存在`
-      );
-    }
+
     // 检查是否存在
     const config = await this.sysConfigService.selectConfigById(
       sysConfig.configId

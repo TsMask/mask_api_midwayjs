@@ -73,9 +73,10 @@ export class SysRoleServiceImpl implements ISysRoleService {
     return [...new Set(role_arr)];
   }
 
-  selectRoleListByUserId(userId: string): Promise<string[]> {
-    throw new Error('Method not implemented.');
+  async selectRoleIdsByUserId(userId: string): Promise<string[]> {
+    return await this.sysRoleRepository.selectRoleIdsByUserId(userId);
   }
+
   async selectRoleById(roleId: string): Promise<SysRole> {
     return await this.sysRoleRepository.selectRoleById(roleId);
   }
@@ -102,12 +103,6 @@ export class SysRoleServiceImpl implements ISysRoleService {
     return !roleId;
   }
 
-  checkRoleAllowed(sysRole: SysRole): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
-  checkRoleDataScope(roleId: string): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
   async countUserRoleByRoleId(roleId: string): Promise<number> {
     return await this.sysUserRoleRepository.countUserRoleByRoleId(roleId);
   }
@@ -152,9 +147,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
     }
     return 0;
   }
-  updateRoleStatus(sysRole: SysRole): Promise<number> {
-    throw new Error('Method not implemented.');
-  }
+
   async authDataScope(sysRole: SysRole): Promise<number> {
     const roleId = sysRole.roleId;
     // 删除角色与部门关联
@@ -174,9 +167,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
     // 修改角色信息
     return await this.sysRoleRepository.updateRole(sysRole);
   }
-  deleteRoleById(roleId: string): Promise<number> {
-    throw new Error('Method not implemented.');
-  }
+
   async deleteRoleByIds(roleIds: string[]): Promise<number> {
     for (const roleId of roleIds) {
       // 检查是否管理员角色

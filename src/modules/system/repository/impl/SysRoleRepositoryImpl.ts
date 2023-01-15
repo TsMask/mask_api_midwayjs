@@ -175,21 +175,29 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return parseSysRoleResult(rows);
   }
 
-  selectRoleListByUserId(userId: string): Promise<string[]> {
-    throw new Error('Method not implemented.');
+  async selectRoleIdsByUserId(userId: string): Promise<string[]> {
+    const sqlStr = `select r.role_id as 'str' from sys_role r 
+    left join sys_user_role ur on ur.role_id = r.role_id 
+    left join sys_user u on u.user_id = ur.user_id 
+    where u.user_id = ?`;
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [userId]);
+    return rows.map(item => item.str);
   }
+
   async selectRoleById(roleId: string): Promise<SysRole> {
     const sqlStr = `${SELECT_ROLE_VO} where r.role_id = ?`;
     const paramArr = [roleId];
     const rows = await this.db.execute(sqlStr, paramArr);
     return parseSysRoleResult(rows)[0] || null;
   }
+
   async selectRolesByUserName(userName: string): Promise<SysRole[]> {
     const sqlStr = `${SELECT_ROLE_VO} where r.del_flag = '0' and u.user_name = ? `;
     const paramArr = [userName];
     const rows = await this.db.execute(sqlStr, paramArr);
     return parseSysRoleResult(rows);
   }
+
   async checkUniqueRoleName(roleName: string): Promise<string> {
     const sqlStr =
       "select role_id as 'str' from sys_role r where r.role_name = ? and r.del_flag = '0' limit 1";
@@ -197,6 +205,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
+
   async checkUniqueRoleKey(roleKey: string): Promise<string> {
     const sqlStr =
       "select role_id as 'str' from sys_role r where r.role_key = ? and r.del_flag = '0' limit 1";
@@ -204,6 +213,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.length > 0 ? rows[0].str : null;
   }
+
   async updateRole(sysRole: SysRole): Promise<number> {
     const paramMap = new Map();
     if (sysRole.roleName) {
@@ -250,6 +260,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     ]);
     return rows.affectedRows;
   }
+
   async insertRole(sysRole: SysRole): Promise<string> {
     const paramMap = new Map();
     if (sysRole.roleId) {
@@ -298,9 +309,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     ]);
     return `${result.insertId}`;
   }
-  deleteRoleById(roleId: string): Promise<number> {
-    throw new Error('Method not implemented.');
-  }
+
   async deleteRoleByIds(roleIds: string[]): Promise<number> {
     const sqlStr = `update sys_role set del_flag = '1' where role_id in (${roleIds
       .map(() => '?')

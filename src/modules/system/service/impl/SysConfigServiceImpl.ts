@@ -1,6 +1,5 @@
 import { Provide, Inject, Init, ScopeEnum, Scope } from '@midwayjs/decorator';
 import { SYS_CONFIG_KEY } from '../../../../framework/constants/CacheKeysConstants';
-import { parseBoolean } from '../../../../framework/utils/ValueParseUtils';
 import { RedisCache } from '../../../../framework/cache/RedisCache';
 import { SysConfig } from '../../model/SysConfig';
 import { SysConfigRepositoryImpl } from '../../repository/impl/SysConfigRepositoryImpl';
@@ -61,20 +60,6 @@ export class SysConfigServiceImpl implements ISysConfigService {
     return null;
   }
 
-  async selectCaptchaEnabled(): Promise<boolean> {
-    const captchaEnabled = await this.selectConfigValueByKey(
-      'sys.account.captchaEnabled'
-    );
-    return parseBoolean(captchaEnabled);
-  }
-
-  async selectCaptchaType(): Promise<string> {
-    const captchaType = await this.selectConfigValueByKey(
-      'sys.account.captchaType'
-    );
-    return captchaType;
-  }
-
   async selectConfigList(sysConfig: SysConfig): Promise<SysConfig[]> {
     return await this.sysConfigRepository.selectConfigList(sysConfig);
   }
@@ -82,17 +67,6 @@ export class SysConfigServiceImpl implements ISysConfigService {
   async checkUniqueConfigKey(sysConfig: SysConfig): Promise<boolean> {
     const configId = await this.sysConfigRepository.checkUniqueConfigKey(
       sysConfig.configKey
-    );
-    // 参数配置与查询得到参数配置configId一致
-    if (configId && sysConfig.configId === configId) {
-      return true;
-    }
-    return !configId;
-  }
-
-  async checkUniqueConfigValue(sysConfig: SysConfig): Promise<boolean> {
-    const configId = await this.sysConfigRepository.checkUniqueConfigValue(
-      sysConfig.configValue
     );
     // 参数配置与查询得到参数配置configId一致
     if (configId && sysConfig.configId === configId) {

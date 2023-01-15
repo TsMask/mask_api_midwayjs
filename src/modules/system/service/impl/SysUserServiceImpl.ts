@@ -142,9 +142,6 @@ export class SysUserServiceImpl implements ISysUserService {
     }
     return insertId;
   }
-  registerUser(sysUser: SysUser): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
 
   async updateUser(sysUser: SysUser): Promise<number> {
     return await this.sysUserRepository.updateUser(sysUser);
