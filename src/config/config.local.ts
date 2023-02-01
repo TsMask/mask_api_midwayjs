@@ -38,8 +38,18 @@ export default {
         port: 6379,
         host: '192.168.56.101',
         password: 'redis@1234',
-        db: 1, // Redis db_num
+        db: 1,
       },
     },
+  },
+
+  // JWT 令牌配置
+  jwt: {
+    expiresIn: '640m',
+  },
+
+  // 用户配置
+  user: {
+    adminList: ['1'],
   },
 } as MidwayConfig;

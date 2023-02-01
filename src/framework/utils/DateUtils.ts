@@ -51,23 +51,21 @@ export function parseDateToStr(
  * 年/月 列如：2022/12
  * @returns 时间格式字符串 YYYY/MM
  */
-export function parseDatePath(): string {
-  return dayjs(new Date()).format('YYYY/MM');
+export function parseDatePath(date: number | Date = Date.now()): string {
+  return dayjs(date).format('YYYY/MM');
 }
 
 /**
- * 判断两次时间差是否小于间隔时间
+ * 判断两次时间差
  * @param endDate 结束时间
  * @param startDate 开始时间
- * @param interval 时间间隔，单位秒
- * @returns true | false
+ * @returns 单位秒
  */
 export function diffSeconds(
   endDate: number | Date,
-  startDate: number | Date,
-  interval: number
-): boolean {
-  const diff = Math.ceil(dayjs(endDate).diff(startDate, 's'));
-  if (Number.isNaN(diff)) return false;
-  return diff < interval;
+  startDate: number | Date
+): number {
+  const value = Math.ceil(dayjs(endDate).diff(startDate, 'seconds'));
+  if (Number.isNaN(value)) return 0;
+  return value;
 }

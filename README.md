@@ -91,7 +91,7 @@ mask_api_midwayjs
 
 ### 程序命令
 
-依赖安装过程中可能需要Python环境，bcrypt依赖疑是需要
+bcrypt依赖需要Python环境
 
 > 使用阿里源可以加速下载依赖库  
 > npm install --registry <https://registry.npmmirror.com>

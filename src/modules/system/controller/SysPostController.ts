@@ -43,9 +43,10 @@ export class SysPostController {
   async export() {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
-    ctx.request.body.pageNum = 1;
-    ctx.request.body.pageSize = 1000;
-    const data = await this.sysPostService.selectPostPage(ctx.request.body);
+    const query: Record<string, any> = Object.assign({}, ctx.request.body);
+    query.pageNum = 1;
+    query.pageSize = 1000;
+    const data = await this.sysPostService.selectPostPage(query);
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysPost) => {

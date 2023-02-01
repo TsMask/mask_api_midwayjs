@@ -58,7 +58,6 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
 
       // 唯一标识（指定key + 客户端IP + 请求地址）
       const cacheKey = REPEAT_SUBMIT_KEY + `${clientIP}:${ctx.path}`;
-      const now = Date.now();
 
       // 从Redis读取上一次保存的请求时间和参数
       const redisCache: RedisCache = await ctx.requestContext.getAsync(
@@ -67,10 +66,10 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       const rpStr = await redisCache.get(cacheKey);
       if (rpStr) {
         const rpObj: RepeatParamType = JSON.parse(rpStr);
-        const compareTime = diffSeconds(now, rpObj.time, interval);
+        const compareTime = diffSeconds(Date.now(), rpObj.time);
         const compareParams =
           JSON.stringify(rpObj.params) === JSON.stringify(params);
-        if (compareTime && compareParams) {
+        if (compareTime < interval && compareParams) {
           return Result.errMsg('不允许重复提交，请稍候再试');
         }
       }

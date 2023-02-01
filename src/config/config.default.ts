@@ -1,8 +1,9 @@
 import { MidwayConfig } from '@midwayjs/core';
+import { type } from 'os';
 
 export default (): MidwayConfig => {
-  // 程序资源文件路径 示例（ Windows配置D:/home/mask，Linux配置 /home/mask）
-  const filePath = 'D:/home/mask';
+  // 程序资源文件路径 示例（ Linux配置 /home/mask，Windows配置 D:/home/mask ）
+  const filePath = type() === 'Linux' ? '/home/mask' : 'D:/home/mask';
 
   return {
     // use for cookie sign key, should change to your own and keep security
@@ -28,14 +29,14 @@ export default (): MidwayConfig => {
       noise: 4,
       /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
       color: true,
-      // 验证码图片背景颜色
+      /**验证码图片背景颜色 */
       background: '#f5f5f5',
       /**计算式，默认"+"，可选"+", "-" or "+/-" */
-      mathOperator: '+',
+      mathOperator: '+/-',
       /**算数值最小值，默认1 */
       mathMin: 1,
       /**算数值最大值，默认9 */
-      mathMax: 9,
+      mathMax: 24,
     },
 
     /**核心服务配置 http://www.midwayjs.org/docs/extensions/koa */
@@ -131,7 +132,7 @@ export default (): MidwayConfig => {
           password: '<密码>',
           db: 0, // Redis db_num
         },
-        prefix: 'job_bull', // Redis key
+        prefix: 'bull_queue', // Redis key
         // 默认的任务配置
         defaultJobOptions: {
           // 成功后移除任务记录，最多保留最近 10 条记录
@@ -173,7 +174,7 @@ export default (): MidwayConfig => {
       /**令牌密钥 */
       secret: 'abcdefghijklmnopqrstuvwxyz', // fs.readFileSync('xxxxx.key')
       /**令牌有效期（默认30分钟） */
-      expiresIn: '640m', // https://github.com/vercel/ms
+      expiresIn: '30m', // https://github.com/vercel/ms
     },
     /**请求头令牌自定义标识 */
     jwtHeader: 'Authorization',
