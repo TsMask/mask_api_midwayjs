@@ -96,7 +96,7 @@ bcrypt依赖需要Python环境
 > 使用阿里源可以加速下载依赖库  
 > npm install --registry <https://registry.npmmirror.com>
 
-#### 本地开发
+#### 本地开发-Window/Liunx
 
 ```bash
 npm install                 # 安装项目所需依赖
@@ -104,7 +104,7 @@ npm run dev                 # 开发模式启动项目
 open http://localhost:6275  # 启动成功后得到服务访问地址
 ```
 
-#### 生产部署
+#### 生产部署-Liunx
 
 ```bash
 npm install             # 安装项目所需依赖
@@ -112,6 +112,15 @@ npm run build           # 构建生产项目代码
 npm prune --production  # 移除开发依赖
 npm run start           # 启动项目
 ```
+
+使用[pm2](https://github.com/Unitech/pm2)部署，更多部署信息请移步Midwayjs。
+
+```bash
+NODE_ENV=production pm2 start ./bootstrap.js --name midway_app -i 4
+```
+
+- --name 用于指定应用名
+- -i 用于指定启动的实例数（进程），会使用 cluster 模式启动
 
 #### 内置指令
 
