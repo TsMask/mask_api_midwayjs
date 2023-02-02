@@ -142,7 +142,7 @@ export class SystemInfoService {
       }
       // ignore localhost
       if (newType === 'lo') {
-        return;
+        return pre;
       }
       pre[newType] = netItemList
         .sort(item => {
