@@ -212,7 +212,9 @@ export class SysLoginService {
     const sysUser = new SysUser();
     sysUser.userId = userId;
     const ip = this.contextService.getContext().ip;
-    sysUser.loginIp = ip.includes(IP_INNER_ADDR) ? IP_INNER_ADDR : ip;
+    sysUser.loginIp = ip.includes(IP_INNER_ADDR)
+      ? ip.replace(IP_INNER_ADDR, '')
+      : ip;
     sysUser.loginDate = Date.now();
     return await this.sysUserService.updateUser(sysUser);
   }

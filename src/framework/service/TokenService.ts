@@ -129,7 +129,7 @@ export class TokenService {
     userAgent: string
   ): Promise<LoginUser> {
     if (clientIP.includes(IP_INNER_ADDR)) {
-      loginUser.ipaddr = IP_INNER_ADDR;
+      loginUser.ipaddr = clientIP.replace(IP_INNER_ADDR, '');
       loginUser.loginLocation = IP_INNER_LOCATION;
     } else {
       // 解析ip地址

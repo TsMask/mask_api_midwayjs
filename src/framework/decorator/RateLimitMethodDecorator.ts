@@ -61,7 +61,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       // IP
       if (metadataObj.limitType === LimitTypeEnum.IP) {
         const clientIP = ctx.ip.includes(IP_INNER_ADDR)
-          ? IP_INNER_ADDR
+          ? ctx.ip.replace(IP_INNER_ADDR, '')
           : ctx.ip;
         combinedKey = RATE_LIMIT_KEY + `${clientIP}:${classMethod}`;
       }

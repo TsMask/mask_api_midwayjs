@@ -123,7 +123,7 @@ export class ContextService {
     logininfor.userName = userName || this.getUseName();
     const ip = this.ctx.ip;
     if (ip.includes(IP_INNER_ADDR)) {
-      logininfor.ipaddr = IP_INNER_ADDR;
+      logininfor.ipaddr = ip.replace(IP_INNER_ADDR, '');
       logininfor.loginLocation = IP_INNER_LOCATION;
     } else {
       // 解析ip地址

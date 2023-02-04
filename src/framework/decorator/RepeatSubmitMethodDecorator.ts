@@ -54,7 +54,9 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       );
 
       // 获取客户端IP
-      const clientIP = ctx.ip.includes(IP_INNER_ADDR) ? IP_INNER_ADDR : ctx.ip;
+      const clientIP = ctx.ip.includes(IP_INNER_ADDR)
+        ? ctx.ip.replace(IP_INNER_ADDR, '')
+        : ctx.ip;
 
       // 唯一标识（指定key + 客户端IP + 请求地址）
       const cacheKey = REPEAT_SUBMIT_KEY + `${clientIP}:${ctx.path}`;

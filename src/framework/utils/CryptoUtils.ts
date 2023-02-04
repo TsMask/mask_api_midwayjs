@@ -4,7 +4,7 @@ import {
   createHash,
   createHmac,
 } from 'crypto';
-import { compare, hash } from 'bcrypt';
+import { verify, hash } from '@node-rs/bcrypt';
 
 /**
  * Bcrypt密码加密
@@ -25,7 +25,7 @@ export async function bcryptCompare(
   originStr: string,
   hashStr: string
 ): Promise<boolean> {
-  return await compare(originStr, hashStr);
+  return await verify(originStr, hashStr);
 }
 
 /**

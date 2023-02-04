@@ -173,8 +173,8 @@ export default (): MidwayConfig => {
       algorithm: 'HS512',
       /**令牌密钥 */
       secret: 'abcdefghijklmnopqrstuvwxyz', // fs.readFileSync('xxxxx.key')
-      /**令牌有效期（默认30分钟） */
-      expiresIn: '30m', // https://github.com/vercel/ms
+      /**令牌有效期（默认120分钟） */
+      expiresIn: '120m', // https://github.com/vercel/ms
     },
     /**请求头令牌自定义标识 */
     jwtHeader: 'Authorization',

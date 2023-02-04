@@ -13,10 +13,10 @@ export const HTTP = 'http://';
 /**https请求 */
 export const HTTPS = 'https://';
 
-/**IP-网络地址 */
-export const IP_INNER_ADDR = '127.0.0.1';
+/**IP-网络地址(内网) */
+export const IP_INNER_ADDR = '::ffff:';
 
-/**IP-省市地址 */
+/**IP-省市地址(内网) */
 export const IP_INNER_LOCATION = '内网IP';
 
 /**通用状态标识-正常/成功/是 */

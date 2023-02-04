@@ -11,11 +11,11 @@ export default {
     dataSource: {
       // 单数据库实例
       default: {
-        host: 'mysql8030',
         port: 3306,
-        username: 'root',
-        password: 'root@1234',
-        database: 'mask_api_midwayjs',
+        host: 'mysql',
+        username: '<账号>',
+        password: '<密码>',
+        database: '<数据库名称>',
       },
     },
   },
@@ -24,9 +24,9 @@ export default {
   redis: {
     client: {
       port: 6379,
-      host: 'redis705',
-      password: 'redis@1234',
-      db: 1,
+      host: 'redis',
+      password: '<没有留空字符串>',
+      db: 2,
     },
   },
 
@@ -35,9 +35,9 @@ export default {
     defaultQueueOptions: {
       redis: {
         port: 6379,
-        host: 'redis705',
-        password: 'redis@1234',
-        db: 1,
+        host: 'redis',
+        password: '<没有留空字符串>',
+        db: 2,
       },
     },
   },

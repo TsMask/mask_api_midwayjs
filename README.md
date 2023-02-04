@@ -91,9 +91,10 @@ mask_api_midwayjs
 
 ### 程序命令
 
-bcrypt依赖需要Python环境
-
-> 使用阿里源可以加速下载依赖库  
+> 使用国内源可以加速下载依赖库  
+> 腾讯源 <http://mirrors.cloud.tencent.com/npm/>  
+> 淘宝源 <https://registry.npmmirror.com>  
+> 华为源 <https://mirrors.huaweicloud.com/repository/npm/>  
 > npm install --registry <https://registry.npmmirror.com>
 
 #### 本地开发-Window/Liunx
@@ -110,17 +111,11 @@ open http://localhost:6275  # 启动成功后得到服务访问地址
 npm install             # 安装项目所需依赖
 npm run build           # 构建生产项目代码
 npm prune --production  # 移除开发依赖
-npm run start           # 启动项目
+npm run start           # 窗口启动项目
+npm run start:pm2       # PM2启动项目
 ```
 
-使用[pm2](https://github.com/Unitech/pm2)部署，更多部署信息请移步Midwayjs。
-
-```bash
-NODE_ENV=production pm2 start ./bootstrap.js --name midway_app -i 4
-```
-
-- --name 用于指定应用名
-- -i 用于指定启动的实例数（进程），会使用 cluster 模式启动
+更多部署信息请移步 [Midway-启动和部署](http://www.midwayjs.org/docs/deployment)。
 
 #### 内置指令
 

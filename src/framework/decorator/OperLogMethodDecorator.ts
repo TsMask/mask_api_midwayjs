@@ -85,7 +85,7 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       operLog.requestMethod = ctx.method;
       // 解析ip地址
       if (ctx.ip.includes(IP_INNER_ADDR)) {
-        operLog.operIp = IP_INNER_ADDR;
+        operLog.operIp = ctx.ip.replace(IP_INNER_ADDR, '');
         operLog.operLocation = IP_INNER_LOCATION;
       } else {
         operLog.operIp = ctx.ip;
