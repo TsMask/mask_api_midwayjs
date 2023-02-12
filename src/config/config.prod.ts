@@ -4,6 +4,7 @@ export default {
   // 核心服务配置
   koa: {
     port: 6275, // 服务端口
+    proxy: true, // 如果部署在反向代理中需要开启此配置，不是就关闭，以防被恶意用户伪造请求 IP 等信息。
   },
 
   // TypeORM 数据源

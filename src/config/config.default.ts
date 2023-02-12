@@ -36,13 +36,15 @@ export default (): MidwayConfig => {
       /**算数值最小值，默认1 */
       mathMin: 1,
       /**算数值最大值，默认9 */
-      mathMax: 24,
+      mathMax: 15,
     },
 
     /**核心服务配置 http://www.midwayjs.org/docs/extensions/koa */
     koa: {
       /**服务端口 */
       port: 6275,
+      /**是否开启代理 */
+      proxy: false,
     },
 
     /**请求数据解析大小限制 */

@@ -24,3 +24,5 @@ run/
 *.un~
 .tsbuildinfo
 .tsbuildinfo.*
+
+docs/

@@ -4,6 +4,7 @@ export default {
   // 核心服务配置
   koa: {
     port: 6275, // 服务端口
+    proxy: true, // 是否开启代理，部署在反向代理之后需要开启此配置，以防被恶意用户伪造请求 IP 等信息。
   },
 
   // TypeORM 数据源
@@ -15,7 +16,7 @@ export default {
         port: 3306,
         username: 'root',
         password: 'root@1234',
-        database: 'mask_api_midwayjs',
+        database: 'mask_api',
         logging: true, // 输出sql日志
       },
     },

@@ -18,9 +18,9 @@ import { parseSafeContent } from '../utils/ValueParseUtils';
 
 /** 操作日志参数 */
 interface operLogOptions {
-  /**模块 */
+  /**标题 */
   title: string;
-  /**功能 */
+  /**类型 */
   businessType: OperatorBusinessTypeEnum;
   /**操作人类别 */
   operatorType?: OperatorTypeEnum;

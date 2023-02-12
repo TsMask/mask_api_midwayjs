@@ -48,18 +48,21 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       // 装饰器所在的实例上下文
       const ctx: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
       // 初始可选参数数据
-      const metadataObj = options.metadata;
-      if (!metadataObj.limitType) {
-        metadataObj.limitType = LimitTypeEnum.GLOBAL;
-      }
+      const limitCount = options.metadata.count;
+      const limitTime = options.metadata.time;
+      let limitType = options.metadata.limitType;
 
-      // 默认
       const className = joinPoint.target.constructor.name;
       const classMethod = `${className}.${joinPoint.methodName}()`;
       let combinedKey = RATE_LIMIT_KEY + classMethod;
 
+      // 默认
+      if (!limitType) {
+        limitType = LimitTypeEnum.GLOBAL;
+      }
+
       // IP
-      if (metadataObj.limitType === LimitTypeEnum.IP) {
+      if (limitType === LimitTypeEnum.IP) {
         const clientIP = ctx.ip.includes(IP_INNER_ADDR)
           ? ctx.ip.replace(IP_INNER_ADDR, '')
           : ctx.ip;
@@ -67,24 +70,30 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       }
 
       // 用户
-      if (metadataObj.limitType === LimitTypeEnum.USER) {
+      if (limitType === LimitTypeEnum.USER) {
         const loginUser: LoginUser = ctx.loginUser;
         if (loginUser && loginUser.userId) {
-          combinedKey =
-            RATE_LIMIT_KEY + `${loginUser.user.userId}:${classMethod}`;
+          combinedKey = RATE_LIMIT_KEY + `${loginUser.userId}:${classMethod}`;
         }
       }
 
       // 在Redis查询并记录请求次数
-      const redisCache: RedisCache = await ctx.requestContext.getAsync(
+      const redisCacheServer: RedisCache = await ctx.requestContext.getAsync(
         RedisCache
       );
-      const rateCount = await redisCache.rateLimit(
+      const rateCount = await redisCacheServer.rateLimit(
         combinedKey,
-        metadataObj.time,
-        metadataObj.count
+        limitTime,
+        limitCount
       );
-      if (rateCount >= metadataObj.count) {
+      const rateTime = await redisCacheServer.getExpire(combinedKey);
+
+      // 设置限流声明响应头
+      ctx.set("X-Ratelimit-Limit", `${limitCount}`);
+      ctx.set("X-Ratelimit-Remaining", `${limitCount - rateCount}`);
+      ctx.set("X-Ratelimit-Reset", `${Date.now() + rateTime * 1000}`);
+
+      if (rateCount >= limitCount) {
         return Result.errMsg('访问过于频繁，请稍候再试');
       }
 

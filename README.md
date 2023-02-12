@@ -1,23 +1,16 @@
 # 基于 Midwayjs 的管理系统后端接口服务
 
-<p>
-    <a target="_blank" href="http://www.midwayjs.org">
-        <img src="https://img.shields.io/badge/Build-Midway-green.svg"  alt="Build Midwayjs">
-    </a>
-    <a target="_blank" href="https://nodejs.org">
-        <img src="https://img.shields.io/badge/Build-Nodejs-green.svg" alt="Build Node">
-    </a>
-    <img src="https://img.shields.io/badge/Release-V0.0.5-orange.svg" alt="Release V0.0.5">
-    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License MIT">
-</p>  
+![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
+![Release V0.0.5](https://img.shields.io/badge/Release-V0.0.5-orange.svg)
+![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
 
-项目选择 [RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue) 进行重构改造，基于 `Node` + `TypeScript` 的后端开发框架 `Midwayjs` 进行开发。
+该后端项目选择 [RuoYi-Vue](https://gitee.com/y_project/RuoYi-Vue) 进行重构改造。
 
-如需进一步了解框架，参见 [Midwayjs](http://www.midwayjs.org) 官方文档。
+基于 `Node` + `TypeScript` 的 `Midwayjs` 开发框架进行开发，如需进一步了解框架，参见 [Midwayjs](http://www.midwayjs.org) 官方文档。
 
-前端代码仓库地址 [mask_element_vue3](https://gitee.com/TsMask/mask_element_vue3)
+Vue3前端代码仓库地址 [mask_element_vue3](https://gitee.com/TsMask/mask_element_vue3)
 
 > 有任何问题或者建议，可以在 [_Issues_](https://gitee.com/TsMask/mask_api_midwayjs/issues) 或通过QQ群：[_57242844_](https://jq.qq.com/?_wv=1027&k=z6Y4YQcB) 提给作者。  
 > 如果觉得项目对您有帮助，可以来个Star ⭐
@@ -86,8 +79,10 @@ mask_api_midwayjs
 
 需要使用 `db_init.sql` 文件初始化数据库数据，
 
-> 管理员账号密码：admin/admin@1234  
-> 普通人员账号密码：mask/mask@1234
+> **账号/密码**  
+> **管理员**：admin/admin@1234  
+> **普通人员**：mask/mask@1234  
+> 如遇到无法解决的问题，可以在下方进行留言，会在第一时间进行解答。
 
 ### 程序命令
 
@@ -111,8 +106,8 @@ open http://localhost:6275  # 启动成功后得到服务访问地址
 npm install             # 安装项目所需依赖
 npm run build           # 构建生产项目代码
 npm prune --production  # 移除开发依赖
-npm run start           # 窗口启动项目
-npm run start:pm2       # PM2启动项目
+npm run start           # 窗口当前启动项目
+npm run start:pm2       # PM2常驻启动项目
 ```
 
 更多部署信息请移步 [Midway-启动和部署](http://www.midwayjs.org/docs/deployment)。
