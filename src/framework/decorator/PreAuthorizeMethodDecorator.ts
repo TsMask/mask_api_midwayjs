@@ -114,25 +114,25 @@ function verifyRolePermission(
   // 只需含有其中角色
   let hasRole = false;
   if (metadata.hasRoles && metadata.hasRoles.length > 0) {
-    hasRole = metadata.hasRoles.some(key => roles.some(r => r === key));
+    hasRole = metadata.hasRoles.some(r => roles.some(ur => ur === r));
   }
   // 只需含有其中权限
   let hasPermission = false;
   if (metadata.hasPermissions && metadata.hasPermissions.length > 0) {
-    hasPermission = metadata.hasPermissions.some(key =>
-      permissions.some(r => r === key)
+    hasPermission = metadata.hasPermissions.some(p =>
+      permissions.some(up => up === p)
     );
   }
   // 同时匹配其中角色
   let matchRoles = false;
   if (metadata.matchRoles && metadata.matchRoles.length > 0) {
-    matchRoles = metadata.matchRoles.every(key => roles.some(r => r === key));
+    matchRoles = metadata.matchRoles.every(r => roles.some(ur => ur === r));
   }
   // 同时匹配其中权限
   let matchPermissions = false;
   if (metadata.matchPermissions && metadata.matchPermissions.length > 0) {
-    matchPermissions = metadata.matchPermissions.every(key =>
-      permissions.some(r => r === key)
+    matchPermissions = metadata.matchPermissions.every(p =>
+      permissions.some(up => up === p)
     );
   }
 

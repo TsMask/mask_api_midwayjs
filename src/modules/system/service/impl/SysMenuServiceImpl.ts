@@ -16,9 +16,9 @@ import {
   STATUS_NO,
 } from '../../../../framework/constants/CommonConstants';
 import {
-  MENU_COMPONENT_INNER_LINK,
-  MENU_COMPONENT_LAYOUT,
-  MENU_COMPONENT_PARENT_VIEW,
+  MENU_COMPONENT_LINK_LAYOUT,
+  MENU_COMPONENT_BASIC_LAYOUT,
+  MENU_COMPONENT_BLANK_LAYOUT,
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
 } from '../../../../framework/constants/MenuConstants';
@@ -296,14 +296,14 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
       // 父id且为内链组件
       else if (menu.parentId === '0' && this.isInnerLink(menu)) {
-        router.path = '/';
+        router.path = menu.path;
         router.meta = new MetaVo().newTitleIcon(menu.menuName, menu.icon);
         const childrenList: RouterVo[] = [];
         const children = new RouterVo();
         const routerPath = this.innerLinkReplaceEach(menu.path);
         children.path = routerPath;
         children.name = parseFirstUpper(routerPath);
-        children.component = MENU_COMPONENT_INNER_LINK;
+        children.component = MENU_COMPONENT_LINK_LAYOUT;
         children.meta = new MetaVo().newTitleIconLink(
           menu.menuName,
           menu.icon,
@@ -341,7 +341,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    */
   private getRouterPath(menu: SysMenu): string {
     let routerPath = menu.path;
-    // 内链打开外网方式
+    // 内链打开网址方式
     if (menu.parentId !== '0' && this.isInnerLink(menu)) {
       routerPath = this.innerLinkReplaceEach(routerPath);
     }
@@ -367,7 +367,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 组件信息
    */
   private getComponent(menu: SysMenu): string {
-    let component: string = MENU_COMPONENT_LAYOUT;
+    let component: string = MENU_COMPONENT_BASIC_LAYOUT;
     if (menu.component && !this.isMenuFrame(menu)) {
       component = menu.component;
     } else if (
@@ -375,9 +375,9 @@ export class SysMenuServiceImpl implements ISysMenuService {
       menu.parentId !== '0' &&
       this.isInnerLink(menu)
     ) {
-      component = MENU_COMPONENT_INNER_LINK;
+      component = MENU_COMPONENT_LINK_LAYOUT;
     } else if (!menu.component && this.isParentView(menu)) {
-      component = MENU_COMPONENT_PARENT_VIEW;
+      component = MENU_COMPONENT_BLANK_LAYOUT;
     }
     return component;
   }

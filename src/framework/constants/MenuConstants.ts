@@ -5,14 +5,14 @@
  * @author TsMask
  */
 
-/**路径类型-Layout组件标识 */
-export const MENU_COMPONENT_LAYOUT = 'Layout';
+/**组件布局类型-基础布局组件标识 */
+export const MENU_COMPONENT_BASIC_LAYOUT = 'BasicLayout';
 
-/**路径类型-ParentView组件标识 */
-export const MENU_COMPONENT_PARENT_VIEW = 'ParentView';
+/**组件布局类型-空白布局组件标识 */
+export const MENU_COMPONENT_BLANK_LAYOUT = 'BlankLayout';
 
-/**路径类型-InnerLink组件标识 */
-export const MENU_COMPONENT_INNER_LINK = 'InnerLink';
+/**组件布局类型-内链接布局组件标识 */
+export const MENU_COMPONENT_LINK_LAYOUT = 'LinkLayout';
 
 /**菜单类型-目录 */
 export const MENU_TYPE_DIR = 'M';
