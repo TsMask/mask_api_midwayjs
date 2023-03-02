@@ -1,5 +1,3 @@
-import { validHttp } from '../../../../framework/utils/RegularUtils';
-
 /**
  * 路由显示信息
  *
@@ -19,7 +17,7 @@ export class MetaVo {
   /**
    * 设置为true，则不会被 <keep-alive>缓存
    */
-  noCache?: boolean;
+  cache?: boolean;
 
   /**
    * 内链地址（http(s)://开头）
@@ -30,59 +28,10 @@ export class MetaVo {
   /**
    * 在菜单中隐藏自己和子节点
    */
-  hideInMenu?: boolean;
-
-  /**
-   * 在菜单中隐藏子节点
-   */
-  hideChildInMenu?: boolean;
+  hide?: boolean;
 
   /**
    * 菜单选项禁用
    */
   disabled?: boolean;
-
-  /**
-   * 内链地址（http(s)://开头）
-   */
-  link: string;
-
-  // ====== 函数 ======
-
-  newTitleIcon(title: string, icon: string) {
-    this.title = title;
-    this.icon = icon;
-    this.noCache = false;
-    this.link = null;
-    return this;
-  }
-
-  newTitleIconCache(title: string, icon: string, noCache: boolean) {
-    this.title = title;
-    this.icon = icon;
-    this.noCache = noCache;
-    this.link = null;
-    return this;
-  }
-
-  newTitleIconLink(title: string, icon: string, link: string) {
-    this.title = title;
-    this.icon = icon;
-    this.noCache = false;
-    this.link = validHttp(link) ? link : null;
-    return this;
-  }
-
-  newTitleIconCacheLike(
-    title: string,
-    icon: string,
-    noCache: boolean,
-    link: string
-  ) {
-    this.title = title;
-    this.icon = icon;
-    this.noCache = noCache;
-    this.link = validHttp(link) ? link : null;
-    return this;
-  }
 }

@@ -1,4 +1,4 @@
-const cronParser = require('cron-parser');
+import cronParser = require('cron-parser');
 
 /**
  * 解析数值型

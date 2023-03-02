@@ -122,22 +122,26 @@ export class SysDeptServiceImpl implements ISysDeptService {
    * 构建前端所需要树结构
    *
    * @param sysDepts 部门列表
+   * @param parentId 父级节点 默认 '0'
    * @return 树结构列表
    */
-  private buildDeptTree(sysDepts: SysDept[]): SysDept[] {
-    let resultArr: SysDept[] = [];
-    const deptIds: string[] = sysDepts.map(dept => dept.deptId);
-    for (const dept of sysDepts) {
-      // 如果是顶级节点, 遍历该父节点的所有子节点
-      if (!deptIds.includes(dept.parentId)) {
-        dept.children = this.fnChildren(sysDepts, dept.deptId);
-        resultArr.push(dept);
+  private buildDeptTree(
+    sysDepts: SysDept[],
+    parentId: string = '0'
+  ): SysDept[] {
+    // 排除父节点
+    const notParentMenus = sysDepts.filter(d => d.parentId !== parentId);
+    // 只取父节点
+    const parentMenus = sysDepts.filter(d => d.parentId === parentId);
+    // 对父节点下的子节点的进行递归
+    const returnList: SysDept[] = parentMenus.map(dept => {
+      const depts = this.fnDeptTree(notParentMenus, dept.deptId);
+      if (depts && depts.length > 0) {
+        dept.children = depts;
       }
-    }
-    if (resultArr.length === 0) {
-      resultArr = sysDepts;
-    }
-    return resultArr;
+      return dept;
+    });
+    return returnList;
   }
 
   /**
@@ -146,33 +150,21 @@ export class SysDeptServiceImpl implements ISysDeptService {
    * @param deptId 当前部门ID
    * @return 递归得到部门列表
    */
-  private fnChildren(sysDepts: SysDept[], deptId: string): SysDept[] {
-    // 得到子节点列表
-    const childrens: SysDept[] = this.getChildrens(sysDepts, deptId);
-    for (const child of childrens) {
-      // 判断是否有子节点
-      const hasChildren = this.getChildrens(sysDepts, child.deptId);
-      if (hasChildren.length > 0) {
-        child.children = this.fnChildren(sysDepts, child.deptId);
+  private fnDeptTree(sysDepts: SysDept[], deptId: string): SysDept[] {
+    // 排除当期菜单
+    const notChilds = sysDepts.filter(d => d.parentId && d.parentId !== deptId);
+    // 得到对应当期菜单
+    const childs = sysDepts.filter(d => d.parentId && d.parentId === deptId);
+    // 当期菜单向下检查
+    childs.map(child => {
+      // 如有则进入递归
+      const menus = notChilds.filter(m => m.parentId === child.deptId);
+      if (menus && menus.length > 0) {
+        child.children = this.fnDeptTree(notChilds, child.deptId);
       }
-    }
-    return childrens;
-  }
-
-  /**
-   * 得到部门子节点列表
-   * @param sysDepts 部门列表
-   * @param deptId 当前部门ID
-   * @return 递归得到部门子节点列表
-   */
-  private getChildrens(sysDepts: SysDept[], deptId: string): SysDept[] {
-    const childrens: SysDept[] = [];
-    for (const dept of sysDepts) {
-      if (dept.parentId && dept.parentId === deptId) {
-        childrens.push(dept);
-      }
-    }
-    return childrens;
+      return child;
+    });
+    return childs;
   }
 
   /**

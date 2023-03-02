@@ -7,12 +7,12 @@ import { SysMenu } from '../../model/SysMenu';
 
 /**查询视图对象SQL */
 const SELECT_MENU_VO = `select 
-m.menu_id, m.menu_name, m.parent_id, m.order_num, m.path, m.component, m.query, m.is_frame, m.is_cache, m.menu_type, m.visible, m.status, ifnull(m.perms,'') as perms,  m.icon,  m.create_time 
+m.menu_id, m.menu_name, m.parent_id, m.order_num, m.path, m.component, m.query, m.is_link, m.is_cache, m.menu_type, m.visible, m.status, ifnull(m.perms,'') as perms,  m.icon,  m.create_time 
 from sys_menu m`;
 
 /**查询视图用户对象SQL */
 const SELECT_MENU_USER_VO = `select distinct 
-m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.query, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.create_time
+m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.query, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_link, m.is_cache, m.menu_type, m.icon, m.order_num, m.create_time
 from sys_menu m
 left join sys_role_menu rm on m.menu_id = rm.menu_id
 left join sys_user_role ur on rm.role_id = ur.role_id
@@ -28,7 +28,7 @@ SYS_MENU_RESULT.set('path', 'path');
 SYS_MENU_RESULT.set('order_num', 'orderNum');
 SYS_MENU_RESULT.set('component', 'component');
 SYS_MENU_RESULT.set('query', 'query');
-SYS_MENU_RESULT.set('is_frame', 'isFrame');
+SYS_MENU_RESULT.set('is_link', 'isLink');
 SYS_MENU_RESULT.set('is_cache', 'isCache');
 SYS_MENU_RESULT.set('menu_type', 'menuType');
 SYS_MENU_RESULT.set('visible', 'visible');
@@ -103,7 +103,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     let buildSqlStr = `${SELECT_MENU_VO} where 
     m.menu_type in ('M', 'C') and m.status = '1'
 		order by m.parent_id, m.order_num`;
-
+    // 指定用户ID
     if (userId && userId !== '0') {
       buildSqlStr = `${SELECT_MENU_USER_VO} where 
       m.menu_type in ('M', 'C') and m.status = '1'
@@ -111,7 +111,6 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       order by m.parent_id, m.order_num`;
       paramArr.push(userId);
     }
-
     const rows = await this.db.execute(buildSqlStr, paramArr);
     return parseSysMenuResult(rows);
   }
@@ -200,8 +199,8 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.query) {
       paramMap.set('query', sysMenu.query);
     }
-    if (sysMenu.isFrame) {
-      paramMap.set('is_frame', parseNumber(sysMenu.isFrame));
+    if (sysMenu.isLink) {
+      paramMap.set('is_link', parseNumber(sysMenu.isLink));
     }
     if (sysMenu.isCache) {
       paramMap.set('is_cache', parseNumber(sysMenu.isCache));
@@ -258,8 +257,8 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.query) {
       paramMap.set('query', sysMenu.query);
     }
-    if (sysMenu.isFrame) {
-      paramMap.set('is_frame', parseNumber(sysMenu.isFrame));
+    if (sysMenu.isLink) {
+      paramMap.set('is_link', parseNumber(sysMenu.isLink));
     }
     if (sysMenu.isCache) {
       paramMap.set('is_cache', parseNumber(sysMenu.isCache));

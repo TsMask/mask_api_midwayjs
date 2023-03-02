@@ -25,17 +25,17 @@ export class SysMenu {
   /**路由参数 */
   query: string;
 
-  /**是否为外链（0否 1是） */
-  isFrame: string;
+  /**是否为外部链接（0否 1是） */
+  isLink: number;
 
   /**是否缓存（0不缓存 1缓存） */
-  isCache: string;
+  isCache: number;
 
   /**菜单类型（M目录 C菜单 F按钮） */
   menuType: string;
 
   /**菜单状态（0隐藏 1显示） */
-  visible: string;
+  visible: number;
 
   /**菜单状态（0停用 1正常） */
   status: string;

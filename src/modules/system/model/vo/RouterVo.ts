@@ -40,14 +40,4 @@ export class RouterVo {
    * 子路由
    */
   children: RouterVo[];
-
-  /**
-   * 是否隐藏路由，当设置 true 的时候该路由不会再侧边栏出现
-   */
-  hidden: boolean;
-
-  /**
-   * 当你一个路由下面的 children 声明的路由大于1个时，自动会变成嵌套的模式--如组件页面
-   */
-  alwaysShow: boolean;
 }
