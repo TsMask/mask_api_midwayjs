@@ -19,6 +19,7 @@ import {
 } from '../constants/CommonConstants';
 import { LoginBodyVo } from '../../modules/system/model/vo/LoginBodyVo';
 import { SysUser } from '../../modules/system/model/SysUser';
+import { TOKEN_HEADER } from '../constants/TokenConstants';
 
 /**
  * 登录校验方法
@@ -49,10 +50,8 @@ export class SysLoginService {
    * 登出清除token
    */
   async logout(): Promise<void> {
-    // 从本地配置获取token在请求头标识信息
-    const jwtHeader = this.contextService.getConfig('jwtHeader');
-    const headerToken = this.contextService.getContext().get(jwtHeader);
-    const token = await this.tokenService.getHeaderToken(headerToken);
+    // 获取token在请求头标识信息
+    const token = await this.tokenService.getHeaderToken(TOKEN_HEADER);
     if (!token) return;
 
     // 存在token时记录退出信息

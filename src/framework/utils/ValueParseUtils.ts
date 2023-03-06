@@ -27,6 +27,7 @@ export function parseBoolean(str: string | number): boolean {
  */
 export function parseFirstUpper(str: string): string {
   if (!str) return str;
+  str = str.replace(/[^_\w]+/g, "");
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
 

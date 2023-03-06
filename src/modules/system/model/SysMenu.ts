@@ -14,7 +14,7 @@ export class SysMenu {
   parentId: string;
 
   /**显示顺序 */
-  orderNum: number;
+  menuSort: number;
 
   /**路由地址 */
   path: string;
@@ -22,20 +22,17 @@ export class SysMenu {
   /**组件路径 */
   component: string;
 
-  /**路由参数 */
-  query: string;
-
-  /**是否为外部链接（0否 1是） */
-  isLink: number;
+  /**是否内部跳转（0否 1是） */
+  isFrame: string;
 
   /**是否缓存（0不缓存 1缓存） */
-  isCache: number;
+  isCache: string;
 
   /**菜单类型（M目录 C菜单 F按钮） */
   menuType: string;
 
   /**菜单状态（0隐藏 1显示） */
-  visible: number;
+  visible: string;
 
   /**菜单状态（0停用 1正常） */
   status: string;

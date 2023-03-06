@@ -178,8 +178,6 @@ export default (): MidwayConfig => {
       /**令牌有效期（默认120分钟） */
       expiresIn: '120m', // https://github.com/vercel/ms
     },
-    /**请求头令牌自定义标识 */
-    jwtHeader: 'Authorization',
     /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
     jwtRefreshIn: '20m', // https://github.com/vercel/ms
 

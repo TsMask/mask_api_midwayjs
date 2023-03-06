@@ -10,9 +10,8 @@ import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryIm
 import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
 import { SysMenu } from '../../model/SysMenu';
 import {
-  HTTP,
-  HTTPS,
-  WWW,
+  STATUS_NO,
+  STATUS_YES,
 } from '../../../../framework/constants/CommonConstants';
 import {
   MENU_COMPONENT_LINK_LAYOUT,
@@ -232,68 +231,24 @@ export class SysMenuServiceImpl implements ISysMenuService {
     const routers: RouterVo[] = [];
     for (const menu of sysMenus) {
       const router = new RouterVo();
-      router.query = menu.query;
-      // router.hidden = menu.visible === STATUS_NO;
       router.name = this.getRouteName(menu);
       router.path = this.getRouterPath(menu);
       router.component = this.getComponent(menu);
-      // router.meta = new MetaVo().newTitleIconCacheLike(
-      //   menu.menuName,
-      //   menu.icon,
-      //   menu.isCache === STATUS_NO,
-      //   menu.path
-      // );
+      router.meta = this.getRouteMeta(menu);
 
       // 子项菜单目录
       const cMenus = menu.children;
-      if (
-        Array.isArray(cMenus) &&
-        cMenus.length > 0 &&
-        menu.menuType === MENU_TYPE_DIR
-      ) {
-        // router.alwaysShow = true;
-        router.redirect = 'noRedirect';
+      if (menu.menuType === MENU_TYPE_DIR && cMenus && cMenus.length > 0) {
+        // 重定向为首个子菜单
+        const firstChild = cMenus[0];
+        if (firstChild.path.startsWith('/')) {
+          router.redirect = firstChild.path;
+        } else {
+          router.redirect = `${router.path}/${firstChild.path}`;
+        }
+        // 子菜单进入递归
         router.children = await this.buildRouteMenus(cMenus);
       }
-
-      // 为菜单内部跳转
-      else if (this.isMenuFrame(menu)) {
-        router.meta = null;
-        const childrenList: RouterVo[] = [];
-        const children = new RouterVo();
-        children.query = menu.query;
-        children.path = menu.path;
-        children.component = menu.component;
-        children.name = parseFirstUpper(menu.path);
-        children.meta = new MetaVo(); //.newTitleIconCacheLike(
-        //   menu.menuName,
-        //   menu.icon,
-        //   menu.isCache === STATUS_NO,
-        //   menu.path
-        // );
-        childrenList.push(children);
-        router.children = childrenList;
-      }
-
-      // 父id且为内链组件
-      else if (menu.parentId === '0' && this.isInnerLink(menu)) {
-        router.path = menu.path;
-        // router.meta = new MetaVo().newTitleIcon(menu.menuName, menu.icon);
-        const childrenList: RouterVo[] = [];
-        const children = new RouterVo();
-        const routerPath = this.innerLinkReplaceEach(menu.path);
-        children.path = routerPath;
-        children.name = parseFirstUpper(routerPath);
-        children.component = MENU_COMPONENT_LINK_LAYOUT;
-        // children.meta = new MetaVo().newTitleIconLink(
-        //   menu.menuName,
-        //   menu.icon,
-        //   menu.path
-        // );
-        childrenList.push(children);
-        router.children = childrenList;
-      }
-
       routers.push(router);
     }
     return routers;
@@ -302,16 +257,13 @@ export class SysMenuServiceImpl implements ISysMenuService {
   /**
    * 获取路由名称
    *
+   * 路径英文首字母大写
+   *
    * @param menu 菜单信息
    * @return 路由名称
    */
   private getRouteName(menu: SysMenu): string {
-    let routerName = parseFirstUpper(menu.path);
-    // 非外链并且是一级目录（类型为目录）
-    if (this.isMenuFrame(menu)) {
-      routerName = '';
-    }
-    return routerName;
+    return parseFirstUpper(menu.path);
   }
 
   /**
@@ -322,22 +274,17 @@ export class SysMenuServiceImpl implements ISysMenuService {
    */
   private getRouterPath(menu: SysMenu): string {
     let routerPath = menu.path;
-    // 内链打开网址方式
-    if (menu.parentId !== '0' && this.isInnerLink(menu)) {
-      routerPath = this.innerLinkReplaceEach(routerPath);
-    }
-    // 非外链并且是一级目录（类型为目录）
+
+    // 父菜单 目录类型 内部跳转 非链接
     if (
       menu.parentId === '0' &&
-      menu.isLink === 0 &&
-      menu.menuType === MENU_TYPE_DIR
+      menu.menuType === MENU_TYPE_DIR &&
+      menu.isFrame === STATUS_YES &&
+      !validHttp(menu.path)
     ) {
       routerPath = `/${menu.path}`;
     }
-    // 非外链并且是一级目录（类型为菜单）
-    else if (this.isMenuFrame(menu)) {
-      routerPath = '/';
-    }
+
     return routerPath;
   }
 
@@ -349,62 +296,53 @@ export class SysMenuServiceImpl implements ISysMenuService {
    */
   private getComponent(menu: SysMenu): string {
     let component: string = MENU_COMPONENT_BASIC_LAYOUT;
-    if (menu.component && !this.isMenuFrame(menu)) {
-      component = menu.component;
-    } else if (
-      !menu.component &&
-      menu.parentId !== '0' &&
-      this.isInnerLink(menu)
-    ) {
+
+    // 路径链接 无组件路径
+    if (validHttp(menu.path) && !menu.component) {
       component = MENU_COMPONENT_LINK_LAYOUT;
-    } else if (!menu.component && this.isParentView(menu)) {
+    }
+
+    // 目录类型
+    if (
+      menu.menuType === MENU_TYPE_DIR &&
+      menu.parentId !== '0' &&
+      !menu.component
+    ) {
       component = MENU_COMPONENT_BLANK_LAYOUT;
     }
+
+    // 菜单类型 内部跳转 有组件路径
+    if (
+      menu.menuType === MENU_TYPE_MENU &&
+      menu.isFrame === STATUS_YES &&
+      menu.component
+    ) {
+      component = menu.component;
+    }
+
     return component;
   }
 
   /**
-   * 是否为内链组件
+   * 获取路由元信息
    *
    * @param menu 菜单信息
-   * @return 结果
+   * @return 元信息
    */
-  private isInnerLink(menu: SysMenu): boolean {
-    return menu.isLink && validHttp(menu.path);
-  }
+  private getRouteMeta(menu: SysMenu): MetaVo {
+    const meta = new MetaVo();
+    meta.icon = menu.icon;
+    meta.title = menu.menuName;
+    meta.hide = menu.visible === STATUS_NO;
+    meta.cache = menu.isCache === STATUS_YES;
 
-  /**
-   * 是否为菜单内部跳转
-   *
-   * @param menu 菜单信息
-   * @return 结果
-   */
-  private isMenuFrame(menu: SysMenu): boolean {
-    return (
-      menu.parentId === '0' && menu.isLink && menu.menuType === MENU_TYPE_MENU
-    );
-  }
+    // 非内部跳转  链接
+    if (menu.isFrame === STATUS_NO && validHttp(menu.path)) {
+      meta.target = '_blank';
+    } else {
+      meta.target = null;
+    }
 
-  /**
-   * 是否为ParentView组件
-   *
-   * @param menu 菜单信息
-   * @return 结果
-   */
-  private isParentView(menu: SysMenu): boolean {
-    return menu.parentId !== '0' && menu.menuType === MENU_TYPE_DIR;
-  }
-
-  /**
-   * 内链域名特殊字符替换
-   *
-   * @return
-   */
-  private innerLinkReplaceEach(path: string): string {
-    path = path.replace(HTTP, '');
-    path = path.replace(HTTPS, '');
-    path = path.replace(WWW, '');
-    path = path.replace('.', '/');
-    return path;
+    return meta;
   }
 }

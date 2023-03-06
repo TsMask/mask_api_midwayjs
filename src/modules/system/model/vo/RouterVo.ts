@@ -7,7 +7,7 @@ import { MetaVo } from './MetaVo';
  */
 export class RouterVo {
   /**
-   * 路由名字
+   * 路由名字 英文首字母大写
    */
   name: string;
 
@@ -15,11 +15,6 @@ export class RouterVo {
    * 路由地址
    */
   path: string;
-
-  /**
-   * 路由参数：如 {"id": 1, "key": "value"}
-   */
-  query: string;
 
   /**
    * 其他元素
