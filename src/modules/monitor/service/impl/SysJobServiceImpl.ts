@@ -93,6 +93,7 @@ export class SysJobServiceImpl implements ISysJobService {
     newSysJob.updateBy = sysJob.updateBy;
     return (await this.sysJobRepository.updateJob(newSysJob)) > 0;
   }
+
   async insertQueueJob(sysJob: SysJob, repeat: boolean): Promise<boolean> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
@@ -191,6 +192,7 @@ export class SysJobServiceImpl implements ISysJobService {
     const isWaiting = await job.isWaiting();
     return isActive || isWaiting;
   }
+
   async deleteQueueJob(sysJob: SysJob): Promise<void> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
@@ -209,6 +211,7 @@ export class SysJobServiceImpl implements ISysJobService {
     await queue.clean(5000, 'active');
     await queue.clean(5000, 'wait');
   }
+  
   async runQueueJob(sysJob: SysJob): Promise<boolean> {
     return await this.insertQueueJob(sysJob, false);
   }
