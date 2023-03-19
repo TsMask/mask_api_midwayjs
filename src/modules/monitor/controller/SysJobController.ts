@@ -204,14 +204,14 @@ export class SysJobController {
   /**
    * 调度任务立即执行一次
    */
-  @Put('/run')
+  @Put('/run/:jobId')
   @RepeatSubmit(10)
   @PreAuthorize({ hasPermissions: ['monitor:job:changeStatus'] })
   @OperLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
-  async run(@Body('jobId') jobId: string): Promise<Result> {
+  async run(@Param('jobId') jobId: string): Promise<Result> {
     if (!jobId) return Result.err();
     const sysJob = await this.sysJobService.selectJobById(jobId);
     if (!sysJob) return Result.err();
@@ -221,16 +221,16 @@ export class SysJobController {
   }
 
   /**
-   * 调度任务刷新配置
+   * 调度任务重置刷新队列
    */
-  @Del('/refreshQueueJob')
+  @Put('/resetQueueJob')
   @RepeatSubmit(5)
-  @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
+  @PreAuthorize({ hasPermissions: ['monitor:job:changeStatus'] })
   @OperLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.CLEAN,
   })
-  async refreshCache(): Promise<Result> {
+  async resetQueueJob(): Promise<Result> {
     await this.sysJobService.resetQueueJob();
     return Result.ok();
   }
