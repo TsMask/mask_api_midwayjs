@@ -27,7 +27,7 @@ export function parseBoolean(str: string | number): boolean {
  */
 export function parseFirstUpper(str: string): string {
   if (!str) return str;
-  str = str.replace(/[^_\w]+/g, "");
+  str = str.replace(/[^_\w]+/g, '');
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
 
@@ -98,24 +98,24 @@ export function parseObjLineToHump(obj: any) {
 }
 
 /**
- * 解析object字符串
- * @param str JSON或Array字符串
- * @returns object 对象
+ * 解析格式化json字符串
+ * 
+ * @param str JSON字符串
+ * @returns false时为非标准json对象
  */
-export function parseStringToObject(str: string) {
-  if (typeof str === 'string') {
-    try {
-      const obj = JSON.parse(str);
-      if (typeof obj === 'object' && obj) {
-        return obj;
-      } else {
-        return str;
-      }
-    } catch (_) {
-      return str;
+export function parseStringToObject(
+  str: string
+): Record<string, any> | boolean {
+  try {
+    const obj = JSON.parse(str);
+    const type = Object.prototype.toString.call(obj).slice(8, -1);
+    if (type === 'Object') {
+      return obj as Record<string, any>;
     }
+    return false;
+  } catch (_) {
+    return false;
   }
-  return str;
 }
 
 /**

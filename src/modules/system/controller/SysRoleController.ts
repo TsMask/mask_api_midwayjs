@@ -64,6 +64,9 @@ export class SysRoleController {
     query.pageNum = 1;
     query.pageSize = 1000;
     const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysRole) => {

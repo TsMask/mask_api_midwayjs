@@ -50,6 +50,9 @@ export class SysDictDataController {
     query.pageNum = 1;
     query.pageSize = 1000;
     const data = await this.sysDictDataServer.selectDictDataPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysDictData) => {
@@ -100,7 +103,7 @@ export class SysDictDataController {
   @Get('/:dictCode')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async getInfo(@Param('dictCode') dictCode: string): Promise<Result> {
-    const data = await this.sysDictDataServer.selectDictDataById(dictCode);
+    const data = await this.sysDictDataServer.selectDictDataByCode(dictCode);
     return Result.okData(data || {});
   }
 
@@ -110,10 +113,7 @@ export class SysDictDataController {
   @Get('/type/:dictType')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async dictType(@Param('dictType') dictType: string): Promise<Result> {
-    const sysDictData = new SysDictData();
-    sysDictData.status = STATUS_YES;
-    sysDictData.dictType = dictType;
-    const data = await this.sysDictDataServer.selectDictDataList(sysDictData);
+    const data = await this.sysDictDataServer.selectDictDataByType(dictType);
     return Result.okData(data || []);
   }
 
@@ -209,7 +209,7 @@ export class SysDictDataController {
     // 处理字符转id数组
     const ids = dictCodes.split(',');
     if (ids.length <= 0) return Result.err();
-    const rows = await this.sysDictDataServer.deleteDictDataByIds([
+    const rows = await this.sysDictDataServer.deleteDictDataByCodes([
       ...new Set(ids),
     ]);
     return Result[rows > 0 ? 'ok' : 'err']();

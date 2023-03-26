@@ -140,7 +140,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return rows[0].str || null;
   }
 
-  async selectDictDataById(dictCode: string): Promise<SysDictData> {
+  async selectDictDataByCode(dictCode: string): Promise<SysDictData> {
     const sqlStr = `${SELECT_DICT_DATA_VO} where dict_code = ?`;
     const rows = await this.db.execute(sqlStr, [dictCode]);
 
@@ -180,7 +180,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return rows.length > 0 ? rows[0].str : null;
   }
 
-  async deleteDictDataByIds(dictCodes: string[]): Promise<number> {
+  async deleteDictDataByCodes(dictCodes: string[]): Promise<number> {
     const sqlStr = `delete from sys_dict_data where dict_code in (${dictCodes
       .map(() => '?')
       .join(',')})`;

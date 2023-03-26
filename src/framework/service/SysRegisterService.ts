@@ -72,8 +72,6 @@ export class SysRegisterService {
     // 添加到数据库中
     const insertId = await this.sysUserService.insertUser(sysUser);
     if (insertId) {
-      const msg = `注册用户【${sysUser.userName}】成功`;
-      this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_YES,
         '注册成功',
