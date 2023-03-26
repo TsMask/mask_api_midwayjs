@@ -79,13 +79,13 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time >= ? ';
+      sqlStr += ' and create_time >= ? ';
       paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time <= ? ';
+      sqlStr += ' and create_time <= ? ';
       paramArr.push(endDate);
     }
 

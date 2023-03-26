@@ -8,7 +8,6 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
@@ -19,7 +18,9 @@ import { FileService } from '../../../framework/service/FileService';
 import {
   parseCronExpression,
   parseNumber,
+  parseStringToObject,
 } from '../../../framework/utils/ValueParseUtils';
+import { SysDictDataServiceImpl } from '../../system/service/impl/SysDictDataServiceImpl';
 import { SysJob } from '../model/SysJob';
 import { SysJobServiceImpl } from '../service/impl/SysJobServiceImpl';
 
@@ -39,6 +40,9 @@ export class SysJobController {
   @Inject()
   private sysJobService: SysJobServiceImpl;
 
+  @Inject()
+  private sysDictDataService: SysDictDataServiceImpl;
+
   /**
    * 导出调度任务信息
    */
@@ -55,26 +59,39 @@ export class SysJobController {
     query.pageNum = 1;
     query.pageSize = 1000;
     const data = await this.sysJobService.selectJobPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
+    // 读取任务组名字典数据
+    const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(
+      'sys_job_group'
+    );
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysJob) => {
+        const sysJobGroup = dictSysJobGroup.find(
+          item => item.dictValue === cur.jobGroup
+        );
         pre.push({
-          任务序号: cur.jobId,
+          任务编号: cur.jobId,
           任务名称: cur.jobName,
-          任务组名: cur.jobGroup,
-          调用目标字符串: cur.invokeTarget,
-          调用目标传入参数: cur.targetParams,
+          任务组名: sysJobGroup.dictLabel ?? '',
+          调用目标: cur.invokeTarget,
+          传入参数: cur.targetParams,
           执行表达式: cur.cronExpression,
-          计划策略: cur.misfirePolicy,
-          并发执行: cur.concurrent === STATUS_YES ? '允许' : '禁止',
-          任务状态: cur.status === STATUS_YES ? '正常' : '停用',
+          计划策略: ['立即执行', '执行一次', '放弃执行'][
+            +cur.misfirePolicy - 1
+          ],
+          并发执行: ['禁止', '允许'][+cur.concurrent],
+          任务状态: ['暂停', '正常'][+cur.status],
+          备注说明: cur.remark,
         });
         return pre;
       },
       []
     );
     // 导出数据表格
-    const fileName = `job_export_${rows.length}_${Date.now()}.xlsx`;
+    const fileName = `job_export_${data.total}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -122,12 +139,32 @@ export class SysJobController {
     businessType: OperatorBusinessTypeEnum.INSERT,
   })
   async add(@Body() job: SysJob): Promise<Result> {
-    const jobName = job.jobName;
-    const cron = job.cronExpression;
-    const target = job.invokeTarget;
-    if (!jobName && !cron && !target) return Result.err();
-    if (parseCronExpression(cron) <= 0) {
+    const { jobName, jobGroup, cronExpression, invokeTarget, targetParams } =
+      job;
+    if (!jobName && !jobGroup && !cronExpression && !invokeTarget) {
+      return Result.err();
+    }
+    // 检查cron表达式格式
+    if (parseCronExpression(cronExpression) <= 0) {
       return Result.errMsg(`调度任务新增【${jobName}】失败，Cron表达式不正确`);
+    }
+    // 检查属性唯一
+    const uniqueJob = await this.sysJobService.checkUniqueJob(job);
+    if (!uniqueJob) {
+      return Result.errMsg(
+        `调度任务新增【${jobName}】失败，同任务组内有相同任务名称`
+      );
+    }
+    // 检查任务调用传入参数是否json格式
+    if (targetParams) {
+      const msg = `调度任务新增【${jobName}】失败，任务传入参数json字符串不正确`;
+      if (targetParams.length < 7) {
+        return Result.errMsg(msg);
+      }
+      const params = parseStringToObject(targetParams);
+      if (!params) {
+        return Result.errMsg(msg);
+      }
     }
     job.createBy = this.contextService.getUseName();
     const insertId = await this.sysJobService.insertJob(job);
@@ -144,12 +181,32 @@ export class SysJobController {
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
   async edit(@Body() job: SysJob): Promise<Result> {
-    const jobName = job.jobName;
-    const cron = job.cronExpression;
-    const target = job.invokeTarget;
-    if (!jobName && !cron && !target) return Result.err();
-    if (parseCronExpression(cron) <= 0) {
+    const { jobName, jobGroup, cronExpression, invokeTarget, targetParams } =
+      job;
+    if (!jobName && !jobGroup && !cronExpression && !invokeTarget) {
+      return Result.err();
+    }
+    // 检查cron表达式格式
+    if (parseCronExpression(cronExpression) <= 0) {
       return Result.errMsg(`调度任务修改【${jobName}】失败，Cron表达式不正确`);
+    }
+    // 检查属性唯一
+    const uniqueJob = await this.sysJobService.checkUniqueJob(job);
+    if (!uniqueJob) {
+      return Result.errMsg(
+        `调度任务修改【${jobName}】失败，同任务组内有相同任务名称`
+      );
+    }
+    // 检查任务调用传入参数是否json格式
+    if (targetParams) {
+      const msg = `调度任务修改【${jobName}】失败，任务传入参数json字符串不正确`;
+      if (targetParams.length < 7) {
+        return Result.errMsg(msg);
+      }
+      const params = parseStringToObject(targetParams);
+      if (!params) {
+        return Result.errMsg(msg);
+      }
     }
     job.updateBy = this.contextService.getUseName();
     const rows = await this.sysJobService.updateJob(job);

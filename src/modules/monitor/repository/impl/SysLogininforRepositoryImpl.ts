@@ -77,13 +77,13 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time >= ? ';
+      sqlStr += ' and login_time >= ? ';
       paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time <= ? ';
+      sqlStr += ' and login_time <= ? ';
       paramArr.push(endDate);
     }
 

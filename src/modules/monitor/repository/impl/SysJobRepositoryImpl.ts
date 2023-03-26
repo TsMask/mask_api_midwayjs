@@ -146,6 +146,16 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     return parseSysJobResult(rows)[0] || null;
   }
 
+  async checkUniqueJob(jobName: string, jobGroup: string): Promise<string> {
+    const sqlStr =
+      "select job_id as 'str' from sys_job where job_name = ? and job_group = ? limit 1";
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
+      jobName,
+      jobGroup,
+    ]);
+    return rows.length > 0 ? rows[0].str : null;
+  }
+
   async insertJob(sysJob: SysJob): Promise<string> {
     const paramMap = new Map();
     if (sysJob.jobId) {
