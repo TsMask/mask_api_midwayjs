@@ -192,7 +192,7 @@ export class SysDictTypeController {
   /**
    * 字典类型刷新缓存
    */
-  @Del('/refreshCache')
+  @Put('/refreshCache')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperLog({
     title: '字典类型信息',
@@ -206,9 +206,9 @@ export class SysDictTypeController {
   /**
    * 字典类型选择框列表
    */
-  @Get('/optionselect')
+  @Get('/getDictOptionselect')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
-  async optionselect() {
+  async getDictOptionselect() {
     const data = await this.sysDictTypeService.selectDictTypeList(
       new SysDictType()
     );

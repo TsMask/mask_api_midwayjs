@@ -54,7 +54,7 @@ export class SysConfigController {
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysConfig) => {
         pre.push({
-          参数主键: cur.configId,
+          参数编号: cur.configId,
           参数名称: cur.configName,
           参数键名: cur.configKey,
           参数键值: cur.configValue,
@@ -197,7 +197,7 @@ export class SysConfigController {
   /**
    * 参数配置刷新缓存
    */
-  @Del('/refreshCache')
+  @Put('/refreshCache')
   @RepeatSubmit()
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
   @OperLog({
