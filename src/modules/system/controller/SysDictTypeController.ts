@@ -212,6 +212,13 @@ export class SysDictTypeController {
     const data = await this.sysDictTypeService.selectDictTypeList(
       new SysDictType()
     );
-    return Result.okData(data || []);
+    let labelValueObj: { label: string; value: any }[] = [];
+    if (data && data.length > 0) {
+      labelValueObj = data.map(item => ({
+        label: item.dictName,
+        value: item.dictType,
+      }));
+    }
+    return Result.okData(labelValueObj);
   }
 }
