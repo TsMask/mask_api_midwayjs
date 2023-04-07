@@ -23,7 +23,6 @@ import { ROLE_DATA_SCOPE } from '../../../framework/enums/RoleDataScopeEnum';
 import { FileService } from '../../../framework/service/FileService';
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
 import { SysRole } from '../model/SysRole';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 角色信息
@@ -61,8 +60,6 @@ export class SysRoleController {
     // 查询结果，根据查询条件结果，单页最大值限制
     const dataScopeSQL = this.contextService.getDataScopeSQL('d');
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
     if (data.total === 0) {
       return Result.errMsg('导出数据记录为空');
@@ -76,7 +73,7 @@ export class SysRoleController {
           角色权限: cur.roleKey,
           角色排序: `${cur.roleSort}`,
           数据范围: ROLE_DATA_SCOPE[cur.dataScope],
-          角色状态: cur.status === STATUS_YES ? '正常' : '停用',
+          角色状态: ['停用', '正常'][+cur.status],
         });
         return pre;
       },

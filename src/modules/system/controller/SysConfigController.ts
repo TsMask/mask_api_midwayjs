@@ -47,8 +47,6 @@ export class SysConfigController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysConfigService.selectConfigPage(query);
     // 导出数据组装
     const rows = data.rows.reduce(

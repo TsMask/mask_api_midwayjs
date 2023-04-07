@@ -170,10 +170,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     // 分页
     sqlStr += ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -267,10 +267,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     // 分页
     sqlStr += ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);

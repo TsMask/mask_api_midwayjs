@@ -56,8 +56,6 @@ export class SysJobController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysJobService.selectJobPage(query);
     if (data.total === 0) {
       return Result.errMsg('导出数据记录为空');

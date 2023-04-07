@@ -16,7 +16,6 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { SysDictData } from '../model/SysDictData';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 字典类型对应的字典数据信息
@@ -47,8 +46,6 @@ export class SysDictDataController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysDictDataServer.selectDictDataPage(query);
     if (data.total === 0) {
       return Result.errMsg('导出数据记录为空');
@@ -63,7 +60,7 @@ export class SysDictDataController {
           字典键值: cur.dictValue,
           字典类型: cur.dictType,
           是否默认: cur.isDefault === 'Y' ? '是' : '否',
-          状态: cur.status === STATUS_YES ? '正常' : '停用',
+          状态: ['停用', '正常'][+cur.status],
         });
         return pre;
       },

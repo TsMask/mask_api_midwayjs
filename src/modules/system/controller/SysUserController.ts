@@ -123,8 +123,6 @@ export class SysUserController {
     // 查询结果，根据查询条件结果，单页最大值限制
     const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysUserService.selectUserPage(query, dataScopeSQL);
     if (data.total === 0) {
       return Result.errMsg('导出数据记录为空');
@@ -149,8 +147,8 @@ export class SysUserController {
           帐号状态: ['停用', '正常'][+cur.status],
           最后登录IP: cur.loginIp,
           最后登录时间: parseDateToStr(+cur.loginDate),
-          部门名称: cur?.dept.deptName ?? '',
-          部门负责人: cur?.dept.leader ?? '',
+          部门名称: cur?.dept?.deptName ?? '',
+          部门负责人: cur?.dept?.leader ?? '',
         });
         return pre;
       },
