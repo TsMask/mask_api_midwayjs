@@ -10,7 +10,7 @@ export class SysRole {
   /**角色名称 */
   roleName: string;
 
-  /**角色权限字符串 */
+  /**角色键值 */
   roleKey: string;
 
   /**显示顺序 */

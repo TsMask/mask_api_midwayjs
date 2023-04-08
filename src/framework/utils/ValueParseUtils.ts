@@ -99,7 +99,7 @@ export function parseObjLineToHump(obj: any) {
 
 /**
  * 解析格式化json字符串
- * 
+ *
  * @param str JSON字符串
  * @returns false时为非标准json对象
  */
@@ -164,6 +164,65 @@ export function parseSafeContent(value = '') {
   } else {
     return value.slice(0, 3) + '*'.repeat(value.length - 6) + value.slice(-3);
   }
+}
+
+/**
+ * 解析数据层级转树结构
+ *
+ * @param data 数组数据
+ * @param fieldId 读取节点字段 默认 'id'
+ * @param fieldParentId 读取节点父节点字段 默认 'parentId'
+ * @param fieldChildren 设置子节点字段 默认 'children'
+ * @returns 层级数组
+ */
+export function parseDataToTree<T>(
+  data: T[],
+  fieldId: string = 'id',
+  fieldParentId: string = 'parentId',
+  fieldChildren: string = 'children'
+) {
+  // 节点分组
+  let map: Map<string, T[]> = new Map();
+  // 节点id
+  let treeIds: string[] = [];
+  // 树节点
+  let tree: T[] = [];
+
+  for (const item of data) {
+    let parentId = item[fieldParentId];
+    // 分组
+    let mapItem = map.get(parentId) ?? [];
+    mapItem.push(item);
+    map.set(parentId, mapItem);
+    // 记录节点id
+    treeIds.push(item[fieldId]);
+  }
+
+  for (const [key, value] of map) {
+    // 选择不是节点id的作为树节点
+    if (!treeIds.includes(key)) {
+      tree.push(...value);
+    }
+  }
+
+  for (const iterator of tree) {
+    componet(iterator);
+  }
+
+  /**闭包递归函数 */
+  function componet(iterator: T) {
+    let id = iterator[fieldId];
+    let item = map.get(id);
+    if (item) {
+      iterator[fieldChildren] = item;
+    }
+    if (iterator[fieldChildren]) {
+      for (let i of iterator[fieldChildren]) {
+        componet(i);
+      }
+    }
+  }
+  return tree;
 }
 
 /**

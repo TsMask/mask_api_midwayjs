@@ -103,7 +103,7 @@ drop table if exists sys_role;
 create table sys_role (
   role_id              bigint          not null auto_increment    comment '角色ID',
   role_name            varchar(30)     not null                   comment '角色名称',
-  role_key             varchar(100)    not null                   comment '角色权限字符串',
+  role_key             varchar(100)    not null                   comment '角色键值',
   role_sort            int             not null                   comment '显示顺序',
   data_scope           char(1)         default '1'                comment '数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限 5：仅本人数据权限）',
   menu_check_strictly  char(1)         default '1'                comment '菜单树选择项是否关联显示（0：父子不互相关联显示 1：父子互相关联显示）',

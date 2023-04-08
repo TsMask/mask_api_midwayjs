@@ -1,5 +1,8 @@
 import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
-import { parseFirstUpper } from '../../../../framework/utils/ValueParseUtils';
+import {
+  parseDataToTree,
+  parseFirstUpper,
+} from '../../../../framework/utils/ValueParseUtils';
 import { validHttp } from '../../../../framework/utils/RegularUtils';
 import { TreeSelect } from '../../../../framework/model/TreeSelect';
 import { MetaVo } from '../../model/vo/MetaVo';
@@ -66,53 +69,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
   async selectMenuTreeByUserId(userId: string): Promise<SysMenu[]> {
     const menus = await this.sysMenuRepository.selectMenuTreeByUserId(userId);
-    return this.getChildPerms(menus);
-  }
-
-  /**
-   * 根据父节点的ID获取所有子节点
-   *
-   * @param sysMenuList 分类表
-   * @param parentId 传入的父节点ID 默认'0'
-   * @return 菜单标识字符串数组
-   */
-  private getChildPerms(
-    sysMenuList: SysMenu[],
-    parentId: string = '0'
-  ): SysMenu[] {
-    const returnList: SysMenu[] = [];
-    // 排除父节点
-    const notParentMenus = sysMenuList.filter(m => m.parentId !== parentId);
-    // 只取父节点
-    const parentMenus = sysMenuList.filter(m => m.parentId === parentId);
-    // 对父节点下的子节点的进行递归
-    parentMenus.forEach(item => {
-      returnList.push(this.fnChildPerms(notParentMenus, item));
-    });
-    return returnList;
-  }
-  /**
-   * 递归列表
-   *
-   * @param sysMenuList 菜单列表
-   * @param sysMenu 当前菜单
-   */
-  private fnChildPerms(sysMenuList: SysMenu[], sysMenu: SysMenu) {
-    // 排除当期菜单
-    const notChilds = sysMenuList.filter(m => m.parentId !== sysMenu.menuId);
-    // 得到对应当期菜单
-    const childs = sysMenuList.filter(m => m.parentId === sysMenu.menuId);
-    // 当期菜单向下检查
-    childs.forEach(child => {
-      // 如有则进入递归
-      const menus = notChilds.filter(m => m.parentId === child.menuId);
-      if (menus && menus.length > 0) {
-        child = this.fnChildPerms(notChilds, child);
-      }
-    });
-    // 当期菜单下的子菜单
-    sysMenu.children = childs;
-    return sysMenu;
+    return parseDataToTree<SysMenu>(menus, 'menuId');
   }
 
   async selectMenuTreeSelectByUserId(
@@ -120,67 +77,9 @@ export class SysMenuServiceImpl implements ISysMenuService {
     userId: string
   ): Promise<TreeSelect[]> {
     const menus = await this.sysMenuRepository.selectMenuList(sysMenu, userId);
-    return this.buildMenuTreeSelect(menus);
-  }
-
-  /**
-   * 构建前端所需要下拉树结构
-   *
-   * @param sysMenus 菜单列表
-   * @return 下拉树结构列表
-   */
-  private buildMenuTreeSelect(sysMenus: SysMenu[]): TreeSelect[] {
-    const menuTrees: SysMenu[] = this.buildMenuTree(sysMenus);
+    // 构建前端所需要下拉树结构
+    const menuTrees: SysMenu[] = parseDataToTree<SysMenu>(menus, 'menuId');
     return menuTrees.map(menu => new TreeSelect().parseSysMenu(menu));
-  }
-
-  /**
-   * 构建前端所需要树结构
-   *
-   * @param sysMenus 菜单列表
-   * @param parentId 父级节点 默认 '0'
-   * @return 树结构列表
-   */
-  private buildMenuTree(
-    sysMenus: SysMenu[],
-    parentId: string = '0'
-  ): SysMenu[] {
-    // 排除父节点
-    const notParentMenus = sysMenus.filter(m => m.parentId !== parentId);
-    // 只取父节点
-    const parentMenus = sysMenus.filter(m => m.parentId === parentId);
-    // 对父节点下的子节点的进行递归
-    const returnList: SysMenu[] = parentMenus.map(menu => {
-      const menus = this.fnMenuTree(notParentMenus, menu.menuId);
-      if (menus && menus.length > 0) {
-        menu.children = menus;
-      }
-      return menu;
-    });
-    return returnList;
-  }
-
-  /**
-   * 递归得到菜单列表
-   * @param sysMenus 菜单列表
-   * @param menuId 当前菜单ID
-   * @return 递归得到菜单列表
-   */
-  private fnMenuTree(sysMenus: SysMenu[], menuId: string): SysMenu[] {
-    // 排除当期菜单
-    const notChilds = sysMenus.filter(m => m.parentId && m.parentId !== menuId);
-    // 得到对应当期菜单
-    const childs = sysMenus.filter(m => m.parentId && m.parentId === menuId);
-    // 当期菜单向下检查
-    childs.map(child => {
-      // 如有则进入递归
-      const menus = notChilds.filter(m => m.parentId === child.menuId);
-      if (menus && menus.length > 0) {
-        child.children = this.fnMenuTree(notChilds, child.menuId);
-      }
-      return child;
-    });
-    return childs;
   }
 
   async selectMenuListByRoleId(roleId: string): Promise<string[]> {

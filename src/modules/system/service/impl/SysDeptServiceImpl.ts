@@ -5,6 +5,7 @@ import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryIm
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { ISysDeptService } from '../ISysDeptService';
 import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
+import { parseDataToTree } from '../../../../framework/utils/ValueParseUtils';
 
 /**
  * 参数配置 服务层实现
@@ -35,7 +36,9 @@ export class SysDeptServiceImpl implements ISysDeptService {
       sysDept,
       dataScopeSQL
     );
-    return this.buildDeptTreeSelect(depts);
+    // 构建前端所需要下拉树结构
+    const deptTrees: SysDept[] = parseDataToTree<SysDept>(depts, 'deptId');
+    return deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
   }
 
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
@@ -105,66 +108,6 @@ export class SysDeptServiceImpl implements ISysDeptService {
 
   async deleteDeptById(deptId: string): Promise<number> {
     return await this.sysDeptRepository.deleteDeptById(deptId);
-  }
-
-  /**
-   * 构建前端所需要下拉树结构
-   *
-   * @param sysDepts 部门列表
-   * @return 下拉树结构列表
-   */
-  private buildDeptTreeSelect(sysDepts: SysDept[]): TreeSelect[] {
-    const deptTrees: SysDept[] = this.buildDeptTree(sysDepts);
-    return deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
-  }
-
-  /**
-   * 构建前端所需要树结构
-   *
-   * @param sysDepts 部门列表
-   * @param parentId 父级节点 默认 '0'
-   * @return 树结构列表
-   */
-  private buildDeptTree(
-    sysDepts: SysDept[],
-    parentId: string = '0'
-  ): SysDept[] {
-    // 排除父节点
-    const notParentMenus = sysDepts.filter(d => d.parentId !== parentId);
-    // 只取父节点
-    const parentMenus = sysDepts.filter(d => d.parentId === parentId);
-    // 对父节点下的子节点的进行递归
-    const returnList: SysDept[] = parentMenus.map(dept => {
-      const depts = this.fnDeptTree(notParentMenus, dept.deptId);
-      if (depts && depts.length > 0) {
-        dept.children = depts;
-      }
-      return dept;
-    });
-    return returnList;
-  }
-
-  /**
-   * 递归得到部门列表
-   * @param sysDepts 部门列表
-   * @param deptId 当前部门ID
-   * @return 递归得到部门列表
-   */
-  private fnDeptTree(sysDepts: SysDept[], deptId: string): SysDept[] {
-    // 排除当期菜单
-    const notChilds = sysDepts.filter(d => d.parentId && d.parentId !== deptId);
-    // 得到对应当期菜单
-    const childs = sysDepts.filter(d => d.parentId && d.parentId === deptId);
-    // 当期菜单向下检查
-    childs.map(child => {
-      // 如有则进入递归
-      const menus = notChilds.filter(m => m.parentId === child.deptId);
-      if (menus && menus.length > 0) {
-        child.children = this.fnDeptTree(notChilds, child.deptId);
-      }
-      return child;
-    });
-    return childs;
   }
 
   /**

@@ -135,7 +135,7 @@ export class SysRoleController {
     const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(sysRole);
     if (!uniqueRoleKey) {
       return Result.errMsg(
-        `角色新增【${sysRole.roleName}】失败，权限字符已存在`
+        `角色新增【${sysRole.roleName}】失败，角色键值已存在`
       );
     }
 
@@ -174,7 +174,7 @@ export class SysRoleController {
     const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(sysRole);
     if (!uniqueRoleKey) {
       return Result.errMsg(
-        `修改角色【${sysRole.roleName}】失败，权限字符已存在`
+        `修改角色【${sysRole.roleName}】失败，权限键值已存在`
       );
     }
 
@@ -257,7 +257,12 @@ export class SysRoleController {
     if (!role) {
       return Result.errMsg('没有权限访问角色数据！');
     }
-    const rows = await this.sysRoleService.authDataScope(sysRole);
+    const newSysRole = new SysRole();
+    newSysRole.roleId = roleId;
+    newSysRole.deptIds = sysRole.deptIds;
+    newSysRole.dataScope = sysRole.dataScope;
+    newSysRole.deptCheckStrictly = sysRole.deptCheckStrictly;
+    const rows = await this.sysRoleService.authDataScope(newSysRole);
     return Result[rows >= 0 ? 'ok' : 'err']();
   }
 
