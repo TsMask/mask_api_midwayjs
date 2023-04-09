@@ -5,7 +5,7 @@ import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
-import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
+import { parseBoolean, parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { SysDept } from '../../model/SysDept';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysUserRepository } from '../ISysUserRepository';
@@ -224,7 +224,6 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
   async selectAllocatedPage(
     roleId: string,
-    allocated: boolean,
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
@@ -239,9 +238,13 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
       paramArr.push(query.phonenumber);
     }
-
+    if (query.status) {
+      sqlStr += " and u.status = ? ";
+      paramArr.push(query.status);
+    }
+    
     // 分配角色用户
-    if (allocated) {
+    if (parseBoolean(query.allocated)) {
       sqlStr += ' and r.role_id = ? ';
       paramArr.push(roleId);
     } else {

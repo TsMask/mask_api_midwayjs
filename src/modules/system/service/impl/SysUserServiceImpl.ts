@@ -65,13 +65,11 @@ export class SysUserServiceImpl implements ISysUserService {
 
   async selectAllocatedPage(
     roleId: string,
-    allocated: boolean,
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
     return await this.sysUserRepository.selectAllocatedPage(
       roleId,
-      allocated,
       query,
       dataScopeSQL
     );

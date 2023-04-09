@@ -77,11 +77,12 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: { total: number }[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_dict_data where 1 = 1 ${sqlStr}`,
       paramArr
     );
-    if (countRow[0].total <= 0) {
+    const total = parseNumber(countRow[0].total);
+    if (total <= 0) {
       return { total: 0, rows: [] };
     }
 
@@ -101,7 +102,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramArr
     );
     const rows = parseSysDictDataResult(results);
-    return { total: countRow[0].total, rows };
+    return { total, rows };
   }
 
   async selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]> {

@@ -285,17 +285,18 @@ export class SysRoleController {
   }
 
   /**
-   * 角色已分配用户列表
+   * 角色分配用户列表
    */
   @Get('/authUser/allocatedList')
   @PreAuthorize({ hasPermissions: ['system:role:list'] })
-  async allocatedList(@Query('roleId') roleId: string): Promise<Result> {
+  async authUserAllocatedList(
+    @Query('roleId') roleId: string
+  ): Promise<Result> {
     if (!roleId) return Result.err();
     const query = this.contextService.getContext().query;
     const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const data = await this.sysUserService.selectAllocatedPage(
       roleId,
-      true,
       query,
       dataScopeSQL
     );
@@ -303,30 +304,12 @@ export class SysRoleController {
   }
 
   /**
-   * 角色未分配用户列表
+   * 角色选择用户添加授权
    */
-  @Get('/authUser/unallocatedList')
-  @PreAuthorize({ hasPermissions: ['system:role:list'] })
-  async unallocatedList(@Query('roleId') roleId: string): Promise<Result> {
-    if (!roleId) return Result.err();
-    const query = this.contextService.getContext().query;
-    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
-    const data = await this.sysUserService.selectAllocatedPage(
-      roleId,
-      false,
-      query,
-      dataScopeSQL
-    );
-    return Result.ok(data);
-  }
-
-  /**
-   * 角色批量选择用户授权
-   */
-  @Put('/authUser/selectAll')
+  @Put('/authUser/select')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.GRANT })
-  async selectAuthUserAll(
+  async authUserSelect(
     @Body('roleId') roleId: string,
     @Body('userIds') userIds: string
   ): Promise<Result> {
@@ -345,12 +328,12 @@ export class SysRoleController {
   }
 
   /**
-   * 角色批量选择用户取消授权
+   * 角色选择用户取消授权
    */
-  @Put('/authUser/cancelAll')
+  @Put('/authUser/cancel')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.GRANT })
-  async cancelAuthUserAll(
+  async authUserCancel(
     @Body('roleId') roleId: string,
     @Body('userIds') userIds: string
   ): Promise<Result> {
@@ -365,25 +348,6 @@ export class SysRoleController {
     const rows = await this.sysRoleService.deleteAuthUsers(roleId, [
       ...new Set(ids),
     ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
-  }
-
-  /**
-   * 角色选择用户取消授权
-   */
-  @Put('/authUser/cancel')
-  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.GRANT })
-  async cancelAuthUser(
-    @Body('roleId') roleId: string,
-    @Body('userId') userId: string
-  ): Promise<Result> {
-    if (!roleId || !userId) return Result.err();
-    const role = await this.sysRoleService.selectRoleById(roleId);
-    if (!role) {
-      return Result.errMsg('没有权限访问角色数据！');
-    }
-    const rows = await this.sysRoleService.deleteAuthUsers(roleId, [userId]);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 }
