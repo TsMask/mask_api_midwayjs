@@ -174,14 +174,17 @@ export class SysMenuServiceImpl implements ISysMenuService {
   private getRouterPath(menu: SysMenu): string {
     let routerPath = menu.path;
 
-    // 父菜单 目录类型 内部跳转 非链接
+    // 非显式路径
+    // 内部跳转 非链接
+    // 父菜单 目录类型或菜单类型
     if (
-      menu.parentId === '0' &&
-      menu.menuType === MENU_TYPE_DIR &&
+      !routerPath.startsWith('/') &&
       menu.isFrame === STATUS_YES &&
-      !validHttp(menu.path)
+      !validHttp(routerPath) &&
+      menu.parentId === '0' &&
+      [MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menu.menuType)
     ) {
-      routerPath = `/${menu.path}`;
+      routerPath = `/${routerPath}`;
     }
 
     return routerPath;
@@ -230,7 +233,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    */
   private getRouteMeta(menu: SysMenu): MetaVo {
     const meta = new MetaVo();
-    meta.icon = menu.icon;
+    meta.icon = menu.icon === '#' ? '' : menu.icon;
     meta.title = menu.menuName;
     meta.hide = menu.visible === STATUS_NO;
     meta.cache = menu.isCache === STATUS_YES;
