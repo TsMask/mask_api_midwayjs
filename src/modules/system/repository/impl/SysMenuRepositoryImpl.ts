@@ -4,15 +4,19 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysMenuRepository } from '../ISysMenuRepository';
 import { SysMenu } from '../../model/SysMenu';
+import {
+  MENU_TYPE_BUTTON,
+  MENU_TYPE_DIR,
+} from '../../../../framework/constants/MenuConstants';
 
 /**查询视图对象SQL */
 const SELECT_MENU_VO = `select 
-m.menu_id, m.menu_name, m.parent_id, m.menu_sort, m.path, m.component, m.is_frame, m.is_cache, m.menu_type, m.visible, m.status, ifnull(m.perms,'') as perms, m.icon, m.create_time 
+m.menu_id, m.menu_name, m.parent_id, m.menu_sort, m.path, m.component, m.is_frame, m.is_cache, m.menu_type, m.visible, m.status, ifnull(m.perms,'') as perms, m.icon, m.create_time, m.remark 
 from sys_menu m`;
 
 /**查询视图用户对象SQL */
 const SELECT_MENU_USER_VO = `select distinct 
-m.menu_id, m.menu_name, m.parent_id, m.menu_sort, m.path, m.component, m.is_frame, m.is_cache, m.menu_type, m.visible, m.status, ifnull(m.perms,'') as perms, m.icon, m.create_time
+m.menu_id, m.menu_name, m.parent_id, m.menu_sort, m.path, m.component, m.is_frame, m.is_cache, m.menu_type, m.visible, m.status, ifnull(m.perms,'') as perms, m.icon, m.create_time, m.remark
 from sys_menu m
 left join sys_role_menu rm on m.menu_id = rm.menu_id
 left join sys_user_role ur on rm.role_id = ur.role_id
@@ -180,7 +184,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.menuId) {
       paramMap.set('menu_id', sysMenu.menuId);
     }
-    if (sysMenu.parentId && sysMenu.parentId !== '0') {
+    if (sysMenu.parentId) {
       paramMap.set('parent_id', sysMenu.parentId);
     }
     if (sysMenu.menuName) {
@@ -224,6 +228,20 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       paramMap.set('create_time', Date.now());
     }
 
+    // 根据菜单类型重置参数
+    if (sysMenu.menuType === MENU_TYPE_BUTTON) {
+      paramMap.set('component', '');
+      paramMap.set('path', '');
+      paramMap.set('icon', '#');
+      paramMap.set('is_cache', 1);
+      paramMap.set('is_frame', 1);
+      paramMap.set('visible', 1);
+      paramMap.set('status', 1);
+    } else if (sysMenu.menuType === MENU_TYPE_DIR) {
+      paramMap.set('component', '');
+      paramMap.set('perms', '');
+    }
+
     const sqlStr = `insert into sys_menu (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
@@ -235,7 +253,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
 
   async updateMenu(sysMenu: SysMenu): Promise<number> {
     const paramMap = new Map();
-    if (sysMenu.parentId && sysMenu.parentId !== '0') {
+    if (sysMenu.parentId) {
       paramMap.set('parent_id', sysMenu.parentId);
     }
     if (sysMenu.menuName) {
@@ -277,6 +295,20 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.updateBy) {
       paramMap.set('update_by', sysMenu.updateBy);
       paramMap.set('update_time', Date.now());
+    }
+
+    // 根据菜单类型重置参数
+    if (sysMenu.menuType === MENU_TYPE_BUTTON) {
+      paramMap.set('component', '');
+      paramMap.set('path', '');
+      paramMap.set('icon', '#');
+      paramMap.set('is_cache', 1);
+      paramMap.set('is_frame', 1);
+      paramMap.set('visible', 1);
+      paramMap.set('status', 1);
+    } else if (sysMenu.menuType === MENU_TYPE_DIR) {
+      paramMap.set('component', '');
+      paramMap.set('perms', '');
     }
 
     const sqlStr = `update sys_menu set ${[...paramMap.keys()]
