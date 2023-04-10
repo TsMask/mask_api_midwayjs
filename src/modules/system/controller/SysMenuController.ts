@@ -77,7 +77,7 @@ export class SysMenuController {
     // 外链菜单需要符合网站http(s)开头
     if (sysMenu.isFrame === STATUS_NO && !validHttp(sysMenu.path)) {
       return Result.errMsg(
-        `菜单新增【${sysMenu.menuName}】失败，地址必须以http(s)://开头`
+        `菜单新增【${sysMenu.menuName}】失败，非内部地址必须以http(s)://开头`
       );
     }
     sysMenu.createBy = this.contextService.getUseName();
@@ -104,7 +104,7 @@ export class SysMenuController {
     // 外链菜单需要符合网站http(s)开头
     if (sysMenu.isFrame === STATUS_NO && !validHttp(sysMenu.path)) {
       return Result.errMsg(
-        `菜单修改【${sysMenu.menuName}】失败，地址必须以http(s)://开头`
+        `菜单修改【${sysMenu.menuName}】失败，非内部地址必须以http(s)://开头`
       );
     }
     // 上级菜单不能选自己
