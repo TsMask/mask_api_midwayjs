@@ -141,9 +141,9 @@ export class SysMenuController {
   /**
    * 菜单下拉树列表
    */
-  @Get('/treeselect')
+  @Get('/treeSelect')
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
-  async treeselect(@Query() sysMenu: SysMenu): Promise<Result> {
+  async treeSelect(@Query() sysMenu: SysMenu): Promise<Result> {
     const userId = this.contextService.getUserId();
     const isAdmin = this.contextService.isAdmin(userId);
     const trees = await this.sysMenuService.selectMenuTreeSelectByUserId(
@@ -156,9 +156,9 @@ export class SysMenuController {
   /**
    * 菜单对应角色加载列表树
    */
-  @Get('/roleMenuTreeselect/:roleId')
+  @Get('/roleMenuTreeSelect/:roleId')
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
-  async roleMenuTreeselect(@Param('roleId') roleId: string): Promise<Result> {
+  async roleMenuTreeSelect(@Param('roleId') roleId: string): Promise<Result> {
     if (!roleId) return Result.err();
     const userId = this.contextService.getUserId();
     const isAdmin = this.contextService.isAdmin(userId);
