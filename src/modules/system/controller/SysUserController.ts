@@ -8,13 +8,10 @@ import {
   Param,
   Post,
   Put,
-  Query,
 } from '@midwayjs/decorator';
 import { Result } from '../../../framework/model/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { SysDept } from '../model/SysDept';
-import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 import { SysPost } from '../model/SysPost';
@@ -50,9 +47,6 @@ export class SysUserController {
 
   @Inject()
   private sysUserService: SysUserServiceImpl;
-
-  @Inject()
-  private sysDeptService: SysDeptServiceImpl;
 
   @Inject()
   private sysRoleService: SysRoleServiceImpl;
@@ -336,6 +330,7 @@ export class SysUserController {
       }
     }
 
+    sysUser.password = ''; // 忽略修改密码
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUserAndRolePost(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
@@ -413,65 +408,5 @@ export class SysUserController {
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUser(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
-  }
-
-  /**
-   * 用户授权角色信息
-   */
-  @Get('/authRole/:userId')
-  @PreAuthorize({ hasPermissions: ['system:user:query'] })
-  async authRoleInfo(@Param('userId') userId: string): Promise<Result> {
-    // 修改的用户ID是否可用
-    if (!userId) return Result.err();
-    const user = await this.sysUserService.selectUserById(userId);
-    if (!user) {
-      return Result.errMsg('没有权限访问用户数据！');
-    }
-    delete user.password;
-    // 不是系统指定管理员需要排除其角色
-    let roles = await this.sysRoleService.selectRolesByUserId(userId);
-    if (!this.contextService.isAdmin(userId)) {
-      roles = roles.filter(r => r.roleId !== ADMIN_ROLE_ID);
-    }
-    return Result.ok({
-      user,
-      roles,
-    });
-  }
-
-  /**
-   * 用户授权角色修改
-   */
-  @Put('/authRole')
-  @PreAuthorize({ hasPermissions: ['system:user:edit'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.GRANT })
-  async authRoleAdd(
-    @Body('userId') userId: string,
-    @Body('roleIds') roleIds: string
-  ): Promise<Result> {
-    if (!userId) return Result.err();
-    // 处理字符转id数组
-    const ids = roleIds.split(',');
-    if (ids.length <= 0) return Result.err();
-    const user = await this.sysUserService.selectUserById(userId);
-    if (!user) {
-      return Result.errMsg('没有权限访问用户数据！');
-    }
-    await this.sysUserService.insertAserAuth(userId, [...new Set(ids)]);
-    return Result.ok();
-  }
-
-  /**
-   * 用户部门树列表
-   */
-  @Get('/deptTree')
-  @PreAuthorize({ hasPermissions: ['system:user:list'] })
-  async deptTree(@Query() sysDept: SysDept): Promise<Result> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
-    const data = await this.sysDeptService.selectDeptTreeList(
-      sysDept,
-      dataScopeSQL
-    );
-    return Result.okData(data || []);
   }
 }
