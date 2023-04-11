@@ -140,13 +140,13 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and u.create_time >= ? ';
+      sqlStr += ' and u.login_date >= ? ';
       paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and u.create_time <= ? ';
+      sqlStr += ' and u.login_date <= ? ';
       paramArr.push(endDate);
     }
     if (query.deptId) {
