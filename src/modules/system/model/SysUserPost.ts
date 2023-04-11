@@ -9,4 +9,10 @@ export class SysUserPost {
 
   /**岗位ID */
   postId: string;
+
+  constructor(userId: string, postId: string) {
+    this.userId = userId;
+    this.postId = postId;
+    return this;
+  }
 }

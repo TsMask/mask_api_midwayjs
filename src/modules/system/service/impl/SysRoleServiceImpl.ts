@@ -135,13 +135,14 @@ export class SysRoleServiceImpl implements ISysRoleService {
    * @param sysRole 角色对象
    */
   private async insertRoleMenu(sysRole: SysRole): Promise<number> {
-    if (sysRole.menuIds && sysRole.menuIds.length > 0) {
-      const sysRoleMenus: SysRoleMenu[] = sysRole.menuIds.map(menuId => {
+    if (sysRole.menuIds && sysRole.menuIds.length <= 0) return 0;
+    const sysRoleMenus: SysRoleMenu[] = sysRole.menuIds.map(menuId => {
+      if (menuId) {
         return new SysRoleMenu(sysRole.roleId, menuId);
-      });
-      return await this.sysRoleMenuRepository.batchRoleMenu(sysRoleMenus);
-    }
-    return 0;
+      }
+    });
+    if (sysRoleMenus.length <= 0) return 0;
+    return await this.sysRoleMenuRepository.batchRoleMenu(sysRoleMenus);
   }
 
   async authDataScope(sysRole: SysRole): Promise<number> {
@@ -151,9 +152,13 @@ export class SysRoleServiceImpl implements ISysRoleService {
     // 新增角色和部门信息（数据权限）
     if (sysRole.deptIds && sysRole.deptIds.length > 0) {
       const sysRoleDepts: SysRoleDept[] = sysRole.deptIds.map(deptId => {
-        return new SysRoleDept(sysRole.roleId, deptId);
+        if (deptId) {
+          return new SysRoleDept(roleId, deptId);
+        }
       });
-      await this.sysRoleDeptRepository.batchRoleDept(sysRoleDepts);
+      if (sysRoleDepts.length > 0) {
+        await this.sysRoleDeptRepository.batchRoleDept(sysRoleDepts);
+      }
     }
     // 修改角色信息
     return await this.sysRoleRepository.updateRole(sysRole);
@@ -190,14 +195,14 @@ export class SysRoleServiceImpl implements ISysRoleService {
     );
   }
   async insertAuthUsers(roleId: string, userIds: string[]): Promise<number> {
+    if (userIds && userIds.length <= 0) return 0;
     // 新增用户与角色管理
-    const sysUserRoles: SysUserRole[] = [];
-    for (const userId of userIds) {
-      const ur = new SysUserRole();
-      ur.userId = userId;
-      ur.roleId = roleId;
-      sysUserRoles.push(ur);
-    }
+    const sysUserRoles: SysUserRole[] = userIds.map(userId => {
+      if (userId) {
+        return new SysUserRole(userId, roleId);
+      }
+    });
+    if (sysUserRoles.length <= 0) return 0;
     return await this.sysUserRoleRepository.batchUserRole(sysUserRoles);
   }
 }

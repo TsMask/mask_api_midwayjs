@@ -9,4 +9,10 @@ export class SysUserRole {
 
   /**角色ID */
   roleId: string;
+
+  constructor(userId: string, roleId: string) {
+    this.userId = userId;
+    this.roleId = roleId;
+    return this;
+  }
 }
