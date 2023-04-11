@@ -78,6 +78,7 @@ export class SysUserServiceImpl implements ISysUserService {
     return await this.sysUserRepository.selectUserByUserName(userName);
   }
   async selectUserById(userId: string): Promise<SysUser> {
+    if(!userId) return null;
     return await this.sysUserRepository.selectUserById(userId);
   }
 
@@ -168,14 +169,11 @@ export class SysUserServiceImpl implements ISysUserService {
     roleIds: string[] = []
   ): Promise<number> {
     if (roleIds && roleIds.length <= 0) return 0;
-    const sysUserRoles: SysUserRole[] = [];
-    for (const roleId of roleIds) {
-      if (!roleId) continue;
-      const ur = new SysUserRole();
-      ur.userId = userId;
-      ur.roleId = roleId;
-      sysUserRoles.push(ur);
-    }
+    const sysUserRoles: SysUserRole[] = roleIds.map(roleId => {
+      if (roleId) {
+        return new SysUserRole(userId, roleId);
+      }
+    });
     if (sysUserRoles.length <= 0) return 0;
     return await this.sysUserRoleRepository.batchUserRole(sysUserRoles);
   }
@@ -190,14 +188,11 @@ export class SysUserServiceImpl implements ISysUserService {
     postIds: string[] = []
   ): Promise<number> {
     if (postIds && postIds.length <= 0) return 0;
-    const sysUserPosts: SysUserPost[] = [];
-    for (const postId of postIds) {
-      if (!postId) continue;
-      const up = new SysUserPost();
-      up.userId = userId;
-      up.postId = postId;
-      sysUserPosts.push(up);
-    }
+    const sysUserPosts: SysUserPost[] = postIds.map(postId => {
+      if (postId) {
+        return new SysUserPost(userId, postId);
+      }
+    });
     if (sysUserPosts.length <= 0) return 0;
     return await this.sysUserPostRepository.batchUserPost(sysUserPosts);
   }
