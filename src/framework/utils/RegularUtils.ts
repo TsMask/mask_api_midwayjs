@@ -13,9 +13,7 @@ export function validHttp(link: string): boolean {
  * @returns true | false
  */
 export function validMobile(mobile: string): boolean {
-  return /^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\d{8}$/.test(
-    mobile
-  );
+  return /^1[3|4|5|6|7|8|9][0-9]\d{8}$/.test(mobile);
 }
 
 /**
@@ -24,7 +22,7 @@ export function validMobile(mobile: string): boolean {
  * @returns true | false
  */
 export function validEmail(email: string): boolean {
-  return /^[a-z0-9A-Z]+[-|a-z0-9A-Z._]+@([a-z0-9A-Z]+(-[a-z0-9A-Z]+)?\\.)+[a-z]{2,}$/.test(
+  return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+\.)+[a-zA-Z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]{2,}))$/.test(
     email
   );
 }
