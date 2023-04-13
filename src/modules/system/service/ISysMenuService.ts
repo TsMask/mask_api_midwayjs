@@ -64,9 +64,10 @@ export interface ISysMenuService {
    * 构建前端路由所需要的菜单
    *
    * @param sysMenus 菜单列表
+   * @param prefix 菜单重定向路径前缀
    * @return 路由列表
    */
-  buildRouteMenus(sysMenus: SysMenu[]): Promise<RouterVo[]>;
+  buildRouteMenus(sysMenus: SysMenu[], prefix?: string): Promise<RouterVo[]>;
 
   /**
    * 根据菜单ID查询信息
