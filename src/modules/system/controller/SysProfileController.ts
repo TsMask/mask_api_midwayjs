@@ -19,6 +19,7 @@ import { FileService } from '../../../framework/service/FileService';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
 import { SysUser } from '../model/SysUser';
+import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 
 /**
  * 个人信息
@@ -67,19 +68,37 @@ export class SysProfileController {
   @PreAuthorize()
   @OperLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async updateProfile(@Body() sysUser: SysUser): Promise<Result> {
-    // 判断属性值是否唯一
-    const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
-    if (!uniquePhone) {
-      return Result.errMsg(
-        `修改用户【${sysUser.userName}】失败，手机号码已存在`
-      );
+    // 检查手机号码格式并判断是否唯一
+    if (sysUser.phonenumber) {
+      if (validMobile(sysUser.phonenumber)) {
+        const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
+        if (!uniquePhone) {
+          return Result.errMsg(
+            `新增用户【${sysUser.userName}】失败，手机号码已存在`
+          );
+        }
+      } else {
+        return Result.errMsg(
+          `新增用户【${sysUser.userName}】失败，手机号码格式错误`
+        );
+      }
     }
-    const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
-    if (!uniqueEmail) {
-      return Result.errMsg(
-        `修改用户【${sysUser.userName}】失败，邮箱账号已存在`
-      );
+    // 检查邮箱格式并判断是否唯一
+    if (sysUser.email) {
+      if (validEmail(sysUser.email)) {
+        const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
+        if (!uniqueEmail) {
+          return Result.errMsg(
+            `修改用户【${sysUser.userName}】失败，邮箱已存在`
+          );
+        }
+      } else {
+        return Result.errMsg(
+          `修改用户【${sysUser.userName}】失败，邮箱格式错误`
+        );
+      }
     }
+
     const loginUser = this.contextService.getLoginUser();
     // 用户基本资料
     const newSysUser = new SysUser();
@@ -145,9 +164,9 @@ export class SysProfileController {
   async avatar(
     @Files('file') files: UploadFileInfo<string>[]
   ): Promise<Result> {
-    if (files.length <= 0) return Result.err();
+    if (!files || files.length <= 0) return Result.err();
     // 上传文件得到资源地址后删除临时文件
-    const imgUrl = await this.fileService.upload(
+    const filePath = await this.fileService.upload(
       files[0],
       UploadSubPathEnum.AVATART,
       ['jpg', 'jpeg', 'png']
@@ -158,7 +177,7 @@ export class SysProfileController {
     const newSysUser = new SysUser();
     newSysUser.userId = loginUser.userId;
     newSysUser.updateBy = loginUser.user.userName;
-    newSysUser.avatar = imgUrl;
+    newSysUser.avatar = filePath;
     const rows = await this.sysUserService.updateUser(newSysUser);
     if (rows > 0) {
       const isAdmin = this.contextService.isAdmin(loginUser.userId);
@@ -168,7 +187,7 @@ export class SysProfileController {
       );
       loginUser.user = user;
       await this.tokenService.setLoginUser(loginUser, isAdmin);
-      return Result.ok({ imgUrl });
+      return Result.okData(filePath);
     }
     return Result.errMsg('上传图片异常，请联系管理员');
   }
