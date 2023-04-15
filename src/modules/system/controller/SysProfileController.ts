@@ -68,18 +68,24 @@ export class SysProfileController {
   @PreAuthorize()
   @OperLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async updateProfile(@Body() sysUser: SysUser): Promise<Result> {
+    const loginUser = this.contextService.getLoginUser();
+    const userName = loginUser.user.userName;
+    const userId = loginUser.userId;
+    sysUser.userId = userId;
+    sysUser.userName = userName;
+
     // 检查手机号码格式并判断是否唯一
     if (sysUser.phonenumber) {
       if (validMobile(sysUser.phonenumber)) {
         const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
         if (!uniquePhone) {
           return Result.errMsg(
-            `新增用户【${sysUser.userName}】失败，手机号码已存在`
+            `修改用户【${sysUser.userName}】失败，手机号码已存在`
           );
         }
       } else {
         return Result.errMsg(
-          `新增用户【${sysUser.userName}】失败，手机号码格式错误`
+          `修改用户【${sysUser.userName}】失败，手机号码格式错误`
         );
       }
     }
@@ -99,11 +105,10 @@ export class SysProfileController {
       }
     }
 
-    const loginUser = this.contextService.getLoginUser();
     // 用户基本资料
     const newSysUser = new SysUser();
-    newSysUser.userId = loginUser.userId;
-    newSysUser.updateBy = loginUser.user.userName;
+    newSysUser.userId = userId;
+    newSysUser.updateBy = userName;
     newSysUser.nickName = sysUser.nickName;
     newSysUser.phonenumber = sysUser.phonenumber;
     newSysUser.email = sysUser.email;
