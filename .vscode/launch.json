@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch via NPM",
+            "request": "launch",
+            "runtimeArgs": [
+                "dev",
+                "debug"
+            ],
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "启动程序",
@@ -12,7 +25,7 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}\\bootstrap.js",
-            "preLaunchTask": "tsc: build - tsconfig.json",
+            "preLaunchTask": "pm2 start",
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
             ]
