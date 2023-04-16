@@ -48,8 +48,9 @@ export class SysRegisterService {
       await this.validateCaptcha(registerBodyVo.code, registerBodyVo.uuid);
     }
 
+    const { username, password, userType } = registerBodyVo;
     const sysUser = new SysUser();
-    sysUser.userName = registerBodyVo.username;
+    sysUser.userName = username;
 
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
@@ -59,15 +60,15 @@ export class SysRegisterService {
       return `注册用户【${sysUser.userName}】失败，注册账号已存在`;
     }
 
+    sysUser.nickName = username; // 昵称使用名称账号
     sysUser.status = STATUS_YES; // 账号状态激活
-    sysUser.password = registerBodyVo.password;
-    sysUser.nickName = registerBodyVo.username;
+    sysUser.password = password;
     // 标记用户类型
-    sysUser.userType = registerBodyVo.userType || 'sys';
+    sysUser.userType = userType || 'sys';
     // 新增用户的角色管理
-    sysUser.roleIds = this.registerRoleInit(sysUser.userType);
+    sysUser.roleIds = this.registerRoleInit(userType);
     // 新增用户的岗位管理
-    sysUser.postIds = this.registerPostInit(sysUser.userType);
+    sysUser.postIds = this.registerPostInit(userType);
 
     // 添加到数据库中
     const insertId = await this.sysUserService.insertUser(sysUser);
