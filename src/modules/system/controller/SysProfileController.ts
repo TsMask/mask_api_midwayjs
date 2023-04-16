@@ -68,6 +68,7 @@ export class SysProfileController {
   @PreAuthorize()
   @OperLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async updateProfile(@Body() sysUser: SysUser): Promise<Result> {
+    if (!sysUser.nickName || !sysUser.sex) return Result.err();
     const loginUser = this.contextService.getLoginUser();
     const userName = loginUser.user.userName;
     const userId = loginUser.userId;
