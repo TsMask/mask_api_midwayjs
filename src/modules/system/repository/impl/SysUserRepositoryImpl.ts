@@ -406,10 +406,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.userType) {
       paramMap.set('user_type', sysUser.userType);
     }
-    if (sysUser.email) {
+    if (sysUser.email || sysUser.email === "") {
       paramMap.set('email', sysUser.email);
     }
-    if (sysUser.phonenumber) {
+    if (sysUser.phonenumber || sysUser.phonenumber === "") {
       paramMap.set('phonenumber', sysUser.phonenumber);
     }
     if (sysUser.sex) {
