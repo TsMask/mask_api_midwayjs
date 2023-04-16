@@ -51,7 +51,8 @@ export class SysLoginService {
    */
   async logout(): Promise<void> {
     // 获取token在请求头标识信息
-    const token = await this.tokenService.getHeaderToken(TOKEN_HEADER);
+    const ctx = this.contextService.getContext();
+    const token = await this.tokenService.getHeaderToken(ctx.get(TOKEN_HEADER));
     if (!token) return;
 
     // 存在token时记录退出信息
