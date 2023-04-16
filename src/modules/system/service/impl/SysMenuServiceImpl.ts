@@ -177,7 +177,12 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 路由名称
    */
   private getRouteName(menu: SysMenu): string {
-    return parseFirstUpper(menu.path);
+    let routerName = parseFirstUpper(menu.path);
+    // 路径链接
+    if (validHttp(menu.path)) {
+      return `${routerName.substring(0, 5)}Link${menu.menuId}`;
+    }
+    return routerName;
   }
 
   /**
@@ -202,7 +207,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
         menu.parentId !== '0' &&
         [MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menu.menuType)
       ) {
-        routerPath = routerPath.replace(/^http(s)?:\/\/+/, '/');
+        routerPath = routerPath.replace(/^http(s)?:\/\/+/, '');
         return Buffer.from(routerPath, 'utf8').toString('base64');
       }
       // 非内部跳转
