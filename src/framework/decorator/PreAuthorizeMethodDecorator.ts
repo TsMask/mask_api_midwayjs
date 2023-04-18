@@ -81,7 +81,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
           metadataObj
         );
         if (!verifyOk) {
-          throw new ForbiddenError(`${ctx.method} ${ctx.path} ，无权访问`);
+          throw new ForbiddenError(`${ctx.method} ${ctx.path} 无权访问`);
         }
       }
 
@@ -135,12 +135,7 @@ function verifyRolePermission(
       permissions.some(up => up === p)
     );
   }
-
-  console.log('\nPreAuthorize   ================ ');
-  console.log('PreAuthorize   has ', hasRole, hasPermission);
-  console.log('PreAuthorize mathc ', matchRoles, matchPermissions);
-  console.log('PreAuthorize   ================ \n');
-
+  
   // 同时判断 只需含有其中
   if (metadata.hasRoles && metadata.hasPermissions) {
     return hasRole || hasPermission;
@@ -156,5 +151,5 @@ function verifyRolePermission(
   if (metadata.hasPermissions && metadata.matchRoles) {
     return hasPermission && matchRoles;
   }
-  return hasRole || hasPermission || hasPermission || matchRoles;
+  return hasRole || hasPermission || matchRoles || matchPermissions;
 }
