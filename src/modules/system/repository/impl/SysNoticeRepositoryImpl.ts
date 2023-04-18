@@ -60,7 +60,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.noticeTitle) {
-      sqlStr += " and notice_title like concat('%', ?, '%') ";
+      sqlStr += " and notice_title like concat(?, '%') ";
       paramArr.push(query.noticeTitle);
     }
     if (query.noticeType) {
@@ -68,7 +68,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramArr.push(query.noticeType);
     }
     if (query.createBy) {
-      sqlStr += " and create_by like concat('%', ?, '%') ";
+      sqlStr += " and create_by like concat(?, '%') ";
       paramArr.push(query.createBy);
     }
 
@@ -105,7 +105,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     const paramArr = [];
     // 查询条件拼接
     if (sysNotice.noticeTitle) {
-      sqlStr += " and notice_title like concat('%', ?, '%') ";
+      sqlStr += " and notice_title like concat(?, '%') ";
       paramArr.push(sysNotice.noticeTitle);
     }
     if (sysNotice.noticeType) {
@@ -113,7 +113,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramArr.push(sysNotice.noticeType);
     }
     if (sysNotice.createBy) {
-      sqlStr += " and create_by like concat('%', ?, '%') ";
+      sqlStr += " and create_by like concat(?, '%') ";
       paramArr.push(sysNotice.createBy);
     }
 

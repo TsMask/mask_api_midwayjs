@@ -62,7 +62,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.configName) {
-      sqlStr += " and config_name like concat('%', ?, '%') ";
+      sqlStr += " and config_name like concat(?, '%') ";
       paramArr.push(query.configName);
     }
     if (query.configType) {
@@ -70,7 +70,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
       paramArr.push(query.configType);
     }
     if (query.configKey) {
-      sqlStr += " and config_key like concat('%', ?, '%') ";
+      sqlStr += " and config_key like concat(?, '%') ";
       paramArr.push(query.configKey);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
@@ -118,7 +118,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     let sqlStr = `${SELECT_CONFIG_VO} where 1 = 1 `;
     const paramArr = [];
     if (sysConfig.configName) {
-      sqlStr += " and config_name like concat('%', ?, '%') ";
+      sqlStr += " and config_name like concat(?, '%') ";
       paramArr.push(sysConfig.configName);
     }
     if (sysConfig.configType) {
@@ -126,7 +126,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
       paramArr.push(sysConfig.configType);
     }
     if (sysConfig.configKey) {
-      sqlStr += " and config_key like concat('%', ?, '%') ";
+      sqlStr += " and config_key like concat(?, '%') ";
       paramArr.push(sysConfig.configKey);
     }
     if (sysConfig.createTime) {

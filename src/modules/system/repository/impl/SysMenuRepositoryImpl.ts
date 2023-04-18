@@ -79,7 +79,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysMenu.menuName) {
-      sqlStr += " and m.menu_name like concat('%', ?, '%') ";
+      sqlStr += " and m.menu_name like concat(?, '%') ";
       paramArr.push(sysMenu.menuName);
     }
     if (sysMenu.visible) {

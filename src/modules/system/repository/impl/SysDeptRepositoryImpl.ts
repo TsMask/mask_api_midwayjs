@@ -74,7 +74,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       paramArr.push(sysDept.parentId);
     }
     if (sysDept?.deptName) {
-      sqlStr += " and dept_name like concat('%', ?, '%') ";
+      sqlStr += " and dept_name like concat(?, '%') ";
       paramArr.push(sysDept.deptName);
     }
     if (sysDept?.status) {

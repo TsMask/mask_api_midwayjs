@@ -63,7 +63,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.ipaddr) {
-      sqlStr += " and ipaddr like concat('%', ?, '%') ";
+      sqlStr += " and ipaddr like concat(?, '%') ";
       paramArr.push(query.ipaddr);
     }
     if (query.status) {
@@ -71,7 +71,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
       paramArr.push(query.status);
     }
     if (query.userName) {
-      sqlStr += " and user_name like concat('%', ?, '%') ";
+      sqlStr += " and user_name like concat(?, '%') ";
       paramArr.push(query.userName);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
@@ -121,7 +121,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysLogininfor.ipaddr) {
-      sqlStr += " and ipaddr like concat('%', ?, '%') ";
+      sqlStr += " and ipaddr like concat(?, '%') ";
       paramArr.push(sysLogininfor.ipaddr);
     }
     if (sysLogininfor.status) {
@@ -129,7 +129,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
       paramArr.push(sysLogininfor.status);
     }
     if (sysLogininfor.userName) {
-      sqlStr += " and user_name like concat('%', ?, '%') ";
+      sqlStr += " and user_name like concat(?, '%') ";
       paramArr.push(sysLogininfor.userName);
     }
 

@@ -126,7 +126,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(query.userId);
     }
     if (query.userName) {
-      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      sqlStr += " and u.user_name like concat(?, '%') ";
       paramArr.push(query.userName);
     }
     if (query.status) {
@@ -134,7 +134,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(query.status);
     }
     if (query.phonenumber) {
-      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      sqlStr += " and u.phonenumber like concat(?, '%') ";
       paramArr.push(query.phonenumber);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
@@ -198,7 +198,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(sysUser.userId);
     }
     if (sysUser.userName) {
-      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      sqlStr += " and u.user_name like concat(?, '%') ";
       paramArr.push(sysUser.userName);
     }
     if (sysUser.status) {
@@ -206,7 +206,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(sysUser.status);
     }
     if (sysUser.phonenumber) {
-      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      sqlStr += " and u.phonenumber like concat(?, '%') ";
       paramArr.push(sysUser.phonenumber);
     }
     // 查询数据数
@@ -231,11 +231,11 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     let sqlStr = dataScopeSQL;
     const paramArr = [];
     if (query.userName) {
-      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      sqlStr += " and u.user_name like concat(?, '%') ";
       paramArr.push(query.userName);
     }
     if (query.phonenumber) {
-      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      sqlStr += " and u.phonenumber like concat(?, '%') ";
       paramArr.push(query.phonenumber);
     }
     if (query.status) {

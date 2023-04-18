@@ -68,7 +68,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramArr.push(query.dictType);
     }
     if (query.dictLabel) {
-      sqlStr += " and dict_label like concat('%', ?, '%') ";
+      sqlStr += " and dict_label like concat(?, '%') ";
       paramArr.push(query.dictLabel);
     }
     if (query.status) {
@@ -114,7 +114,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramArr.push(sysDictData.dictType);
     }
     if (sysDictData.dictLabel) {
-      sqlStr += " and dict_label like concat('%', ?, '%') ";
+      sqlStr += " and dict_label like concat(?, '%') ";
       paramArr.push(sysDictData.dictLabel);
     }
     if (sysDictData.status) {

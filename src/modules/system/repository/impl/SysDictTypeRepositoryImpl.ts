@@ -63,11 +63,11 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.dictName) {
-      sqlStr += " and dict_name like concat('%', ?, '%') ";
+      sqlStr += " and dict_name like concat(?, '%') ";
       paramArr.push(query.dictName);
     }
     if (query.dictType) {
-      sqlStr += " and dict_type like concat('%', ?, '%') ";
+      sqlStr += " and dict_type like concat(?, '%') ";
       paramArr.push(query.dictType);
     }
     if (query.status) {
@@ -121,11 +121,11 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysDictType.dictName) {
-      sqlStr += " and dict_name like concat('%', ?, '%') ";
+      sqlStr += " and dict_name like concat(?, '%') ";
       paramArr.push(sysDictType.dictName);
     }
     if (sysDictType.dictType) {
-      sqlStr += " and dict_type like concat('%', ?, '%') ";
+      sqlStr += " and dict_type like concat(?, '%') ";
       paramArr.push(sysDictType.dictType);
     }
     if (sysDictType.status) {

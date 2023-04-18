@@ -69,7 +69,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.title) {
-      sqlStr += " and title like concat('%', ?, '%') ";
+      sqlStr += " and title like concat(?, '%') ";
       paramArr.push(query.title);
     }
     if (query.businessType) {
@@ -81,7 +81,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
       paramArr.push(query.status);
     }
     if (query.operName) {
-      sqlStr += " and oper_name like concat('%', ?, '%') ";
+      sqlStr += " and oper_name like concat(?, '%') ";
       paramArr.push(query.operName);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
@@ -129,7 +129,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysOperLog.title) {
-      sqlStr += " and title like concat('%', ?, '%') ";
+      sqlStr += " and title like concat(?, '%') ";
       paramArr.push(sysOperLog.title);
     }
     if (sysOperLog.businessType) {
@@ -141,7 +141,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
       paramArr.push(sysOperLog.status);
     }
     if (sysOperLog.operName) {
-      sqlStr += " and oper_name like concat('%', ?, '%') ";
+      sqlStr += " and oper_name like concat(?, '%') ";
       paramArr.push(sysOperLog.operName);
     }
 

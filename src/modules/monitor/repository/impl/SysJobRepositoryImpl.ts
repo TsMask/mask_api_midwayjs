@@ -62,7 +62,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.jobName) {
-      sqlStr += " and job_name like concat('%', ?, '%') ";
+      sqlStr += " and job_name like concat(?, '%') ";
       paramArr.push(query.jobName);
     }
     if (query.jobGroup) {
@@ -74,7 +74,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramArr.push(query.status);
     }
     if (query.invokeTarget) {
-      sqlStr += " and invoke_target like concat('%', ?, '%') ";
+      sqlStr += " and invoke_target like concat(?, '%') ";
       paramArr.push(query.invokeTarget);
     }
 
@@ -110,7 +110,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysJob.jobName) {
-      sqlStr += " and job_name like concat('%', ?, '%') ";
+      sqlStr += " and job_name like concat(?, '%') ";
       paramArr.push(sysJob.jobName);
     }
     if (sysJob.jobGroup) {
@@ -122,7 +122,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramArr.push(sysJob.status);
     }
     if (sysJob.invokeTarget) {
-      sqlStr += " and invoke_target like concat('%', ?, '%') ";
+      sqlStr += " and invoke_target like concat(?, '%') ";
       paramArr.push(sysJob.invokeTarget);
     }
 

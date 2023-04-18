@@ -60,11 +60,11 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.postCode) {
-      sqlStr += " and post_code like concat('%', ?, '%') ";
+      sqlStr += " and post_code like concat(?, '%') ";
       paramArr.push(query.postCode);
     }
     if (query.postName) {
-      sqlStr += " and post_name like concat('%', ?, '%') ";
+      sqlStr += " and post_name like concat(?, '%') ";
       paramArr.push(query.postName);
     }
     if (query.status) {
@@ -104,11 +104,11 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     let sqlStr = `${SELECT_POST_VO} where 1 = 1`;
     const paramArr = [];
     if (sysPost.postCode) {
-      sqlStr += " and post_code like concat('%', ?, '%') ";
+      sqlStr += " and post_code like concat(?, '%') ";
       paramArr.push(sysPost.postCode);
     }
     if (sysPost.postName) {
-      sqlStr += " and post_name like concat('%', ?, '%') ";
+      sqlStr += " and post_name like concat(?, '%') ";
       paramArr.push(sysPost.postName);
     }
     if (sysPost.status) {
