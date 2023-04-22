@@ -141,27 +141,15 @@ export class SysMenuServiceImpl implements ISysMenuService {
       // 子项菜单目录
       const cMenus = menu.children;
       if (menu.menuType === MENU_TYPE_DIR && cMenus && cMenus.length > 0) {
-        // 重定向为首个显示并启用的子菜单
-        const firstChild = cMenus.find(
-          item =>
-            item.isFrame === STATUS_YES &&
-            item.visible === STATUS_YES &&
-            item.status === STATUS_YES
+        // 获取重定向地址
+        const { redirectPrefix, redirectPath } = this.getRouteRedirect(
+          cMenus,
+          router.path,
+          prefix
         );
-        if (firstChild) {
-          if (firstChild.path.startsWith('/')) {
-            router.redirect = firstChild.path;
-          } else {
-            if (!router.path.startsWith('/')) {
-              prefix += '/';
-            }
-            prefix = `${prefix}${router.path}`;
-            router.redirect = `${prefix}/${firstChild.path}`;
-          }
-        }
+        router.redirect = redirectPath;
         // 子菜单进入递归
-        router.children = await this.buildRouteMenus(cMenus, prefix);
-        prefix = '';
+        router.children = await this.buildRouteMenus(cMenus, redirectPrefix);
       }
       routers.push(router);
     }
@@ -289,5 +277,51 @@ export class SysMenuServiceImpl implements ISysMenuService {
     }
 
     return meta;
+  }
+
+  /**
+   * 获取路由重定向地址（针对目录）
+   *
+   * @param cMenus 子菜单数组
+   * @param routerPath 当期菜单路径
+   * @param prefix 菜单重定向路径前缀
+   * @return 重定向地址和前缀
+   */
+  private getRouteRedirect(
+    cMenus: SysMenu[],
+    routerPath: string,
+    prefix: string
+  ): {
+    redirectPrefix: string;
+    redirectPath: string;
+  } {
+    let redirectPath = '';
+
+    // 重定向为首个显示并启用的子菜单
+    let firstChild = cMenus.find(
+      item => item.isFrame === STATUS_YES && item.visible === STATUS_YES
+    );
+    // 检查内嵌隐藏菜单是否可做重定向
+    if (!firstChild) {
+      firstChild = cMenus.find(
+        item =>
+          item.isFrame === STATUS_YES &&
+          item.visible === STATUS_NO &&
+          item.path.includes('/inline')
+      );
+    }
+    if (firstChild) {
+      if (firstChild.path.startsWith('/')) {
+        redirectPath = firstChild.path;
+      } else {
+        // 拼接追加路径
+        if (!routerPath.startsWith('/')) {
+          prefix += '/';
+        }
+        prefix = `${prefix}${routerPath}`;
+        redirectPath = `${prefix}/${firstChild.path}`;
+      }
+    }
+    return { redirectPrefix: prefix, redirectPath };
   }
 }
