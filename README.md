@@ -10,8 +10,8 @@
 
 基于 `Node` + `TypeScript` 的 `Midwayjs` 开发框架进行开发，如需进一步了解框架，参见 [Midwayjs](http://www.midwayjs.org) 官方文档。
 
-- `Element-Vue3` 前端代码仓库地址 => [mask_api_midwayjs](https://gitee.com/TsMask/mask_element_vue3)
-- `Antd-Vue3` 前端代码仓库地址 => [mask_api_midwayjs](https://gitee.com/TsMask/mask_antd_vue3) => [在线预览](https://static-mp-e018862c-e0cc-452f-a705-f20e6ec71bec.next.bspapp.com/mask-antd/#/index)
+- `Element-Vue3` 前端代码仓库地址 => [mask_element_vue3](https://gitee.com/TsMask/mask_element_vue3)
+- `Antd-Vue3` 前端代码仓库地址 => [mask_antd_vue3](https://gitee.com/TsMask/mask_antd_vue3) => [在线预览](https://static-mp-e018862c-e0cc-452f-a705-f20e6ec71bec.next.bspapp.com/mask-antd/#/index)
 - `Antd-Vue3` 接入后端服务 => [在线预览](http://124.223.91.248:8102/mask-antd/#/index)
 
 ## 内置功能
