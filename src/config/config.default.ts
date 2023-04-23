@@ -11,12 +11,16 @@ export default (): MidwayConfig => {
 
     /**char 字符验证码配置 */
     charCaptcha: {
+      /**宽度 */
+      width: 120,
+      /**高度 */
+      height: 40,
       /**干扰线条的数量 */
       noise: 4,
       /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
       color: true,
       // 验证码图片背景颜色
-      background: '#f5f5f5',
+      background: '#fafafa',
       /**验证码长度 */
       size: 4,
       /**验证码字符中排除 0o1i */
@@ -25,12 +29,16 @@ export default (): MidwayConfig => {
 
     /**math 数值计算码配置 */
     mathCaptcha: {
+      /**宽度 */
+      width: 120,
+      /**高度 */
+      height: 40,
       /**干扰线条的数量 */
       noise: 4,
       /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
       color: true,
       /**验证码图片背景颜色 */
-      background: '#f5f5f5',
+      background: '#fafafa',
       /**计算式，默认"+"，可选"+", "-" or "+/-" */
       mathOperator: '+/-',
       /**算数值最小值，默认1 */
@@ -178,8 +186,6 @@ export default (): MidwayConfig => {
       /**令牌有效期（默认120分钟） */
       expiresIn: '120m', // https://github.com/vercel/ms
     },
-    /**请求头令牌自定义标识 */
-    jwtHeader: 'Authorization',
     /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
     jwtRefreshIn: '20m', // https://github.com/vercel/ms
 
