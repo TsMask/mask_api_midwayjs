@@ -69,9 +69,10 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       if (rpStr) {
         const rpObj: RepeatParamType = JSON.parse(rpStr);
         const compareTime = diffSeconds(Date.now(), rpObj.time);
-        const compareParams = JSON.stringify(rpObj.params) === JSON.stringify(params);
+        const compareParams =
+          JSON.stringify(rpObj.params) === JSON.stringify(params);
         // 设置重复提交声明响应头
-        ctx.set("X-RepeatSubmit-Rest", `${Date.now() + compareTime * 1000}`);
+        ctx.set('X-RepeatSubmit-Rest', `${Date.now() + compareTime * 1000}`);
         // 小于间隔时间 且 参数内容一致
         if (compareTime < interval && compareParams) {
           return Result.errMsg('不允许重复提交，请稍候再试');

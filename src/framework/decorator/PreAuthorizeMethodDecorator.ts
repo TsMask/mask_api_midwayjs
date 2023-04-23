@@ -135,7 +135,7 @@ function verifyRolePermission(
       permissions.some(up => up === p)
     );
   }
-  
+
   // 同时判断 只需含有其中
   if (metadata.hasRoles && metadata.hasPermissions) {
     return hasRole || hasPermission;

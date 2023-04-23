@@ -37,7 +37,7 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
     return await this.sysDictDataRepository.selectDictDataByCode(dictCode);
   }
 
-  async selectDictDataByType(dictType: string): Promise<SysDictData[]>{
+  async selectDictDataByType(dictType: string): Promise<SysDictData[]> {
     return await this.sysDictTypeService.getDictCache(dictType);
   }
 

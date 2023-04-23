@@ -177,21 +177,21 @@ export function parseSafeContent(value = '') {
  */
 export function parseDataToTree<T>(
   data: T[],
-  fieldId: string = 'id',
-  fieldParentId: string = 'parentId',
-  fieldChildren: string = 'children'
+  fieldId = 'id',
+  fieldParentId = 'parentId',
+  fieldChildren = 'children'
 ) {
   // 节点分组
-  let map: Map<string, T[]> = new Map();
+  const map: Map<string, T[]> = new Map();
   // 节点id
-  let treeIds: string[] = [];
+  const treeIds: string[] = [];
   // 树节点
-  let tree: T[] = [];
+  const tree: T[] = [];
 
   for (const item of data) {
-    let parentId = item[fieldParentId];
+    const parentId = item[fieldParentId];
     // 分组
-    let mapItem = map.get(parentId) ?? [];
+    const mapItem = map.get(parentId) ?? [];
     mapItem.push(item);
     map.set(parentId, mapItem);
     // 记录节点id
@@ -211,13 +211,13 @@ export function parseDataToTree<T>(
 
   /**闭包递归函数 */
   function componet(iterator: T) {
-    let id = iterator[fieldId];
-    let item = map.get(id);
+    const id = iterator[fieldId];
+    const item = map.get(id);
     if (item) {
       iterator[fieldChildren] = item;
     }
     if (iterator[fieldChildren]) {
-      for (let i of iterator[fieldChildren]) {
+      for (const i of iterator[fieldChildren]) {
         componet(i);
       }
     }

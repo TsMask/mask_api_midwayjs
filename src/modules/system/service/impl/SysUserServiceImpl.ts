@@ -78,7 +78,7 @@ export class SysUserServiceImpl implements ISysUserService {
     return await this.sysUserRepository.selectUserByUserName(userName);
   }
   async selectUserById(userId: string): Promise<SysUser> {
-    if(!userId) return null;
+    if (!userId) return null;
     return await this.sysUserRepository.selectUserById(userId);
   }
 

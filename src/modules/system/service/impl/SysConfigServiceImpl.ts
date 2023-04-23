@@ -132,7 +132,8 @@ export class SysConfigServiceImpl implements ISysConfigService {
   }
 
   async clearConfigCache(configKey = '*'): Promise<number> {
-    const keys = await this.redisCache.getKeys(this.cacheKey(configKey));
+    const key = this.cacheKey(configKey);
+    const keys = await this.redisCache.getKeys(key);
     return await this.redisCache.delKeys(keys);
   }
 

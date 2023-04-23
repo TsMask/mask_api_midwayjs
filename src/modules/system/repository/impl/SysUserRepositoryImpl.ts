@@ -5,7 +5,10 @@ import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
-import { parseBoolean, parseNumber } from '../../../../framework/utils/ValueParseUtils';
+import {
+  parseBoolean,
+  parseNumber,
+} from '../../../../framework/utils/ValueParseUtils';
 import { SysDept } from '../../model/SysDept';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysUserRepository } from '../ISysUserRepository';
@@ -239,10 +242,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(query.phonenumber);
     }
     if (query.status) {
-      sqlStr += " and u.status = ? ";
+      sqlStr += ' and u.status = ? ';
       paramArr.push(query.status);
     }
-    
+
     // 分配角色用户
     if (parseBoolean(query.allocated)) {
       sqlStr += ' and r.role_id = ? ';
@@ -406,10 +409,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.userType) {
       paramMap.set('user_type', sysUser.userType);
     }
-    if (sysUser.email || sysUser.email === "") {
+    if (sysUser.email || sysUser.email === '') {
       paramMap.set('email', sysUser.email);
     }
-    if (sysUser.phonenumber || sysUser.phonenumber === "") {
+    if (sysUser.phonenumber || sysUser.phonenumber === '') {
       paramMap.set('phonenumber', sysUser.phonenumber);
     }
     if (sysUser.sex) {

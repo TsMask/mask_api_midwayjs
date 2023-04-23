@@ -173,21 +173,6 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     map.forEach((values, key) => {
       this.redisCache.set(this.cacheKey(key), JSON.stringify(values));
     });
-    // const dictDatasObj = dictDatas.reduce((pre, cur) => {
-    //   const key = cur.dictType;
-    //   if (!Object.prototype.hasOwnProperty.call(pre, key)) {
-    //     pre[key] = [];
-    //   }
-    //   pre[key].push(cur);
-    //   return pre;
-    // }, {});
-    // 把组数据进行缓存
-    // for (const key in dictDatas) {
-    //   if (Object.prototype.hasOwnProperty.call(dictDatasObj, key)) {
-    //     const element = dictDatasObj[key];
-    //     await this.redisCache.set(SYS_DICT_KEY + key, JSON.stringify(element));
-    //   }
-    // }
   }
 
   async clearDictCache(dictType = '*'): Promise<number> {

@@ -63,6 +63,8 @@ export class SysRegisterService {
     sysUser.nickName = username; // 昵称使用名称账号
     sysUser.status = STATUS_YES; // 账号状态激活
     sysUser.password = password;
+    // 归属部门为根节点
+    sysUser.deptId = '100';
     // 标记用户类型
     sysUser.userType = userType || 'sys';
     // 新增用户的角色管理
