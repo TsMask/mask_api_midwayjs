@@ -59,7 +59,6 @@ export class SysDictDataController {
           字典标签: cur.dictLabel,
           字典键值: cur.dictValue,
           字典类型: cur.dictType,
-          是否默认: cur.isDefault === 'Y' ? '是' : '否',
           状态: ['停用', '正常'][+cur.status],
         });
         return pre;

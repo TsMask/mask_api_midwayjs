@@ -7,7 +7,7 @@ import { SysDictData } from '../../model/SysDictData';
 
 /**查询视图对象SQL */
 const SELECT_DICT_DATA_VO = `select 
-dict_code, dict_sort, dict_label, dict_value, dict_type, css_class, list_class, is_default, status, create_by, create_time, remark 
+dict_code, dict_sort, dict_label, dict_value, dict_type, tag_class, tag_type, status, create_by, create_time, remark 
 from sys_dict_data
 `;
 
@@ -18,9 +18,8 @@ SYS_DICT_DATA_RESULT.set('dict_sort', 'dictSort');
 SYS_DICT_DATA_RESULT.set('dict_label', 'dictLabel');
 SYS_DICT_DATA_RESULT.set('dict_value', 'dictValue');
 SYS_DICT_DATA_RESULT.set('dict_type', 'dictType');
-SYS_DICT_DATA_RESULT.set('css_class', 'cssClass');
-SYS_DICT_DATA_RESULT.set('list_class', 'listClass');
-SYS_DICT_DATA_RESULT.set('is_default', 'isDefault');
+SYS_DICT_DATA_RESULT.set('tag_class', 'tagClass');
+SYS_DICT_DATA_RESULT.set('tag_type', 'tagType');
 SYS_DICT_DATA_RESULT.set('status', 'status');
 SYS_DICT_DATA_RESULT.set('remark', 'remark');
 SYS_DICT_DATA_RESULT.set('create_by', 'createBy');
@@ -203,11 +202,11 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     if (sysDictData.dictType) {
       paramMap.set('dict_type', sysDictData.dictType);
     }
-    if (sysDictData.listClass) {
-      paramMap.set('list_class', sysDictData.listClass);
+    if (sysDictData.tagClass) {
+      paramMap.set('tag_class', sysDictData.tagClass);
     }
-    if (sysDictData.isDefault) {
-      paramMap.set('is_default', sysDictData.isDefault);
+    if (sysDictData.tagType) {
+      paramMap.set('tag_type', sysDictData.tagType);
     }
     if (sysDictData.status) {
       paramMap.set('status', parseNumber(sysDictData.status));
@@ -243,14 +242,11 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     if (sysDictData.dictType) {
       paramMap.set('dict_type', sysDictData.dictType);
     }
-    if (sysDictData.cssClass) {
-      paramMap.set('css_class', sysDictData.cssClass);
+    if (sysDictData.tagClass) {
+      paramMap.set('tag_class', sysDictData.tagClass);
     }
-    if (sysDictData.listClass) {
-      paramMap.set('list_class', sysDictData.listClass);
-    }
-    if (sysDictData.isDefault) {
-      paramMap.set('is_default', sysDictData.isDefault);
+    if (sysDictData.tagType) {
+      paramMap.set('tag_type', sysDictData.tagType);
     }
     if (sysDictData.status) {
       paramMap.set('status', parseNumber(sysDictData.status));
