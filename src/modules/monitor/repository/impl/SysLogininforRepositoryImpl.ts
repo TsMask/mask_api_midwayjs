@@ -63,7 +63,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.ipaddr) {
-      sqlStr += " and ipaddr like concat('%', ?, '%') ";
+      sqlStr += " and ipaddr like concat(?, '%') ";
       paramArr.push(query.ipaddr);
     }
     if (query.status) {
@@ -71,19 +71,19 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
       paramArr.push(query.status);
     }
     if (query.userName) {
-      sqlStr += " and user_name like concat('%', ?, '%') ";
+      sqlStr += " and user_name like concat(?, '%') ";
       paramArr.push(query.userName);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time >= ? ';
+      sqlStr += ' and login_time >= ? ';
       paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time <= ? ';
+      sqlStr += ' and login_time <= ? ';
       paramArr.push(endDate);
     }
 
@@ -99,10 +99,10 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     // 分页
     sqlStr += ' order by info_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -121,7 +121,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysLogininfor.ipaddr) {
-      sqlStr += " and ipaddr like concat('%', ?, '%') ";
+      sqlStr += " and ipaddr like concat(?, '%') ";
       paramArr.push(sysLogininfor.ipaddr);
     }
     if (sysLogininfor.status) {
@@ -129,7 +129,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
       paramArr.push(sysLogininfor.status);
     }
     if (sysLogininfor.userName) {
-      sqlStr += " and user_name like concat('%', ?, '%') ";
+      sqlStr += " and user_name like concat(?, '%') ";
       paramArr.push(sysLogininfor.userName);
     }
 

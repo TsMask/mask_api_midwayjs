@@ -63,11 +63,11 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.dictName) {
-      sqlStr += " and dict_name like concat('%', ?, '%') ";
+      sqlStr += " and dict_name like concat(?, '%') ";
       paramArr.push(query.dictName);
     }
     if (query.dictType) {
-      sqlStr += " and dict_type like concat('%', ?, '%') ";
+      sqlStr += " and dict_type like concat(?, '%') ";
       paramArr.push(query.dictType);
     }
     if (query.status) {
@@ -100,10 +100,10 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     // 分页
     sqlStr += ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -121,11 +121,11 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysDictType.dictName) {
-      sqlStr += " and dict_name like concat('%', ?, '%') ";
+      sqlStr += " and dict_name like concat(?, '%') ";
       paramArr.push(sysDictType.dictName);
     }
     if (sysDictType.dictType) {
-      sqlStr += " and dict_type like concat('%', ?, '%') ";
+      sqlStr += " and dict_type like concat(?, '%') ";
       paramArr.push(sysDictType.dictType);
     }
     if (sysDictType.status) {

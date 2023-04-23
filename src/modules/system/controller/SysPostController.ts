@@ -16,7 +16,6 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysPost } from '../model/SysPost';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 岗位信息
@@ -44,18 +43,19 @@ export class SysPostController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysPostService.selectPostPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysPost) => {
         pre.push({
-          岗位序号: cur.postId,
+          岗位编号: cur.postId,
           岗位编码: cur.postCode,
           岗位名称: cur.postName,
           岗位排序: `${cur.postSort}`,
-          状态: cur.status === STATUS_YES ? '正常' : '停用',
+          状态: ['停用', '正常'][+cur.status],
         });
         return pre;
       },

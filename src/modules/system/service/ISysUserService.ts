@@ -31,14 +31,12 @@ export interface ISysUserService {
    * 根据条件分页查询分配用户角色列表
    *
    * @param roleId 角色ID
-   * @param allocated 已分配的
    * @param query 用户信息查询信息
    * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 用户信息集合信息
    */
   selectAllocatedPage(
     roleId: string,
-    allocated: boolean,
     query: ListQueryPageOptions,
     dataScopeSQL?: string
   ): Promise<RowPagesType>;

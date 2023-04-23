@@ -33,8 +33,12 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
     );
   }
 
-  async selectDictDataById(dictCode: string): Promise<SysDictData> {
-    return await this.sysDictDataRepository.selectDictDataById(dictCode);
+  async selectDictDataByCode(dictCode: string): Promise<SysDictData> {
+    return await this.sysDictDataRepository.selectDictDataByCode(dictCode);
+  }
+
+  async selectDictDataByType(dictType: string): Promise<SysDictData[]> {
+    return await this.sysDictTypeService.getDictCache(dictType);
   }
 
   async checkUniqueDictLabel(sysDictData: SysDictData): Promise<boolean> {
@@ -79,11 +83,11 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
     return rows;
   }
 
-  async deleteDictDataByIds(dictCodes: string[]): Promise<number> {
+  async deleteDictDataByCodes(dictCodes: string[]): Promise<number> {
     let dictTypes: string[] = [];
     for (const dictCode of dictCodes) {
       // 检查是否存在
-      const dictData = await this.sysDictDataRepository.selectDictDataById(
+      const dictData = await this.sysDictDataRepository.selectDictDataByCode(
         dictCode
       );
       if (!dictData) {
@@ -92,7 +96,7 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
       dictTypes.push(dictData.dictType);
     }
     dictTypes = [...new Set(dictTypes)];
-    const rows = await this.sysDictDataRepository.deleteDictDataByIds(
+    const rows = await this.sysDictDataRepository.deleteDictDataByCodes(
       dictCodes
     );
     if (rows > 0) {

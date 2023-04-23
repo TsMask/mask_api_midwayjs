@@ -1,3 +1,4 @@
+import { SysDictData } from '../model/SysDictData';
 import { SysDictType } from '../model/SysDictType';
 
 /**
@@ -68,6 +69,12 @@ export interface ISysDictTypeService {
    * @param dictIds 需要删除的字典ID
    */
   deleteDictTypeByIds(dictIds: string[]): Promise<number>;
+
+  /**
+   * 获取字典缓存数据
+   * @param dictType 字典类型
+   */
+  getDictCache(dictType: string): Promise<SysDictData[]>;
 
   /**
    * 加载字典缓存数据

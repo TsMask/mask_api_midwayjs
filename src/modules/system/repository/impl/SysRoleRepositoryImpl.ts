@@ -78,7 +78,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       paramArr.push(query.roleId);
     }
     if (query.roleName) {
-      sqlStr += " and r.role_name like concat('%', ?, '%') ";
+      sqlStr += " and r.role_name like concat(?, '%') ";
       paramArr.push(query.roleName);
     }
     if (query.status) {
@@ -86,7 +86,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       paramArr.push(query.status);
     }
     if (query.roleKey) {
-      sqlStr += " and r.role_key like concat('%', ?, '%') ";
+      sqlStr += " and r.role_key like concat(?, '%') ";
       paramArr.push(query.roleKey);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
@@ -123,10 +123,10 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     // 分页
     sqlStr += ' order by r.role_sort asc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -150,11 +150,11 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       paramArr.push(sysRole.roleId);
     }
     if (sysRole.roleKey) {
-      sqlStr += " and r.role_key like concat('%', ?, '%') ";
+      sqlStr += " and r.role_key like concat(?, '%') ";
       paramArr.push(sysRole.roleKey);
     }
     if (sysRole.roleName) {
-      sqlStr += " and r.role_name like concat('%', ?, '%') ";
+      sqlStr += " and r.role_name like concat(?, '%') ";
       paramArr.push(sysRole.roleName);
     }
     if (sysRole.status) {

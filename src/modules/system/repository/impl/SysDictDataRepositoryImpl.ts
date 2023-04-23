@@ -7,7 +7,7 @@ import { SysDictData } from '../../model/SysDictData';
 
 /**查询视图对象SQL */
 const SELECT_DICT_DATA_VO = `select 
-dict_code, dict_sort, dict_label, dict_value, dict_type, css_class, list_class, is_default, status, create_by, create_time, remark 
+dict_code, dict_sort, dict_label, dict_value, dict_type, tag_class, tag_type, status, create_by, create_time, remark 
 from sys_dict_data
 `;
 
@@ -18,9 +18,8 @@ SYS_DICT_DATA_RESULT.set('dict_sort', 'dictSort');
 SYS_DICT_DATA_RESULT.set('dict_label', 'dictLabel');
 SYS_DICT_DATA_RESULT.set('dict_value', 'dictValue');
 SYS_DICT_DATA_RESULT.set('dict_type', 'dictType');
-SYS_DICT_DATA_RESULT.set('css_class', 'cssClass');
-SYS_DICT_DATA_RESULT.set('list_class', 'listClass');
-SYS_DICT_DATA_RESULT.set('is_default', 'isDefault');
+SYS_DICT_DATA_RESULT.set('tag_class', 'tagClass');
+SYS_DICT_DATA_RESULT.set('tag_type', 'tagType');
 SYS_DICT_DATA_RESULT.set('status', 'status');
 SYS_DICT_DATA_RESULT.set('remark', 'remark');
 SYS_DICT_DATA_RESULT.set('create_by', 'createBy');
@@ -68,7 +67,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramArr.push(query.dictType);
     }
     if (query.dictLabel) {
-      sqlStr += " and dict_label like concat('%', ?, '%') ";
+      sqlStr += " and dict_label like concat(?, '%') ";
       paramArr.push(query.dictLabel);
     }
     if (query.status) {
@@ -77,21 +76,22 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     }
 
     // 查询条件数 长度必为0其值为0
-    const countRow: { total: number }[] = await this.db.execute(
+    const countRow: RowTotalType[] = await this.db.execute(
       `select count(1) as 'total' from sys_dict_data where 1 = 1 ${sqlStr}`,
       paramArr
     );
-    if (countRow[0].total <= 0) {
+    const total = parseNumber(countRow[0].total);
+    if (total <= 0) {
       return { total: 0, rows: [] };
     }
 
     // 分页
     sqlStr += ' order by dict_sort asc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -101,7 +101,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramArr
     );
     const rows = parseSysDictDataResult(results);
-    return { total: countRow[0].total, rows };
+    return { total, rows };
   }
 
   async selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]> {
@@ -113,7 +113,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramArr.push(sysDictData.dictType);
     }
     if (sysDictData.dictLabel) {
-      sqlStr += " and dict_label like concat('%', ?, '%') ";
+      sqlStr += " and dict_label like concat(?, '%') ";
       paramArr.push(sysDictData.dictLabel);
     }
     if (sysDictData.status) {
@@ -140,7 +140,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return rows[0].str || null;
   }
 
-  async selectDictDataById(dictCode: string): Promise<SysDictData> {
+  async selectDictDataByCode(dictCode: string): Promise<SysDictData> {
     const sqlStr = `${SELECT_DICT_DATA_VO} where dict_code = ?`;
     const rows = await this.db.execute(sqlStr, [dictCode]);
 
@@ -180,7 +180,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return rows.length > 0 ? rows[0].str : null;
   }
 
-  async deleteDictDataByIds(dictCodes: string[]): Promise<number> {
+  async deleteDictDataByCodes(dictCodes: string[]): Promise<number> {
     const sqlStr = `delete from sys_dict_data where dict_code in (${dictCodes
       .map(() => '?')
       .join(',')})`;
@@ -202,11 +202,11 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     if (sysDictData.dictType) {
       paramMap.set('dict_type', sysDictData.dictType);
     }
-    if (sysDictData.listClass) {
-      paramMap.set('list_class', sysDictData.listClass);
+    if (sysDictData.tagClass) {
+      paramMap.set('tag_class', sysDictData.tagClass);
     }
-    if (sysDictData.isDefault) {
-      paramMap.set('is_default', sysDictData.isDefault);
+    if (sysDictData.tagType) {
+      paramMap.set('tag_type', sysDictData.tagType);
     }
     if (sysDictData.status) {
       paramMap.set('status', parseNumber(sysDictData.status));
@@ -242,14 +242,11 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     if (sysDictData.dictType) {
       paramMap.set('dict_type', sysDictData.dictType);
     }
-    if (sysDictData.cssClass) {
-      paramMap.set('css_class', sysDictData.cssClass);
+    if (sysDictData.tagClass) {
+      paramMap.set('tag_class', sysDictData.tagClass);
     }
-    if (sysDictData.listClass) {
-      paramMap.set('list_class', sysDictData.listClass);
-    }
-    if (sysDictData.isDefault) {
-      paramMap.set('is_default', sysDictData.isDefault);
+    if (sysDictData.tagType) {
+      paramMap.set('tag_type', sysDictData.tagType);
     }
     if (sysDictData.status) {
       paramMap.set('status', parseNumber(sysDictData.status));

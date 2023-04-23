@@ -1,8 +1,29 @@
 {
   "name": "mask_api_midwayjs",
-  "version": "0.0.5",
-  "description": "🎉 基于 Midwayjs 的管理系统后端接口服务",
   "private": true,
+  "version": "0.1.1",
+  "description": "🎉 基于 Midwayjs 的管理系统后端接口服务",
+  "author": "TsMask",
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/TsMask/mask_api_midwayjs"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "start:docker": "NODE_ENV=production pm2-runtime start ./bootstrap.js --name mask_api -i 2",
+    "start:pm2": "NODE_ENV=production pm2 start ./bootstrap.js --name mask_api -i 2",
+    "start": "NODE_ENV=production node ./bootstrap.js",
+    "dev": "cross-env NODE_ENV=local midway-bin dev --ts",
+    "test": "midway-bin test --ts",
+    "cov": "midway-bin cov --ts",
+    "lint": "mwts check",
+    "lint:fix": "mwts fix",
+    "ci": "npm run cov",
+    "build": "midway-bin build -c"
+  },
   "dependencies": {
     "@dropb/diskinfo": "^3.0.0",
     "@midwayjs/bootstrap": "^3.0.0",
@@ -42,29 +63,8 @@
     "ts-jest": "^28.0.0",
     "typescript": "^4.0.0"
   },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "scripts": {
-    "start:docker": "NODE_ENV=production pm2-runtime start ./bootstrap.js --name mask_api -i 2",
-    "start:pm2": "NODE_ENV=production pm2 start ./bootstrap.js --name mask_api -i 2",
-    "start": "NODE_ENV=production node ./bootstrap.js",
-    "dev": "cross-env NODE_ENV=local midway-bin dev --ts",
-    "test": "midway-bin test --ts",
-    "cov": "midway-bin cov --ts",
-    "lint": "mwts check",
-    "lint:fix": "mwts fix",
-    "ci": "npm run cov",
-    "build": "midway-bin build -c"
-  },
   "midway-bin-clean": [
     ".vscode/.tsbuildinfo",
     "dist"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://gitee.com/TsMask/mask_api_midwayjs"
-  },
-  "author": "TsMask",
-  "license": "MIT"
+  ]
 }

@@ -16,7 +16,6 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictTypeServiceImpl } from '../service/impl/SysDictTypeServiceImpl';
 import { SysDictType } from '../model/SysDictType';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 字典类型信息
@@ -47,9 +46,10 @@ export class SysDictTypeController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysDictTypeService.selectDictTypePage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysDictType) => {
@@ -57,7 +57,7 @@ export class SysDictTypeController {
           字典主键: cur.dictId,
           字典名称: cur.dictName,
           字典类型: cur.dictType,
-          状态: cur.status === STATUS_YES ? '正常' : '停用',
+          状态: ['停用', '正常'][+cur.status],
         });
         return pre;
       },
@@ -189,7 +189,7 @@ export class SysDictTypeController {
   /**
    * 字典类型刷新缓存
    */
-  @Del('/refreshCache')
+  @Put('/refreshCache')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperLog({
     title: '字典类型信息',
@@ -203,12 +203,19 @@ export class SysDictTypeController {
   /**
    * 字典类型选择框列表
    */
-  @Get('/optionselect')
+  @Get('/getDictOptionselect')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
-  async optionselect() {
+  async getDictOptionselect() {
     const data = await this.sysDictTypeService.selectDictTypeList(
       new SysDictType()
     );
-    return Result.okData(data || []);
+    let labelValueObj: { label: string; value: any }[] = [];
+    if (data && data.length > 0) {
+      labelValueObj = data.map(item => ({
+        label: item.dictName,
+        value: item.dictType,
+      }));
+    }
+    return Result.okData(labelValueObj);
   }
 }

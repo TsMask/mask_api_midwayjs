@@ -69,7 +69,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.title) {
-      sqlStr += " and title like concat('%', ?, '%') ";
+      sqlStr += " and title like concat(?, '%') ";
       paramArr.push(query.title);
     }
     if (query.businessType) {
@@ -81,7 +81,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
       paramArr.push(query.status);
     }
     if (query.operName) {
-      sqlStr += " and oper_name like concat('%', ?, '%') ";
+      sqlStr += " and oper_name like concat(?, '%') ";
       paramArr.push(query.operName);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
@@ -109,10 +109,10 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     // 分页
     sqlStr += ' order by oper_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -129,7 +129,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysOperLog.title) {
-      sqlStr += " and title like concat('%', ?, '%') ";
+      sqlStr += " and title like concat(?, '%') ";
       paramArr.push(sysOperLog.title);
     }
     if (sysOperLog.businessType) {
@@ -141,7 +141,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
       paramArr.push(sysOperLog.status);
     }
     if (sysOperLog.operName) {
-      sqlStr += " and oper_name like concat('%', ?, '%') ";
+      sqlStr += " and oper_name like concat(?, '%') ";
       paramArr.push(sysOperLog.operName);
     }
 

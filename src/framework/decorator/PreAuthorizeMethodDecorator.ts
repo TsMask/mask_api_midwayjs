@@ -6,6 +6,7 @@ import {
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
+import { TOKEN_HEADER } from '../constants/TokenConstants';
 import { LoginUser } from '../model/LoginUser';
 import { TokenService } from '../service/TokenService';
 
@@ -54,9 +55,8 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
         TokenService
       );
 
-      // 从本地配置获取token在请求头标识信息
-      const jwtHeader = ctx.app.getConfig('jwtHeader');
-      const token = await tokenService.getHeaderToken(ctx.get(jwtHeader));
+      // 获取token在请求头标识信息
+      const token = await tokenService.getHeaderToken(ctx.get(TOKEN_HEADER));
       if (!token) {
         throw new UnauthorizedError('无效授权');
       }
@@ -81,7 +81,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
           metadataObj
         );
         if (!verifyOk) {
-          throw new ForbiddenError(`${ctx.method} ${ctx.path} ，无权访问`);
+          throw new ForbiddenError(`${ctx.method} ${ctx.path} 无权访问`);
         }
       }
 
@@ -114,32 +114,27 @@ function verifyRolePermission(
   // 只需含有其中角色
   let hasRole = false;
   if (metadata.hasRoles && metadata.hasRoles.length > 0) {
-    hasRole = metadata.hasRoles.some(key => roles.some(r => r === key));
+    hasRole = metadata.hasRoles.some(r => roles.some(ur => ur === r));
   }
   // 只需含有其中权限
   let hasPermission = false;
   if (metadata.hasPermissions && metadata.hasPermissions.length > 0) {
-    hasPermission = metadata.hasPermissions.some(key =>
-      permissions.some(r => r === key)
+    hasPermission = metadata.hasPermissions.some(p =>
+      permissions.some(up => up === p)
     );
   }
   // 同时匹配其中角色
   let matchRoles = false;
   if (metadata.matchRoles && metadata.matchRoles.length > 0) {
-    matchRoles = metadata.matchRoles.every(key => roles.some(r => r === key));
+    matchRoles = metadata.matchRoles.every(r => roles.some(ur => ur === r));
   }
   // 同时匹配其中权限
   let matchPermissions = false;
   if (metadata.matchPermissions && metadata.matchPermissions.length > 0) {
-    matchPermissions = metadata.matchPermissions.every(key =>
-      permissions.some(r => r === key)
+    matchPermissions = metadata.matchPermissions.every(p =>
+      permissions.some(up => up === p)
     );
   }
-
-  console.log('\nPreAuthorize   ================ ');
-  console.log('PreAuthorize   has ', hasRole, hasPermission);
-  console.log('PreAuthorize mathc ', matchRoles, matchPermissions);
-  console.log('PreAuthorize   ================ \n');
 
   // 同时判断 只需含有其中
   if (metadata.hasRoles && metadata.hasPermissions) {
@@ -156,5 +151,5 @@ function verifyRolePermission(
   if (metadata.hasPermissions && metadata.matchRoles) {
     return hasPermission && matchRoles;
   }
-  return hasRole || hasPermission || hasPermission || matchRoles;
+  return hasRole || hasPermission || matchRoles || matchPermissions;
 }

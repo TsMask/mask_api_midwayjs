@@ -163,4 +163,18 @@ export class SysDeptController {
     const rows = await this.sysDeptService.deleteDeptById(deptId);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
+
+  /**
+   * 部门下拉树列表
+   */
+  @Get('/treeSelect')
+  @PreAuthorize({ hasPermissions: ['system:dept:list', 'system:user:list'] })
+  async treeSelect(@Query() sysDept: SysDept): Promise<Result> {
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    const data = await this.sysDeptService.selectDeptTreeList(
+      sysDept,
+      dataScopeSQL
+    );
+    return Result.okData(data || []);
+  }
 }

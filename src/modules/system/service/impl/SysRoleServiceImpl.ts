@@ -109,7 +109,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
 
   async insertRole(sysRole: SysRole): Promise<string> {
     const insertId = await this.sysRoleRepository.insertRole(sysRole);
-    if (insertId) {
+    if (insertId && sysRole.menuIds) {
       sysRole.roleId = insertId;
       await this.insertRoleMenu(sysRole);
       return insertId;
@@ -135,17 +135,14 @@ export class SysRoleServiceImpl implements ISysRoleService {
    * @param sysRole 角色对象
    */
   private async insertRoleMenu(sysRole: SysRole): Promise<number> {
-    const sysRoleMenus: SysRoleMenu[] = [];
-    for (const menuId of sysRole.menuIds) {
-      const rm = new SysRoleMenu();
-      rm.roleId = sysRole.roleId;
-      rm.menuId = menuId;
-      sysRoleMenus.push(rm);
-    }
-    if (sysRoleMenus.length > 0) {
-      return await this.sysRoleMenuRepository.batchRoleMenu(sysRoleMenus);
-    }
-    return 0;
+    if (sysRole.menuIds && sysRole.menuIds.length <= 0) return 0;
+    const sysRoleMenus: SysRoleMenu[] = sysRole.menuIds.map(menuId => {
+      if (menuId) {
+        return new SysRoleMenu(sysRole.roleId, menuId);
+      }
+    });
+    if (sysRoleMenus.length <= 0) return 0;
+    return await this.sysRoleMenuRepository.batchRoleMenu(sysRoleMenus);
   }
 
   async authDataScope(sysRole: SysRole): Promise<number> {
@@ -154,15 +151,14 @@ export class SysRoleServiceImpl implements ISysRoleService {
     await this.sysRoleDeptRepository.deleteRoleDept([roleId]);
     // 新增角色和部门信息（数据权限）
     if (sysRole.deptIds && sysRole.deptIds.length > 0) {
-      // 新增角色与部门（数据权限）管理
-      const sysRoleDepts: SysRoleDept[] = [];
-      for (const deptId of sysRole.deptIds) {
-        const rd = new SysRoleDept();
-        rd.roleId = roleId;
-        rd.deptId = deptId;
-        sysRoleDepts.push(rd);
+      const sysRoleDepts: SysRoleDept[] = sysRole.deptIds.map(deptId => {
+        if (deptId) {
+          return new SysRoleDept(roleId, deptId);
+        }
+      });
+      if (sysRoleDepts.length > 0) {
+        await this.sysRoleDeptRepository.batchRoleDept(sysRoleDepts);
       }
-      await this.sysRoleDeptRepository.batchRoleDept(sysRoleDepts);
     }
     // 修改角色信息
     return await this.sysRoleRepository.updateRole(sysRole);
@@ -199,14 +195,14 @@ export class SysRoleServiceImpl implements ISysRoleService {
     );
   }
   async insertAuthUsers(roleId: string, userIds: string[]): Promise<number> {
+    if (userIds && userIds.length <= 0) return 0;
     // 新增用户与角色管理
-    const sysUserRoles: SysUserRole[] = [];
-    for (const userId of userIds) {
-      const ur = new SysUserRole();
-      ur.userId = userId;
-      ur.roleId = roleId;
-      sysUserRoles.push(ur);
-    }
+    const sysUserRoles: SysUserRole[] = userIds.map(userId => {
+      if (userId) {
+        return new SysUserRole(userId, roleId);
+      }
+    });
+    if (sysUserRoles.length <= 0) return 0;
     return await this.sysUserRoleRepository.batchUserRole(sysUserRoles);
   }
 }

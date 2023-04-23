@@ -34,12 +34,12 @@ export function parseStrToDate(
 
 /**
  * 格式时间
- * @param date Date对象
+ * @param date 可转的Date对象
  * @param formatStr 时间格式 默认YYYY-MM-DD HH:mm:ss
  * @returns 时间格式字符串
  */
 export function parseDateToStr(
-  date: Date,
+  date: string | number | Date,
   formatStr: string = YYYY_MM_DD_HH_MM_SS
 ): string {
   return dayjs(date).format(formatStr);

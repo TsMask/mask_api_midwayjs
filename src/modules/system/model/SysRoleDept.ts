@@ -9,4 +9,10 @@ export class SysRoleDept {
 
   /**部门ID */
   deptId: string;
+
+  constructor(roleId: string, deptId: string) {
+    this.roleId = roleId;
+    this.deptId = deptId;
+    return this;
+  }
 }

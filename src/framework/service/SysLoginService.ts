@@ -19,6 +19,7 @@ import {
 } from '../constants/CommonConstants';
 import { LoginBodyVo } from '../../modules/system/model/vo/LoginBodyVo';
 import { SysUser } from '../../modules/system/model/SysUser';
+import { TOKEN_HEADER } from '../constants/TokenConstants';
 
 /**
  * 登录校验方法
@@ -49,17 +50,14 @@ export class SysLoginService {
    * 登出清除token
    */
   async logout(): Promise<void> {
-    // 从本地配置获取token在请求头标识信息
-    const jwtHeader = this.contextService.getConfig('jwtHeader');
-    const headerToken = this.contextService.getContext().get(jwtHeader);
-    const token = await this.tokenService.getHeaderToken(headerToken);
+    // 获取token在请求头标识信息
+    const ctx = this.contextService.getContext();
+    const token = await this.tokenService.getHeaderToken(ctx.get(TOKEN_HEADER));
     if (!token) return;
 
     // 存在token时记录退出信息
     const userName = await this.tokenService.removeToken(token);
     if (userName) {
-      const msg = `登录用户：${userName} 退出成功`;
-      this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_YES,
         '退出成功',
@@ -95,8 +93,6 @@ export class SysLoginService {
     );
     // 记录登录信息
     await this.recordLoginInfo(loginUser.userId);
-    const msg = `登录用户：${loginBodyVo.username} 登录成功`;
-    this.contextService.getLogger().info(msg);
     const sysLogininfor = await this.contextService.newSysLogininfor(
       STATUS_YES,
       '登录成功',
@@ -126,11 +122,9 @@ export class SysLoginService {
     await this.redisCache.del(verifyKey);
     if (!captcha) {
       // 验证码失效
-      const msg = `登录用户：${username} 验证码失效 ${code}`;
-      this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_NO,
-        msg,
+        `验证码失效 ${code}`,
         username
       );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
@@ -138,11 +132,9 @@ export class SysLoginService {
     }
     if (code !== captcha) {
       // 验证码错误
-      const msg = `登录用户：${username} 验证码错误 ${code}`;
-      this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_NO,
-        msg,
+        `验证码错误 ${code}`,
         username
       );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
@@ -262,11 +254,9 @@ export class SysLoginService {
         errCount,
         parseNumber(lockTime) * 60
       );
-      const msg = `密码输入错误 ${errCount} 次`;
-      this.contextService.getLogger().info(msg);
       const sysLogininfor = await this.contextService.newSysLogininfor(
         STATUS_NO,
-        msg,
+        `密码输入错误 ${errCount} 次`,
         loginName
       );
       await this.sysLogininforService.insertLogininfor(sysLogininfor);

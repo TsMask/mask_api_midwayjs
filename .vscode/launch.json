@@ -11,7 +11,15 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+<<<<<<< HEAD
             "program": "${workspaceFolder}\\bootstrap.js"
+=======
+            "program": "${workspaceFolder}\\bootstrap.js",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ]
+>>>>>>> develop
         }
     ]
 }

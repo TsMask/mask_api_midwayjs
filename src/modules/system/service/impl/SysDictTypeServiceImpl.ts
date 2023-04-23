@@ -31,6 +31,15 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     await this.resetDictCache();
   }
 
+  /**
+   * 设置cache key
+   * @param dictType 字典类型
+   * @return 缓存键key
+   */
+  private cacheKey(dictType: string): string {
+    return SYS_DICT_KEY + dictType;
+  }
+
   async selectDictTypePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysDictTypeRepository.selectDictTypePage(query);
   }
@@ -114,6 +123,27 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     return await this.sysDictTypeRepository.deleteDictTypeByIds(dictIds);
   }
 
+  async getDictCache(dictType: string): Promise<SysDictData[]> {
+    const key = this.cacheKey(dictType);
+    let data: SysDictData[] = [];
+    const str = await this.redisCache.get(key);
+    if (str && str.length > 7) {
+      // 反序列化得到数组数据
+      data = JSON.parse(str);
+    } else {
+      // 查询类型字典数据放入缓存
+      const sysDictData = new SysDictData();
+      sysDictData.status = STATUS_YES;
+      sysDictData.dictType = dictType;
+      data = await this.sysDictDataRepository.selectDictDataList(sysDictData);
+      if (data && data.length > 0) {
+        await this.redisCache.del(key);
+        await this.redisCache.set(key, JSON.stringify(data));
+      }
+    }
+    return data;
+  }
+
   async loadingDictCache(dictType?: string): Promise<void> {
     const sysDictData = new SysDictData();
     sysDictData.status = STATUS_YES;
@@ -122,31 +152,31 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
       sysDictData.dictType = dictType;
       await this.redisCache.del(SYS_DICT_KEY + dictType);
     }
-    const dictDatas = await this.sysDictDataRepository.selectDictDataList(
+    const sysDictDataList = await this.sysDictDataRepository.selectDictDataList(
       sysDictData
     );
     // 查询字典数据为0时不初始字典类型缓存
-    if (dictDatas.length <= 0) return;
+    if (sysDictDataList && sysDictDataList.length <= 0) return;
     // 将字典数据根据类型遍历分组
-    const dictDatasObj = dictDatas.reduce((pre, cur) => {
-      const key = cur.dictType;
-      if (!Object.prototype.hasOwnProperty.call(pre, key)) {
-        pre[key] = [];
-      }
-      pre[key].push(cur);
-      return pre;
-    }, {});
-    // 把组数据进行缓存
-    for (const key in dictDatasObj) {
-      if (Object.prototype.hasOwnProperty.call(dictDatasObj, key)) {
-        const element = dictDatasObj[key];
-        await this.redisCache.set(SYS_DICT_KEY + key, JSON.stringify(element));
+    const map = new Map<string, SysDictData[]>();
+    for (const dict of sysDictDataList) {
+      const key = dict.dictType;
+      const item = map.get(key);
+      if (item && item.length > 0) {
+        item.push(dict);
+        map.set(key, item);
+      } else {
+        map.set(key, [dict]);
       }
     }
+    // 放入缓存
+    map.forEach((values, key) => {
+      this.redisCache.set(this.cacheKey(key), JSON.stringify(values));
+    });
   }
 
   async clearDictCache(dictType = '*'): Promise<number> {
-    const key = SYS_DICT_KEY + dictType;
+    const key = this.cacheKey(dictType);
     const keys = await this.redisCache.getKeys(key);
     return await this.redisCache.delKeys(keys);
   }

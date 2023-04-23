@@ -8,13 +8,10 @@ import {
   Param,
   Post,
   Put,
-  Query,
 } from '@midwayjs/decorator';
 import { Result } from '../../../framework/model/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { SysDept } from '../model/SysDept';
-import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 import { SysPost } from '../model/SysPost';
@@ -32,10 +29,8 @@ import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
-import { SysDictData } from '../model/SysDictData';
 import { SysRole } from '../model/SysRole';
 import { SysUser } from '../model/SysUser';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 用户信息
@@ -52,9 +47,6 @@ export class SysUserController {
 
   @Inject()
   private sysUserService: SysUserServiceImpl;
-
-  @Inject()
-  private sysDeptService: SysDeptServiceImpl;
 
   @Inject()
   private sysRoleService: SysRoleServiceImpl;
@@ -76,7 +68,10 @@ export class SysUserController {
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set('Content-disposition', `attachment;filename=${fileName}`);
+    ctx.set(
+      'Content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
     return await this.fileService.readAssetsFile(
       '/template/excel/user_import_template.xlsx'
     );
@@ -98,8 +93,9 @@ export class SysUserController {
       files[0].data,
       files[0].filename
     );
-    if (sheetItemArr.length <= 0)
+    if (sheetItemArr.length <= 0) {
       return Result.errMsg('导入用户数据不能为空！');
+    }
     // 获取操作人名称
     const operName = this.contextService.getUseName();
     const message = await this.sysUserService.importUser(
@@ -121,20 +117,19 @@ export class SysUserController {
     // 查询结果，根据查询条件结果，单页最大值限制
     const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysUserService.selectUserPage(query, dataScopeSQL);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
     // 读取用户性别字典数据
-    const sysUserSexSDD = new SysDictData();
-    sysUserSexSDD.dictType = 'sys_user_sex';
-    const sysUserSexSDDList = await this.sysDictDataService.selectDictDataList(
-      sysUserSexSDD
+    const dictSysUserSex = await this.sysDictDataService.selectDictDataByType(
+      'sys_user_sex'
     );
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysUser) => {
-        const sysUserSex = sysUserSexSDDList.find(
-          sdd => sdd.dictValue === cur.sex
+        const sysUserSex = dictSysUserSex.find(
+          item => item.dictValue === cur.sex
         );
         pre.push({
           用户序号: cur.userId,
@@ -143,18 +138,18 @@ export class SysUserController {
           用户邮箱: cur.email,
           手机号码: cur.phonenumber,
           用户性别: sysUserSex.dictLabel,
-          帐号状态: cur.status === STATUS_YES ? '正常' : '停用',
+          帐号状态: ['停用', '正常'][+cur.status],
           最后登录IP: cur.loginIp,
-          最后登录时间: parseDateToStr(new Date(+cur.loginDate)),
-          部门名称: cur?.dept?.deptName,
-          部门负责人: cur?.dept?.leader,
+          最后登录时间: parseDateToStr(+cur.loginDate),
+          部门名称: cur?.dept?.deptName ?? '',
+          部门负责人: cur?.dept?.leader ?? '',
         });
         return pre;
       },
       []
     );
     // 导出数据表格
-    const fileName = `user_export_${rows.length}_${Date.now()}.xlsx`;
+    const fileName = `user_export_${data.total}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -335,6 +330,7 @@ export class SysUserController {
       }
     }
 
+    sysUser.password = ''; // 忽略修改密码
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUserAndRolePost(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
@@ -412,65 +408,5 @@ export class SysUserController {
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUser(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
-  }
-
-  /**
-   * 用户授权角色信息
-   */
-  @Get('/authRole/:userId')
-  @PreAuthorize({ hasPermissions: ['system:user:query'] })
-  async authRoleInfo(@Param('userId') userId: string): Promise<Result> {
-    // 修改的用户ID是否可用
-    if (!userId) return Result.err();
-    const user = await this.sysUserService.selectUserById(userId);
-    if (!user) {
-      return Result.errMsg('没有权限访问用户数据！');
-    }
-    delete user.password;
-    // 不是系统指定管理员需要排除其角色
-    let roles = await this.sysRoleService.selectRolesByUserId(userId);
-    if (!this.contextService.isAdmin(userId)) {
-      roles = roles.filter(r => r.roleId !== ADMIN_ROLE_ID);
-    }
-    return Result.ok({
-      user,
-      roles,
-    });
-  }
-
-  /**
-   * 用户授权角色修改
-   */
-  @Put('/authRole')
-  @PreAuthorize({ hasPermissions: ['system:user:edit'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.GRANT })
-  async authRoleAdd(
-    @Body('userId') userId: string,
-    @Body('roleIds') roleIds: string
-  ): Promise<Result> {
-    if (!userId) return Result.err();
-    // 处理字符转id数组
-    const ids = roleIds.split(',');
-    if (ids.length <= 0) return Result.err();
-    const user = await this.sysUserService.selectUserById(userId);
-    if (!user) {
-      return Result.errMsg('没有权限访问用户数据！');
-    }
-    await this.sysUserService.insertAserAuth(userId, [...new Set(ids)]);
-    return Result.ok();
-  }
-
-  /**
-   * 用户部门树列表
-   */
-  @Get('/deptTree')
-  @PreAuthorize({ hasPermissions: ['system:user:list'] })
-  async deptTree(@Query() sysDept: SysDept): Promise<Result> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
-    const data = await this.sysDeptService.selectDeptTreeList(
-      sysDept,
-      dataScopeSQL
-    );
-    return Result.okData(data || []);
   }
 }

@@ -60,7 +60,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.noticeTitle) {
-      sqlStr += " and notice_title like concat('%', ?, '%') ";
+      sqlStr += " and notice_title like concat(?, '%') ";
       paramArr.push(query.noticeTitle);
     }
     if (query.noticeType) {
@@ -68,7 +68,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramArr.push(query.noticeType);
     }
     if (query.createBy) {
-      sqlStr += " and create_by like concat('%', ?, '%') ";
+      sqlStr += " and create_by like concat(?, '%') ";
       paramArr.push(query.createBy);
     }
 
@@ -84,10 +84,10 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     // 分页
     sqlStr += ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -105,7 +105,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     const paramArr = [];
     // 查询条件拼接
     if (sysNotice.noticeTitle) {
-      sqlStr += " and notice_title like concat('%', ?, '%') ";
+      sqlStr += " and notice_title like concat(?, '%') ";
       paramArr.push(sysNotice.noticeTitle);
     }
     if (sysNotice.noticeType) {
@@ -113,7 +113,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramArr.push(sysNotice.noticeType);
     }
     if (sysNotice.createBy) {
-      sqlStr += " and create_by like concat('%', ?, '%') ";
+      sqlStr += " and create_by like concat(?, '%') ";
       paramArr.push(sysNotice.createBy);
     }
 

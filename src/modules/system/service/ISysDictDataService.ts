@@ -32,12 +32,20 @@ export interface ISysDictDataService {
   selectDictLabel(dictType: string, dictValue: string): Promise<string>;
 
   /**
-   * 根据字典数据ID查询信息
+   * 根据字典数据编码查询信息
    *
-   * @param dictCode 字典数据ID
+   * @param dictCode 字典数据编码
    * @return 字典数据
    */
-  selectDictDataById(dictCode: string): Promise<SysDictData>;
+  selectDictDataByCode(dictCode: string): Promise<SysDictData>;
+
+  /**
+   * 根据字典类型查询信息
+   *
+   * @param dictType 字典数据类型
+   * @return 字典数据
+   */
+  selectDictDataByType(dictType: string): Promise<SysDictData[]>;
 
   /**
    * 校验字典标签是否唯一
@@ -76,5 +84,5 @@ export interface ISysDictDataService {
    *
    * @param dictCodes 需要删除的字典数据ID
    */
-  deleteDictDataByIds(dictCodes: string[]): Promise<number>;
+  deleteDictDataByCodes(dictCodes: string[]): Promise<number>;
 }

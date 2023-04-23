@@ -1,4 +1,12 @@
-import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/decorator';
+import {
+  Controller,
+  Inject,
+  Get,
+  Param,
+  Del,
+  Post,
+  Put,
+} from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import { Result } from '../../../framework/model/Result';
@@ -9,7 +17,6 @@ import { FileService } from '../../../framework/service/FileService';
 import { SysLoginService } from '../../../framework/service/SysLoginService';
 import { SysLogininfor } from '../model/SysLogininfor';
 import { SysLogininforServiceImpl } from '../service/impl/SysLogininforServiceImpl';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 系统访问记录信息
@@ -43,29 +50,30 @@ export class SysLogininforController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysLogininforService.selectLogininforPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysLogininfor) => {
         pre.push({
           序号: cur.infoId,
           用户账号: cur.userName,
-          登录状态: cur.status === STATUS_YES ? '正常' : '异常',
+          登录状态: ['失败', '成功'][+cur.status],
           登录地址: cur.ipaddr,
           登录地点: cur.loginLocation,
           浏览器: cur.browser,
           操作系统: cur.os,
           提示消息: cur.msg,
-          访问时间: parseDateToStr(new Date(+cur.loginTime)),
+          访问时间: parseDateToStr(+cur.loginTime),
         });
         return pre;
       },
       []
     );
     // 导出数据表格
-    const fileName = `logininfor_export_${rows.length}_${Date.now()}.xlsx`;
+    const fileName = `logininfor_export_${data.total}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -129,7 +137,7 @@ export class SysLogininforController {
   /**
    * 账户解锁
    */
-  @Del('/unlock/:userName')
+  @Put('/unlock/:userName')
   @PreAuthorize({ hasPermissions: ['monitor:logininfor:unlock'] })
   @OperLog({ title: '账户解锁', businessType: OperatorBusinessTypeEnum.CLEAN })
   async unlock(@Param('userName') userName: string): Promise<Result> {

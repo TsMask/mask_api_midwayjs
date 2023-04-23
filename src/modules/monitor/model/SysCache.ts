@@ -22,10 +22,23 @@ export class SysCache {
    * @param remark 备注
    */
   public newCacheNR(cacheName: string, remark: string) {
-    this.cacheName = cacheName;
+    this.cacheName = cacheName.replace(':', '');
     this.cacheKey = '';
     this.cacheValue = '';
     this.remark = remark;
+    return this;
+  }
+
+  /**
+   * 实例new函数
+   * @param cacheName 缓存名称
+   * @param cacheKey 缓存键名
+   */
+  public newCacheNK(cacheName: string, cacheKey: string) {
+    this.cacheName = cacheName.replace(':', '');
+    this.cacheKey = cacheKey.replace(cacheName, '');
+    this.cacheValue = '';
+    this.remark = '';
     return this;
   }
 

@@ -62,7 +62,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.jobName) {
-      sqlStr += " and job_name like concat('%', ?, '%') ";
+      sqlStr += " and job_name like concat(?, '%') ";
       paramArr.push(query.jobName);
     }
     if (query.jobGroup) {
@@ -74,7 +74,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramArr.push(query.status);
     }
     if (query.invokeTarget) {
-      sqlStr += " and invoke_target like concat('%', ?, '%') ";
+      sqlStr += " and invoke_target like concat(?, '%') ";
       paramArr.push(query.invokeTarget);
     }
 
@@ -90,10 +90,10 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     // 分页
     sqlStr += ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -110,7 +110,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysJob.jobName) {
-      sqlStr += " and job_name like concat('%', ?, '%') ";
+      sqlStr += " and job_name like concat(?, '%') ";
       paramArr.push(sysJob.jobName);
     }
     if (sysJob.jobGroup) {
@@ -122,7 +122,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramArr.push(sysJob.status);
     }
     if (sysJob.invokeTarget) {
-      sqlStr += " and invoke_target like concat('%', ?, '%') ";
+      sqlStr += " and invoke_target like concat(?, '%') ";
       paramArr.push(sysJob.invokeTarget);
     }
 
@@ -144,6 +144,16 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     const sqlStr = `${SELECT_JOB_VO} where job_id = ? `;
     const rows = await this.db.execute(sqlStr, [jobId]);
     return parseSysJobResult(rows)[0] || null;
+  }
+
+  async checkUniqueJob(jobName: string, jobGroup: string): Promise<string> {
+    const sqlStr =
+      "select job_id as 'str' from sys_job where job_name = ? and job_group = ? limit 1";
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
+      jobName,
+      jobGroup,
+    ]);
+    return rows.length > 0 ? rows[0].str : null;
   }
 
   async insertJob(sysJob: SysJob): Promise<string> {

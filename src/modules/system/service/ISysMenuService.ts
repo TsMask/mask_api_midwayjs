@@ -64,9 +64,10 @@ export interface ISysMenuService {
    * 构建前端路由所需要的菜单
    *
    * @param sysMenus 菜单列表
+   * @param prefix 菜单重定向路径前缀
    * @return 路由列表
    */
-  buildRouteMenus(sysMenus: SysMenu[]): Promise<RouterVo[]>;
+  buildRouteMenus(sysMenus: SysMenu[], prefix?: string): Promise<RouterVo[]>;
 
   /**
    * 根据菜单ID查询信息
@@ -123,4 +124,12 @@ export interface ISysMenuService {
    * @return 结果
    */
   checkUniqueNenuName(sysMenu: SysMenu): Promise<boolean>;
+
+  /**
+   * 校验路由地址是否唯一（针对目录和菜单）
+   *
+   * @param sysMenu 菜单信息
+   * @return 结果
+   */
+  checkUniqueNenuPath(sysMenu: SysMenu): Promise<boolean>;
 }

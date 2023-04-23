@@ -43,6 +43,19 @@ export class SysJobServiceImpl implements ISysJobService {
   async selectJobById(jobId: string): Promise<SysJob> {
     return await this.sysJobRepository.selectJobById(jobId);
   }
+
+  async checkUniqueJob(sysJob: SysJob): Promise<boolean> {
+    const jobId = await this.sysJobRepository.checkUniqueJob(
+      sysJob.jobName,
+      sysJob.jobGroup
+    );
+    // 任务数据与查询得到任务id一致
+    if (jobId && sysJob.jobId === jobId) {
+      return true;
+    }
+    return !jobId;
+  }
+
   async insertJob(sysJob: SysJob): Promise<string> {
     const insertId = await this.sysJobRepository.insertJob(sysJob);
     if (insertId && sysJob.status === STATUS_YES) {
@@ -51,6 +64,7 @@ export class SysJobServiceImpl implements ISysJobService {
     }
     return insertId;
   }
+
   async updateJob(sysJob: SysJob): Promise<number> {
     const rows = await this.sysJobRepository.updateJob(sysJob);
     if (rows > 0) {
@@ -66,6 +80,7 @@ export class SysJobServiceImpl implements ISysJobService {
     }
     return rows;
   }
+
   async deleteJobByIds(jobIds: string[]): Promise<number> {
     for (const jobId of jobIds) {
       // 检查是否存在
@@ -93,6 +108,7 @@ export class SysJobServiceImpl implements ISysJobService {
     newSysJob.updateBy = sysJob.updateBy;
     return (await this.sysJobRepository.updateJob(newSysJob)) > 0;
   }
+
   async insertQueueJob(sysJob: SysJob, repeat: boolean): Promise<boolean> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
@@ -191,6 +207,7 @@ export class SysJobServiceImpl implements ISysJobService {
     const isWaiting = await job.isWaiting();
     return isActive || isWaiting;
   }
+
   async deleteQueueJob(sysJob: SysJob): Promise<void> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
@@ -209,6 +226,7 @@ export class SysJobServiceImpl implements ISysJobService {
     await queue.clean(5000, 'active');
     await queue.clean(5000, 'wait');
   }
+
   async runQueueJob(sysJob: SysJob): Promise<boolean> {
     return await this.insertQueueJob(sysJob, false);
   }

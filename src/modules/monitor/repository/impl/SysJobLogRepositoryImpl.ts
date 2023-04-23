@@ -61,7 +61,7 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     let sqlStr = '';
     const paramArr = [];
     if (query.jobName) {
-      sqlStr += " and job_name like concat('%', ?, '%') ";
+      sqlStr += " and job_name like concat(?, '%') ";
       paramArr.push(query.jobName);
     }
     if (query.jobGroup) {
@@ -73,19 +73,19 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
       paramArr.push(query.status);
     }
     if (query.invokeTarget) {
-      sqlStr += " and invoke_target like concat('%', ?, '%') ";
+      sqlStr += " and invoke_target like concat(?, '%') ";
       paramArr.push(query.invokeTarget);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time >= ? ';
+      sqlStr += ' and create_time >= ? ';
       paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time <= ? ';
+      sqlStr += ' and create_time <= ? ';
       paramArr.push(endDate);
     }
 
@@ -101,10 +101,10 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     // 分页
     sqlStr += ' order by job_log_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -121,7 +121,7 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     let sqlStr = '';
     const paramArr = [];
     if (sysJobLog.jobName) {
-      sqlStr += " and job_name like concat('%', ?, '%') ";
+      sqlStr += " and job_name like concat(?, '%') ";
       paramArr.push(sysJobLog.jobName);
     }
     if (sysJobLog.jobGroup) {
@@ -133,7 +133,7 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
       paramArr.push(sysJobLog.status);
     }
     if (sysJobLog.invokeTarget) {
-      sqlStr += " and invoke_target like concat('%', ?, '%') ";
+      sqlStr += " and invoke_target like concat(?, '%') ";
       paramArr.push(sysJobLog.invokeTarget);
     }
 

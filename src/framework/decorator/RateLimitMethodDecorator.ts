@@ -89,9 +89,9 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       const rateTime = await redisCacheServer.getExpire(combinedKey);
 
       // 设置限流声明响应头
-      ctx.set("X-Ratelimit-Limit", `${limitCount}`);
-      ctx.set("X-Ratelimit-Remaining", `${limitCount - rateCount}`);
-      ctx.set("X-Ratelimit-Reset", `${Date.now() + rateTime * 1000}`);
+      ctx.set('X-Ratelimit-Limit', `${limitCount}`);
+      ctx.set('X-Ratelimit-Remaining', `${limitCount - rateCount}`);
+      ctx.set('X-Ratelimit-Reset', `${Date.now() + rateTime * 1000}`);
 
       if (rateCount >= limitCount) {
         return Result.errMsg('访问过于频繁，请稍候再试');

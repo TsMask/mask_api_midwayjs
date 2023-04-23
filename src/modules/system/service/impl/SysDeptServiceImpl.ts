@@ -5,6 +5,7 @@ import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryIm
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { ISysDeptService } from '../ISysDeptService';
 import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
+import { parseDataToTree } from '../../../../framework/utils/ValueParseUtils';
 
 /**
  * 参数配置 服务层实现
@@ -35,7 +36,9 @@ export class SysDeptServiceImpl implements ISysDeptService {
       sysDept,
       dataScopeSQL
     );
-    return this.buildDeptTreeSelect(depts);
+    // 构建前端所需要下拉树结构
+    const deptTrees: SysDept[] = parseDataToTree<SysDept>(depts, 'deptId');
+    return deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
   }
 
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
@@ -105,74 +108,6 @@ export class SysDeptServiceImpl implements ISysDeptService {
 
   async deleteDeptById(deptId: string): Promise<number> {
     return await this.sysDeptRepository.deleteDeptById(deptId);
-  }
-
-  /**
-   * 构建前端所需要下拉树结构
-   *
-   * @param sysDepts 部门列表
-   * @return 下拉树结构列表
-   */
-  private buildDeptTreeSelect(sysDepts: SysDept[]): TreeSelect[] {
-    const deptTrees: SysDept[] = this.buildDeptTree(sysDepts);
-    return deptTrees.map(dept => new TreeSelect().parseSysDept(dept));
-  }
-
-  /**
-   * 构建前端所需要树结构
-   *
-   * @param sysDepts 部门列表
-   * @return 树结构列表
-   */
-  private buildDeptTree(sysDepts: SysDept[]): SysDept[] {
-    let resultArr: SysDept[] = [];
-    const deptIds: string[] = sysDepts.map(dept => dept.deptId);
-    for (const dept of sysDepts) {
-      // 如果是顶级节点, 遍历该父节点的所有子节点
-      if (!deptIds.includes(dept.parentId)) {
-        dept.children = this.fnChildren(sysDepts, dept.deptId);
-        resultArr.push(dept);
-      }
-    }
-    if (resultArr.length === 0) {
-      resultArr = sysDepts;
-    }
-    return resultArr;
-  }
-
-  /**
-   * 递归得到部门列表
-   * @param sysDepts 部门列表
-   * @param deptId 当前部门ID
-   * @return 递归得到部门列表
-   */
-  private fnChildren(sysDepts: SysDept[], deptId: string): SysDept[] {
-    // 得到子节点列表
-    const childrens: SysDept[] = this.getChildrens(sysDepts, deptId);
-    for (const child of childrens) {
-      // 判断是否有子节点
-      const hasChildren = this.getChildrens(sysDepts, child.deptId);
-      if (hasChildren.length > 0) {
-        child.children = this.fnChildren(sysDepts, child.deptId);
-      }
-    }
-    return childrens;
-  }
-
-  /**
-   * 得到部门子节点列表
-   * @param sysDepts 部门列表
-   * @param deptId 当前部门ID
-   * @return 递归得到部门子节点列表
-   */
-  private getChildrens(sysDepts: SysDept[], deptId: string): SysDept[] {
-    const childrens: SysDept[] = [];
-    for (const dept of sysDepts) {
-      if (dept.parentId && dept.parentId === deptId) {
-        childrens.push(dept);
-      }
-    }
-    return childrens;
   }
 
   /**

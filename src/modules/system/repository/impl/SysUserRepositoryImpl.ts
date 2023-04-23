@@ -5,7 +5,10 @@ import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
-import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
+import {
+  parseBoolean,
+  parseNumber,
+} from '../../../../framework/utils/ValueParseUtils';
 import { SysDept } from '../../model/SysDept';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysUserRepository } from '../ISysUserRepository';
@@ -126,7 +129,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(query.userId);
     }
     if (query.userName) {
-      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      sqlStr += " and u.user_name like concat(?, '%') ";
       paramArr.push(query.userName);
     }
     if (query.status) {
@@ -134,19 +137,19 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(query.status);
     }
     if (query.phonenumber) {
-      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      sqlStr += " and u.phonenumber like concat(?, '%') ";
       paramArr.push(query.phonenumber);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and u.create_time >= ? ';
+      sqlStr += ' and u.login_date >= ? ';
       paramArr.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and u.create_time <= ? ';
+      sqlStr += ' and u.login_date <= ? ';
       paramArr.push(endDate);
     }
     if (query.deptId) {
@@ -170,10 +173,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     // 分页
     sqlStr += ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -198,7 +201,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(sysUser.userId);
     }
     if (sysUser.userName) {
-      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      sqlStr += " and u.user_name like concat(?, '%') ";
       paramArr.push(sysUser.userName);
     }
     if (sysUser.status) {
@@ -206,7 +209,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramArr.push(sysUser.status);
     }
     if (sysUser.phonenumber) {
-      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      sqlStr += " and u.phonenumber like concat(?, '%') ";
       paramArr.push(sysUser.phonenumber);
     }
     // 查询数据数
@@ -224,7 +227,6 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
   async selectAllocatedPage(
     roleId: string,
-    allocated: boolean,
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
@@ -232,16 +234,20 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     let sqlStr = dataScopeSQL;
     const paramArr = [];
     if (query.userName) {
-      sqlStr += " and u.user_name like concat('%', ?, '%') ";
+      sqlStr += " and u.user_name like concat(?, '%') ";
       paramArr.push(query.userName);
     }
     if (query.phonenumber) {
-      sqlStr += " and u.phonenumber like concat('%', ?, '%') ";
+      sqlStr += " and u.phonenumber like concat(?, '%') ";
       paramArr.push(query.phonenumber);
+    }
+    if (query.status) {
+      sqlStr += ' and u.status = ? ';
+      paramArr.push(query.status);
     }
 
     // 分配角色用户
-    if (allocated) {
+    if (parseBoolean(query.allocated)) {
       sqlStr += ' and r.role_id = ? ';
       paramArr.push(roleId);
     } else {
@@ -267,10 +273,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     // 分页
     sqlStr += ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 50 ? pageNum : 50;
+    pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 100 ? pageSize : 100;
+    pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
     paramArr.push(pageNum * pageSize);
     paramArr.push(pageSize);
@@ -403,10 +409,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.userType) {
       paramMap.set('user_type', sysUser.userType);
     }
-    if (sysUser.email) {
+    if (sysUser.email || sysUser.email === '') {
       paramMap.set('email', sysUser.email);
     }
-    if (sysUser.phonenumber) {
+    if (sysUser.phonenumber || sysUser.phonenumber === '') {
       paramMap.set('phonenumber', sysUser.phonenumber);
     }
     if (sysUser.sex) {

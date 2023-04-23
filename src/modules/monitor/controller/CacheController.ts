@@ -29,7 +29,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Get()
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:info'] })
   async getInfo(): Promise<Result> {
     return Result.okData({
       info: await this.redisCache.getInfo(),
@@ -65,8 +65,14 @@ export class CacheController {
   @Get('/getKeys/:cacheName')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getKeys(@Param('cacheName') cacheName: string): Promise<Result> {
-    const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
-    return Result.okData(cacheKeys);
+    const cacheKeys = await this.redisCache.getKeys(`${cacheName}:*`);
+    const rows = [];
+    if (cacheKeys && cacheKeys.length > 0) {
+      for (const keyStr of cacheKeys) {
+        rows.push(new SysCache().newCacheNK(`${cacheName}:`, keyStr));
+      }
+    }
+    return Result.okData(rows);
   }
 
   /**
@@ -76,13 +82,13 @@ export class CacheController {
    * @returns 返回结果
    */
   @Get('/getValue/:cacheName/:cacheKey')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:query'] })
   async getValue(
     @Param('cacheName') cacheName: string,
     @Param('cacheKey') cacheKey: string
   ): Promise<Result> {
     if (!cacheName || !cacheKey) return Result.err();
-    const cacheValue = await this.redisCache.get(cacheKey);
+    const cacheValue = await this.redisCache.get(`${cacheName}:${cacheKey}`);
     return Result.okData(
       new SysCache().newCacheNKV(cacheName, cacheKey, cacheValue)
     );
@@ -94,7 +100,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Del('/clearCacheName/:cacheName')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
   async clearCacheName(@Param('cacheName') cacheName: string): Promise<Result> {
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
     await this.redisCache.delKeys(cacheKeys);
@@ -107,19 +113,20 @@ export class CacheController {
    * @returns 返回结果
    */
   @Del('/clearCacheKey/:cacheKey')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
   async clearCacheKey(@Param('cacheKey') cacheKey: string): Promise<Result> {
     await this.redisCache.del(cacheKey);
     return Result.ok();
   }
 
   /**
-   * 清除全部缓存key
+   * 安全清理缓存key
    * @returns 返回结果
    */
-  @Del('/clearCacheAll')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
-  async clearCacheAll(): Promise<Result> {
+  @Del('/clearCacheSafe')
+  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
+  async clearCacheSafe(): Promise<Result> {
+    // 指定清除的缓存列表
     const keyArr = [
       SYS_CONFIG_KEY,
       SYS_DICT_KEY,

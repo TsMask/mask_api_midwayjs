@@ -40,7 +40,10 @@ export class CommonController {
     const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
     const ctx = this.contextService.getContext();
     ctx.set('Content-Type', 'application/octet-stream');
-    ctx.set('Content-disposition', `attachment;filename=${fileName}`);
+    ctx.set(
+      'Content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
     return fileStream;
   }
 

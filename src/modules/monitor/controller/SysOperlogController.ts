@@ -12,7 +12,6 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysOperLog } from '../model/SysOperLog';
 import { SysOperLogServiceImpl } from '../service/impl/SysOperLogServiceImpl';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 操作日志记录信息
@@ -40,8 +39,6 @@ export class SysOperLogController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysOperLogService.selectOperLogPage(query);
     // 导出数据组装
     const rows = data.rows.reduce(
@@ -60,8 +57,8 @@ export class SysOperLogController {
           操作地点: cur.operLocation,
           请求参数: cur.operParam,
           操作消息: cur.operMsg,
-          状态: cur.status === STATUS_YES ? '正常' : '异常',
-          操作时间: parseDateToStr(new Date(+cur.operTime)),
+          状态: ['失败', '成功'][+cur.status],
+          操作时间: parseDateToStr(+cur.operTime),
         });
         return pre;
       },

@@ -6,6 +6,10 @@ import { RegisterBodyVo } from '../model/vo/RegisterBodyVo';
 import { SysConfigServiceImpl } from '../service/impl/SysConfigServiceImpl';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { SysRegisterService } from '../../../framework/service/SysRegisterService';
+import {
+  validPassword,
+  validUsername,
+} from '../../../framework/utils/RegularUtils';
 
 /**
  * 注册验证
@@ -35,26 +39,17 @@ export class SysRegisterController {
       return Result.errMsg('当前系统没有开启注册功能！');
     }
 
+    const { username, password, confirmPassword } = registerBodyVo;
     // 判断必传参数
-    const username = registerBodyVo.username;
-    if (!username) {
-      return Result.errMsg('用户名不能为空');
+    if (!validUsername(username)) {
+      return Result.errMsg(
+        '账号不能以数字开头，可包含大写小写字母，数字，且不少于5位'
+      );
     }
-    const usernameLen = username.length;
-    if (usernameLen < 2 || usernameLen > 20) {
-      return Result.errMsg('账户长度必须在2到20个字符之间');
-    }
-    const password = registerBodyVo.password;
-    if (!password) {
-      return Result.errMsg('用户密码不能为空');
-    }
-    const passwordLen = password.length;
-    if (passwordLen < 6 || passwordLen > 20) {
-      return Result.errMsg('密码长度必须在6到20个字符之间');
-    }
-    const confirmPassword = registerBodyVo.confirmPassword;
-    if (!confirmPassword) {
-      return Result.errMsg('用户确认密码不能为空');
+    if (!validPassword(password)) {
+      return Result.errMsg(
+        '密码至少包含大小写字母、数字、特殊符号，且不少于6位'
+      );
     }
     if (password !== confirmPassword) {
       return Result.errMsg('用户确认输入密码不一致');

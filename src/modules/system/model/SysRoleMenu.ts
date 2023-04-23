@@ -9,4 +9,10 @@ export class SysRoleMenu {
 
   /**菜单ID */
   menuId: string;
+
+  constructor(roleId: string, menuId: string) {
+    this.roleId = roleId;
+    this.menuId = menuId;
+    return this;
+  }
 }

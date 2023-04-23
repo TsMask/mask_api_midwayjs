@@ -47,14 +47,12 @@ export class SysConfigController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysConfigService.selectConfigPage(query);
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysConfig) => {
         pre.push({
-          参数主键: cur.configId,
+          参数编号: cur.configId,
           参数名称: cur.configName,
           参数键名: cur.configKey,
           参数键值: cur.configValue,
@@ -197,7 +195,7 @@ export class SysConfigController {
   /**
    * 参数配置刷新缓存
    */
-  @Del('/refreshCache')
+  @Put('/refreshCache')
   @RepeatSubmit()
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
   @OperLog({

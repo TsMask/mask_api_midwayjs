@@ -17,7 +17,7 @@ export class ServerController {
    * 服务器信息
    */
   @Get()
-  @PreAuthorize({ hasPermissions: ['monitor:server:query'] })
+  @PreAuthorize({ hasPermissions: ['monitor:server:info'] })
   async getInfo(): Promise<Result> {
     return Result.okData({
       project: this.systemInfoService.getProjectInfo(),

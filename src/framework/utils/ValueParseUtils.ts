@@ -1,4 +1,4 @@
-const cronParser = require('cron-parser');
+import cronParser = require('cron-parser');
 
 /**
  * 解析数值型
@@ -27,6 +27,7 @@ export function parseBoolean(str: string | number): boolean {
  */
 export function parseFirstUpper(str: string): string {
   if (!str) return str;
+  str = str.replace(/[^_\w]+/g, '');
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
 
@@ -97,24 +98,24 @@ export function parseObjLineToHump(obj: any) {
 }
 
 /**
- * 解析object字符串
- * @param str JSON或Array字符串
- * @returns object 对象
+ * 解析格式化json字符串
+ *
+ * @param str JSON字符串
+ * @returns false时为非标准json对象
  */
-export function parseStringToObject(str: string) {
-  if (typeof str === 'string') {
-    try {
-      const obj = JSON.parse(str);
-      if (typeof obj === 'object' && obj) {
-        return obj;
-      } else {
-        return str;
-      }
-    } catch (_) {
-      return str;
+export function parseStringToObject(
+  str: string
+): Record<string, any> | boolean {
+  try {
+    const obj = JSON.parse(str);
+    const type = Object.prototype.toString.call(obj).slice(8, -1);
+    if (type === 'Object') {
+      return obj as Record<string, any>;
     }
+    return false;
+  } catch (_) {
+    return false;
   }
-  return str;
 }
 
 /**
@@ -163,6 +164,65 @@ export function parseSafeContent(value = '') {
   } else {
     return value.slice(0, 3) + '*'.repeat(value.length - 6) + value.slice(-3);
   }
+}
+
+/**
+ * 解析数据层级转树结构
+ *
+ * @param data 数组数据
+ * @param fieldId 读取节点字段 默认 'id'
+ * @param fieldParentId 读取节点父节点字段 默认 'parentId'
+ * @param fieldChildren 设置子节点字段 默认 'children'
+ * @returns 层级数组
+ */
+export function parseDataToTree<T>(
+  data: T[],
+  fieldId = 'id',
+  fieldParentId = 'parentId',
+  fieldChildren = 'children'
+) {
+  // 节点分组
+  const map: Map<string, T[]> = new Map();
+  // 节点id
+  const treeIds: string[] = [];
+  // 树节点
+  const tree: T[] = [];
+
+  for (const item of data) {
+    const parentId = item[fieldParentId];
+    // 分组
+    const mapItem = map.get(parentId) ?? [];
+    mapItem.push(item);
+    map.set(parentId, mapItem);
+    // 记录节点id
+    treeIds.push(item[fieldId]);
+  }
+
+  for (const [key, value] of map) {
+    // 选择不是节点id的作为树节点
+    if (!treeIds.includes(key)) {
+      tree.push(...value);
+    }
+  }
+
+  for (const iterator of tree) {
+    componet(iterator);
+  }
+
+  /**闭包递归函数 */
+  function componet(iterator: T) {
+    const id = iterator[fieldId];
+    const item = map.get(id);
+    if (item) {
+      iterator[fieldChildren] = item;
+    }
+    if (iterator[fieldChildren]) {
+      for (const i of iterator[fieldChildren]) {
+        componet(i);
+      }
+    }
+  }
+  return tree;
 }
 
 /**

@@ -32,12 +32,12 @@ export interface ISysDictDataRepository {
   selectDictLabel(dictType: string, dictValue: string): Promise<string>;
 
   /**
-   * 根据字典数据ID查询信息
+   * 根据字典数据编码查询信息
    *
-   * @param dictCode 字典数据ID
+   * @param dictCode 字典数据编码
    * @return 字典数据
    */
-  selectDictDataById(dictCode: string): Promise<SysDictData>;
+  selectDictDataByCode(dictCode: string): Promise<SysDictData>;
 
   /**
    * 查询字典数据
@@ -66,10 +66,10 @@ export interface ISysDictDataRepository {
   /**
    * 批量删除字典数据信息
    *
-   * @param dictCodes 需要删除的字典数据ID
+   * @param dictCodes 需要删除的字典数据编码
    * @return 结果
    */
-  deleteDictDataByIds(dictCodes: string[]): Promise<number>;
+  deleteDictDataByCodes(dictCodes: string[]): Promise<number>;
 
   /**
    * 新增字典数据信息

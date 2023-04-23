@@ -37,7 +37,7 @@ export class SysUserOnlineController {
     @Query('userName') userName: string
   ): Promise<Result> {
     let userOnlines: SysUserOnline[] = [];
-    // 去除所有在线用户
+    // 获取所有在线用户
     const keys = await this.redisCache.getKeys(`${LOGIN_TOKEN_KEY}*`);
     for (const key of keys) {
       const loginUserStr = await this.redisCache.get(key);
@@ -51,16 +51,16 @@ export class SysUserOnlineController {
     // 根据查询条件过滤
     if (ipaddr && userName) {
       userOnlines = userOnlines.filter(
-        o => ipaddr === o.ipaddr && userName === o.userName
+        o => o.ipaddr.includes(ipaddr) && o.userName.includes(userName)
       );
     } else if (ipaddr) {
-      userOnlines = userOnlines.filter(o => ipaddr === o.ipaddr);
+      userOnlines = userOnlines.filter(o => o.ipaddr.includes(ipaddr));
     } else if (userName) {
-      userOnlines = userOnlines.filter(o => userName === o.userName);
+      userOnlines = userOnlines.filter(o => o.userName.includes(userName));
     }
 
     return Result.ok({
-      rows: userOnlines.reverse(),
+      rows: userOnlines.sort((a, b) => b.loginTime - a.loginTime),
       total: keys.length,
     });
   }

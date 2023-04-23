@@ -8,7 +8,7 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysJobLogServiceImpl } from '../service/impl/SysJobLogServiceImpl';
 import { SysJobLog } from '../model/SysJobLog';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
+import { SysDictDataServiceImpl } from '../../system/service/impl/SysDictDataServiceImpl';
 
 /**
  * 调度任务日志信息
@@ -26,6 +26,9 @@ export class SysJobLogController {
   @Inject()
   private sysJobLogService: SysJobLogServiceImpl;
 
+  @Inject()
+  private sysDictDataService: SysDictDataServiceImpl;
+
   /**
    * 导出调度任务日志信息
    */
@@ -39,28 +42,36 @@ export class SysJobLogController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysJobLogService.selectJobLogPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
+    // 读取任务组名字典数据
+    const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(
+      'sys_job_group'
+    );
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysJobLog) => {
+        const sysJobGroup = dictSysJobGroup.find(
+          item => item.dictValue === cur.jobGroup
+        );
         pre.push({
           日志序号: cur.jobLogId,
           任务名称: cur.jobName,
-          任务组名: cur.jobGroup,
-          调用目标字符串: cur.invokeTarget,
-          调用目标传入参数: cur.targetParams,
+          任务组名: sysJobGroup.dictLabel ?? '',
+          调用目标: cur.invokeTarget,
+          传入参数: cur.targetParams,
           日志信息: cur.jobMsg,
-          执行状态: cur.status === STATUS_YES ? '正常' : '失败',
-          创建时间: parseDateToStr(new Date(+cur.createTime)),
+          执行状态: ['失败', '成功'][+cur.status],
+          创建时间: parseDateToStr(+cur.createTime),
         });
         return pre;
       },
       []
     );
     // 导出数据表格
-    const fileName = `jobLog_export_${rows.length}_${Date.now()}.xlsx`;
+    const fileName = `jobLog_export_${data.total}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

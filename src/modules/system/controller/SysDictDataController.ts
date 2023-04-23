@@ -16,7 +16,6 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { SysDictData } from '../model/SysDictData';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 字典类型对应的字典数据信息
@@ -47,9 +46,10 @@ export class SysDictDataController {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    query.pageNum = 1;
-    query.pageSize = 1000;
     const data = await this.sysDictDataServer.selectDictDataPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
     // 导出数据组装
     const rows = data.rows.reduce(
       (pre: Record<string, string>[], cur: SysDictData) => {
@@ -59,8 +59,7 @@ export class SysDictDataController {
           字典标签: cur.dictLabel,
           字典键值: cur.dictValue,
           字典类型: cur.dictType,
-          是否默认: cur.isDefault === 'Y' ? '是' : '否',
-          状态: cur.status === STATUS_YES ? '正常' : '停用',
+          状态: ['停用', '正常'][+cur.status],
         });
         return pre;
       },
@@ -100,7 +99,7 @@ export class SysDictDataController {
   @Get('/:dictCode')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async getInfo(@Param('dictCode') dictCode: string): Promise<Result> {
-    const data = await this.sysDictDataServer.selectDictDataById(dictCode);
+    const data = await this.sysDictDataServer.selectDictDataByCode(dictCode);
     return Result.okData(data || {});
   }
 
@@ -110,10 +109,7 @@ export class SysDictDataController {
   @Get('/type/:dictType')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async dictType(@Param('dictType') dictType: string): Promise<Result> {
-    const sysDictData = new SysDictData();
-    sysDictData.status = STATUS_YES;
-    sysDictData.dictType = dictType;
-    const data = await this.sysDictDataServer.selectDictDataList(sysDictData);
+    const data = await this.sysDictDataServer.selectDictDataByType(dictType);
     return Result.okData(data || []);
   }
 
@@ -209,7 +205,7 @@ export class SysDictDataController {
     // 处理字符转id数组
     const ids = dictCodes.split(',');
     if (ids.length <= 0) return Result.err();
-    const rows = await this.sysDictDataServer.deleteDictDataByIds([
+    const rows = await this.sysDictDataServer.deleteDictDataByCodes([
       ...new Set(ids),
     ]);
     return Result[rows > 0 ? 'ok' : 'err']();
