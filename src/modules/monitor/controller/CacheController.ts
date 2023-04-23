@@ -29,7 +29,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Get()
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:info'] })
   async getInfo(): Promise<Result> {
     return Result.okData({
       info: await this.redisCache.getInfo(),
@@ -82,7 +82,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Get('/getValue/:cacheName/:cacheKey')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:query'] })
   async getValue(
     @Param('cacheName') cacheName: string,
     @Param('cacheKey') cacheKey: string
@@ -100,7 +100,7 @@ export class CacheController {
    * @returns 返回结果
    */
   @Del('/clearCacheName/:cacheName')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
   async clearCacheName(@Param('cacheName') cacheName: string): Promise<Result> {
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
     await this.redisCache.delKeys(cacheKeys);
