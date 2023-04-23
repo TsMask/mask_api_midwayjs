@@ -7,6 +7,7 @@ import { SysMenu } from '../../model/SysMenu';
 import {
   MENU_TYPE_BUTTON,
   MENU_TYPE_DIR,
+  MENU_TYPE_MENU,
 } from '../../../../framework/constants/MenuConstants';
 
 /**查询视图对象SQL */
@@ -104,12 +105,12 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   async selectMenuTreeByUserId(userId?: string): Promise<SysMenu[]> {
     const paramArr = [];
     let buildSqlStr = `${SELECT_MENU_VO} where 
-    m.menu_type in ('M', 'C') and m.status = '1'
+    m.menu_type in ('${MENU_TYPE_DIR}', '${MENU_TYPE_MENU}') and m.status = '1'
 		order by m.parent_id, m.menu_sort`;
     // 指定用户ID
     if (userId && userId !== '0') {
       buildSqlStr = `${SELECT_MENU_USER_VO} where 
-      m.menu_type in ('M', 'C') and m.status = '1'
+      m.menu_type in ('${MENU_TYPE_DIR}', '${MENU_TYPE_MENU}') and m.status = '1'
       and ur.user_id = ? and ro.status = '1'
       order by m.parent_id, m.menu_sort`;
       paramArr.push(userId);
@@ -337,6 +338,13 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       menuName,
       parentId,
     ]);
+    return rows.length > 0 ? rows[0].str : null;
+  }
+
+  async checkUniqueMenuPath(path: string): Promise<string> {
+    const sqlStr =
+      "select menu_id as 'str' from sys_menu where path = ? limit 1";
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [path]);
     return rows.length > 0 ? rows[0].str : null;
   }
 }

@@ -124,4 +124,12 @@ export interface ISysMenuService {
    * @return 结果
    */
   checkUniqueNenuName(sysMenu: SysMenu): Promise<boolean>;
+
+  /**
+   * 校验路由地址是否唯一（针对目录和菜单）
+   *
+   * @param sysMenu 菜单信息
+   * @return 结果
+   */
+  checkUniqueNenuPath(sysMenu: SysMenu): Promise<boolean>;
 }

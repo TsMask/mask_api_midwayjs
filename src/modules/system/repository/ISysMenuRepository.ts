@@ -114,4 +114,12 @@ export interface ISysMenuRepository {
    * @return 结果
    */
   checkUniqueMenuName(menuName: string, parentId: string): Promise<string>;
+
+  /**
+   * 校验路由地址是否唯一（针对目录和菜单）
+   *
+   * @param path 路由地址
+   * @return 结果
+   */
+  checkUniqueMenuPath(path: string): Promise<string>;
 }

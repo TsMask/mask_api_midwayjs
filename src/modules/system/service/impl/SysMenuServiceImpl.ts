@@ -17,11 +17,12 @@ import {
   STATUS_YES,
 } from '../../../../framework/constants/CommonConstants';
 import {
-  MENU_COMPONENT_LINK_LAYOUT,
-  MENU_COMPONENT_BASIC_LAYOUT,
-  MENU_COMPONENT_BLANK_LAYOUT,
+  MENU_COMPONENT_LAYOUT_LINK,
+  MENU_COMPONENT_LAYOUT_BASIC,
+  MENU_COMPONENT_LAYOUT_BLANK,
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
+  MENU_PATH_INLINE,
 } from '../../../../framework/constants/MenuConstants';
 
 /**
@@ -126,10 +127,18 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return !menuId;
   }
 
-  async buildRouteMenus(
-    sysMenus: SysMenu[],
-    prefix: string = ''
-  ): Promise<RouterVo[]> {
+  async checkUniqueNenuPath(sysMenu: SysMenu): Promise<boolean> {
+    const menuId = await this.sysMenuRepository.checkUniqueMenuPath(
+      sysMenu.path
+    );
+    // 菜单信息与查询得到菜单ID一致
+    if (menuId && sysMenu.menuId === menuId) {
+      return true;
+    }
+    return !menuId;
+  }
+
+  async buildRouteMenus(sysMenus: SysMenu[], prefix = ''): Promise<RouterVo[]> {
     const routers: RouterVo[] = [];
     for (const menu of sysMenus) {
       const router = new RouterVo();
@@ -165,7 +174,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 路由名称
    */
   private getRouteName(menu: SysMenu): string {
-    let routerName = parseFirstUpper(menu.path);
+    const routerName = parseFirstUpper(menu.path);
     // 路径链接
     if (validHttp(menu.path)) {
       return `${routerName.substring(0, 5)}Link${menu.menuId}`;
@@ -226,12 +235,12 @@ export class SysMenuServiceImpl implements ISysMenuService {
       menu.parentId !== '0' &&
       [MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menu.menuType)
     ) {
-      return MENU_COMPONENT_LINK_LAYOUT;
+      return MENU_COMPONENT_LAYOUT_LINK;
     }
 
     // 非父菜单 目录类型
     if (menu.parentId !== '0' && menu.menuType === MENU_TYPE_DIR) {
-      return MENU_COMPONENT_BLANK_LAYOUT;
+      return MENU_COMPONENT_LAYOUT_BLANK;
     }
 
     // 菜单类型 内部跳转 有组件路径
@@ -243,7 +252,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
       return menu.component;
     }
 
-    return MENU_COMPONENT_BASIC_LAYOUT;
+    return MENU_COMPONENT_LAYOUT_BASIC;
   }
 
   /**
@@ -307,7 +316,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
         item =>
           item.isFrame === STATUS_YES &&
           item.visible === STATUS_NO &&
-          item.path.includes('/inline')
+          item.path.includes(MENU_PATH_INLINE)
       );
     }
     if (firstChild) {

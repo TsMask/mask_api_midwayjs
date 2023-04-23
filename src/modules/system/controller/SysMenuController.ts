@@ -18,6 +18,10 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
 import { SysMenu } from '../model/SysMenu';
 import { STATUS_NO } from '../../../framework/constants/CommonConstants';
+import {
+  MENU_TYPE_DIR,
+  MENU_TYPE_MENU,
+} from '../../../framework/constants/MenuConstants';
 
 /**
  * 菜单信息
@@ -65,6 +69,19 @@ export class SysMenuController {
   @PreAuthorize({ hasPermissions: ['system:menu:add'] })
   @OperLog({ title: '菜单信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysMenu: SysMenu): Promise<Result> {
+    if (!sysMenu.menuName || !sysMenu.menuType) return Result.err();
+    // 目录和菜单检查地址唯一
+    if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(sysMenu.menuType)) {
+      const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
+        sysMenu
+      );
+      if (!uniqueNenuPath) {
+        return Result.errMsg(
+          `菜单新增【${sysMenu.menuName}】失败，菜单路由地址已存在`
+        );
+      }
+    }
+
     // 检查名称唯一
     const uniqueNenuName = await this.sysMenuService.checkUniqueNenuName(
       sysMenu
@@ -74,12 +91,14 @@ export class SysMenuController {
         `菜单新增【${sysMenu.menuName}】失败，菜单名称已存在`
       );
     }
+
     // 外链菜单需要符合网站http(s)开头
     if (sysMenu.isFrame === STATUS_NO && !validHttp(sysMenu.path)) {
       return Result.errMsg(
         `菜单新增【${sysMenu.menuName}】失败，非内部地址必须以http(s)://开头`
       );
     }
+
     sysMenu.createBy = this.contextService.getUseName();
     const insertId = await this.sysMenuService.insertMenu(sysMenu);
     return Result[insertId ? 'ok' : 'err']();
@@ -92,6 +111,19 @@ export class SysMenuController {
   @PreAuthorize({ hasPermissions: ['system:menu:edit'] })
   @OperLog({ title: '菜单信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysMenu: SysMenu): Promise<Result> {
+    if (!sysMenu.menuName || !sysMenu.menuType) return Result.err();
+    // 目录和菜单检查地址唯一
+    if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(sysMenu.menuType)) {
+      const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
+        sysMenu
+      );
+      if (!uniqueNenuPath) {
+        return Result.errMsg(
+          `菜单新增【${sysMenu.menuName}】失败，菜单路由地址已存在`
+        );
+      }
+    }
+
     // 检查名称唯一
     const uniqueNenuName = await this.sysMenuService.checkUniqueNenuName(
       sysMenu
@@ -101,12 +133,14 @@ export class SysMenuController {
         `菜单修改【${sysMenu.menuName}】失败，菜单名称已存在`
       );
     }
+
     // 外链菜单需要符合网站http(s)开头
     if (sysMenu.isFrame === STATUS_NO && !validHttp(sysMenu.path)) {
       return Result.errMsg(
         `菜单修改【${sysMenu.menuName}】失败，非内部地址必须以http(s)://开头`
       );
     }
+
     // 上级菜单不能选自己
     if (sysMenu.menuId === sysMenu.parentId) {
       return Result.errMsg(

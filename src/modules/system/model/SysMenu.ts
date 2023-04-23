@@ -28,7 +28,7 @@ export class SysMenu {
   /**是否缓存（0不缓存 1缓存） */
   isCache: string;
 
-  /**菜单类型（M目录 C菜单 F按钮） */
+  /**菜单类型（D目录 M菜单 B按钮） */
   menuType: string;
 
   /**菜单状态（0隐藏 1显示） */
@@ -40,7 +40,7 @@ export class SysMenu {
   /**权限标识 */
   perms: string;
 
-  /**菜单图标 */
+  /**菜单图标（#无图标） */
   icon: string;
 
   /**创建者 */
