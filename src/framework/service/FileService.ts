@@ -25,7 +25,7 @@ import { generateID } from '../utils/GenIdUtils';
 const DEFAULT_MAX_SIZE = 50 * 1024 * 1024;
 
 /**默认的文件名最大长度 100 */
-const DEFAULT_FILE_NAME_LENGTH = 127;
+const DEFAULT_FILE_NAME_LENGTH = 100;
 
 /**默认允许上传的文件拓展类型 */
 const DEFAULT_ALLOW_EXT = [
@@ -123,7 +123,7 @@ export class FileService {
     }
     if (!allowExts.includes(fileExt)) {
       throw new Error(
-        `上传文件类型不支持，支持以下类型：${allowExts.join(',')}`
+        `上传文件类型不支持，仅支持以下类型：${allowExts.join(',')}`
       );
     }
   }

@@ -112,6 +112,8 @@ export function getMimeTypeExt(mimeType: string): string {
       return 'bmp';
     case 'image/gif':
       return 'gif';
+    case 'image/webp':
+      return 'webp';
     default:
       return '';
   }
