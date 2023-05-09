@@ -1,6 +1,6 @@
 import { MidwayConfig } from '@midwayjs/core';
 import { type } from 'os';
-import { TOKEN_HEADER } from '../framework/constants/TokenConstants';
+import { TOKEN_KEY } from '../framework/constants/TokenConstants';
 
 export default (): MidwayConfig => {
   // 程序资源文件路径 示例（ Linux配置 /home/mask，Windows配置 D:/home/mask ）
@@ -121,25 +121,26 @@ export default (): MidwayConfig => {
     /**cors 跨域 http://www.midwayjs.org/docs/extensions/cross_domain */
     cors: {
       // 允许跨域的方法，【默认值】为 GET,HEAD,PUT,POST,DELETE,PATCH
-      allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELET'],
+      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELET'],
       // 设置 Access-Control-Allow-Origin 的值，【默认值】会获取请求头上的 origin
       // 也可以配置为一个回调方法，传入的参数为 request，需要返回 origin 值
       // 例如：http://test.midwayjs.org
-      // 如果设置了 credentials，则 origin 不能设置为 *
+      // 如果请求设置了 credentials，则 origin 不能设置为 *
       origin: '*',
       // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
       allowHeaders: [
-        TOKEN_HEADER,
+        TOKEN_KEY,
         'Origin',
         'X-Requested-With',
         'Content-Type',
+        'Content-Language',
         'Accept',
       ],
       // 设置 Access-Control-Expose-Headers 的值
       exposeHeaders: ['X-Check-Submit-Repeat'],
       // 设置 Access-Control-Allow-Credentials，【默认值】false
       // 也可以配置为一个回调方法，传入的参数为 request，返回值为 true 或 false
-      credentials: false,
+      credentials: true,
       // 是否在执行报错的时候，把跨域的 header 信息写入到 error 对的 headers 属性中，【默认值】false
       keepHeadersOnError: false,
       // 设置 Access-Control-Max-Age
