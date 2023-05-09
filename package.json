@@ -38,6 +38,7 @@
     "@midwayjs/static-file": "^3.0.0",
     "@midwayjs/typeorm": "^3.0.0",
     "@midwayjs/upload": "^3.0.0",
+    "@midwayjs/security": "^3.0.0",
     "@node-rs/bcrypt": "^1.0.0",
     "cron-parser": "^4.0.0",
     "dayjs": "^1.0.0",

@@ -1,5 +1,6 @@
 import { MidwayConfig } from '@midwayjs/core';
 import { type } from 'os';
+import { TOKEN_KEY } from '../framework/constants/TokenConstants';
 
 export default (): MidwayConfig => {
   // 程序资源文件路径 示例（ Linux配置 /home/mask，Windows配置 D:/home/mask ）
@@ -8,44 +9,6 @@ export default (): MidwayConfig => {
   return {
     // use for cookie sign key, should change to your own and keep security
     keys: '1662290627179_89234',
-
-    /**char 字符验证码配置 */
-    charCaptcha: {
-      /**宽度 */
-      width: 120,
-      /**高度 */
-      height: 40,
-      /**干扰线条的数量 */
-      noise: 4,
-      /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
-      color: true,
-      // 验证码图片背景颜色
-      background: '#fafafa',
-      /**验证码长度 */
-      size: 4,
-      /**验证码字符中排除 0o1i */
-      ignoreChars: '0o1i',
-    },
-
-    /**math 数值计算码配置 */
-    mathCaptcha: {
-      /**宽度 */
-      width: 120,
-      /**高度 */
-      height: 40,
-      /**干扰线条的数量 */
-      noise: 4,
-      /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
-      color: true,
-      /**验证码图片背景颜色 */
-      background: '#fafafa',
-      /**计算式，默认"+"，可选"+", "-" or "+/-" */
-      mathOperator: '+/-',
-      /**算数值最小值，默认1 */
-      mathMin: 1,
-      /**算数值最大值，默认9 */
-      mathMax: 15,
-    },
 
     /**核心服务配置 http://www.midwayjs.org/docs/extensions/koa */
     koa: {
@@ -77,7 +40,7 @@ export default (): MidwayConfig => {
       mode: 'file',
       /**最大上传文件大小，默认为 10mb */
       fileSize: '50mb',
-      /**文件扩展名白名单，程序内文件服务进行配置 */
+      /**文件扩展名白名单，程序内文件服务进行配置 DEFAULT_ALLOW_EXT */
       whitelist: null,
       /**上传的文件临时存储路径 */
       tmpdir: `${filePath}/tmpPath`,
@@ -90,7 +53,7 @@ export default (): MidwayConfig => {
     /**静态文件配置 http://www.midwayjs.org/docs/extensions/static_file */
     staticFile: {
       dirs: {
-        // 默认资源
+        // 默认资源，dir目录需要预先创建
         default: {
           prefix: '/static',
           dir: `${filePath}/static`,
@@ -102,6 +65,84 @@ export default (): MidwayConfig => {
         },
       },
     },
+
+    /**cors 跨域 http://www.midwayjs.org/docs/extensions/cross_domain */
+    cors: {
+      // 允许跨域的方法，【默认值】为 GET,HEAD,PUT,POST,DELETE,PATCH
+      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELET'],
+      // 设置 Access-Control-Allow-Origin 的值，【默认值】会获取请求头上的 origin
+      // 也可以配置为一个回调方法，传入的参数为 request，需要返回 origin 值
+      // 例如：http://test.midwayjs.org
+      // 如果请求设置了 credentials，则 origin 不能设置为 *
+      origin: '*',
+      // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
+      allowHeaders: [
+        TOKEN_KEY,
+        'Origin',
+        'X-Requested-With',
+        'Content-Type',
+        'Content-Language',
+        'Accept',
+      ],
+      // 设置 Access-Control-Expose-Headers 的值
+      exposeHeaders: ['X-Check-Submit-Repeat'],
+      // 设置 Access-Control-Allow-Credentials，【默认值】false
+      // 也可以配置为一个回调方法，传入的参数为 request，返回值为 true 或 false
+      credentials: true,
+      // 是否在执行报错的时候，把跨域的 header 信息写入到 error 对的 headers 属性中，【默认值】false
+      keepHeadersOnError: false,
+      // 设置 Access-Control-Max-Age
+      maxAge: 31536000,
+    },
+
+    /**security 安全 http://www.midwayjs.org/docs/extensions/security */
+    security: {
+      csrf: {
+        enable: false,
+        type: 'ctoken',
+        useSession: false,
+        cookieName: 'csrfToken',
+        sessionName: 'csrfToken',
+        headerName: 'x-csrf-token',
+        bodyName: '_csrf',
+        queryName: '_csrf',
+        refererWhiteList: [],
+      },
+      xframe: {
+        enable: true,
+        value: 'SAMEORIGIN',
+      },
+      csp: {
+        enable: false,
+      },
+      hsts: {
+        enable: false,
+        maxAge: 365 * 24 * 3600,
+        includeSubdomains: false,
+      },
+      noopen: {
+        enable: false,
+      },
+      nosniff: {
+        enable: false,
+      },
+      xssProtection: {
+        enable: true,
+        value: '1; mode=block',
+      },
+    },
+
+    /**JWT 令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
+    jwt: {
+      /**令牌算法 */
+      algorithm: 'HS512',
+      /**令牌密钥 */
+      secret: 'abcdefghijklmnopqrstuvwxyz', // fs.readFileSync('xxxxx.key')
+      /**令牌有效期（默认120分钟） */
+      expiresIn: '120m', // https://github.com/vercel/ms
+    },
+    /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
+    jwtRefreshIn: '20m', // https://github.com/vercel/ms
 
     /**TypeORM 数据源 http://www.midwayjs.org/docs/extensions/orm */
     typeorm: {
@@ -155,40 +196,6 @@ export default (): MidwayConfig => {
       clearRepeatJobWhenStart: true,
     },
 
-    /**cors 跨域 http://www.midwayjs.org/docs/extensions/cross_domain */
-    cors: {
-      // 允许跨域的方法，【默认值】为 GET,HEAD,PUT,POST,DELETE,PATCH
-      allowMethods: ['OPTIONS', 'GET', 'POST', 'PUT', 'DELET'],
-      // 设置 Access-Control-Allow-Origin 的值，【默认值】会获取请求头上的 origin
-      // 也可以配置为一个回调方法，传入的参数为 request，需要返回 origin 值
-      // 例如：http://test.midwayjs.org
-      // 如果设置了 credentials，则 origin 不能设置为 *
-      origin: '*',
-      // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
-      allowHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'],
-      // 设置 Access-Control-Expose-Headers 的值
-      exposeHeaders: ['X-Check-Submit-Repeat'],
-      // 设置 Access-Control-Allow-Credentials，【默认值】false
-      // 也可以配置为一个回调方法，传入的参数为 request，返回值为 true 或 false
-      credentials: false,
-      // 是否在执行报错的时候，把跨域的 header 信息写入到 error 对的 headers 属性中，【默认值】false
-      keepHeadersOnError: false,
-      // 设置 Access-Control-Max-Age
-      maxAge: 31536000,
-    },
-
-    /**JWT 令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
-    jwt: {
-      /**令牌算法 */
-      algorithm: 'HS512',
-      /**令牌密钥 */
-      secret: 'abcdefghijklmnopqrstuvwxyz', // fs.readFileSync('xxxxx.key')
-      /**令牌有效期（默认120分钟） */
-      expiresIn: '120m', // https://github.com/vercel/ms
-    },
-    /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
-    jwtRefreshIn: '20m', // https://github.com/vercel/ms
-
     /**用户配置 */
     user: {
       /**密码 */
@@ -200,6 +207,44 @@ export default (): MidwayConfig => {
       },
       /**管理员列表 */
       adminList: ['1'],
+    },
+
+    /**char 字符验证码配置 */
+    charCaptcha: {
+      /**宽度 */
+      width: 120,
+      /**高度 */
+      height: 40,
+      /**干扰线条的数量 */
+      noise: 4,
+      /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
+      color: true,
+      // 验证码图片背景颜色
+      background: '#fafafa',
+      /**验证码长度 */
+      size: 4,
+      /**验证码字符中排除 0o1i */
+      ignoreChars: '0o1i',
+    },
+
+    /**math 数值计算码配置 */
+    mathCaptcha: {
+      /**宽度 */
+      width: 120,
+      /**高度 */
+      height: 40,
+      /**干扰线条的数量 */
+      noise: 4,
+      /**验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有 */
+      color: true,
+      /**验证码图片背景颜色 */
+      background: '#fafafa',
+      /**计算式，默认"+"，可选"+", "-" or "+/-" */
+      mathOperator: '+/-',
+      /**算数值最小值，默认1 */
+      mathMin: 1,
+      /**算数值最大值，默认9 */
+      mathMax: 15,
     },
 
     //

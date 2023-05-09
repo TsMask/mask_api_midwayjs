@@ -6,7 +6,7 @@ import {
 import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
-import { TOKEN_HEADER } from '../constants/TokenConstants';
+import { TOKEN_KEY } from '../constants/TokenConstants';
 import { LoginUser } from '../model/LoginUser';
 import { TokenService } from '../service/TokenService';
 
@@ -56,7 +56,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       );
 
       // 获取token在请求头标识信息
-      const token = await tokenService.getHeaderToken(ctx.get(TOKEN_HEADER));
+      const token = await tokenService.getHeaderToken(ctx.get(TOKEN_KEY));
       if (!token) {
         throw new UnauthorizedError('无效授权');
       }

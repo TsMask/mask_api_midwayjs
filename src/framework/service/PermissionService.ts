@@ -25,16 +25,16 @@ export class PermissionService {
    * @return 角色权限信息
    */
   async getRolePermission(userId: string, isAdmin = false): Promise<string[]> {
-    const roles: string[] = [];
+    let roles = new Set<string>();
     if (isAdmin) {
-      roles.push(ADMIN_ROLE_KEY);
+      roles.add(ADMIN_ROLE_KEY);
     } else {
       const rolePerms = await this.sysRoleService.selectRolePermissionByUserId(
         userId
       );
-      roles.push(...rolePerms);
+      roles = new Set<string>(rolePerms);
     }
-    return [...new Set(roles)];
+    return [...roles];
   }
 
   /**
@@ -48,15 +48,15 @@ export class PermissionService {
     userId: string,
     isAdmin = false
   ): Promise<string[]> {
-    const perms: string[] = [];
+    let perms = new Set<string>();
     if (isAdmin) {
-      perms.push(ADMIN_PERMISSION);
+      perms.add(ADMIN_PERMISSION);
     } else {
       const userPerms = await this.sysMenuService.selectMenuPermsByUserId(
         userId
       );
-      perms.push(...userPerms);
+      perms = new Set<string>(userPerms);
     }
-    return [...new Set(perms)];
+    return [...perms];
   }
 }

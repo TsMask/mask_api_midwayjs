@@ -109,3 +109,7 @@ npm run start:pm2       # PM2常驻启动项目
 
 > 有任何问题或者建议，可以在 [_Issues_](https://gitee.com/TsMask/mask_api_midwayjs/issues) 或通过QQ群：[_57242844_](https://jq.qq.com/?_wv=1027&k=z6Y4YQcB) 提出想法。  
 > 如果觉得项目对您有帮助，可以来个Star ⭐
+
+## 相关框架
+
+- 基于SpringBoot+Vue3前后端分离的Java快速开发脚手架 [Gitee仓库](https://gitee.com/valarchie/AgileBoot-Back-End)

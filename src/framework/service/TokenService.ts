@@ -1,8 +1,9 @@
 import { Config, Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
 import { JwtService } from '@midwayjs/jwt';
 import {
-  TOKEN_JWT_FIELD,
-  TOKEN_HEADER_PREFIX,
+  TOKEN_JWT_UUID,
+  TOKEN_JWT_KEY,
+  TOKEN_KEY_PREFIX,
 } from '../constants/TokenConstants';
 import { LoginUser } from '../model/LoginUser';
 import { RedisCache } from '../cache/RedisCache';
@@ -96,7 +97,8 @@ export class TokenService {
     await this.setUserToken(loginUser);
     // 生成令牌负荷uuid标识
     return this.jwtService.sign({
-      [TOKEN_JWT_FIELD]: uuid,
+      [TOKEN_JWT_UUID]: uuid,
+      [TOKEN_JWT_KEY]: loginUser.userId,
     });
   }
 
@@ -128,11 +130,11 @@ export class TokenService {
     clientIP: string,
     userAgent: string
   ): Promise<LoginUser> {
+    // 解析ip地址
     if (clientIP.includes(IP_INNER_ADDR)) {
       loginUser.ipaddr = clientIP.replace(IP_INNER_ADDR, '');
       loginUser.loginLocation = IP_INNER_LOCATION;
     } else {
-      // 解析ip地址
       loginUser.ipaddr = clientIP;
       loginUser.loginLocation = await getRealAddressByIp(clientIP);
     }
@@ -212,8 +214,8 @@ export class TokenService {
    * @returns 去除前缀字符串
    */
   async getHeaderToken(headerToken: string): Promise<string> {
-    if (headerToken && headerToken.startsWith(TOKEN_HEADER_PREFIX)) {
-      headerToken = headerToken.replace(TOKEN_HEADER_PREFIX, '');
+    if (headerToken && headerToken.startsWith(TOKEN_KEY_PREFIX)) {
+      headerToken = headerToken.replace(TOKEN_KEY_PREFIX, '');
     }
     return headerToken;
   }
@@ -227,7 +229,7 @@ export class TokenService {
     try {
       const jwtInfo = await this.jwtService.verify(token);
       if (jwtInfo) {
-        const uuid = jwtInfo[TOKEN_JWT_FIELD];
+        const uuid = jwtInfo[TOKEN_JWT_UUID];
         return await this.getLoginUserCache(uuid);
       }
     } catch (e) {
