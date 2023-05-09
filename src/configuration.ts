@@ -7,6 +7,7 @@ import * as jwt from '@midwayjs/jwt';
 import * as upload from '@midwayjs/upload';
 import * as bull from '@midwayjs/bull';
 import * as crossDomain from '@midwayjs/cross-domain';
+import * as security from '@midwayjs/security';
 import { join } from 'path';
 import { DefaultErrorFilter } from './framework/filter/DefaultErrorFilter';
 import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
@@ -41,7 +42,8 @@ import { checkExistsAndMkdir } from './framework/utils/FileUtils';
     jwt, // 鉴权和校验Token
     upload, // 文件上传
     bull, // 任务队列Bull
-    crossDomain, // 跨域cros
+    crossDomain, // 跨域
+    security, // 安全
   ],
   importConfigs: [join(__dirname, './config')],
 })
