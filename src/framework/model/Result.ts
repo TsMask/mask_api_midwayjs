@@ -1,8 +1,8 @@
 import {
-  RESULT_ERROR_CODE,
-  RESULT_ERROR_MSG,
-  RESULT_SUCCESS_CODE,
-  RESULT_SUCCESS_MSG,
+  RESULT_CODE_ERROR,
+  RESULT_MSG_ERROR,
+  RESULT_CODE_SUCCESS,
+  RESULT_MSG_SUCCESS,
 } from '../constants/ResultConstants';
 
 /**
@@ -24,7 +24,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static ok(args?: Record<string, any>) {
-    return this.rest(RESULT_SUCCESS_CODE, RESULT_SUCCESS_MSG, args);
+    return this.rest(RESULT_CODE_SUCCESS, RESULT_MSG_SUCCESS, args);
   }
 
   /**
@@ -33,7 +33,7 @@ export class Result {
    * @param code 响应状态码
    * @return 响应结果对象
    */
-  public static okMsg(msg: string, code: number = RESULT_SUCCESS_CODE) {
+  public static okMsg(msg: string, code: number = RESULT_CODE_SUCCESS) {
     return this.rest(code, msg);
   }
 
@@ -43,7 +43,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static okData<T>(data: T) {
-    return this.rest(RESULT_SUCCESS_CODE, RESULT_SUCCESS_MSG, { data });
+    return this.rest(RESULT_CODE_SUCCESS, RESULT_MSG_SUCCESS, { data });
   }
 
   /**
@@ -52,7 +52,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static err(args?: Record<string, any>) {
-    return this.rest(RESULT_ERROR_CODE, RESULT_ERROR_MSG, args);
+    return this.rest(RESULT_CODE_ERROR, RESULT_MSG_ERROR, args);
   }
 
   /**
@@ -61,7 +61,7 @@ export class Result {
    * @param code 响应状态码
    * @return 响应结果对象
    */
-  public static errMsg(msg: string, code: number = RESULT_ERROR_CODE) {
+  public static errMsg(msg: string, code: number = RESULT_CODE_ERROR) {
     return this.rest(code, msg);
   }
 
@@ -71,7 +71,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static errData<T>(data: T) {
-    return this.rest(RESULT_ERROR_CODE, RESULT_ERROR_MSG, { data });
+    return this.rest(RESULT_CODE_ERROR, RESULT_MSG_ERROR, { data });
   }
 
   /**

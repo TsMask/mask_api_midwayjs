@@ -5,14 +5,14 @@
  * @author TsMask
  */
 
-/**响应-正常成功code */
-export const RESULT_SUCCESS_CODE = 200;
+/**响应-code正常成功 */
+export const RESULT_CODE_SUCCESS = 200;
 
-/**响应-正常成功msg */
-export const RESULT_SUCCESS_MSG = '成功';
+/**响应-msg正常成功 */
+export const RESULT_MSG_SUCCESS = '成功';
 
-/**响应-错误失败code */
-export const RESULT_ERROR_CODE = 500;
+/**响应-code错误失败 */
+export const RESULT_CODE_ERROR = 500;
 
-/**响应-错误失败msg */
-export const RESULT_ERROR_MSG = '失败';
+/**响应-msg错误失败 */
+export const RESULT_MSG_ERROR = '失败';
