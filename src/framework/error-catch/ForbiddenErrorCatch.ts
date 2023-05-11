@@ -10,7 +10,7 @@ import { Result } from '../model/Result';
  * @author TsMask
  */
 @Catch(httpError.ForbiddenError)
-export class ForbiddenErrorFilter {
+export class ForbiddenErrorCatch {
   async catch(err: MidwayHttpError, ctx: Context) {
     const userName = ctx.loginUser?.user?.userName || '匿名';
     ctx.logger.error('%s : %s > %s', userName, err.name, err.message);

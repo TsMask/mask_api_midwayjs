@@ -1,5 +1,5 @@
-import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
-import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
+import { JoinPoint, REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
+import { createCustomMethodDecorator } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { LoginUser } from '../model/LoginUser';
 import { Result } from '../model/Result';
@@ -18,11 +18,11 @@ interface rateLimitOptions {
   limitType?: LimitTypeEnum;
 }
 
-/**装饰器内部的唯一 key */
-export const DECORATOR_METHOD_RATE_LIMIT_KEY = 'decorator_method:rate_limit';
+/**装饰器key标识-请求限流 */
+export const METHOD_KEY_RATE_LIMIT = 'decorator_method:rate_limit';
 
 /**
- * 限流-方法装饰器
+ * 装饰器声明-请求限流
  *
  * 示例参数：`{ time: 5, count: 10, limitType: LimitTypeEnum.IP }`
  *
@@ -34,11 +34,12 @@ export const DECORATOR_METHOD_RATE_LIMIT_KEY = 'decorator_method:rate_limit';
  * @author TsMask
  */
 export function RateLimit(options: rateLimitOptions): MethodDecorator {
-  return createCustomMethodDecorator(DECORATOR_METHOD_RATE_LIMIT_KEY, options);
+  return createCustomMethodDecorator(METHOD_KEY_RATE_LIMIT, options);
 }
 
 /**
  * 实现装饰器-请求限流
+ * 
  * @param options.metadata 方法装饰器参数
  * @returns 返回结果
  */
