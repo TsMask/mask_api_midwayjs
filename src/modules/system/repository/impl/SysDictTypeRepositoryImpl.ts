@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
@@ -53,7 +53,7 @@ function parseSysDictTypeResult(rows: any[]): SysDictType[] {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   @Inject()
   private db: DynamicDataSource;

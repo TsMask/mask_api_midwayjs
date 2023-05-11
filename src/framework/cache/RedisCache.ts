@@ -1,4 +1,4 @@
-import { Provide, Inject, ScopeEnum, Scope, Init } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton, Init } from '@midwayjs/decorator';
 import { RedisService } from '@midwayjs/redis';
 
 /**
@@ -7,7 +7,7 @@ import { RedisService } from '@midwayjs/redis';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class RedisCache {
   @Inject()
   private redisService: RedisService;

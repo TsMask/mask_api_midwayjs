@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
@@ -71,7 +71,7 @@ function parseSysMenuResult(rows: any[]): SysMenu[] {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysMenuRepositoryImpl implements ISysMenuRepository {
   @Inject()
   public db: DynamicDataSource;

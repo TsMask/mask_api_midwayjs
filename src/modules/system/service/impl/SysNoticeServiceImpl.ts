@@ -1,4 +1,4 @@
-import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { SysNotice } from '../../model/SysNotice';
 import { SysNoticeRepositoryImpl } from '../../repository/impl/SysNoticeRepositoryImpl';
 import { ISysNoticeService } from '../ISysNoticeService';
@@ -9,7 +9,7 @@ import { ISysNoticeService } from '../ISysNoticeService';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysNoticeServiceImpl implements ISysNoticeService {
   @Inject()
   private sysNoticeRepository: SysNoticeRepositoryImpl;

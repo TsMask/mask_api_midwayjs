@@ -1,9 +1,4 @@
-import {
-  Inject,
-  MidwayInformationService,
-  Scope,
-  ScopeEnum,
-} from '@midwayjs/core';
+import { Inject, MidwayInformationService, Singleton } from '@midwayjs/core';
 import { Config, Provide } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { posix } from 'path';
@@ -64,7 +59,7 @@ const DEFAULT_ALLOW_EXT = [
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class FileService {
   @Inject()
   private midwayInformationService: MidwayInformationService;

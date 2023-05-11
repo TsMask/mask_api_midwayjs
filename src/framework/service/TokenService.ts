@@ -1,4 +1,4 @@
-import { Config, Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Config, Inject, Provide, Singleton } from '@midwayjs/decorator';
 import { JwtService } from '@midwayjs/jwt';
 import {
   TOKEN_JWT_UUID,
@@ -23,7 +23,7 @@ import { IP_INNER_ADDR, IP_INNER_LOCATION } from '../constants/CommonConstants';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class TokenService {
   @Inject()
   private jwtService: JwtService;

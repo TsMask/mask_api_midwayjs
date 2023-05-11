@@ -39,7 +39,7 @@ export function RateLimit(options: rateLimitOptions): MethodDecorator {
 
 /**
  * 实现装饰器-请求限流
- * 
+ *
  * @param options.metadata 方法装饰器参数
  * @returns 返回结果
  */

@@ -1,4 +1,4 @@
-import { Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Inject, Provide, Singleton } from '@midwayjs/decorator';
 import { SysMenuServiceImpl } from '../../modules/system/service/impl/SysMenuServiceImpl';
 import { SysRoleServiceImpl } from '../../modules/system/service/impl/SysRoleServiceImpl';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
@@ -9,7 +9,7 @@ import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class PermissionService {
   @Inject()
   private sysMenuService: SysMenuServiceImpl;

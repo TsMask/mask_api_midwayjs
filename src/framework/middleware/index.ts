@@ -5,6 +5,4 @@ import { ReportMiddleware } from './ReportMiddleware';
  *
  * 列表存在执行顺序
  */
-export const Middlewares = [
-  ReportMiddleware,
-];
+export const Middlewares = [ReportMiddleware];

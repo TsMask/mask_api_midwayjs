@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
@@ -59,7 +59,7 @@ function parseSysOperLogResult(rows: any[]): SysOperLog[] {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
   @Inject()
   private db: DynamicDataSource;

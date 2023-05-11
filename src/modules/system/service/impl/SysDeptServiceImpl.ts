@@ -1,4 +1,4 @@
-import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { SysDept } from '../../model/SysDept';
 import { TreeSelect } from '../../../../framework/model/TreeSelect';
 import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';
@@ -13,7 +13,7 @@ import { parseDataToTree } from '../../../../framework/utils/ValueParseUtils';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysDeptServiceImpl implements ISysDeptService {
   @Inject()
   private sysDeptRepository: SysDeptRepositoryImpl;

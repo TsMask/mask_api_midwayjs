@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { DataSource, QueryRunner } from 'typeorm';
 
@@ -8,7 +8,7 @@ import { DataSource, QueryRunner } from 'typeorm';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class DynamicDataSource {
   @Inject()
   private dataSourceManager: TypeORMDataSourceManager;

@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import {
   parseDataToTree,
   parseFirstUpper,
@@ -31,7 +31,7 @@ import {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysMenuServiceImpl implements ISysMenuService {
   @Inject()
   private sysMenuRepository: SysMenuRepositoryImpl;

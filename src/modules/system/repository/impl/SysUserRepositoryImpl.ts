@@ -1,4 +1,4 @@
-import { Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Inject, Provide, Singleton } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { bcryptHash } from '../../../../framework/utils/CryptoUtils';
 import {
@@ -107,7 +107,7 @@ function parseSysUserResult(rows: any[]): SysUser[] {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysUserRepositoryImpl implements ISysUserRepository {
   @Inject()
   private db: DynamicDataSource;

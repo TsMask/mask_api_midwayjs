@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { ADMIN_ROLE_ID } from '../../../../framework/constants/AdminConstants';
 import { SysRole } from '../../model/SysRole';
 import { SysRoleDept } from '../../model/SysRoleDept';
@@ -16,7 +16,7 @@ import { ISysRoleService } from '../ISysRoleService';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysRoleServiceImpl implements ISysRoleService {
   @Inject()
   private sysRoleRepository: SysRoleRepositoryImpl;

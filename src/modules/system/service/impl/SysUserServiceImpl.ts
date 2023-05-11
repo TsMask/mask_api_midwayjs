@@ -1,4 +1,4 @@
-import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import {
   STATUS_NO,
   STATUS_YES,
@@ -26,7 +26,7 @@ import { SysDictDataServiceImpl } from './SysDictDataServiceImpl';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysUserServiceImpl implements ISysUserService {
   @Inject()
   private sysUserRepository: SysUserRepositoryImpl;
