@@ -7,7 +7,6 @@ import {
   validEmail,
   validMobile,
 } from '../../../../framework/utils/RegularUtils';
-import { SysDictData } from '../../model/SysDictData';
 import { SysUser } from '../../model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
@@ -229,10 +228,8 @@ export class SysUserServiceImpl implements ISysUserService {
       'sys.user.initPassword'
     );
     // 读取用户性别字典数据
-    const sysUserSexSDD = new SysDictData();
-    sysUserSexSDD.dictType = 'sys_user_sex';
-    const sysUserSexSDDList = await this.sysDictDataService.selectDictDataList(
-      sysUserSexSDD
+    const sysUserSexSDDList = await this.sysDictDataService.selectDictDataByType(
+      'sys_user_sex'
     );
     // 导入记录
     let successNum = 0;
@@ -267,15 +264,6 @@ export class SysUserServiceImpl implements ISysUserService {
         newSysUser.sex = '0';
       }
 
-      // 判断属性值是否唯一
-      const uniqueUserName = await this.checkUniqueUserName(newSysUser);
-      if (!uniqueUserName) {
-        failureNum++;
-        failureMsgArr.push(
-          `序号：${item['序号']} 登录名称 ${newSysUser.userName} 已存在`
-        );
-        continue;
-      }
       if (newSysUser.phonenumber) {
         if (validMobile(newSysUser.phonenumber)) {
           const uniquePhone = await this.checkUniquePhone(newSysUser);
