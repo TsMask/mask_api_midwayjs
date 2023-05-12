@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Del,
+  Fields,
   Files,
   Get,
   Inject,
@@ -85,7 +86,7 @@ export class SysUserController {
   @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.IMPORT })
   async importData(
     @Files('file') files: UploadFileInfo<string>[],
-    updateSupport: string
+    @Fields('updateSupport') updateSupport: string
   ) {
     if (files.length <= 0) return Result.err();
     // 读取表格数据
