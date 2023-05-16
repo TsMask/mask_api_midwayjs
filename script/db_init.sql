@@ -139,7 +139,7 @@ create table sys_menu (
   is_frame          char(1)         default '1'                comment '是否内部跳转（0否 1是）',
   is_cache          char(1)         default '0'                comment '是否缓存（0不缓存 1缓存）',
   menu_type         char(1)         not null                   comment '菜单类型（D目录 M菜单 B按钮）',
-  visible           char(1)         default '0'                comment '菜单状态（0隐藏 1显示）',
+  visible           char(1)         default '0'                comment '是否显示（0隐藏 1显示）',
   status            char(1)         default '0'                comment '菜单状态（0停用 1正常）',
   perms             varchar(100)    default null               comment '权限标识',
   icon              varchar(100)    default '#'                comment '菜单图标（#无图标）',
@@ -457,7 +457,7 @@ create table sys_config (
   primary key (config_id)
 ) engine=innodb auto_increment=100 comment = '参数配置表';
 
-insert into sys_config values(1, '用户管理-账号初始密码',         'sys.user.initPassword',         '123456',        'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '导入用户初始化密码 123456' );
+insert into sys_config values(1, '用户管理-账号初始密码',         'sys.user.initPassword',         'Abcd@1234..',        'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '导入用户初始化密码 123456' );
 insert into sys_config values(2, '账号自助-验证码开关',           'sys.account.captchaEnabled',    'true',          'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启验证码功能（true开启，false关闭）');
 insert into sys_config values(3, '账号自助-验证码类型',           'sys.account.captchaType',       'math',          'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '使用验证码类型（math数值计算，char字符验证）');
 insert into sys_config values(4, '账号自助-是否开启用户注册功能',  'sys.account.registerUser',      'false',         'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启注册用户功能（true开启，false关闭）');
