@@ -9,29 +9,11 @@ import * as bull from '@midwayjs/bull';
 import * as crossDomain from '@midwayjs/cross-domain';
 import * as security from '@midwayjs/security';
 import { join } from 'path';
-import { DefaultErrorFilter } from './framework/filter/DefaultErrorFilter';
-import { ForbiddenErrorFilter } from './framework/filter/ForbiddenErrorFilter';
-import { NotFoundErrorFilter } from './framework/filter/NotFoundErrorFilter';
-import { UnauthorizedErrorFilter } from './framework/filter/UnauthorizedErrorFilter';
-import { ReportMiddleware } from './framework/middleware/ReportMiddleware';
 import { MidwayDecoratorService } from '@midwayjs/core';
-import {
-  DECORATOR_METHOD_PRE_AUTHORIZE_KEY,
-  PreAuthorizeVerify,
-} from './framework/decorator/PreAuthorizeMethodDecorator';
-import {
-  DECORATOR_METHOD_OPER_LOG_KEY,
-  OperLogSave,
-} from './framework/decorator/OperLogMethodDecorator';
-import {
-  DECORATOR_METHOD_RATE_LIMIT_KEY,
-  RateLimitVerify,
-} from './framework/decorator/RateLimitMethodDecorator';
-import {
-  DECORATOR_METHOD_REPEAT_SUBMIT_KEY,
-  RepeatSubmitVerify,
-} from './framework/decorator/RepeatSubmitMethodDecorator';
 import { checkExistsAndMkdir } from './framework/utils/FileUtils';
+import { Middlewares } from './framework/middleware';
+import { MethodDecorators } from './framework/decorator';
+import { ErrorCatchFilters } from './framework/error-catch';
 
 @Configuration({
   imports: [
@@ -58,35 +40,14 @@ export class MainConfiguration {
    * 在依赖注入容器 ready 的时候执行
    */
   async onReady(): Promise<void> {
-    // add middleware 添加使用中间件
-    this.app.useMiddleware([ReportMiddleware]);
-    // add filter 添加使用错误过滤器
-    this.app.useFilter([
-      NotFoundErrorFilter,
-      ForbiddenErrorFilter,
-      UnauthorizedErrorFilter,
-      DefaultErrorFilter,
-    ]);
-    // 用户身份授权认证校验-方法装饰器
-    this.decoratorService.registerMethodHandler(
-      DECORATOR_METHOD_PRE_AUTHORIZE_KEY,
-      PreAuthorizeVerify
-    );
-    // 访问操作日志记录-方法装饰器
-    this.decoratorService.registerMethodHandler(
-      DECORATOR_METHOD_OPER_LOG_KEY,
-      OperLogSave
-    );
-    // 限流-方法装饰器
-    this.decoratorService.registerMethodHandler(
-      DECORATOR_METHOD_RATE_LIMIT_KEY,
-      RateLimitVerify
-    );
-    // 防止表单重复提交-方法装饰器
-    this.decoratorService.registerMethodHandler(
-      DECORATOR_METHOD_REPEAT_SUBMIT_KEY,
-      RepeatSubmitVerify
-    );
+    // 注册中间件
+    this.app.useMiddleware(Middlewares);
+    // 注册捕获异常处理器
+    this.app.useFilter(ErrorCatchFilters);
+    // 注册方法装饰器
+    for (const { key, fn } of MethodDecorators) {
+      this.decoratorService.registerMethodHandler(key, fn);
+    }
   }
 
   /**

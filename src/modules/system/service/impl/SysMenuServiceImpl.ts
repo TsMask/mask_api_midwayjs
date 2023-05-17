@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import {
   parseDataToTree,
   parseFirstUpper,
@@ -31,7 +31,7 @@ import {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysMenuServiceImpl implements ISysMenuService {
   @Inject()
   private sysMenuRepository: SysMenuRepositoryImpl;
@@ -85,6 +85,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
   async selectMenuListByRoleId(roleId: string): Promise<string[]> {
     const role = await this.sysRoleRepository.selectRoleById(roleId);
+    if(!role) return [];
     return await this.sysMenuRepository.selectMenuListByRoleId(
       role.roleId,
       role.menuCheckStrictly === '1'

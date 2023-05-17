@@ -48,7 +48,7 @@ export class SysNoticeController {
   async getInfo(@Param('noticeId') noticeId: string): Promise<Result> {
     if (!noticeId) return Result.err();
     const data = await this.sysNoticeService.selectNoticeById(noticeId);
-    return Result.okData(data || {});
+    return Result.okData(data);
   }
 
   /**

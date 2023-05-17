@@ -1,4 +1,4 @@
-import { Provide, Inject, Init, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, Init, Singleton } from '@midwayjs/decorator';
 import { SYS_CONFIG_KEY } from '../../../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../../../../framework/cache/RedisCache';
 import { SysConfig } from '../../model/SysConfig';
@@ -11,7 +11,7 @@ import { ISysConfigService } from '../ISysConfigService';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysConfigServiceImpl implements ISysConfigService {
   @Inject()
   private sysConfigRepository: SysConfigRepositoryImpl;

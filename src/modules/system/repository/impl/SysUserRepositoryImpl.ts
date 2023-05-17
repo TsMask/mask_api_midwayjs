@@ -1,4 +1,4 @@
-import { Inject, Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Inject, Provide, Singleton } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { bcryptHash } from '../../../../framework/utils/CryptoUtils';
 import {
@@ -107,7 +107,7 @@ function parseSysUserResult(rows: any[]): SysUser[] {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysUserRepositoryImpl implements ISysUserRepository {
   @Inject()
   private db: DynamicDataSource;
@@ -226,7 +226,6 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   }
 
   async selectAllocatedPage(
-    roleId: string,
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
@@ -249,12 +248,12 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     // 分配角色用户
     if (parseBoolean(query.allocated)) {
       sqlStr += ' and r.role_id = ? ';
-      paramArr.push(roleId);
+      paramArr.push(query.roleId);
     } else {
       sqlStr +=
         ' and (r.role_id != ? or r.role_id IS NULL) and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = ?)';
-      paramArr.push(roleId);
-      paramArr.push(roleId);
+      paramArr.push(query.roleId);
+      paramArr.push(query.roleId);
     }
 
     // 查询条件数 长度必为0其值为0
@@ -282,7 +281,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     paramArr.push(pageSize);
 
     const buildSql = `select distinct 
-    u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, u.phonenumber, u.status, u.create_time
+    u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, 
+    u.phonenumber, u.status, u.create_time, d.dept_name
     from sys_user u
     left join sys_dept d on u.dept_id = d.dept_id
     left join sys_user_role ur on u.user_id = ur.user_id

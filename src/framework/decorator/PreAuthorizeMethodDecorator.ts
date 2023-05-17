@@ -1,9 +1,9 @@
-import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
+import { JoinPoint, REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import {
   ForbiddenError,
   UnauthorizedError,
 } from '@midwayjs/core/dist/error/http';
-import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
+import { createCustomMethodDecorator } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
 import { TOKEN_KEY } from '../constants/TokenConstants';
@@ -22,21 +22,17 @@ interface AuthOptions {
   matchPermissions?: string[];
 }
 
-/**装饰器内部的唯一 key */
-export const DECORATOR_METHOD_PRE_AUTHORIZE_KEY =
-  'decorator_method:pre_authorize';
+/**装饰器key标识-用户身份授权认证校验 */
+export const METHOD_KEY_PRE_AUTHORIZE = 'decorator_method:pre_authorize';
 
 /**
- * 用户身份授权认证校验-方法装饰器
+ * 装饰器声明-用户身份授权认证校验
  *
  * @param options 授权限制参数
  * @author TsMask
  */
 export function PreAuthorize(options?: AuthOptions): MethodDecorator {
-  return createCustomMethodDecorator(
-    DECORATOR_METHOD_PRE_AUTHORIZE_KEY,
-    options
-  );
+  return createCustomMethodDecorator(METHOD_KEY_PRE_AUTHORIZE, options);
 }
 
 /**
@@ -58,7 +54,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       // 获取token在请求头标识信息
       const token = await tokenService.getHeaderToken(ctx.get(TOKEN_KEY));
       if (!token) {
-        throw new UnauthorizedError('无效授权');
+        throw new UnauthorizedError('无效身份授权');
       }
 
       // 获取用户信息
@@ -67,7 +63,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
         loginUser = await tokenService.verifyToken(loginUser);
         ctx.loginUser = loginUser;
       } else {
-        throw new UnauthorizedError('无效授权');
+        throw new UnauthorizedError('无效身份授权');
       }
 
       // 登录用户角色权限校验
@@ -81,7 +77,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
           metadataObj
         );
         if (!verifyOk) {
-          throw new ForbiddenError(`${ctx.method} ${ctx.path} 无权访问`);
+          throw new ForbiddenError(`无权访问 ${ctx.method} ${ctx.path}`);
         }
       }
 

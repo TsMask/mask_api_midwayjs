@@ -1,6 +1,6 @@
 import { Job } from '@midwayjs/bull';
 import { BullFramework } from '@midwayjs/bull/dist/framework';
-import { Provide, Inject, ScopeEnum, Scope, Init } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton, Init } from '@midwayjs/decorator';
 import {
   STATUS_NO,
   STATUS_YES,
@@ -17,7 +17,7 @@ import { ISysJobService } from '../ISysJobService';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysJobServiceImpl implements ISysJobService {
   @Inject()
   private bullFramework: BullFramework;
@@ -112,7 +112,7 @@ export class SysJobServiceImpl implements ISysJobService {
   async insertQueueJob(sysJob: SysJob, repeat: boolean): Promise<boolean> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
-    if (!queue) return;
+    if (!queue) return false;
 
     const jobId = sysJob.jobId;
     const cron = sysJob.cronExpression;

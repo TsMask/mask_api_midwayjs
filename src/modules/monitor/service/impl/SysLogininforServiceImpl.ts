@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { SysLogininfor } from '../../model/SysLogininfor';
 import { SysLogininforRepositoryImpl } from '../../repository/impl/SysLogininforRepositoryImpl';
 import { ISysLogininforService } from '../ISysLogininforService';
@@ -9,7 +9,7 @@ import { ISysLogininforService } from '../ISysLogininforService';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysLogininforServiceImpl implements ISysLogininforService {
   @Inject()
   private sysLogininforRepository: SysLogininforRepositoryImpl;

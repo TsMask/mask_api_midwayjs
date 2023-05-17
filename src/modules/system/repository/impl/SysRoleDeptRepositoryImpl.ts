@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysRoleDept } from '../../model/SysRoleDept';
@@ -10,7 +10,7 @@ import { ISysRoleDeptRepository } from '../ISysRoleDeptRepository';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysRoleDeptRepositoryImpl implements ISysRoleDeptRepository {
   @Inject()
   public db: DynamicDataSource;

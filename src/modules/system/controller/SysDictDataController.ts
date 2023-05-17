@@ -16,6 +16,7 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { SysDictData } from '../model/SysDictData';
+import { SysDictTypeServiceImpl } from '../service/impl/SysDictTypeServiceImpl';
 
 /**
  * 字典类型对应的字典数据信息
@@ -33,8 +34,11 @@ export class SysDictDataController {
   @Inject()
   private sysDictDataServer: SysDictDataServiceImpl;
 
+  @Inject()
+  private sysDictTypeService: SysDictTypeServiceImpl;
+
   /**
-   * 导出字典数据信息
+   * 字典数据列表导出
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:dict:export'] })
@@ -94,23 +98,13 @@ export class SysDictDataController {
   }
 
   /**
-   * 字典数据信息
+   * 字典数据详情
    */
   @Get('/:dictCode')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async getInfo(@Param('dictCode') dictCode: string): Promise<Result> {
     const data = await this.sysDictDataServer.selectDictDataByCode(dictCode);
-    return Result.okData(data || {});
-  }
-
-  /**
-   * 字典数据列表根据字典类型
-   */
-  @Get('/type/:dictType')
-  @PreAuthorize({ hasPermissions: ['system:dict:query'] })
-  async dictType(@Param('dictType') dictType: string): Promise<Result> {
-    const data = await this.sysDictDataServer.selectDictDataByType(dictType);
-    return Result.okData(data || []);
+    return Result.okData(data);
   }
 
   /**
@@ -123,19 +117,21 @@ export class SysDictDataController {
     businessType: OperatorBusinessTypeEnum.INSERT,
   })
   async add(@Body() sysDictData: SysDictData): Promise<Result> {
-    if (
-      !sysDictData.dictType ||
-      !sysDictData.dictLabel ||
-      !sysDictData.dictValue
-    )
-      return Result.err();
+    const { dictCode, dictType, dictLabel, dictValue } = sysDictData;
+    if (dictCode || !dictType || !dictLabel || !dictValue) return Result.err();
+    // 检查字典类型是否存在
+    const dict = await this.sysDictTypeService.selectDictTypeByType(dictType);
+    if (!dict) {
+      return Result.errMsg('没有权限访问字典类型数据！');
+    }
+
     // 检查属性值唯一
     const uniqueDictLabel = await this.sysDictDataServer.checkUniqueDictLabel(
       sysDictData
     );
     if (!uniqueDictLabel) {
       return Result.errMsg(
-        `数据新增【${sysDictData.dictLabel}】失败，该字典类型下标签已存在`
+        `数据新增【${dictLabel}】失败，该字典类型下标签名已存在`
       );
     }
     const uniqueDictValue = await this.sysDictDataServer.checkUniqueDictValue(
@@ -143,10 +139,9 @@ export class SysDictDataController {
     );
     if (!uniqueDictValue) {
       return Result.errMsg(
-        `数据新增【${sysDictData.dictValue}】失败，该字典类型下键值已存在`
+        `数据新增【${dictValue}】失败，该字典类型下标签值已存在`
       );
     }
-
     sysDictData.createBy = this.contextService.getUseName();
     const insertId = await this.sysDictDataServer.insertDictData(sysDictData);
     return Result[insertId ? 'ok' : 'err']();
@@ -162,19 +157,28 @@ export class SysDictDataController {
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
   async edit(@Body() sysDictData: SysDictData): Promise<Result> {
-    if (
-      !sysDictData.dictType ||
-      !sysDictData.dictLabel ||
-      !sysDictData.dictValue
-    )
-      return Result.err();
+    const { dictCode, dictType, dictLabel, dictValue } = sysDictData;
+    if (!dictCode || !dictType || !dictLabel || !dictValue) return Result.err();
+    // 检查字典类型是否存在
+    const dict = await this.sysDictTypeService.selectDictTypeByType(dictType);
+    if (!dict) {
+      return Result.errMsg('没有权限访问字典类型数据！');
+    }
+    // 检查字典编码是否存在
+    const dictData = await this.sysDictDataServer.selectDictDataByCode(
+      dictCode
+    );
+    if (!dictData) {
+      return Result.errMsg('没有权限访问字典编码数据！');
+    }
+
     // 检查属性值唯一
     const uniqueDictLabel = await this.sysDictDataServer.checkUniqueDictLabel(
       sysDictData
     );
     if (!uniqueDictLabel) {
       return Result.errMsg(
-        `数据修改【${sysDictData.dictLabel}】失败，该字典类型下标签已存在`
+        `数据修改【${dictLabel}】失败，该字典类型下标签名已存在`
       );
     }
     const uniqueDictValue = await this.sysDictDataServer.checkUniqueDictValue(
@@ -182,10 +186,9 @@ export class SysDictDataController {
     );
     if (!uniqueDictValue) {
       return Result.errMsg(
-        `数据修改【${sysDictData.dictValue}】失败，该字典类型下键值已存在`
+        `数据修改【${dictValue}】失败，该字典类型下标签值已存在`
       );
     }
-
     sysDictData.updateBy = this.contextService.getUseName();
     const id = await this.sysDictDataServer.updateDictData(sysDictData);
     return Result[id ? 'ok' : 'err']();
@@ -209,5 +212,15 @@ export class SysDictDataController {
       ...new Set(ids),
     ]);
     return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 字典数据列表（指定字典类型）
+   */
+  @Get('/type/:dictType')
+  @PreAuthorize({ hasPermissions: ['system:dict:query'] })
+  async getDictType(@Param('dictType') dictType: string): Promise<Result> {
+    const data = await this.sysDictDataServer.selectDictDataByType(dictType);
+    return Result.okData(data || []);
   }
 }

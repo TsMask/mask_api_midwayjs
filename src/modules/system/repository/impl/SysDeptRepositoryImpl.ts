@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { SysDept } from '../../model/SysDept';
@@ -54,7 +54,7 @@ function parseSysDeptResult(rows: any[]): SysDept[] {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysDeptRepositoryImpl implements ISysDeptRepository {
   @Inject()
   private db: DynamicDataSource;
@@ -267,7 +267,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async deleteDeptById(deptId: string): Promise<number> {
-    const sqlStr = "update sys_dept set del_flag = '2' where dept_id = ?";
+    const sqlStr = "update sys_dept set del_flag = '1' where dept_id = ?";
     const result: ResultSetHeader = await this.db.execute(sqlStr, [deptId]);
     return result.affectedRows;
   }

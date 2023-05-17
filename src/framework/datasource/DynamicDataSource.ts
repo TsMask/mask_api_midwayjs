@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { DataSource, QueryRunner } from 'typeorm';
 
@@ -8,7 +8,7 @@ import { DataSource, QueryRunner } from 'typeorm';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class DynamicDataSource {
   @Inject()
   private dataSourceManager: TypeORMDataSourceManager;
@@ -32,6 +32,9 @@ export class DynamicDataSource {
 
   /**
    * 执行sql语句
+   *
+   * 使用后自动释放连接
+   *
    * @param sql sql预编译语句
    * @param parameters 预编译?参数
    * @param source 数据源 默认'default'
@@ -42,10 +45,13 @@ export class DynamicDataSource {
     parameters?: any[],
     source = 'default'
   ): Promise<any> {
+    sql = sql.replace(/\s+/g, ' ');
     return this.dataSource(source).query(sql, parameters);
   }
 
   /**
+   * 事务执行sql语句
+   *
    * 创建和控制单个数据库连接的状态, 允许控制事务但需要使用后手动释放连接
    *
    * startTransaction - 在查询运行器实例中启动一个新事务。

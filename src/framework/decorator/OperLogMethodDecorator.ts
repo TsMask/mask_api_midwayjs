@@ -1,5 +1,5 @@
-import { REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
-import { createCustomMethodDecorator, JoinPoint } from '@midwayjs/decorator';
+import { JoinPoint, REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
+import { createCustomMethodDecorator } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { OperatorBusinessTypeEnum } from '../enums/OperatorBusinessTypeEnum';
 import { OperatorTypeEnum } from '../enums/OperatorTypeEnum';
@@ -30,8 +30,8 @@ interface operLogOptions {
   isSaveResponseData?: boolean;
 }
 
-/**装饰器内部的唯一 key */
-export const DECORATOR_METHOD_OPER_LOG_KEY = 'decorator_method:oper_log';
+/**装饰器key标识-访问操作日志记录 */
+export const METHOD_KEY_OPER_LOG = 'decorator_method:oper_log';
 
 /**敏感属性字段进行掩码 */
 const MASK_PROPERTIES = [
@@ -42,14 +42,14 @@ const MASK_PROPERTIES = [
 ];
 
 /**
- * 访问操作日志记录-方法装饰器
+ * 装饰器声明-访问操作日志记录
  *
  * 请在用户身份授权认证校验后使用以便获取登录用户信息
  * @param options 操作日志参数
  * @author TsMask
  */
 export function OperLog(options: operLogOptions): MethodDecorator {
-  return createCustomMethodDecorator(DECORATOR_METHOD_OPER_LOG_KEY, options);
+  return createCustomMethodDecorator(METHOD_KEY_OPER_LOG, options);
 }
 
 /**

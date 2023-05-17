@@ -70,7 +70,7 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:query'] })
   async getInfo(@Param('deptId') deptId: string): Promise<Result> {
     const data = await this.sysDeptService.selectDeptById(deptId);
-    return Result.okData(data || {});
+    return Result.okData(data);
   }
 
   /**
@@ -80,7 +80,8 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:add'] })
   @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysDept: SysDept): Promise<Result> {
-    if (!sysDept.parentId) return Result.err();
+    const { parentId, deptName } = sysDept;
+    if (!parentId || !deptName) return Result.err();
     // 检查同级下同名唯一
     const uniqueDeptName = await this.sysDeptService.checkUniqueDeptName(
       sysDept
@@ -91,10 +92,11 @@ export class SysDeptController {
       );
     }
     // 如果父节点不为正常状态,则不允许新增子节点
-    const deptParent = await this.sysDeptService.selectDeptById(
-      sysDept.parentId
-    );
-    if (deptParent && deptParent.status === STATUS_NO) {
+    const deptParent = await this.sysDeptService.selectDeptById(parentId);
+    if (!deptParent) {
+      return Result.errMsg('没有权限访问部门数据');
+    }
+    if (deptParent.status === STATUS_NO) {
       return Result.errMsg(
         `上级部门【${deptParent.deptName}】停用，不允许新增`
       );
@@ -112,10 +114,18 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
   @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysDept: SysDept): Promise<Result> {
-    if (sysDept.parentId === sysDept.deptId) {
+    const { deptId, parentId, deptName } = sysDept;
+    if (!deptId || !parentId || !deptName) return Result.err();
+    // 上级部门不能选自己
+    if (deptId === parentId) {
       return Result.errMsg(
         `部门修改【${sysDept.deptName}】失败，上级部门不能是自己`
       );
+    }
+    // 检查数据是否存在
+    const dept = await this.sysDeptService.selectDeptById(deptId);
+    if (!dept) {
+      return Result.errMsg('没有权限访问部门数据');
     }
     // 检查同级下同名唯一
     const uniqueDeptName = await this.sysDeptService.checkUniqueDeptName(
@@ -128,9 +138,7 @@ export class SysDeptController {
     }
     // 上级停用
     if (sysDept.status === STATUS_NO) {
-      const hasChild = await this.sysDeptService.hasChildByDeptId(
-        sysDept.deptId
-      );
+      const hasChild = await this.sysDeptService.hasChildByDeptId(deptId);
       if (hasChild) {
         return Result.errMsg('该部门包含未停用的子部门！');
       }
@@ -148,6 +156,10 @@ export class SysDeptController {
   @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('deptId') deptId: string): Promise<Result> {
     if (!deptId) return Result.err();
+    const dept = await this.sysDeptService.selectDeptById(deptId);
+    if (!dept) {
+      return Result.errMsg('没有权限访问部门数据');
+    }
     const hasChild = await this.sysDeptService.hasChildByDeptId(deptId);
     if (hasChild) {
       return Result.errMsg('存在下级部门,不允许删除');
@@ -156,25 +168,42 @@ export class SysDeptController {
     if (existUser) {
       return Result.errMsg('部门存在用户,不允许删除');
     }
-    const dept = await this.sysDeptService.selectDeptById(deptId);
-    if (!dept) {
-      return Result.errMsg('没有权限访问部门数据');
-    }
     const rows = await this.sysDeptService.deleteDeptById(deptId);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
-   * 部门下拉树列表
+   * 部门树结构列表
    */
   @Get('/treeSelect')
   @PreAuthorize({ hasPermissions: ['system:dept:list', 'system:user:list'] })
   async treeSelect(@Query() sysDept: SysDept): Promise<Result> {
     const dataScopeSQL = this.contextService.getDataScopeSQL('d');
-    const data = await this.sysDeptService.selectDeptTreeList(
+    const data = await this.sysDeptService.selectDeptTreeSelect(
       sysDept,
       dataScopeSQL
     );
     return Result.okData(data || []);
+  }
+
+  /**
+   * 部门树结构列表（指定角色）
+   */
+  @Get('/roleDeptTreeSelect/:roleId')
+  @PreAuthorize({ hasPermissions: ['system:role:query'] })
+  async roleDeptTreeSelect(@Param('roleId') roleId: string): Promise<Result> {
+    if (!roleId) return Result.err();
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    const deptTreeSelect = await this.sysDeptService.selectDeptTreeSelect(
+      new SysDept(),
+      dataScopeSQL
+    );
+    const checkedKeys = await this.sysDeptService.selectDeptListByRoleId(
+      roleId
+    );
+    return Result.okData({
+      depts: deptTreeSelect,
+      checkedKeys,
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { Provide, Inject, Init, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, Init, Singleton } from '@midwayjs/decorator';
 import { SYS_DICT_KEY } from '../../../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../../../../framework/cache/RedisCache';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
@@ -14,7 +14,7 @@ import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysDictTypeServiceImpl implements ISysDictTypeService {
   @Inject()
   private sysDictDataRepository: SysDictDataRepositoryImpl;

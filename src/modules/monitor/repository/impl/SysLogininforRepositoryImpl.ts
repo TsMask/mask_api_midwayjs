@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
@@ -51,7 +51,7 @@ function parseSysLogininforResult(rows: any[]): SysLogininfor[] {
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
   @Inject()
   private db: DynamicDataSource;

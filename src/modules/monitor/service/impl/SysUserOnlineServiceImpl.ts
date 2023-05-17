@@ -1,4 +1,4 @@
-import { Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Singleton } from '@midwayjs/decorator';
 import { LoginUser } from '../../../../framework/model/LoginUser';
 import { SysUserOnline } from '../../model/SysUserOnline';
 import { ISysUserOnlineService } from '../ISysUserOnlineService';
@@ -9,7 +9,7 @@ import { ISysUserOnlineService } from '../ISysUserOnlineService';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysUserOnlineServiceImpl implements ISysUserOnlineService {
   async loginUserToUserOnline(loginUser: LoginUser): Promise<SysUserOnline> {
     if (!loginUser && !loginUser.user) return null;

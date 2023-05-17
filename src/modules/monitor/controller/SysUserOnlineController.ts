@@ -72,7 +72,7 @@ export class SysUserOnlineController {
   @PreAuthorize({ hasPermissions: ['monitor:online:forceLogout'] })
   async forceLogout(@Param('tokenId') tokenId: string): Promise<Result> {
     if (!tokenId || tokenId === '*') return Result.err();
-    this.redisCache.del(`${LOGIN_TOKEN_KEY}${tokenId}`);
-    return Result.ok();
+    const num = await this.redisCache.del(`${LOGIN_TOKEN_KEY}${tokenId}`);
+    return Result[num > 0 ? 'ok' : 'err']();
   }
 }

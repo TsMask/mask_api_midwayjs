@@ -1,4 +1,4 @@
-import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { SysJobLog } from '../../model/SysJobLog';
 import { SysJobLogRepositoryImpl } from '../../repository/impl/SysJobLogRepositoryImpl';
 import { ISysJobLogService } from '../ISysJobLogService';
@@ -9,7 +9,7 @@ import { ISysJobLogService } from '../ISysJobLogService';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysJobLogServiceImpl implements ISysJobLogService {
   @Inject()
   private sysJobLogRepository: SysJobLogRepositoryImpl;

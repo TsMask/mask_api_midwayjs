@@ -1,4 +1,4 @@
-import { Provide, Inject, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { ADMIN_ROLE_ID } from '../../../../framework/constants/AdminConstants';
 import { SysRole } from '../../model/SysRole';
 import { SysRoleDept } from '../../model/SysRoleDept';
@@ -16,7 +16,7 @@ import { ISysRoleService } from '../ISysRoleService';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysRoleServiceImpl implements ISysRoleService {
   @Inject()
   private sysRoleRepository: SysRoleRepositoryImpl;
@@ -82,25 +82,25 @@ export class SysRoleServiceImpl implements ISysRoleService {
   }
 
   async checkUniqueRoleName(sysRole: SysRole): Promise<boolean> {
-    const roleId = await this.sysRoleRepository.checkUniqueRoleName(
-      sysRole.roleName
+    const { roleId, roleName } = sysRole;
+    const roleIdTemp = await this.sysRoleRepository.checkUniqueRoleName(
+      roleName
     );
     // 角色信息与查询得到角色ID一致
-    if (roleId && sysRole.roleId === roleId) {
+    if (roleIdTemp && roleIdTemp === roleId) {
       return true;
     }
-    return !roleId;
+    return !roleIdTemp;
   }
 
   async checkUniqueRoleKey(sysRole: SysRole): Promise<boolean> {
-    const roleId = await this.sysRoleRepository.checkUniqueRoleName(
-      sysRole.roleKey
-    );
+    const { roleId, roleKey } = sysRole;
+    const roleIdTemp = await this.sysRoleRepository.checkUniqueRoleKey(roleKey);
     // 角色信息与查询得到角色ID一致
-    if (roleId && sysRole.roleId === roleId) {
+    if (roleIdTemp && roleIdTemp === roleId) {
       return true;
     }
-    return !roleId;
+    return !roleIdTemp;
   }
 
   async countUserRoleByRoleId(roleId: string): Promise<number> {
@@ -194,6 +194,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
       userIds
     );
   }
+  
   async insertAuthUsers(roleId: string, userIds: string[]): Promise<number> {
     if (userIds && userIds.length <= 0) return 0;
     // 新增用户与角色管理

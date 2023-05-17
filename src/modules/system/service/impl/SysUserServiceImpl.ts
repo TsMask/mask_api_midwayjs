@@ -1,4 +1,4 @@
-import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import {
   STATUS_NO,
   STATUS_YES,
@@ -7,7 +7,6 @@ import {
   validEmail,
   validMobile,
 } from '../../../../framework/utils/RegularUtils';
-import { SysDictData } from '../../model/SysDictData';
 import { SysUser } from '../../model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
@@ -26,7 +25,7 @@ import { SysDictDataServiceImpl } from './SysDictDataServiceImpl';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysUserServiceImpl implements ISysUserService {
   @Inject()
   private sysUserRepository: SysUserRepositoryImpl;
@@ -64,12 +63,10 @@ export class SysUserServiceImpl implements ISysUserService {
   }
 
   async selectAllocatedPage(
-    roleId: string,
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
     return await this.sysUserRepository.selectAllocatedPage(
-      roleId,
       query,
       dataScopeSQL
     );
@@ -147,15 +144,15 @@ export class SysUserServiceImpl implements ISysUserService {
   }
 
   async updateUserAndRolePost(sysUser: SysUser): Promise<number> {
-    const userId = sysUser.userId;
+    const { userId, roleIds, postIds } = sysUser;
     // 删除用户与角色关联
     await this.sysUserRoleRepository.deleteUserRole([userId]);
     // 新增用户与角色管理
-    await this.insertUserRole(userId, sysUser.roleIds);
+    await this.insertUserRole(userId, roleIds);
     // 删除用户与岗位关联
     await this.sysUserPostRepository.deleteUserPost([userId]);
     // 新增用户与岗位管理
-    await this.insertUserPost(userId, sysUser.postIds);
+    await this.insertUserPost(userId, postIds);
     return await this.sysUserRepository.updateUser(sysUser);
   }
   /**
@@ -229,11 +226,8 @@ export class SysUserServiceImpl implements ISysUserService {
       'sys.user.initPassword'
     );
     // 读取用户性别字典数据
-    const sysUserSexSDD = new SysDictData();
-    sysUserSexSDD.dictType = 'sys_user_sex';
-    const sysUserSexSDDList = await this.sysDictDataService.selectDictDataList(
-      sysUserSexSDD
-    );
+    const sysUserSexSDDList =
+      await this.sysDictDataService.selectDictDataByType('sys_user_sex');
     // 导入记录
     let successNum = 0;
     let failureNum = 0;
@@ -267,15 +261,6 @@ export class SysUserServiceImpl implements ISysUserService {
         newSysUser.sex = '0';
       }
 
-      // 判断属性值是否唯一
-      const uniqueUserName = await this.checkUniqueUserName(newSysUser);
-      if (!uniqueUserName) {
-        failureNum++;
-        failureMsgArr.push(
-          `序号：${item['序号']} 登录名称 ${newSysUser.userName} 已存在`
-        );
-        continue;
-      }
       if (newSysUser.phonenumber) {
         if (validMobile(newSysUser.phonenumber)) {
           const uniquePhone = await this.checkUniquePhone(newSysUser);

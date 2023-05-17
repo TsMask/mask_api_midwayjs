@@ -1,4 +1,4 @@
-import { Provide, Inject, ScopeEnum, Scope } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { SysDictData } from '../../model/SysDictData';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
 import { ISysDictDataService } from '../ISysDictDataService';
@@ -10,7 +10,7 @@ import { SysDictTypeServiceImpl } from './SysDictTypeServiceImpl';
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SysDictDataServiceImpl implements ISysDictDataService {
   @Inject()
   private sysDictDataRepository: SysDictDataRepositoryImpl;
@@ -70,6 +70,7 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
       sysDictData
     );
     if (insertId) {
+      // 插入成功后加入缓存
       await this.sysDictTypeService.loadingDictCache(sysDictData.dictType);
     }
     return insertId;
@@ -91,7 +92,7 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
         dictCode
       );
       if (!dictData) {
-        throw new Error('没有权限访问字典数据数据！');
+        throw new Error('没有权限访问字典编码数据！');
       }
       dictTypes.push(dictData.dictType);
     }

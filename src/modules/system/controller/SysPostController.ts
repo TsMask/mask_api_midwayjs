@@ -93,7 +93,7 @@ export class SysPostController {
   async getInfo(@Param('postId') postId: string): Promise<Result> {
     if (!postId) return Result.err();
     const data = await this.sysPostService.selectPostById(postId);
-    return Result.okData(data || {});
+    return Result.okData(data);
   }
 
   /**
@@ -103,25 +103,21 @@ export class SysPostController {
   @PreAuthorize({ hasPermissions: ['system:post:add'] })
   @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysPost: SysPost): Promise<Result> {
-    if (!sysPost.postName || !sysPost.postCode) {
-      return Result.err();
-    }
+    const { postId, postName, postCode } = sysPost;
+    if (postId || !postName || !postCode) return Result.err();
+
     // 检查属性值唯一
     const uniqueuPostName = await this.sysPostService.checkUniquePostName(
       sysPost
     );
     if (!uniqueuPostName) {
-      return Result.errMsg(
-        `岗位新增【${sysPost.postName}】失败，岗位名称已存在`
-      );
+      return Result.errMsg(`岗位新增【${postName}】失败，岗位名称已存在`);
     }
     const uniquePostCode = await this.sysPostService.checkUniquePostCode(
       sysPost
     );
     if (!uniquePostCode) {
-      return Result.errMsg(
-        `岗位新增【${sysPost.postCode}】失败，岗位编码已存在`
-      );
+      return Result.errMsg(`岗位新增【${postCode}】失败，岗位编码已存在`);
     }
 
     sysPost.createBy = this.contextService.getUseName();
@@ -136,25 +132,26 @@ export class SysPostController {
   @PreAuthorize({ hasPermissions: ['system:post:edit'] })
   @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysPost: SysPost): Promise<Result> {
-    if (!sysPost.postName || !sysPost.postCode || !sysPost.postId) {
-      return Result.err();
+    const { postId, postName, postCode } = sysPost;
+    if (!postId || !postName || !postCode) return Result.err();
+    // 检查是否存在
+    const post = await this.sysPostService.selectPostById(postId);
+    if (!post) {
+      throw new Error('没有权限访问岗位数据！');
     }
+
     // 检查属性值唯一
     const uniqueuPostName = await this.sysPostService.checkUniquePostName(
       sysPost
     );
     if (!uniqueuPostName) {
-      return Result.errMsg(
-        `岗位修改【${sysPost.postName}】失败，岗位名称已存在`
-      );
+      return Result.errMsg(`岗位修改【${postName}】失败，岗位名称已存在`);
     }
     const uniquePostCode = await this.sysPostService.checkUniquePostCode(
       sysPost
     );
     if (!uniquePostCode) {
-      return Result.errMsg(
-        `岗位修改【${sysPost.postCode}】失败，岗位编码已存在`
-      );
+      return Result.errMsg(`岗位修改【${postCode}】失败，岗位编码已存在`);
     }
 
     sysPost.updateBy = this.contextService.getUseName();

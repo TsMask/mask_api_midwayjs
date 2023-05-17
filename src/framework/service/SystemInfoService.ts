@@ -14,7 +14,7 @@ import {
   MidwayEnvironmentService,
   MidwayInformationService,
 } from '@midwayjs/core';
-import { Provide, Scope, ScopeEnum } from '@midwayjs/decorator';
+import { Provide, Singleton } from '@midwayjs/decorator';
 import { diskinfo } from '@dropb/diskinfo';
 import { parseBit } from '../utils/ValueParseUtils';
 import { parseDateToStr } from '../utils/DateUtils';
@@ -26,7 +26,7 @@ import ms = require('ms');
  * @author TsMask
  */
 @Provide()
-@Scope(ScopeEnum.Singleton)
+@Singleton()
 export class SystemInfoService {
   @Inject()
   private midwayInformationService: MidwayInformationService;

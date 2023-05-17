@@ -19,7 +19,7 @@ import { SysLogininfor } from '../model/SysLogininfor';
 import { SysLogininforServiceImpl } from '../service/impl/SysLogininforServiceImpl';
 
 /**
- * 系统访问记录信息
+ * 登录访问信息
  *
  * @author TsMask
  */
@@ -38,12 +38,12 @@ export class SysLogininforController {
   private sysLoginService: SysLoginService;
 
   /**
-   * 导出系统访问记录信息
+   * 导出登录访问信息
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:logininfor:export'] })
   @OperLog({
-    title: '系统访问记录信息',
+    title: '登录访问信息',
     businessType: OperatorBusinessTypeEnum.EXPORT,
   })
   async export() {
@@ -73,7 +73,7 @@ export class SysLogininforController {
       []
     );
     // 导出数据表格
-    const fileName = `logininfor_export_${data.total}_${Date.now()}.xlsx`;
+    const fileName = `logininfor_export_${rows.length}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -84,13 +84,13 @@ export class SysLogininforController {
     );
     return await this.fileService.writeExcelFile(
       rows,
-      '系统访问记录信息',
+      '登录访问信息',
       fileName
     );
   }
 
   /**
-   * 系统访问记录列表
+   * 登录访问列表
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['monitor:logininfor:list'] })
@@ -101,12 +101,12 @@ export class SysLogininforController {
   }
 
   /**
-   * 系统访问记录删除
+   * 登录访问删除
    */
   @Del('/:infoIds')
   @PreAuthorize({ hasPermissions: ['monitor:logininfor:remove'] })
   @OperLog({
-    title: '系统访问记录信息',
+    title: '登录访问信息',
     businessType: OperatorBusinessTypeEnum.DELETE,
   })
   async remove(@Param('infoIds') infoIds: string): Promise<Result> {
@@ -121,12 +121,12 @@ export class SysLogininforController {
   }
 
   /**
-   * 系统访问记录清空
+   * 登录访问清空
    */
   @Del('/clean')
   @PreAuthorize({ hasPermissions: ['monitor:logininfor:remove'] })
   @OperLog({
-    title: '系统访问记录信息',
+    title: '登录访问信息',
     businessType: OperatorBusinessTypeEnum.CLEAN,
   })
   async clean(): Promise<Result> {
@@ -135,11 +135,11 @@ export class SysLogininforController {
   }
 
   /**
-   * 账户解锁
+   * 登录访问账户解锁
    */
   @Put('/unlock/:userName')
   @PreAuthorize({ hasPermissions: ['monitor:logininfor:unlock'] })
-  @OperLog({ title: '账户解锁', businessType: OperatorBusinessTypeEnum.CLEAN })
+  @OperLog({ title: '登录访问信息', businessType: OperatorBusinessTypeEnum.CLEAN })
   async unlock(@Param('userName') userName: string): Promise<Result> {
     if (!userName) return Result.err();
     const ok = await this.sysLoginService.clearLoginRecordCache(userName);
