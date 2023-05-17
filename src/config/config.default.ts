@@ -125,7 +125,7 @@ export default (): MidwayConfig => {
         value: '1; mode=block',
       },
     },
-    /**跨站脚本XSS过滤html标签内容-配置白名单 */
+    /**跨站脚本XSS过滤-配置白名单 */
     xssIgnorePaths: ['/system/notice'],
 
     /**JWT 令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
