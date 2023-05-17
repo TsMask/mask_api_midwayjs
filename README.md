@@ -119,4 +119,3 @@ JAVA-**SpringBoot**
 | RuoYi-Vue | 基于SpringBoot+Vue前后端分离的Java快速开发框架 | [Gitee仓库](https://gitee.com/y_project/RuoYi-Vue) |
 | RuoYi-Vue-Plus | RuoYi-Vue-Plus 是重写 RuoYi-Vue 针对 分布式集群 场景全方位升级(不兼容原框架) | [Gitee仓库](https://gitee.com/dromara/RuoYi-Vue-Plus) |
 | AgileBoot | 基于SpringBoot+Vue3前后端分离的Java快速开发脚手架 | [Gitee仓库](https://gitee.com/valarchie/AgileBoot-Back-End) |
-| Mysql | 数据存储程序 | 8+ |
