@@ -54,7 +54,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       // 获取token在请求头标识信息
       const token = await tokenService.getHeaderToken(ctx.get(TOKEN_KEY));
       if (!token) {
-        throw new UnauthorizedError('无效授权');
+        throw new UnauthorizedError('无效身份授权');
       }
 
       // 获取用户信息
@@ -63,7 +63,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
         loginUser = await tokenService.verifyToken(loginUser);
         ctx.loginUser = loginUser;
       } else {
-        throw new UnauthorizedError('无效授权');
+        throw new UnauthorizedError('无效身份授权');
       }
 
       // 登录用户角色权限校验
@@ -77,7 +77,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
           metadataObj
         );
         if (!verifyOk) {
-          throw new ForbiddenError(`${ctx.method} ${ctx.path} 无权访问`);
+          throw new ForbiddenError(`无权访问 ${ctx.method} ${ctx.path}`);
         }
       }
 
