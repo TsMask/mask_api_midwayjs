@@ -211,22 +211,21 @@ export class FileService {
 
   /**
    * 读取表格数据， 只读第一张工作表
-   * @param filePath — 文件路径
-   * @param sheetName 工作表名称
-   * @param fileName 文件名 含文件后缀.xlsx
+   * @param file 上传文件对象
    * @return 表格信息对象列表
    */
   async readExcelFile(
-    filePath: string,
-    fileName: string
+    file: UploadFileInfo<string>
   ): Promise<Record<string, string>[]> {
+    await this.isAllowUpload(file, ['xls', 'xlsx']);
+    const { data, filename } = file;
     const savePath = posix.join(
       this.resourceUpload.dir,
       UploadSubPathEnum.IMPORT,
       parseDatePath()
     );
     await checkExistsAndMkdir(savePath);
-    return await readSheet(filePath, posix.join(savePath, fileName));
+    return await readSheet(data, posix.join(savePath, filename));
   }
 
   /**

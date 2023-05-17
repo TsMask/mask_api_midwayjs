@@ -4,7 +4,6 @@ import {
   rmdirSync,
   openSync,
   unlinkSync,
-  createReadStream,
   readFileSync,
   writeFileSync,
 } from 'fs';
@@ -88,7 +87,7 @@ export async function getFileStream(filePath: string) {
     stat(filePath, (err, stats) => {
       if (err) return resolve(null);
       if (stats && stats.isFile()) {
-        return resolve(createReadStream(filePath));
+        return resolve(readFileSync(filePath));
       }
       return resolve(null);
     });
