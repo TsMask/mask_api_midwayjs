@@ -126,7 +126,7 @@ export class CacheController {
 
   /**
    * 安全清理缓存名称
-   * 
+   *
    * 指定可清理的缓存key
    * @returns 返回结果
    */

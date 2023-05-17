@@ -139,7 +139,10 @@ export class SysLogininforController {
    */
   @Put('/unlock/:userName')
   @PreAuthorize({ hasPermissions: ['monitor:logininfor:unlock'] })
-  @OperLog({ title: '登录访问信息', businessType: OperatorBusinessTypeEnum.CLEAN })
+  @OperLog({
+    title: '登录访问信息',
+    businessType: OperatorBusinessTypeEnum.CLEAN,
+  })
   async unlock(@Param('userName') userName: string): Promise<Result> {
     if (!userName) return Result.err();
     const ok = await this.sysLoginService.clearLoginRecordCache(userName);

@@ -194,7 +194,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
       userIds
     );
   }
-  
+
   async insertAuthUsers(roleId: string, userIds: string[]): Promise<number> {
     if (userIds && userIds.length <= 0) return 0;
     // 新增用户与角色管理
