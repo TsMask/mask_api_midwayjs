@@ -48,7 +48,8 @@
     "svg-captcha": "^1.4.0",
     "typeorm": "^0.3.0",
     "ua-parser-js": "^1.0.0",
-    "xlsx": "^0.18.0"
+    "xlsx": "^0.18.0",
+    "xss": "^1.0.14"
   },
   "devDependencies": {
     "@midwayjs/cli": "^1.0.0",

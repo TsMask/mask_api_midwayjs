@@ -72,13 +72,13 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramArr.push(query.createBy);
     }
     if (query.status) {
-      sqlStr += " and status = ? ";
+      sqlStr += ' and status = ? ';
       paramArr.push(query.status);
     }
 
     // 查询条件数 长度必为0其值为0
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_notice where 1 = 1 ${sqlStr}`,
+      `select count(1) as 'total' from sys_notice where del_flag = '0' ${sqlStr}`,
       paramArr
     );
     const total = parseNumber(countRow[0].total);
