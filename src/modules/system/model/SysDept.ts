@@ -4,10 +4,10 @@
  * @author TsMask
  */
 export class SysDept {
-  /**部门id */
+  /**部门ID */
   deptId: string;
 
-  /**父部门id */
+  /**父部门ID */
   parentId: string;
 
   /**祖级列表 */
@@ -31,7 +31,7 @@ export class SysDept {
   /**部门状态（0正常 1停用） */
   status: string;
 
-  /**删除标志（0代表存在 2代表删除） */
+  /**删除标志（0代表存在 1代表删除） */
   delFlag: string;
 
   /**创建者 */

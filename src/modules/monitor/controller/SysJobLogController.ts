@@ -106,7 +106,7 @@ export class SysJobLogController {
   async getInfo(@Param('jobLogId') jobLogId: string): Promise<Result> {
     if (!jobLogId) return Result.err();
     const data = await this.sysJobLogService.selectJobLogById(jobLogId);
-    return Result.okData(data || {});
+    return Result.okData(data);
   }
 
   /**

@@ -23,7 +23,7 @@ export interface ISysDeptService {
    * @param dataScopeSQL 角色数据范围过滤SQL字符串（可选）
    * @return 部门树信息集合
    */
-  selectDeptTreeList(
+  selectDeptTreeSelect(
     sysDept: SysDept,
     dataScopeSQL?: string
   ): Promise<TreeSelect[]>;

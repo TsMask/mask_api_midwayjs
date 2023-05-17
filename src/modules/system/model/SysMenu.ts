@@ -31,7 +31,7 @@ export class SysMenu {
   /**菜单类型（D目录 M菜单 B按钮） */
   menuType: string;
 
-  /**菜单状态（0隐藏 1显示） */
+  /**是否显示（0隐藏 1显示） */
   visible: string;
 
   /**菜单状态（0停用 1正常） */

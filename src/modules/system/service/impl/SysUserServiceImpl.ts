@@ -63,12 +63,10 @@ export class SysUserServiceImpl implements ISysUserService {
   }
 
   async selectAllocatedPage(
-    roleId: string,
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
     return await this.sysUserRepository.selectAllocatedPage(
-      roleId,
       query,
       dataScopeSQL
     );
@@ -146,15 +144,15 @@ export class SysUserServiceImpl implements ISysUserService {
   }
 
   async updateUserAndRolePost(sysUser: SysUser): Promise<number> {
-    const userId = sysUser.userId;
+    const { userId, roleIds, postIds } = sysUser;
     // 删除用户与角色关联
     await this.sysUserRoleRepository.deleteUserRole([userId]);
     // 新增用户与角色管理
-    await this.insertUserRole(userId, sysUser.roleIds);
+    await this.insertUserRole(userId, roleIds);
     // 删除用户与岗位关联
     await this.sysUserPostRepository.deleteUserPost([userId]);
     // 新增用户与岗位管理
-    await this.insertUserPost(userId, sysUser.postIds);
+    await this.insertUserPost(userId, postIds);
     return await this.sysUserRepository.updateUser(sysUser);
   }
   /**
@@ -228,9 +226,8 @@ export class SysUserServiceImpl implements ISysUserService {
       'sys.user.initPassword'
     );
     // 读取用户性别字典数据
-    const sysUserSexSDDList = await this.sysDictDataService.selectDictDataByType(
-      'sys_user_sex'
-    );
+    const sysUserSexSDDList =
+      await this.sysDictDataService.selectDictDataByType('sys_user_sex');
     // 导入记录
     let successNum = 0;
     let failureNum = 0;

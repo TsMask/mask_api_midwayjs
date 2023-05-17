@@ -108,7 +108,7 @@ export class SysConfigController {
   async getInfo(@Param('configId') configId: string): Promise<Result> {
     if (!configId) return Result.err();
     const data = await this.sysConfigService.selectConfigById(configId);
-    return Result.okData(data || {});
+    return Result.okData(data);
   }
 
   /**

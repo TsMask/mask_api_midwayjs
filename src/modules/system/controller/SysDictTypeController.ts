@@ -16,6 +16,7 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictTypeServiceImpl } from '../service/impl/SysDictTypeServiceImpl';
 import { SysDictType } from '../model/SysDictType';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
 
 /**
  * 字典类型信息
@@ -34,7 +35,7 @@ export class SysDictTypeController {
   private sysDictTypeService: SysDictTypeServiceImpl;
 
   /**
-   * 导出字典类型信息
+   * 字典类型列表导出
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:dict:export'] })
@@ -98,7 +99,7 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async getInfo(@Param('dictId') dictId: string) {
     const data = await this.sysDictTypeService.selectDictTypeById(dictId);
-    return Result.okData(data || {});
+    return Result.okData(data);
   }
 
   /**
@@ -111,22 +112,21 @@ export class SysDictTypeController {
     businessType: OperatorBusinessTypeEnum.INSERT,
   })
   async add(@Body() sysDictType: SysDictType): Promise<Result> {
+    const { dictId, dictName, dictType } = sysDictType;
+    if (dictId || !dictName || !dictType) return Result.err();
+
     // 检查属性值唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
       sysDictType
     );
     if (!uniqueDictName) {
-      return Result.errMsg(
-        `字典新增【${sysDictType.dictName}】失败，字典名称已存在`
-      );
+      return Result.errMsg(`字典新增【${dictName}】失败，字典名称已存在`);
     }
     const uniqueDictType = await this.sysDictTypeService.checkUniqueDictType(
       sysDictType
     );
     if (!uniqueDictType) {
-      return Result.errMsg(
-        `字典新增【${sysDictType.dictType}】失败，字典类型已存在`
-      );
+      return Result.errMsg(`字典新增【${dictType}】失败，字典类型已存在`);
     }
 
     sysDictType.createBy = this.contextService.getUseName();
@@ -144,23 +144,28 @@ export class SysDictTypeController {
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
   async edit(@Body() sysDictType: SysDictType): Promise<Result> {
+    const { dictId, dictName, dictType } = sysDictType;
+    if (!dictId || !dictName || !dictType) return Result.err();
+    // 检查是否存在
+    const dict = await this.sysDictTypeService.selectDictTypeById(dictId);
+    if (!dict) {
+      throw new Error('没有权限访问字典类型数据！');
+    }
+
     // 检查属性值唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
       sysDictType
     );
     if (!uniqueDictName) {
-      return Result.errMsg(
-        `字典修改【${sysDictType.dictName}】失败，字典名称已存在`
-      );
+      return Result.errMsg(`字典修改【${dictName}】失败，字典名称已存在`);
     }
     const uniqueDictType = await this.sysDictTypeService.checkUniqueDictType(
       sysDictType
     );
     if (!uniqueDictType) {
-      return Result.errMsg(
-        `字典修改【${sysDictType.dictType}】失败，字典类型已存在`
-      );
+      return Result.errMsg(`字典修改【${dictType}】失败，字典类型已存在`);
     }
+
     sysDictType.updateBy = this.contextService.getUseName();
     const rows = await this.sysDictTypeService.updateDictType(sysDictType);
     return Result[rows > 0 ? 'ok' : 'err']();
@@ -206,9 +211,9 @@ export class SysDictTypeController {
   @Get('/getDictOptionselect')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async getDictOptionselect() {
-    const data = await this.sysDictTypeService.selectDictTypeList(
-      new SysDictType()
-    );
+    const sysDictData = new SysDictType();
+    sysDictData.status = STATUS_YES;
+    const data = await this.sysDictTypeService.selectDictTypeList(sysDictData);
     let labelValueObj: { label: string; value: any }[] = [];
     if (data && data.length > 0) {
       labelValueObj = data.map(item => ({

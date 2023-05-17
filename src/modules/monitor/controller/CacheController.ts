@@ -47,19 +47,19 @@ export class CacheController {
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getNames(): Promise<Result> {
     const caches: SysCache[] = [];
-    caches.push(new SysCache().newCacheNR(LOGIN_TOKEN_KEY, '用户信息'));
-    caches.push(new SysCache().newCacheNR(SYS_CONFIG_KEY, '配置信息'));
-    caches.push(new SysCache().newCacheNR(SYS_DICT_KEY, '数据字典'));
-    caches.push(new SysCache().newCacheNR(CAPTCHA_CODE_KEY, '验证码'));
-    caches.push(new SysCache().newCacheNR(REPEAT_SUBMIT_KEY, '防重提交'));
-    caches.push(new SysCache().newCacheNR(RATE_LIMIT_KEY, '限流处理'));
-    caches.push(new SysCache().newCacheNR(PWD_ERR_CNT_KEY, '密码错误次数'));
+    caches.push(new SysCache().newNames('用户信息', LOGIN_TOKEN_KEY));
+    caches.push(new SysCache().newNames('配置信息', SYS_CONFIG_KEY));
+    caches.push(new SysCache().newNames('数据字典', SYS_DICT_KEY));
+    caches.push(new SysCache().newNames('验证码', CAPTCHA_CODE_KEY));
+    caches.push(new SysCache().newNames('防重提交', REPEAT_SUBMIT_KEY));
+    caches.push(new SysCache().newNames('限流处理', RATE_LIMIT_KEY));
+    caches.push(new SysCache().newNames('密码错误次数', PWD_ERR_CNT_KEY));
     return Result.okData(caches);
   }
 
   /**
    * 缓存名称下键名列表
-   * @param cacheName 缓存名称
+   * @param cacheName 缓存名称列表中得到的缓存名称
    * @returns 返回结果
    */
   @Get('/getKeys/:cacheName')
@@ -68,8 +68,8 @@ export class CacheController {
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}:*`);
     const rows = [];
     if (cacheKeys && cacheKeys.length > 0) {
-      for (const keyStr of cacheKeys) {
-        rows.push(new SysCache().newCacheNK(`${cacheName}:`, keyStr));
+      for (const key of cacheKeys) {
+        rows.push(new SysCache().newKeys(cacheName, key));
       }
     }
     return Result.okData(rows);
@@ -77,8 +77,8 @@ export class CacheController {
 
   /**
    * 缓存内容
-   * @param cacheName 缓存名称
-   * @param cacheKey 缓存键名
+   * @param cacheName 键名列表中得到的缓存名称
+   * @param cacheKey 键名列表中得到的缓存键名
    * @returns 返回结果
    */
   @Get('/getValue/:cacheName/:cacheKey')
@@ -90,37 +90,44 @@ export class CacheController {
     if (!cacheName || !cacheKey) return Result.err();
     const cacheValue = await this.redisCache.get(`${cacheName}:${cacheKey}`);
     return Result.okData(
-      new SysCache().newCacheNKV(cacheName, cacheKey, cacheValue)
+      new SysCache().newValue(cacheName, cacheKey, cacheValue)
     );
   }
 
   /**
    * 删除缓存名称下键名列表
-   * @param cacheName 缓存名称
+   * @param cacheName 缓存名称列表中得到的缓存名称
    * @returns 返回结果
    */
   @Del('/clearCacheName/:cacheName')
   @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
   async clearCacheName(@Param('cacheName') cacheName: string): Promise<Result> {
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
-    await this.redisCache.delKeys(cacheKeys);
-    return Result.ok();
+    const num = await this.redisCache.delKeys(cacheKeys);
+    return Result[num > 0 ? 'ok' : 'err']();
   }
 
   /**
    * 删除缓存键名
-   * @param cacheKey 缓存名称
+   * @param cacheName 键名列表中得到的缓存名称
+   * @param cacheKey 键名列表中得到的缓存键名
    * @returns 返回结果
    */
-  @Del('/clearCacheKey/:cacheKey')
+  @Del('/clearCacheKey/:cacheName/:cacheKey')
   @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
-  async clearCacheKey(@Param('cacheKey') cacheKey: string): Promise<Result> {
-    await this.redisCache.del(cacheKey);
-    return Result.ok();
+  async clearCacheKey(
+    @Param('cacheName') cacheName: string,
+    @Param('cacheKey') cacheKey: string
+  ): Promise<Result> {
+    if (!cacheName || !cacheKey) return Result.err();
+    const num = await this.redisCache.del(cacheName + ':' + cacheKey);
+    return Result[num > 0 ? 'ok' : 'err']();
   }
 
   /**
-   * 安全清理缓存key
+   * 安全清理缓存名称
+   * 
+   * 指定可清理的缓存key
    * @returns 返回结果
    */
   @Del('/clearCacheSafe')

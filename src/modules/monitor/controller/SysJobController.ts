@@ -17,7 +17,6 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import {
   parseCronExpression,
-  parseNumber,
   parseStringToObject,
 } from '../../../framework/utils/ValueParseUtils';
 import { SysDictDataServiceImpl } from '../../system/service/impl/SysDictDataServiceImpl';
@@ -73,7 +72,7 @@ export class SysJobController {
         pre.push({
           任务编号: cur.jobId,
           任务名称: cur.jobName,
-          任务组名: sysJobGroup.dictLabel ?? '',
+          任务组名: sysJobGroup?.dictLabel ?? '',
           调用目标: cur.invokeTarget,
           传入参数: cur.targetParams,
           执行表达式: cur.cronExpression,
@@ -124,7 +123,7 @@ export class SysJobController {
   async getInfo(@Param('jobId') jobId: string): Promise<Result> {
     if (!jobId) return Result.err();
     const data = await this.sysJobService.selectJobById(jobId);
-    return Result.okData(data || {});
+    return Result.okData(data);
   }
 
   /**
@@ -243,13 +242,11 @@ export class SysJobController {
     @Body('jobId') jobId: string,
     @Body('status') status: string
   ): Promise<Result> {
-    if (!jobId) return Result.err();
+    if (!jobId || status.length > 1) return Result.err();
     const sysJob = await this.sysJobService.selectJobById(jobId);
     if (!sysJob) return Result.err();
-    // 解析为数值字符串
-    status = `${parseNumber(status)}`;
+    // 与旧值相等不变更
     if (sysJob.status === status) return Result.err();
-
     sysJob.status = status;
     sysJob.updateBy = this.contextService.getUseName();
     const ok = await this.sysJobService.changeStatus(sysJob);
@@ -271,8 +268,7 @@ export class SysJobController {
     const sysJob = await this.sysJobService.selectJobById(jobId);
     if (!sysJob) return Result.err();
     const ok = await this.sysJobService.runQueueJob(sysJob);
-    if (ok) return Result.ok();
-    return Result.errMsg('任务已在执行中，请稍后再试！');
+    return Result[ok ? 'ok' : 'err']();
   }
 
   /**

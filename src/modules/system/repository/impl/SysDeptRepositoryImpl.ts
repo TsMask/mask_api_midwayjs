@@ -267,7 +267,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async deleteDeptById(deptId: string): Promise<number> {
-    const sqlStr = "update sys_dept set del_flag = '2' where dept_id = ?";
+    const sqlStr = "update sys_dept set del_flag = '1' where dept_id = ?";
     const result: ResultSetHeader = await this.db.execute(sqlStr, [deptId]);
     return result.affectedRows;
   }

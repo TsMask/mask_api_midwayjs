@@ -112,7 +112,7 @@ export class SysJobServiceImpl implements ISysJobService {
   async insertQueueJob(sysJob: SysJob, repeat: boolean): Promise<boolean> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
-    if (!queue) return;
+    if (!queue) return false;
 
     const jobId = sysJob.jobId;
     const cron = sysJob.cronExpression;

@@ -71,6 +71,10 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       sqlStr += " and create_by like concat(?, '%') ";
       paramArr.push(query.createBy);
     }
+    if (query.status) {
+      sqlStr += " and status = ? ";
+      paramArr.push(query.status);
+    }
 
     // 查询条件数 长度必为0其值为0
     const countRow: RowTotalType[] = await this.db.execute(

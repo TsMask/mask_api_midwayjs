@@ -28,7 +28,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return await this.sysDeptRepository.selectDeptList(sysDept, dataScopeSQL);
   }
 
-  async selectDeptTreeList(
+  async selectDeptTreeSelect(
     sysDept: SysDept,
     dataScopeSQL = ''
   ): Promise<TreeSelect[]> {
@@ -43,14 +43,12 @@ export class SysDeptServiceImpl implements ISysDeptService {
 
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
     const sysRole = await this.sysRoleRepository.selectRoleById(roleId);
-    if (sysRole) {
-      const deptCheckStrictly = sysRole.deptCheckStrictly === '1';
-      return this.sysDeptRepository.selectDeptListByRoleId(
-        roleId,
-        deptCheckStrictly
-      );
-    }
-    return null;
+    if (!sysRole) return [];
+    const deptCheckStrictly = sysRole.deptCheckStrictly === '1';
+    return this.sysDeptRepository.selectDeptListByRoleId(
+      roleId,
+      deptCheckStrictly
+    );
   }
 
   async selectDeptById(deptId: string): Promise<SysDept> {

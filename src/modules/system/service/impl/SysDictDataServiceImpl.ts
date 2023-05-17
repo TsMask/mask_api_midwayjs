@@ -70,6 +70,7 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
       sysDictData
     );
     if (insertId) {
+      // 插入成功后加入缓存
       await this.sysDictTypeService.loadingDictCache(sysDictData.dictType);
     }
     return insertId;
@@ -91,7 +92,7 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
         dictCode
       );
       if (!dictData) {
-        throw new Error('没有权限访问字典数据数据！');
+        throw new Error('没有权限访问字典编码数据！');
       }
       dictTypes.push(dictData.dictType);
     }

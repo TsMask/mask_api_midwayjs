@@ -17,41 +17,41 @@ export class SysCache {
   remark: string;
 
   /**
-   * 实例new函数
+   * 实例缓存名称列表项
    * @param cacheName 缓存名称
-   * @param remark 备注
+   * @param cacheKey 缓存键名
    */
-  public newCacheNR(cacheName: string, remark: string) {
-    this.cacheName = cacheName.replace(':', '');
+  public newNames(cacheName: string, cacheKey: string) {
+    this.cacheName = cacheKey.substring(0, cacheKey.length - 1);
     this.cacheKey = '';
     this.cacheValue = '';
-    this.remark = remark;
+    this.remark = cacheName;
     return this;
   }
 
   /**
-   * 实例new函数
+   * 实例缓存键名列表项
    * @param cacheName 缓存名称
    * @param cacheKey 缓存键名
    */
-  public newCacheNK(cacheName: string, cacheKey: string) {
-    this.cacheName = cacheName.replace(':', '');
-    this.cacheKey = cacheKey.replace(cacheName, '');
+  public newKeys(cacheName: string, cacheKey: string) {
+    this.cacheName = cacheName;
+    this.cacheKey = cacheKey.replace(cacheName + ':', '');
     this.cacheValue = '';
     this.remark = '';
     return this;
   }
 
   /**
-   * 实例new函数
+   * 实例缓存键名内容项
    * @param cacheName 缓存名称
    * @param cacheKey 缓存键名
    * @param cacheValue 缓存内容
    */
-  public newCacheNKV(cacheName: string, cacheKey: string, cacheValue: string) {
-    this.cacheName = cacheName.replace(':', '');
-    this.cacheKey = cacheKey.replace(cacheName, '');
-    this.cacheValue = cacheValue;
+  public newValue(cacheName: string, cacheKey: string, cacheValue: string) {
+    this.cacheName = cacheName;
+    this.cacheKey = cacheKey;
+    this.cacheValue = cacheValue || '';
     this.remark = '';
     return this;
   }

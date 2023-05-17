@@ -35,6 +35,8 @@ export class SysLoginController {
   @Post('/login')
   @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
   async login(@Body() loginBodyVo: LoginBodyVo): Promise<Result> {
+    const { username, password } = loginBodyVo;
+    if (!username || !password) return Result.err();
     const token = await this.sysLoginService.login(loginBodyVo);
     return Result.okData({
       [TOKEN_RESPONSE_FIELD]: token,

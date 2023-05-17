@@ -17,21 +17,23 @@ import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 import { SysPost } from '../model/SysPost';
 import { ContextService } from '../../../framework/service/ContextService';
-import {
-  parseBoolean,
-  parseNumber,
-} from '../../../framework/utils/ValueParseUtils';
+import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { FileService } from '../../../framework/service/FileService';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
+import {
+  validEmail,
+  validMobile,
+  validUsername,
+} from '../../../framework/utils/RegularUtils';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
 import { SysRole } from '../model/SysRole';
 import { SysUser } from '../model/SysUser';
+import { validPassword } from '../../../framework/utils/RegularUtils';
 
 /**
  * 用户信息
@@ -59,7 +61,7 @@ export class SysUserController {
   private sysDictDataService: SysDictDataServiceImpl;
 
   /**
-   * 下载导入用户模板
+   * 用户信息列表导入模板下载
    */
   @Post('/importTemplate')
   async importTemplate() {
@@ -79,7 +81,7 @@ export class SysUserController {
   }
 
   /**
-   * 导入用户模板数据
+   * 用户信息列表导入
    */
   @Post('/importData')
   @PreAuthorize({ hasPermissions: ['system:user:import'] })
@@ -90,10 +92,7 @@ export class SysUserController {
   ) {
     if (files.length <= 0) return Result.err();
     // 读取表格数据
-    const sheetItemArr = await this.fileService.readExcelFile(
-      files[0].data,
-      files[0].filename
-    );
+    const sheetItemArr = await this.fileService.readExcelFile(files[0]);
     if (sheetItemArr.length <= 0) {
       return Result.errMsg('导入用户数据不能为空！');
     }
@@ -108,7 +107,7 @@ export class SysUserController {
   }
 
   /**
-   * 导出用户数据
+   * 用户信息列表导出
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:user:export'] })
@@ -163,7 +162,7 @@ export class SysUserController {
   }
 
   /**
-   * 用户列表
+   * 用户信息列表
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
@@ -175,12 +174,12 @@ export class SysUserController {
   }
 
   /**
-   * 用户信息
+   * 用户信息详情
    */
-  @Get('/')
   @Get('/:userId')
   @PreAuthorize({ hasPermissions: ['system:user:query'] })
   async getInfo(@Param('userId') userId: string): Promise<Result> {
+    if (!userId) return Result.err();
     const dataScopeSQL = this.contextService.getDataScopeSQL('d');
     let roles = await this.sysRoleService.selectRoleList(
       new SysRole(),
@@ -191,23 +190,29 @@ export class SysUserController {
     if (!this.contextService.isAdmin(userId)) {
       roles = roles.filter(r => r.roleId !== ADMIN_ROLE_ID);
     }
-    // 检查用户是否存在
-    const sysUser = await this.sysUserService.selectUserById(userId);
-    if (sysUser && sysUser.userId) {
-      const userRoleIds = sysUser.roles.map(r => r.roleId);
-      const userPostIds = await this.sysPostService.selectPostListByUserId(
-        sysUser.userId
-      );
-      delete sysUser.password;
-      return Result.ok({
-        data: sysUser,
-        roleIds: userRoleIds,
-        postIds: userPostIds,
+    if (userId === '0') {
+      return Result.okData({
+        user: {},
+        roleIds: [],
+        postIds: [],
         roles,
         posts,
       });
     }
-    return Result.ok({
+    // 检查用户是否存在
+    const sysUser = await this.sysUserService.selectUserById(userId);
+    if (!sysUser) {
+      return Result.errMsg('没有权限访问用户数据');
+    }
+    const userRoleIds = sysUser.roles.map(r => r.roleId);
+    const userPostIds = await this.sysPostService.selectPostListByUserId(
+      sysUser.userId
+    );
+    delete sysUser.password;
+    return Result.okData({
+      user: sysUser,
+      roleIds: userRoleIds,
+      postIds: userPostIds,
       roles,
       posts,
     });
@@ -220,20 +225,24 @@ export class SysUserController {
   @PreAuthorize({ hasPermissions: ['system:user:add'] })
   @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysUser: SysUser): Promise<Result> {
-    if (
-      sysUser.userId ||
-      !sysUser.nickName ||
-      !sysUser.userName ||
-      !sysUser.password
-    )
-      return Result.err();
+    const { userId, userName, password, nickName } = sysUser;
+    if (userId || !nickName || !userName || !password) return Result.err();
+
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
       sysUser
     );
     if (!uniqueUserName) {
+      return Result.errMsg(`新增用户【${userName}】失败，登录账号已存在`);
+    }
+    if (!validUsername(userName)) {
       return Result.errMsg(
-        `新增用户【${sysUser.userName}】失败，登录账号已存在`
+        `新增用户【${userName}】失败，登录账号不能以数字开头，可包含大写小写字母，数字，且不少于5位`
+      );
+    }
+    if (!validPassword(password)) {
+      return Result.errMsg(
+        `新增用户【${userName}】失败，登录密码至少包含大小写字母、数字、特殊符号，且不少于6位`
       );
     }
     // 检查手机号码格式并判断是否唯一
@@ -241,14 +250,10 @@ export class SysUserController {
       if (validMobile(sysUser.phonenumber)) {
         const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
         if (!uniquePhone) {
-          return Result.errMsg(
-            `新增用户【${sysUser.userName}】失败，手机号码已存在`
-          );
+          return Result.errMsg(`新增用户【${userName}】失败，手机号码已存在`);
         }
       } else {
-        return Result.errMsg(
-          `新增用户【${sysUser.userName}】失败，手机号码格式错误`
-        );
+        return Result.errMsg(`新增用户【${userName}】失败，手机号码格式错误`);
       }
     }
     // 检查邮箱格式并判断是否唯一
@@ -256,14 +261,10 @@ export class SysUserController {
       if (validEmail(sysUser.email)) {
         const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
         if (!uniqueEmail) {
-          return Result.errMsg(
-            `新增用户【${sysUser.userName}】失败，邮箱已存在`
-          );
+          return Result.errMsg(`新增用户【${userName}】失败，邮箱已存在`);
         }
       } else {
-        return Result.errMsg(
-          `新增用户【${sysUser.userName}】失败，邮箱格式错误`
-        );
+        return Result.errMsg(`新增用户【${userName}】失败，邮箱格式错误`);
       }
     }
 
@@ -279,10 +280,8 @@ export class SysUserController {
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
   @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysUser: SysUser): Promise<Result> {
-    // 修改的用户ID是否可用
-    const userId: string = sysUser.userId;
-    if (!userId || !sysUser.userName || !sysUser.nickName || sysUser.password)
-      return Result.err();
+    const { userId, userName, password, nickName } = sysUser;
+    if (!userId || !nickName || !userName || password) return Result.err();
     // 检查是否管理员用户
     if (this.contextService.isAdmin(userId)) {
       return Result.errMsg('不允许操作管理员用户');
@@ -291,6 +290,7 @@ export class SysUserController {
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
+
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
       sysUser
@@ -305,14 +305,10 @@ export class SysUserController {
       if (validMobile(sysUser.phonenumber)) {
         const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
         if (!uniquePhone) {
-          return Result.errMsg(
-            `修改用户【${sysUser.userName}】失败，手机号码已存在`
-          );
+          return Result.errMsg(`修改用户【${userName}】失败，手机号码已存在`);
         }
       } else {
-        return Result.errMsg(
-          `修改用户【${sysUser.userName}】失败，手机号码格式错误`
-        );
+        return Result.errMsg(`修改用户【${userName}】失败，手机号码格式错误`);
       }
     }
     // 检查邮箱格式并判断是否唯一
@@ -320,17 +316,14 @@ export class SysUserController {
       if (validEmail(sysUser.email)) {
         const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
         if (!uniqueEmail) {
-          return Result.errMsg(
-            `修改用户【${sysUser.userName}】失败，邮箱已存在`
-          );
+          return Result.errMsg(`修改用户【${userName}】失败，邮箱已存在`);
         }
       } else {
-        return Result.errMsg(
-          `修改用户【${sysUser.userName}】失败，邮箱格式错误`
-        );
+        return Result.errMsg(`修改用户【${userName}】失败，邮箱格式错误`);
       }
     }
 
+    sysUser.userName = ''; // 忽略修改登录用户名称
     sysUser.password = ''; // 忽略修改密码
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUserAndRolePost(sysUser);
@@ -375,6 +368,11 @@ export class SysUserController {
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
+    if (!validPassword(password)) {
+      return Result.errMsg(
+        '登录密码至少包含大小写字母、数字、特殊符号，且不少于6位'
+      );
+    }
     const sysUser = new SysUser();
     sysUser.userId = userId;
     sysUser.password = password;
@@ -394,7 +392,7 @@ export class SysUserController {
     @Body('userId') userId: string,
     @Body('status') status: string
   ): Promise<Result> {
-    if (!userId) return Result.err();
+    if (!userId || !status || status.length > 1) return Result.err();
     // 检查是否管理员用户
     if (this.contextService.isAdmin(userId)) {
       return Result.errMsg('不允许操作管理员用户');
@@ -403,9 +401,11 @@ export class SysUserController {
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
+    // 与旧值相等不变更
+    if (user.status === status) return Result.err();
     const sysUser = new SysUser();
     sysUser.userId = userId;
-    sysUser.status = `${parseNumber(status)}`;
+    sysUser.status = status;
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUser(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
