@@ -18,6 +18,9 @@ export class DefaultErrorCatch {
     if (err.name === 'QueryFailedError') {
       errMsg = '访问数据权限错误';
     }
+    if (err.name === 'CSRFError') {
+      errMsg = `无效 Referer ${ctx.header.referer || '未知'}`;
+    }
     // 返回200，提示错误信息
     ctx.body = Result.errMsg(errMsg);
     ctx.status = HttpStatus.OK;

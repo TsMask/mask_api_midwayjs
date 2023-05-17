@@ -7,6 +7,14 @@ export default {
     proxy: false, // 是否开启代理，部署在反向代理之后需要开启此配置
   },
 
+  // 安全
+  security: {
+    csrf: {
+      // 允许调用的域名地址的，例如：http://192.168.56.101/mask-antd/
+      refererWhiteList: ['localhost:6269', '192.168.56.101'],
+    },
+  },
+
   // TypeORM 数据源
   typeorm: {
     dataSource: {

@@ -98,14 +98,8 @@ export default (): MidwayConfig => {
     /**security 安全 http://www.midwayjs.org/docs/extensions/security */
     security: {
       csrf: {
-        enable: false,
-        type: 'ctoken',
-        useSession: false,
-        cookieName: 'csrfToken',
-        sessionName: 'csrfToken',
-        headerName: 'x-csrf-token',
-        bodyName: '_csrf',
-        queryName: '_csrf',
+        enable: true,
+        type: 'referer',
         refererWhiteList: [],
       },
       xframe: {
@@ -113,7 +107,7 @@ export default (): MidwayConfig => {
         value: 'SAMEORIGIN',
       },
       csp: {
-        enable: false,
+        enable: true,
       },
       hsts: {
         enable: false,
@@ -131,6 +125,8 @@ export default (): MidwayConfig => {
         value: '1; mode=block',
       },
     },
+    /**跨站脚本XSS过滤html标签内容-配置白名单 */
+    xssIgnorePaths: ['/system/notice'],
 
     /**JWT 令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
     jwt: {
