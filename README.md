@@ -1,7 +1,7 @@
 # 基于 Midwayjs 的管理系统后端接口服务
 
 ![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
-![Release V0.1.1](https://img.shields.io/badge/Release-V0.1.1-orange.svg)
+![Release V0.1.3](https://img.shields.io/badge/Release-V0.1.3-orange.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
@@ -112,4 +112,11 @@ npm run start:pm2       # PM2常驻启动项目
 
 ## 相关框架
 
-- 基于SpringBoot+Vue3前后端分离的Java快速开发脚手架 [Gitee仓库](https://gitee.com/valarchie/AgileBoot-Back-End)
+JAVA-**SpringBoot**
+
+| 名称 | 说明 | 地址 |
+| ---- | ---- | ---- |
+| RuoYi-Vue | 基于SpringBoot+Vue前后端分离的Java快速开发框架 | [Gitee仓库](https://gitee.com/y_project/RuoYi-Vue) |
+| RuoYi-Vue-Plus | RuoYi-Vue-Plus 是重写 RuoYi-Vue 针对 分布式集群 场景全方位升级(不兼容原框架) | [Gitee仓库](https://gitee.com/dromara/RuoYi-Vue-Plus) |
+| AgileBoot | 基于SpringBoot+Vue3前后端分离的Java快速开发脚手架 | [Gitee仓库](https://gitee.com/valarchie/AgileBoot-Back-End) |
+| Mysql | 数据存储程序 | 8+ |
