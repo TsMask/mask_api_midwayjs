@@ -1,8 +1,10 @@
 import {
   stat,
+  access,
+  constants,
+  existsSync,
   mkdirSync,
   rmdirSync,
-  openSync,
   unlinkSync,
   readFileSync,
   writeFileSync,
@@ -27,21 +29,19 @@ export async function fileSize(filePath: string): Promise<number> {
  */
 export async function checkExists(filePath: string): Promise<boolean> {
   return new Promise(resolve => {
-    stat(filePath, err => resolve(!err));
+    access(filePath, constants.F_OK, err => resolve(!err));
   });
 }
 
 /**
  * 判断路径是否存在并创建文件目录
- * @param filePath 文件路径不含具体文件
- * @return 路径
+ * @param dirPath 文件路径目录
  */
-export async function checkExistsAndMkdir(filePath: string): Promise<string> {
-  const exist = await checkExists(filePath);
-  if (!exist) {
-    return mkdirSync(filePath, { recursive: true });
+export async function checkDirPathExists(dirPath: string) {
+  // 判断文件夹是否存在，不存在则创建
+  if (!existsSync(dirPath)) {
+    mkdirSync(dirPath, { recursive: true });
   }
-  return null;
 }
 
 /**
@@ -54,12 +54,20 @@ export async function deleteFile(absPath: string): Promise<boolean> {
     stat(absPath, (err, stats) => {
       if (err) return resolve(false);
       if (stats && stats.isFile()) {
-        unlinkSync(absPath);
-        return resolve(true);
+        try {
+          unlinkSync(absPath);
+          return resolve(true);
+        } catch (_) {
+          return resolve(false);
+        }
       }
       if (stats && stats.isDirectory()) {
-        rmdirSync(absPath);
-        return resolve(true);
+        try {
+          rmdirSync(absPath);
+          return resolve(true);
+        } catch (_) {
+          return resolve(false);
+        }
       }
       return resolve(false);
     });
@@ -67,14 +75,14 @@ export async function deleteFile(absPath: string): Promise<boolean> {
 }
 
 /**
- * 获取文件拓展类型，例 文件.pdf -> pdf
+ * 获取文件拓展类型，例 文件.pdf -> .pdf
  * @param fileName 文件名
- * @return 文件后缀（不含“.”）
+ * @return 文件后缀（含“.”）
  */
 export function getFileExt(fileName: string) {
   const ext = posix.extname(fileName);
   if (!ext) return '';
-  return ext.substring(1).toLowerCase();
+  return ext.toLowerCase();
 }
 
 /**
@@ -83,36 +91,32 @@ export function getFileExt(fileName: string) {
  * @return 文件流
  */
 export async function getFileStream(filePath: string) {
-  return new Promise(resolve => {
-    stat(filePath, (err, stats) => {
-      if (err) return resolve(null);
-      if (stats && stats.isFile()) {
-        return resolve(readFileSync(filePath));
-      }
-      return resolve(null);
-    });
-  });
+  const readFileExist = await checkExists(filePath);
+  if (!readFileExist) {
+    throw new Error('读取文件失败');
+  }
+  return readFileSync(filePath);
 }
 
 /**
  * 获取元类型拓展名称
  * @param mimeType 元类型 image/png
- * @returns 返回类型拓展 png
+ * @returns 返回类型拓展 .png
  */
 export function getMimeTypeExt(mimeType: string): string {
   switch (mimeType) {
     case 'image/png':
-      return 'png';
+      return '.png';
     case 'image/jpg':
-      return 'jpg';
+      return '.jpg';
     case 'image/jpeg':
-      return 'jpeg';
+      return '.jpeg';
     case 'image/bmp':
-      return 'bmp';
+      return '.bmp';
     case 'image/gif':
-      return 'gif';
+      return '.gif';
     case 'image/webp':
-      return 'webp';
+      return '.webp';
     default:
       return '';
   }
@@ -149,26 +153,24 @@ export function getBufferFileExtendName(buf: Buffer): string {
  * 二进制数据写入并生成文件
  * @param buf 二进制文件流
  * @param writeDirPath 写入目录路径
+ * @param fileName 文件名称
  * @return 文件名
  */
 export async function writeBufferFile(
   buf: Buffer,
-  writeDirPath: string
+  writeDirPath: string,
+  fileName: string
 ): Promise<string> {
   const extension = getBufferFileExtendName(buf);
-  const fileName = `${Date.now()}.${extension}`;
-  const writeFilePath = posix.join(writeDirPath, fileName);
+  checkDirPathExists(writeDirPath);
+  const filePath = posix.join(writeDirPath, `${fileName}.${extension}`);
+  // 写入到新路径文件
   try {
-    const exist = await checkExists(writeDirPath);
-    if (!exist) {
-      mkdirSync(writeDirPath, { recursive: true });
-    }
-    openSync(writeFilePath, 'w+');
-    writeFileSync(writeFilePath, buf);
-  } catch (_) {
-    return null;
+    writeFileSync(filePath, buf);
+  } catch (err) {
+    throw new Error('文件转移失败' + err.message);
   }
-  return fileName;
+  return filePath;
 }
 
 /**
@@ -188,12 +190,13 @@ export async function transferToNewFile(
   if (!readFileExist) {
     throw new Error('读取临时文件失败');
   }
-  const absPath = posix.join(writePath, fileName);
-  // 检查保存文件是否存在
-  const exist = await checkExists(absPath);
-  if (!exist) {
-    mkdirSync(writePath, { recursive: true });
+  checkDirPathExists(writePath);
+  // 读取文件转移到新路径文件
+  try {
+    const data = readFileSync(readFile);
+    const newFilePath = posix.join(writePath, fileName);
+    writeFileSync(newFilePath, data);
+  } catch (err) {
+    throw new Error('文件转移失败 ' + err.message);
   }
-  openSync(absPath, 'w+');
-  writeFileSync(absPath, readFileSync(readFile));
 }

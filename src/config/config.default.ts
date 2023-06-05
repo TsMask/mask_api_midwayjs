@@ -40,8 +40,38 @@ export default (): MidwayConfig => {
       mode: 'file',
       /**最大上传文件大小，默认为 10mb */
       fileSize: '50mb',
-      /**文件扩展名白名单，程序内文件服务进行配置 DEFAULT_ALLOW_EXT */
-      whitelist: null,
+      /**文件扩展名白名单 */
+      whitelist: [
+        // 图片
+        '.bmp',
+        '.webp',
+        '.gif',
+        '.jpg',
+        '.jpeg',
+        '.png',
+        // word excel powerpoint
+        '.doc',
+        '.docx',
+        '.xls',
+        '.xlsx',
+        '.ppt',
+        '.pptx',
+        '.html',
+        '.htm',
+        '.txt',
+        // pdf
+        '.pdf',
+        // 压缩文件
+        '.zip',
+        '.gz',
+        '.tgz',
+        '.gzip',
+        // 音视频格式
+        '.mp3',
+        '.mp4',
+        '.avi',
+        '.rmvb',
+      ],
       /**上传的文件临时存储路径 */
       tmpdir: `${filePath}/tmpPath`,
       /**上传的文件在临时目录中多久之后自动删除，默认为 5 分钟 */

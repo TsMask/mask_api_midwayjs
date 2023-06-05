@@ -6,9 +6,8 @@ import { UploadSubPathEnum } from '../enums/UploadSubPathEnum';
 import { parseDatePath } from '../utils/DateUtils';
 import { readSheet, writeSheet } from '../utils/ExeclUtils';
 import {
-  checkExistsAndMkdir,
+  checkDirPathExists,
   deleteFile,
-  fileSize,
   getFileExt,
   getFileStream,
   getMimeTypeExt,
@@ -16,42 +15,8 @@ import {
 } from '../utils/FileUtils';
 import { generateID } from '../utils/GenIdUtils';
 
-/**默认大小 50M */
-const DEFAULT_MAX_SIZE = 50 * 1024 * 1024;
-
-/**默认的文件名最大长度 100 */
+/**最大文件名长度 */
 const DEFAULT_FILE_NAME_LENGTH = 100;
-
-/**默认允许上传的文件拓展类型 */
-const DEFAULT_ALLOW_EXT = [
-  // 图片
-  'bmp',
-  'gif',
-  'jpg',
-  'jpeg',
-  'png',
-  // word excel powerpoint
-  'doc',
-  'docx',
-  'xls',
-  'xlsx',
-  'ppt',
-  'pptx',
-  'html',
-  'htm',
-  'txt',
-  // 压缩文件
-  'rar',
-  'zip',
-  'gz',
-  'bz2',
-  // 视频格式
-  'mp4',
-  'avi',
-  'rmvb',
-  // pdf
-  'pdf',
-];
 
 /**
  * 文件服务
@@ -64,8 +29,13 @@ export class FileService {
   @Inject()
   private midwayInformationService: MidwayInformationService;
 
+  // 文件上传路径
   @Config('staticFile.dirs.upload')
   private resourceUpload: { prefix: string; dir: string };
+
+  // 文件上传扩展名白名单
+  @Config('upload.whitelist')
+  private uploadWhiteList: string[];
 
   /**
    * 上传文件
@@ -77,7 +47,7 @@ export class FileService {
   async upload(
     file: UploadFileInfo<string>,
     subPath: string = UploadSubPathEnum.DEFAULT,
-    allowExts: string[] = DEFAULT_ALLOW_EXT
+    allowExts: string[] = this.uploadWhiteList
   ): Promise<string> {
     await this.isAllowUpload(file, allowExts);
     const fileName = this.generateFileName(file);
@@ -105,12 +75,6 @@ export class FileService {
       throw new Error(`上传文件名称长度限制最长为 ${DEFAULT_FILE_NAME_LENGTH}`);
     }
 
-    // 判断上传文件大小
-    const size: number = await fileSize(file.data);
-    if (size > DEFAULT_MAX_SIZE) {
-      throw new Error(`上传文件大小限制为 ${DEFAULT_MAX_SIZE / 1024 / 1024}MB`);
-    }
-
     // 判断文件拓展是否为允许的拓展类型
     let fileExt = getFileExt(file.filename);
     if (!fileExt) {
@@ -118,7 +82,7 @@ export class FileService {
     }
     if (!allowExts.includes(fileExt)) {
       throw new Error(
-        `上传文件类型不支持，仅支持以下类型：${allowExts.join(',')}`
+        `上传文件类型不支持，仅支持以下类型：${allowExts.join('、')}`
       );
     }
   }
@@ -134,9 +98,9 @@ export class FileService {
       ext = getMimeTypeExt(file.mimeType);
     }
     // 替换掉后缀和特殊字符保留文件名
-    let fileName = file.filename.replace(`.${ext}`, '');
+    let fileName = file.filename.replace(ext, '');
     fileName = fileName.replace(/[<>:"\\|?*]+/g, '');
-    return `${fileName}_${generateID(8)}.${ext}`;
+    return `${fileName}_${generateID(6)}${ext}`;
   }
 
   /**
@@ -150,7 +114,7 @@ export class FileService {
 
     // 检查允许下载的文件规则
     const fileExt = getFileExt(filePath);
-    if (DEFAULT_ALLOW_EXT.includes(fileExt)) {
+    if (this.uploadWhiteList.includes(fileExt)) {
       return true;
     }
 
@@ -217,14 +181,14 @@ export class FileService {
   async readExcelFile(
     file: UploadFileInfo<string>
   ): Promise<Record<string, string>[]> {
-    await this.isAllowUpload(file, ['xls', 'xlsx']);
+    await this.isAllowUpload(file, ['.xls', '.xlsx']);
     const { data, filename } = file;
     const savePath = posix.join(
       this.resourceUpload.dir,
       UploadSubPathEnum.IMPORT,
       parseDatePath()
     );
-    await checkExistsAndMkdir(savePath);
+    await checkDirPathExists(savePath);
     return await readSheet(data, posix.join(savePath, filename));
   }
 
@@ -241,7 +205,7 @@ export class FileService {
       UploadSubPathEnum.EXPORT,
       parseDatePath()
     );
-    await checkExistsAndMkdir(savePath);
+    await checkDirPathExists(savePath);
     return await writeSheet(data, sheetName, posix.join(savePath, fileName));
   }
 }

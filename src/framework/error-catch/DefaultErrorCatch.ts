@@ -21,6 +21,12 @@ export class DefaultErrorCatch {
     if (err.name === 'CSRFError') {
       errMsg = `无效 Referer ${ctx.header.referer || '未知'}`;
     }
+    if (err.name === 'PayloadTooLargeError') {
+      errMsg = `超出最大上传文件大小范围`;
+    }
+    if (err.name === 'MultipartInvalidFilenameError') {
+      errMsg = `存在不允许的上传文件拓展格式`;
+    }
     // 返回200，提示错误信息
     ctx.body = Result.errMsg(errMsg);
     ctx.status = HttpStatus.OK;

@@ -175,7 +175,7 @@ export class SysProfileController {
     const filePath = await this.fileService.upload(
       files[0],
       UploadSubPathEnum.AVATART,
-      ['jpg', 'jpeg', 'png']
+      ['.jpg', '.jpeg', '.png']
     );
     await this.contextService.getContext().cleanupRequestFiles();
     // 更新用户头像

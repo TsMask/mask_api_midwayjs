@@ -10,7 +10,7 @@ import * as crossDomain from '@midwayjs/cross-domain';
 import * as security from '@midwayjs/security';
 import { join } from 'path';
 import { MidwayDecoratorService } from '@midwayjs/core';
-import { checkExistsAndMkdir } from './framework/utils/FileUtils';
+import { checkDirPathExists } from './framework/utils/FileUtils';
 import { Middlewares } from './framework/middleware';
 import { MethodDecorators } from './framework/decorator';
 import { ErrorCatchFilters } from './framework/error-catch';
@@ -57,8 +57,8 @@ export class MainConfiguration {
     // 读取静态文件配置目录检查并初始创建目录
     const staticDir: string = this.app.getConfig('staticFile.dirs.default.dir');
     const uploadDir: string = this.app.getConfig('staticFile.dirs.upload.dir');
-    await checkExistsAndMkdir(staticDir);
-    await checkExistsAndMkdir(uploadDir);
+    await checkDirPathExists(staticDir);
+    await checkDirPathExists(uploadDir);
     // 输出当期服务环境运行配置
     this.app.getLogger().warn('当期服务环境运行配置 => %s', this.app.getEnv());
   }
