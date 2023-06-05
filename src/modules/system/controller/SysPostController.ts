@@ -71,7 +71,7 @@ export class SysPostController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.writeExcelFile(rows, '岗位信息', fileName);
+    return await this.fileService.excelWriteRecord(rows, '岗位信息', fileName);
   }
 
   /**

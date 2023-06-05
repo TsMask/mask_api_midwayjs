@@ -172,7 +172,7 @@ export class SysProfileController {
   ): Promise<Result> {
     if (!files || files.length <= 0) return Result.err();
     // 上传文件得到资源地址后删除临时文件
-    const filePath = await this.fileService.upload(
+    const filePath = await this.fileService.transferUploadFile(
       files[0],
       UploadSubPathEnum.AVATART,
       ['.jpg', '.jpeg', '.png']

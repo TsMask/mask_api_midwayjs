@@ -23,13 +23,13 @@ export async function readSheet(
  * 写入表格数据，一般用于导出
  * @param filePath 文件路径
  * @param sheetName 工作表名称
- * @param savePath 文件保存路径
+ * @param savePath 文件保存绝对路径
  * @return xlsx文件流
  */
 export async function writeSheet(
   data: any[],
   sheetName: string,
-  savePath: string
+  savePath?: string
 ): Promise<unknown> {
   const workSheet = utils.json_to_sheet(data);
   // 设置列宽度，单位厘米

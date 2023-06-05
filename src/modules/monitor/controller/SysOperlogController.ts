@@ -77,7 +77,7 @@ export class SysOperLogController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.writeExcelFile(rows, '操作日志', fileName);
+    return await this.fileService.excelWriteRecord(rows, '操作日志', fileName);
   }
 
   /**

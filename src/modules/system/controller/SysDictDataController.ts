@@ -79,7 +79,7 @@ export class SysDictDataController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.writeExcelFile(
+    return await this.fileService.excelWriteRecord(
       rows,
       '字典数据信息',
       fileName

@@ -29,7 +29,7 @@ export class CommonController {
     if (!filePath) {
       return Result.errMsg('未知文件资源路径');
     }
-    const fileStream = await this.fileService.download(filePath);
+    const fileStream = await this.fileService.deleteUploadFile(filePath);
     if (!fileStream) {
       return Result.errMsg('找不到文件资源');
     }
@@ -52,7 +52,7 @@ export class CommonController {
   async uploadFile(@Files('file') files: UploadFileInfo<string>[]) {
     if (files.length <= 0) return Result.err();
     const domain = this.contextService.getContext().origin;
-    const upFilePath = await this.fileService.upload(
+    const upFilePath = await this.fileService.transferUploadFile(
       files[0],
       UploadSubPathEnum.COMMON
     );

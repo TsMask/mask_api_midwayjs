@@ -38,47 +38,44 @@ export class FileService {
   private uploadWhiteList: string[];
 
   /**
-   * 上传文件
-   * @param file 上传文件对象
-   * @param subPath 子路径 UploadSubPathEnum.DEFAULT
-   * @param allowExts 允许上传拓展类型（不含“.”) DEFAULT_ALLOW_EXT
-   * @returns 文件存放资源路径，URL相对地址
+   * 生成文件名称
+   * @param fileName 原始文件名称含后缀，如：midway1_logo_iipc68.png
+   * @param mimeType 原始文件类型，如：image/png
+   * @returns fileName_随机值.extName
    */
-  async upload(
-    file: UploadFileInfo<string>,
-    subPath: string = UploadSubPathEnum.DEFAULT,
-    allowExts: string[] = this.uploadWhiteList
-  ): Promise<string> {
-    await this.isAllowUpload(file, allowExts);
-    const fileName = this.generateFileName(file);
-    const filePath = posix.join(subPath, parseDatePath());
-    await transferToNewFile(
-      file.data,
-      posix.join(this.resourceUpload.dir, filePath),
-      fileName
-    );
-    return posix.join(this.resourceUpload.prefix, filePath, fileName);
+  private generateFileName(fileName: string, mimeType: string): string {
+    // 截取拓展
+    let ext = getFileExt(fileName);
+    if (!ext) {
+      ext = getMimeTypeExt(mimeType);
+    }
+    // 替换掉后缀和特殊字符保留文件名
+    let newFileName = fileName.replace(ext, '');
+    newFileName = newFileName.replace(/[<>:"\\|?*]+/g, '');
+    return `${newFileName}_${generateID(6)}${ext}`;
   }
 
   /**
-   * 判断是否可以满足上传要求
-   * @param file 上传文件对象
-   * @param allowExts 允许上传拓展类型
+   * 检查文件允许写入本地
+   * @param fileName 原始文件名称含后缀，如：midway1_logo_iipc68.png
+   * @param mimeType 原始文件类型，如：image/png
+   * @param allowExts 允许上传拓展类型，['.png']
+   * @returns 抛出异常
    */
-  private async isAllowUpload(
-    file: UploadFileInfo<string>,
+  private isAllowWrite(
+    fileName: string,
+    mimeType: string,
     allowExts: string[]
-  ): Promise<void> {
+  ) {
     // 判断上传文件名称长度
-    const fileName: string = file.filename || '';
     if (fileName.length > DEFAULT_FILE_NAME_LENGTH) {
       throw new Error(`上传文件名称长度限制最长为 ${DEFAULT_FILE_NAME_LENGTH}`);
     }
 
     // 判断文件拓展是否为允许的拓展类型
-    let fileExt = getFileExt(file.filename);
+    let fileExt = getFileExt(fileName);
     if (!fileExt) {
-      fileExt = getMimeTypeExt(file.mimeType);
+      fileExt = getMimeTypeExt(mimeType);
     }
     if (!allowExts.includes(fileExt)) {
       throw new Error(
@@ -88,23 +85,7 @@ export class FileService {
   }
 
   /**
-   * 生成文件名称
-   * @param file 上传文件对象
-   * @returns filename_xxxx.extName
-   */
-  private generateFileName(file: UploadFileInfo<string>): string {
-    let ext = getFileExt(file.filename);
-    if (!ext) {
-      ext = getMimeTypeExt(file.mimeType);
-    }
-    // 替换掉后缀和特殊字符保留文件名
-    let fileName = file.filename.replace(ext, '');
-    fileName = fileName.replace(/[<>:"\\|?*]+/g, '');
-    return `${fileName}_${generateID(6)}${ext}`;
-  }
-
-  /**
-   * 检查文件允许访问
+   * 检查文件允许本地读取
    * @param filePath 文件存放资源路径，URL相对地址
    * @returns true 正常 false 非法
    */
@@ -122,28 +103,32 @@ export class FileService {
   }
 
   /**
-   * 资源文件下载
-   * @param filePath 文件存放资源路径，URL相对地址
-   * @return 文件读取流
+   * 上传资源文件转存
+   * @param file 上传文件对象
+   * @param subPath 子路径 UploadSubPathEnum.DEFAULT
+   * @param allowExts 允许上传拓展类型（不含“.”) DEFAULT_ALLOW_EXT
+   * @returns 文件存放资源路径，URL相对地址
    */
-  async download(filePath: string) {
-    // 检查文件允许访问
-    if (!this.isAllowRead(filePath)) {
-      throw new Error(`文件 ${filePath} 非法，不允许下载。`);
-    }
-    const asbPath = filePath.replace(
-      this.resourceUpload.prefix,
-      this.resourceUpload.dir
-    );
-    return await getFileStream(asbPath);
+  async transferUploadFile(
+    file: UploadFileInfo<string>,
+    subPath: string = UploadSubPathEnum.DEFAULT,
+    allowExts: string[] = this.uploadWhiteList
+  ): Promise<string> {
+    const { filename, mimeType, data } = file;
+    this.isAllowWrite(filename, mimeType, allowExts);
+    const fileName = this.generateFileName(filename, mimeType);
+    const filePath = posix.join(subPath, parseDatePath());
+    const writePath = posix.join(this.resourceUpload.dir, filePath);
+    await transferToNewFile(data, writePath, fileName);
+    return posix.join(this.resourceUpload.prefix, filePath, fileName);
   }
 
   /**
-   * 资源文件删除
+   * 上传资源文件删除
    * @param filePath 文件存放资源路径，URL相对地址
    * @return true 删除正常 false 删除失败
    */
-  async delete(filePath: string): Promise<boolean> {
+  async deleteUploadFile(filePath: string): Promise<boolean> {
     // 检查文件允许访问
     if (!this.isAllowRead(filePath)) {
       throw new Error(`文件 ${filePath} 非法，不允许删除。`);
@@ -156,11 +141,29 @@ export class FileService {
   }
 
   /**
-   * 内部文件读取
-   * @param asserPath 内部文件相对地址
+   * 上传资源文件读取
+   * @param filePath 文件存放资源路径，URL相对地址
+   * 如：/upload/common/2023/06/xxx.png
    * @return 文件读取流
    */
-  async readAssetsFile(asserPath: string) {
+  async readUploadFileStream(filePath: string) {
+    // 检查文件允许访问
+    if (!this.isAllowRead(filePath)) {
+      throw new Error(`文件 ${filePath} 非法，不允许下载。`);
+    }
+    const asbPath = filePath.replace(
+      this.resourceUpload.prefix,
+      this.resourceUpload.dir
+    );
+    return await getFileStream(asbPath);
+  }
+
+  /**
+   * 内部文件读取
+   * @param asserPath 内部文件相对地址，如：/template/excel/xxx.xlsx
+   * @return 文件读取流
+   */
+  async readAssetsFileStream(asserPath: string) {
     // 检查文件允许访问
     if (!this.isAllowRead(asserPath)) {
       throw new Error(`内部文件 ${asserPath} 非法，不允许读取。`);
@@ -174,15 +177,15 @@ export class FileService {
   }
 
   /**
-   * 读取表格数据， 只读第一张工作表
+   * 表格读取数据， 只读第一张工作表
    * @param file 上传文件对象
    * @return 表格信息对象列表
    */
-  async readExcelFile(
+  async excelReadRecord(
     file: UploadFileInfo<string>
   ): Promise<Record<string, string>[]> {
-    await this.isAllowUpload(file, ['.xls', '.xlsx']);
-    const { data, filename } = file;
+    const { data, filename, mimeType } = file;
+    this.isAllowWrite(filename, mimeType, ['.xls', '.xlsx']);
     const savePath = posix.join(
       this.resourceUpload.dir,
       UploadSubPathEnum.IMPORT,
@@ -193,19 +196,27 @@ export class FileService {
   }
 
   /**
-   * 写入表格数据，一般用于导出
+   * 表格写入数据，一般用于导出
    * @param filePath — 文件路径
    * @param sheetName 工作表名称
-   * @param fileName 文件名 含文件后缀.xlsx
+   * @param fileName 文件名 不含后缀
    * @return xlsx文件流
    */
-  async writeExcelFile(data: any[], sheetName: string, fileName: string) {
-    const savePath = posix.join(
-      this.resourceUpload.dir,
-      UploadSubPathEnum.EXPORT,
-      parseDatePath()
-    );
-    await checkDirPathExists(savePath);
-    return await writeSheet(data, sheetName, posix.join(savePath, fileName));
+  async excelWriteRecord(
+    data: any[],
+    sheetName: string = 'Sheet1',
+    fileName?: string
+  ) {
+    if (fileName) {
+      const savePath = posix.join(
+        this.resourceUpload.dir,
+        UploadSubPathEnum.EXPORT,
+        parseDatePath()
+      );
+      await checkDirPathExists(savePath);
+      const saveFilePath = posix.join(savePath, `${fileName}.xlsx`);
+      return await writeSheet(data, sheetName, saveFilePath);
+    }
+    return await writeSheet(data, sheetName);
   }
 }

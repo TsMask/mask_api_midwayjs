@@ -97,7 +97,7 @@ export class SysJobController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.writeExcelFile(
+    return await this.fileService.excelWriteRecord(
       rows,
       '调度任务信息',
       fileName
