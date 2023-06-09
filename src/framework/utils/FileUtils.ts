@@ -1,14 +1,15 @@
 import {
+  constants,
+  open,
+  opendir,
+  readFile,
+  writeFile,
   stat,
   access,
-  constants,
-  existsSync,
-  mkdirSync,
-  rmdirSync,
-  unlinkSync,
-  readFileSync,
-  writeFileSync,
-} from 'fs';
+  unlink,
+  mkdir,
+  rmdir,
+} from 'fs/promises';
 import { posix } from 'path';
 
 /**
@@ -16,10 +17,14 @@ import { posix } from 'path';
  * @param filePath 文件路径
  * @return 文件大小，单位B
  */
-export async function fileSize(filePath: string): Promise<number> {
-  return new Promise(resolve => {
-    stat(filePath, (err, stats) => resolve(!err ? stats.size : 0));
-  });
+export async function getFileSize(filePath: string): Promise<number> {
+  if (!filePath) return 0;
+  try {
+    const { size } = await stat(filePath);
+    return size || 0;
+  } catch (_) {
+    return 0;
+  }
 }
 
 /**
@@ -28,19 +33,25 @@ export async function fileSize(filePath: string): Promise<number> {
  * @return 布尔结果 true/false
  */
 export async function checkExists(filePath: string): Promise<boolean> {
-  return new Promise(resolve => {
-    access(filePath, constants.F_OK, err => resolve(!err));
-  });
+  if (!filePath) return false;
+  try {
+    await access(filePath, constants.F_OK);
+    return true;
+  } catch (_) {
+    return false;
+  }
 }
 
 /**
- * 判断路径是否存在并创建文件目录
+ * 判断文件夹是否存在，不存在则创建
  * @param dirPath 文件路径目录
  */
 export async function checkDirPathExists(dirPath: string) {
-  // 判断文件夹是否存在，不存在则创建
-  if (!existsSync(dirPath)) {
-    mkdirSync(dirPath, { recursive: true });
+  if (!dirPath) return;
+  try {
+    await access(dirPath, constants.F_OK);
+  } catch (_) {
+    await mkdir(dirPath, { recursive: true });
   }
 }
 
@@ -50,28 +61,19 @@ export async function checkDirPathExists(dirPath: string) {
  * @return 布尔结果 true/false
  */
 export async function deleteFile(absPath: string): Promise<boolean> {
-  return new Promise(resolve => {
-    stat(absPath, (err, stats) => {
-      if (err) return resolve(false);
-      if (stats && stats.isFile()) {
-        try {
-          unlinkSync(absPath);
-          return resolve(true);
-        } catch (_) {
-          return resolve(false);
-        }
-      }
-      if (stats && stats.isDirectory()) {
-        try {
-          rmdirSync(absPath);
-          return resolve(true);
-        } catch (_) {
-          return resolve(false);
-        }
-      }
-      return resolve(false);
-    });
-  });
+  if (!absPath) return false;
+  try {
+    const stats = await stat(absPath);
+    if (stats.isFile()) {
+      await unlink(absPath);
+      return true;
+    }
+    if (stats.isDirectory()) {
+      await rmdir(absPath);
+      return true;
+    }
+  } catch (_) {}
+  return false;
 }
 
 /**
@@ -81,21 +83,42 @@ export async function deleteFile(absPath: string): Promise<boolean> {
  */
 export function getFileExt(fileName: string) {
   const ext = posix.extname(fileName);
-  if (!ext) return '';
-  return ext.toLowerCase();
+  if (ext) {
+    return ext.toLowerCase();
+  }
+  return '';
 }
 
 /**
  * 读取文件流用于返回下载
- * @param fileName 文件名
+ * @param filePath 文件路径
+ * @param range 分片块读取区间，根据文件切片的块范围
  * @return 文件流
  */
-export async function getFileStream(filePath: string) {
+export async function getFileStream(
+  filePath: string,
+  range?: [number, number]
+) {
   const readFileExist = await checkExists(filePath);
   if (!readFileExist) {
     throw new Error('读取文件失败');
   }
-  return readFileSync(filePath);
+
+  const fd = await open(filePath, 'r');
+  try {
+    const { size } = await fd.stat();
+    const start = range ? range[0] : 0;
+    const end = range ? range[1] : size - 1;
+    const chunkSize = end - start + 1;
+    const buffer = Buffer.alloc(chunkSize);
+
+    await fd.read(buffer, 0, chunkSize, start);
+    return buffer;
+  } catch (error) {
+    throw error;
+  } finally {
+    await fd.close();
+  }
 }
 
 /**
@@ -104,49 +127,59 @@ export async function getFileStream(filePath: string) {
  * @returns 返回类型拓展 .png
  */
 export function getMimeTypeExt(mimeType: string): string {
-  switch (mimeType) {
-    case 'image/png':
-      return '.png';
-    case 'image/jpg':
-      return '.jpg';
-    case 'image/jpeg':
-      return '.jpeg';
-    case 'image/bmp':
-      return '.bmp';
-    case 'image/gif':
-      return '.gif';
-    case 'image/webp':
-      return '.webp';
-    default:
-      return '';
-  }
+  const mimeTypeMap: Record<string, string> = {
+    'image/png': '.png',
+    'image/jpg': '.jpg',
+    'image/jpeg': '.jpeg',
+    'image/bmp': '.bmp',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+  };
+  return mimeTypeMap[mimeType] || '';
 }
 
 /**
- * 获取文件类型
+ * 获取文件目录下所有文件名称，不含目录名称
+ * @param filePath 文件路径
+ * @return 文件大小，单位B
+ */
+export async function getDirFileNameList(dirPath: string): Promise<string[]> {
+  if (!dirPath) return [];
+  try {
+    const dir = await opendir(dirPath);
+    const fileNames: string[] = [];
+    for await (const dirent of dir) {
+      if (dirent.isFile()) {
+        fileNames.push(dirent.name);
+      }
+    }
+    return fileNames;
+  } catch (_) {}
+  return [];
+}
+
+/**
+ * 二进制文件流获取文件类型
  *
  * @param buf 二进制文件流
- * @return 文件类型后缀（不含“.”）
+ * @return 文件类型后缀（含“.”）
  */
 export function getBufferFileExtendName(buf: Buffer): string {
-  let strFileExtendName = 'jpg';
-  if (
-    buf[0] === 71 &&
-    buf[1] === 73 &&
-    buf[2] === 70 &&
-    buf[3] === 56 &&
-    (buf[4] === 55 || buf[4] === 57) &&
-    buf[5] === 97
-  ) {
-    strFileExtendName = 'gif';
-  } else if (buf[6] === 74 && buf[7] === 70 && buf[8] === 73 && buf[9] === 70) {
-    strFileExtendName = 'jpg';
-  } else if (buf[0] === 66 && buf[1] === 77) {
-    strFileExtendName = 'bmp';
-  } else if (buf[1] === 80 && buf[2] === 78 && buf[3] === 71) {
-    strFileExtendName = 'png';
+  const header = buf.slice(0, 10);
+  const headers = [
+    { header: [71, 73, 70, 56, 55, 97], ext: '.gif' },
+    { header: [71, 73, 70, 56, 57, 97], ext: '.gif' },
+    { header: [255, 216, 255, 224], ext: '.jpg' },
+    { header: [255, 216, 255, 225], ext: '.jpg' },
+    { header: [66, 77], ext: '.bmp' },
+    { header: [137, 80, 78, 71], ext: '.png' },
+  ];
+  for (const h of headers) {
+    if (header.every((value, index) => value === h.header[index])) {
+      return h.ext;
+    }
   }
-  return strFileExtendName;
+  return '.png';
 }
 
 /**
@@ -162,41 +195,82 @@ export async function writeBufferFile(
   fileName: string
 ): Promise<string> {
   const extension = getBufferFileExtendName(buf);
-  checkDirPathExists(writeDirPath);
+  await checkDirPathExists(writeDirPath);
   const filePath = posix.join(writeDirPath, `${fileName}.${extension}`);
   // 写入到新路径文件
   try {
-    writeFileSync(filePath, buf);
+    await writeFile(filePath, buf);
   } catch (err) {
-    throw new Error('文件转移失败' + err.message);
+    throw new Error('文件写入失败' + err.message);
   }
   return filePath;
 }
 
 /**
- * 读取临时文件转移到新路径文件
+ * 读取目标文件转移到新路径下
  *
- * @param readFile 读取文件
+ * @param readFilePath 读取目标文件
  * @param writePath 写入路径
  * @param fileName 文件名称
- * @return 是否写入成功 true/false
  */
 export async function transferToNewFile(
-  readFile: string,
+  readFilePath: string,
   writePath: string,
   fileName: string
 ): Promise<void> {
-  const readFileExist = await checkExists(readFile);
+  const readFileExist = await checkExists(readFilePath);
   if (!readFileExist) {
-    throw new Error('读取临时文件失败');
+    throw new Error('读取目标文件失败');
   }
-  checkDirPathExists(writePath);
-  // 读取文件转移到新路径文件
+
+  await checkDirPathExists(writePath);
+
   try {
-    const data = readFileSync(readFile);
+    // 读取文件转移到新路径文件
+    const data = await readFile(readFilePath);
     const newFilePath = posix.join(writePath, fileName);
-    writeFileSync(newFilePath, data);
+    await writeFile(newFilePath, data);
   } catch (err) {
-    throw new Error('文件转移失败 ' + err.message);
+    throw new Error('目标文件转移失败 ' + err.message);
+  }
+}
+
+/**
+ * 将多个文件合并成一个文件并删除合并前的切片目录文件
+ *
+ * @param dirPath 读取要合并文件的目录
+ * @param writePath 写入路径
+ * @param fileName 文件名称
+ */
+export async function mergeToNewFile(
+  dirPath: string,
+  writePath: string,
+  fileName: string
+): Promise<void> {
+  // 读取目录下所有文件并排序，注意文件名称是否数值
+  const fileNameList = await getDirFileNameList(dirPath);
+  if (fileNameList.length <= 0) return;
+  fileNameList.sort((a, b) => parseInt(a) - parseInt(b));
+
+  await checkDirPathExists(writePath);
+
+  // 读取文件转移到新路径文件
+  const newFilePath = posix.join(writePath, fileName);
+
+  try {
+    // 逐个读取文件组合数据块
+    const fileBuffers = [];
+    for (const fileName of fileNameList) {
+      const chunkPath = posix.join(dirPath, fileName);
+      const buffer = await readFile(chunkPath);
+      fileBuffers.push(buffer);
+      await deleteFile(chunkPath);
+    }
+    // 写入新文件
+    await writeFile(newFilePath, Buffer.concat(fileBuffers));
+  } catch (err) {
+    throw new Error('文件合并失败 ' + err.message);
+  } finally {
+    await deleteFile(dirPath);
   }
 }
