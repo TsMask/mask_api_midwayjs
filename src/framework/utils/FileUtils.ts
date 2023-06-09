@@ -220,7 +220,7 @@ export async function transferToNewFile(
 ): Promise<void> {
   const readFileExist = await checkExists(readFilePath);
   if (!readFileExist) {
-    throw new Error('读取目标文件失败');
+    throw new Error('读取转移目标文件失败');
   }
 
   await checkDirPathExists(writePath);
@@ -249,7 +249,9 @@ export async function mergeToNewFile(
 ): Promise<void> {
   // 读取目录下所有文件并排序，注意文件名称是否数值
   const fileNameList = await getDirFileNameList(dirPath);
-  if (fileNameList.length <= 0) return;
+  if (fileNameList.length <= 0) {
+    throw new Error('读取合并目标文件失败');
+  }
   fileNameList.sort((a, b) => parseInt(a) - parseInt(b));
 
   await checkDirPathExists(writePath);
