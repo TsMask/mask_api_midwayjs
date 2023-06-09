@@ -1,9 +1,10 @@
-import { Body, Controller, Files, Inject, Post } from '@midwayjs/decorator';
-import { UploadFileInfo } from '@midwayjs/upload';
-import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
+import { Body, Controller, Post } from '@midwayjs/decorator';
+import {
+  cryptoHmac,
+  decryptWxData,
+  encrypyHash,
+} from '../../../framework/utils/CryptoUtils';
 import { Result } from '../../../framework/model/Result';
-import { ContextService } from '../../../framework/service/ContextService';
-import { FileService } from '../../../framework/service/FileService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 
 /**
@@ -13,56 +14,43 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDec
  */
 @Controller('/common')
 export class CommonController {
-  @Inject()
-  private contextService: ContextService;
-
-  @Inject()
-  private fileService: FileService;
-
   /**
-   * 通用下载
+   * 哈希加密
    */
-  @Post('/download')
+  @Post('/hash')
   @PreAuthorize()
-  async downloadFile(@Body('filePath') filePath: string) {
-    const ctx = this.contextService.getContext();
-    if (!filePath) {
-      return Result.errMsg('未知文件资源路径');
-    }
-    const fileStream = await this.fileService.deleteUploadFile(filePath);
-    if (!fileStream) {
-      return Result.errMsg('找不到文件资源');
-    }
-    // 返回 stream
-    const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
-
-    ctx.set('Content-Type', 'application/octet-stream');
-    ctx.set(
-      'Content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return fileStream;
+  async hash(
+    @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
+    @Body('str') str: string
+  ): Promise<Result> {
+    return Result.okData(encrypyHash(str, type));
   }
 
   /**
-   * 通用上传
+   * 哈希加盐加密
    */
-  @Post('/upload')
+  @Post('/hmac')
   @PreAuthorize()
-  async uploadFile(@Files('file') files: UploadFileInfo<string>[]) {
-    if (files.length <= 0) return Result.err();
-    const domain = this.contextService.getContext().origin;
-    const upFilePath = await this.fileService.transferUploadFile(
-      files[0],
-      UploadSubPathEnum.COMMON
-    );
-    const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
-    await this.contextService.getContext().cleanupRequestFiles();
-    return Result.okData({
-      url: `${domain}${upFilePath}`,
-      fileName: upFilePath,
-      newFileName: upFileName,
-      originalFileName: files[0].filename,
+  async hmac(
+    @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
+    @Body('str') str: string
+  ): Promise<Result> {
+    return Result.okData(cryptoHmac(str, '89486', type));
+  }
+
+  /**
+   * 微信数据解密
+   */
+  @Post('/decryptWxData')
+  async wxData(
+    @Body('encryptedData') encryptedData: string,
+    @Body('key') key: string,
+    @Body('iv') iv: string
+  ) {
+    return decryptWxData({
+      encryptedData,
+      key,
+      iv,
     });
   }
 }
