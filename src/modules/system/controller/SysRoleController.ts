@@ -83,7 +83,7 @@ export class SysRoleController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.writeExcelFile(rows, '角色信息', fileName);
+    return await this.fileService.excelWriteRecord(rows, '角色信息', fileName);
   }
 
   /**

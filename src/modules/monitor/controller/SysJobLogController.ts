@@ -80,7 +80,7 @@ export class SysJobLogController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.writeExcelFile(
+    return await this.fileService.excelWriteRecord(
       rows,
       '调度任务日志信息',
       fileName

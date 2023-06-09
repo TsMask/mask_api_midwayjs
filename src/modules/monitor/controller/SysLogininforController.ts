@@ -82,7 +82,7 @@ export class SysLogininforController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.writeExcelFile(
+    return await this.fileService.excelWriteRecord(
       rows,
       '登录访问信息',
       fileName

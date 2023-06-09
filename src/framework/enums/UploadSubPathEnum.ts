@@ -21,4 +21,7 @@ export enum UploadSubPathEnum {
 
   /**下载 */
   DOWNLOAD = 'download',
+
+  /**切片 */
+  CHUNK = 'chunk',
 }

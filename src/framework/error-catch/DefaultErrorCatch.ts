@@ -15,12 +15,19 @@ export class DefaultErrorCatch {
     const userName = ctx.loginUser?.user?.userName || '匿名';
     ctx.logger.error('%s : %s > %s', userName, err.name, err.message);
     let errMsg = err.message;
-    if (err.name === 'QueryFailedError') {
-      errMsg = '访问数据权限错误';
+
+    // 过滤已经知道的错误
+    const errMsgs = [
+      { k: 'QueryFailedError', v: '访问数据权限错误' },
+      { k: 'CSRFError', v: `无效 Referer ${ctx.header.referer || '未知'}` },
+      { k: 'PayloadTooLargeError', v: '超出最大上传文件大小范围' },
+      { k: 'MultipartInvalidFilenameError', v: '上传文件拓展格式不支持' },
+    ];
+    const msgItem = errMsgs.find(n => n.k === err.name);
+    if (msgItem) {
+      errMsg = msgItem.v;
     }
-    if (err.name === 'CSRFError') {
-      errMsg = `无效 Referer ${ctx.header.referer || '未知'}`;
-    }
+
     // 返回200，提示错误信息
     ctx.body = Result.errMsg(errMsg);
     ctx.status = HttpStatus.OK;

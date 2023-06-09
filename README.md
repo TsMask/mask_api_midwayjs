@@ -1,7 +1,7 @@
 # 基于 Midwayjs 的管理系统后端接口服务
 
 ![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
-![Release V0.1.3](https://img.shields.io/badge/Release-V0.1.3-orange.svg)
+![Release V0.1.6](https://img.shields.io/badge/Release-V0.1.6-orange.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
@@ -72,7 +72,7 @@ mask_api_midwayjs
 
 | 技术 | 说明 | 版本 |
 | ---- | ---- | ---- |
-| Nodejs | node项目的运行环境 | 16+ |
+| Nodejs | node项目的运行环境 | 18+ |
 | Redis | 缓存存储程序 | 6+ |
 | Mysql | 数据存储程序 | 8+ |
 

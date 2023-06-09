@@ -63,7 +63,7 @@ export class SysUserController {
   /**
    * 用户信息列表导入模板下载
    */
-  @Post('/importTemplate')
+  @Get('/importTemplate')
   async importTemplate() {
     const ctx = this.contextService.getContext();
     const fileName = `user_import_template_${Date.now()}.xlsx`;
@@ -75,7 +75,7 @@ export class SysUserController {
       'Content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.readAssetsFile(
+    return await this.fileService.readAssetsFileStream(
       '/template/excel/user_import_template.xlsx'
     );
   }
@@ -92,7 +92,7 @@ export class SysUserController {
   ) {
     if (files.length <= 0) return Result.err();
     // 读取表格数据
-    const sheetItemArr = await this.fileService.readExcelFile(files[0]);
+    const sheetItemArr = await this.fileService.excelReadRecord(files[0]);
     if (sheetItemArr.length <= 0) {
       return Result.errMsg('导入用户数据不能为空！');
     }
@@ -158,7 +158,7 @@ export class SysUserController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.writeExcelFile(rows, '用户信息', fileName);
+    return await this.fileService.excelWriteRecord(rows, '用户信息', fileName);
   }
 
   /**
