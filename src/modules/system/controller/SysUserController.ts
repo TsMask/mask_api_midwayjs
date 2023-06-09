@@ -63,7 +63,7 @@ export class SysUserController {
   /**
    * 用户信息列表导入模板下载
    */
-  @Post('/importTemplate')
+  @Get('/importTemplate')
   async importTemplate() {
     const ctx = this.contextService.getContext();
     const fileName = `user_import_template_${Date.now()}.xlsx`;
