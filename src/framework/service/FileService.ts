@@ -6,12 +6,15 @@ import { UploadSubPathEnum } from '../enums/UploadSubPathEnum';
 import { parseDatePath } from '../utils/DateUtils';
 import { readSheet, writeSheet } from '../utils/ExeclUtils';
 import {
+  getDirFileNameList,
   checkDirPathExists,
   deleteFile,
   getFileExt,
   getFileStream,
   getMimeTypeExt,
   transferToNewFile,
+  mergeToNewFile,
+  getFileSize,
 } from '../utils/FileUtils';
 import { generateID } from '../utils/GenIdUtils';
 
@@ -39,14 +42,14 @@ export class FileService {
 
   /**
    * 生成文件名称
-   * @param fileName 原始文件名称含后缀，如：midway1_logo_iipc68.png
+   * @param fileName 原始文件名称含后缀，如：logo.png
    * @param mimeType 原始文件类型，如：image/png
    * @returns fileName_随机值.extName
    */
-  private generateFileName(fileName: string, mimeType: string): string {
+  private generateFileName(fileName: string, mimeType?: string): string {
     // 截取拓展
     let ext = getFileExt(fileName);
-    if (!ext) {
+    if (!ext && mimeType) {
       ext = getMimeTypeExt(mimeType);
     }
     // 替换掉后缀和特殊字符保留文件名
@@ -57,15 +60,15 @@ export class FileService {
 
   /**
    * 检查文件允许写入本地
+   * @param allowExts 允许上传拓展类型，['.png']
    * @param fileName 原始文件名称含后缀，如：midway1_logo_iipc68.png
    * @param mimeType 原始文件类型，如：image/png
-   * @param allowExts 允许上传拓展类型，['.png']
    * @returns 抛出异常
    */
   private isAllowWrite(
+    allowExts: string[],
     fileName: string,
-    mimeType: string,
-    allowExts: string[]
+    mimeType?: string
   ) {
     // 判断上传文件名称长度
     if (fileName.length > DEFAULT_FILE_NAME_LENGTH) {
@@ -74,7 +77,7 @@ export class FileService {
 
     // 判断文件拓展是否为允许的拓展类型
     let fileExt = getFileExt(fileName);
-    if (!fileExt) {
+    if (!fileExt && mimeType) {
       fileExt = getMimeTypeExt(mimeType);
     }
     if (!allowExts.includes(fileExt)) {
@@ -103,10 +106,82 @@ export class FileService {
   }
 
   /**
+   * 上传资源切片文件检查
+   * @param identifier 切片文件目录标识符
+   * @param originalFileName 原始文件名称，如logo.png
+   * @returns 文件存放资源路径
+   */
+  async chunkCheckFile(
+    identifier: string,
+    originalFileName: string
+  ): Promise<string[]> {
+    this.isAllowWrite(this.uploadWhiteList, originalFileName);
+    const dirPath = posix.join(
+      UploadSubPathEnum.CHUNK,
+      parseDatePath(),
+      identifier
+    );
+    const readPath = posix.join(this.resourceUpload.dir, dirPath);
+    return await getDirFileNameList(readPath);
+  }
+
+  /**
+   * 上传资源切片文件合并
+   * @param identifier 切片文件目录标识符
+   * @param originalFileName 原始文件名称，如logo.png
+   * @param subPath 子路径，默认 UploadSubPathEnum.DEFAULT
+   * @returns 文件存放资源路径
+   */
+  async chunkMergeFile(
+    identifier: string,
+    originalFileName: string,
+    subPath: string = UploadSubPathEnum.DEFAULT
+  ): Promise<string> {
+    this.isAllowWrite(this.uploadWhiteList, originalFileName);
+    // 切片存放目录
+    const dirPath = posix.join(
+      UploadSubPathEnum.CHUNK,
+      parseDatePath(),
+      identifier
+    );
+    const readPath = posix.join(this.resourceUpload.dir, dirPath);
+    // 组合存放文件路径
+    const fileName = this.generateFileName(originalFileName);
+    const filePath = posix.join(subPath, parseDatePath());
+    const writePath = posix.join(this.resourceUpload.dir, filePath);
+    await mergeToNewFile(readPath, writePath, fileName);
+    return posix.join(this.resourceUpload.prefix, filePath, fileName);
+  }
+
+  /**
+   * 上传资源切片文件转存
+   * @param file 上传文件对象
+   * @param index 切片文件序号
+   * @param identifier 切片文件目录标识符
+   * @returns 文件存放资源路径，URL相对地址
+   */
+  async transferChunkUploadFile(
+    file: UploadFileInfo<string>,
+    index: string,
+    identifier: string
+  ): Promise<string> {
+    const { filename, mimeType, data } = file;
+    this.isAllowWrite(this.uploadWhiteList, filename, mimeType);
+    const filePath = posix.join(
+      UploadSubPathEnum.CHUNK,
+      parseDatePath(),
+      identifier
+    );
+    const writePath = posix.join(this.resourceUpload.dir, filePath);
+    await transferToNewFile(data, writePath, index);
+    return posix.join(this.resourceUpload.prefix, filePath, index);
+  }
+
+  /**
    * 上传资源文件转存
    * @param file 上传文件对象
-   * @param subPath 子路径 UploadSubPathEnum.DEFAULT
-   * @param allowExts 允许上传拓展类型（不含“.”) DEFAULT_ALLOW_EXT
+   * @param subPath 子路径，默认 UploadSubPathEnum.DEFAULT
+   * @param allowExts 允许上传拓展类型（含“.”)，如 ['.png','.jpg']
    * @returns 文件存放资源路径，URL相对地址
    */
   async transferUploadFile(
@@ -115,7 +190,7 @@ export class FileService {
     allowExts: string[] = this.uploadWhiteList
   ): Promise<string> {
     const { filename, mimeType, data } = file;
-    this.isAllowWrite(filename, mimeType, allowExts);
+    this.isAllowWrite(allowExts, filename, mimeType);
     const fileName = this.generateFileName(filename, mimeType);
     const filePath = posix.join(subPath, parseDatePath());
     const writePath = posix.join(this.resourceUpload.dir, filePath);
@@ -142,11 +217,11 @@ export class FileService {
 
   /**
    * 上传资源文件读取
-   * @param filePath 文件存放资源路径，URL相对地址
-   * 如：/upload/common/2023/06/xxx.png
-   * @return 文件读取流
+   * @param filePath 文件存放资源路径，URL相对地址 如：/upload/common/2023/06/xxx.png
+   * @param range 断点续传范围区间，bytes=0-12131
+   * @return object { fileSize, data }
    */
-  async readUploadFileStream(filePath: string) {
+  async readUploadFileStream(filePath: string, range?: string) {
     // 检查文件允许访问
     if (!this.isAllowRead(filePath)) {
       throw new Error(`文件 ${filePath} 非法，不允许下载。`);
@@ -155,7 +230,34 @@ export class FileService {
       this.resourceUpload.prefix,
       this.resourceUpload.dir
     );
-    return await getFileStream(asbPath);
+
+    const fileSize = await getFileSize(asbPath);
+
+    let data = null;
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      let start = parseInt(parts[0], 10) || 0;
+      start = Math.min(start, fileSize);
+      let end = parseInt(parts[1], 10) || fileSize - 1;
+      end = Math.min(end, fileSize - 1);
+      if (start > end) {
+        start = end;
+      }
+      const chunkSize = end - start + 1;
+      data = await getFileStream(asbPath, [start, end]);
+      return {
+        range: `bytes ${start}-${end}/${fileSize}`,
+        chunkSize,
+        fileSize,
+        data,
+      };
+    }
+
+    data = await getFileStream(asbPath);
+    return {
+      fileSize,
+      data,
+    };
   }
 
   /**
@@ -179,24 +281,26 @@ export class FileService {
   /**
    * 表格读取数据， 只读第一张工作表
    * @param file 上传文件对象
+   * @param indexOrName 工作表，默认值：1，读取第一张工作表
    * @return 表格信息对象列表
    */
   async excelReadRecord(
-    file: UploadFileInfo<string>
+    file: UploadFileInfo<string>,
+    indexOrName: string | number = 1
   ): Promise<Record<string, string>[]> {
     const { data, filename, mimeType } = file;
-    this.isAllowWrite(filename, mimeType, ['.xls', '.xlsx']);
+    this.isAllowWrite(['.xls', '.xlsx'], filename, mimeType);
     const savePath = posix.join(
       this.resourceUpload.dir,
       UploadSubPathEnum.IMPORT,
       parseDatePath()
     );
     await checkDirPathExists(savePath);
-    return await readSheet(data, posix.join(savePath, filename));
+    return await readSheet(data, indexOrName, posix.join(savePath, filename));
   }
 
   /**
-   * 表格写入数据，一般用于导出
+   * 表格写入数据并导出
    * @param filePath — 文件路径
    * @param sheetName 工作表名称
    * @param fileName 文件名 不含后缀
