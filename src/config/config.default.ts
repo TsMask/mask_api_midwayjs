@@ -113,6 +113,7 @@ export default (): MidwayConfig => {
         'Content-Type',
         'Content-Language',
         'Accept',
+        'Range',
       ],
       // 设置 Access-Control-Expose-Headers 的值
       exposeHeaders: ['X-Check-Submit-Repeat'],
