@@ -36,12 +36,22 @@ export class SysUserOnlineController {
     @Query('ipaddr') ipaddr: string,
     @Query('userName') userName: string
   ): Promise<Result> {
-    let userOnlines: SysUserOnline[] = [];
     // 获取所有在线用户
     const keys = await this.redisCache.getKeys(`${LOGIN_TOKEN_KEY}*`);
-    for (const key of keys) {
-      const loginUserStr = await this.redisCache.get(key);
-      const loginUser: LoginUser = JSON.parse(loginUserStr);
+
+    // 分批获取
+    const result: string[] = [];
+    for (let i = 0; i < keys.length; i += 20) {
+      const chunk = keys.slice(i, i + 20);
+      const values = await this.redisCache.getBatch(chunk);
+      result.push(...values);
+    }
+
+    // 遍历字符串信息解析组合可用对象
+    let userOnlines: SysUserOnline[] = [];
+    for (const str of result) {
+      if (!str) continue;
+      const loginUser: LoginUser = JSON.parse(str);
       const onlineUser = await this.sysUserOnlineService.loginUserToUserOnline(
         loginUser
       );

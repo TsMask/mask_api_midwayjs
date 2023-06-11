@@ -65,6 +65,7 @@ export class CacheController {
   @Get('/getKeys/:cacheName')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getKeys(@Param('cacheName') cacheName: string): Promise<Result> {
+    if (!cacheName) return Result.err();
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}:*`);
     const rows = [];
     if (cacheKeys && cacheKeys.length > 0) {
@@ -89,9 +90,8 @@ export class CacheController {
   ): Promise<Result> {
     if (!cacheName || !cacheKey) return Result.err();
     const cacheValue = await this.redisCache.get(`${cacheName}:${cacheKey}`);
-    return Result.okData(
-      new SysCache().newValue(cacheName, cacheKey, cacheValue)
-    );
+    const sysCache = new SysCache().newValue(cacheName, cacheKey, cacheValue);
+    return Result.okData(sysCache);
   }
 
   /**
@@ -102,6 +102,7 @@ export class CacheController {
   @Del('/clearCacheName/:cacheName')
   @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
   async clearCacheName(@Param('cacheName') cacheName: string): Promise<Result> {
+    if (!cacheName) return Result.err();
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
     const num = await this.redisCache.delKeys(cacheKeys);
     return Result[num > 0 ? 'ok' : 'err']();

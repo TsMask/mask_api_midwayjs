@@ -181,7 +181,9 @@ export class RedisCache {
    * @return 删除key数量
    */
   async delKeys(keys: string[]): Promise<number> {
-    if (keys.length <= 0) return 0;
+    if (!keys || keys.length === 0) {
+      return 0;
+    }
     return await this.redisService.del(keys);
   }
 
@@ -196,12 +198,41 @@ export class RedisCache {
   }
 
   /**
+   * 批量获得缓存数据
+   * 
+   * 如果某个键不存在，则对应的元素为 null
+   *
+   * @param keys 缓存的键值数组
+   * @return 缓存键值对应的数据
+   */
+  async getBatch(keys: string[]): Promise<string[]> {
+    if (!keys || keys.length === 0) {
+      return [];
+    }
+    return await this.redisService.mget(keys);
+  }
+
+  /**
    * 获得缓存数据的key列表
    *
    * @param pattern 字符串前缀 例如：sys_*
    * @return key列表
    */
   async getKeys(pattern = '*'): Promise<string[]> {
-    return await this.redisService.keys(pattern);
+    // return await this.redisService.keys(pattern);
+    const keys: string[] = [];
+    let cursor = '0';
+
+    do {
+      const [nextCursor, batchKeys] = await this.redisService.scan(
+        cursor,
+        'MATCH',
+        pattern
+      );
+      cursor = nextCursor;
+      keys.push(...batchKeys);
+    } while (cursor !== '0');
+
+    return keys;
   }
 }

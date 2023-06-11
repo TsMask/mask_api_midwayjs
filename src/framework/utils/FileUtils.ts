@@ -22,9 +22,10 @@ export async function getFileSize(filePath: string): Promise<number> {
   try {
     const { size } = await stat(filePath);
     return size || 0;
-  } catch (_) {
-    return 0;
+  } catch (error) {
+    console.error(error);
   }
+  return 0;
 }
 
 /**
@@ -37,7 +38,8 @@ export async function checkExists(filePath: string): Promise<boolean> {
   try {
     await access(filePath, constants.F_OK);
     return true;
-  } catch (_) {
+  } catch (error) {
+    console.error(error);
     return false;
   }
 }
@@ -50,7 +52,8 @@ export async function checkDirPathExists(dirPath: string) {
   if (!dirPath) return;
   try {
     await access(dirPath, constants.F_OK);
-  } catch (_) {
+  } catch (error) {
+    console.error(error);
     await mkdir(dirPath, { recursive: true });
   }
 }
@@ -72,7 +75,9 @@ export async function deleteFile(absPath: string): Promise<boolean> {
       await rmdir(absPath);
       return true;
     }
-  } catch (_) {}
+  } catch (error) {
+    console.error(error);
+  }
   return false;
 }
 
@@ -115,7 +120,7 @@ export async function getFileStream(
     await fd.read(buffer, 0, chunkSize, start);
     return buffer;
   } catch (error) {
-    throw error;
+    console.error(error);
   } finally {
     await fd.close();
   }
@@ -154,7 +159,9 @@ export async function getDirFileNameList(dirPath: string): Promise<string[]> {
       }
     }
     return fileNames;
-  } catch (_) {}
+  } catch (error) {
+    console.error(error);
+  }
   return [];
 }
 
@@ -165,7 +172,7 @@ export async function getDirFileNameList(dirPath: string): Promise<string[]> {
  * @return 文件类型后缀（含“.”）
  */
 export function getBufferFileExtendName(buf: Buffer): string {
-  const header = buf.slice(0, 10);
+  const header = buf.subarray(0, 10);
   const headers = [
     { header: [71, 73, 70, 56, 55, 97], ext: '.gif' },
     { header: [71, 73, 70, 56, 57, 97], ext: '.gif' },
@@ -200,8 +207,8 @@ export async function writeBufferFile(
   // 写入到新路径文件
   try {
     await writeFile(filePath, buf);
-  } catch (err) {
-    throw new Error('文件写入失败' + err.message);
+  } catch (error) {
+    console.error(error);
   }
   return filePath;
 }
@@ -220,7 +227,7 @@ export async function transferToNewFile(
 ): Promise<void> {
   const readFileExist = await checkExists(readFilePath);
   if (!readFileExist) {
-    throw new Error('读取目标文件失败');
+    throw new Error('读取转移目标文件失败');
   }
 
   await checkDirPathExists(writePath);
@@ -249,7 +256,9 @@ export async function mergeToNewFile(
 ): Promise<void> {
   // 读取目录下所有文件并排序，注意文件名称是否数值
   const fileNameList = await getDirFileNameList(dirPath);
-  if (fileNameList.length <= 0) return;
+  if (fileNameList.length <= 0) {
+    throw new Error('读取合并目标文件失败');
+  }
   fileNameList.sort((a, b) => parseInt(a) - parseInt(b));
 
   await checkDirPathExists(writePath);

@@ -142,7 +142,7 @@ export class SysJobController {
       return Result.err();
     }
     // 检查cron表达式格式
-    if (parseCronExpression(cronExpression) <= 0) {
+    if (!parseCronExpression(cronExpression)) {
       return Result.errMsg(`调度任务新增【${jobName}】失败，Cron表达式不正确`);
     }
     // 检查属性唯一
@@ -184,7 +184,7 @@ export class SysJobController {
       return Result.err();
     }
     // 检查cron表达式格式
-    if (parseCronExpression(cronExpression) <= 0) {
+    if (!parseCronExpression(cronExpression)) {
       return Result.errMsg(`调度任务修改【${jobName}】失败，Cron表达式不正确`);
     }
     // 检查属性唯一

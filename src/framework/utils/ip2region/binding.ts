@@ -16,6 +16,9 @@ const getBuffer = Symbol('#getBuffer');
 const openFilePromise = Symbol('#openFilePromise');
 
 class Searcher {
+  private _dbFile: any;
+  private _vectorIndex: any;
+  private _buffer: any;
   constructor(dbFile, vectorIndex, buffer) {
     this._dbFile = dbFile;
     this._vectorIndex = vectorIndex;
@@ -123,7 +126,7 @@ class Searcher {
       }
     }
     if (fd) {
-      fs.close(fd, () => {});
+      fs.close(fd, function () {});
     }
 
     const diff = process.hrtime(startTime);
@@ -179,7 +182,7 @@ const loadVectorIndexFromFile = dbPath => {
   const fd = fs.openSync(dbPath, 'r');
   const buffer = Buffer.alloc(VectorIndexLength);
   fs.readSync(fd, buffer, 0, VectorIndexLength, 256);
-  fs.close(fd, () => {});
+  fs.close(fd, function () {});
   return buffer;
 };
 
@@ -188,11 +191,11 @@ const loadContentFromFile = dbPath => {
   const buffer = Buffer.alloc(stats.size);
   const fd = fs.openSync(dbPath, 'r');
   fs.readSync(fd, buffer, 0, stats.size, 0);
-  fs.close(fd, () => {});
+  fs.close(fd, function () {});
   return buffer;
 };
 
-module.exports = {
+export {
   isValidIp,
   loadVectorIndexFromFile,
   loadContentFromFile,
