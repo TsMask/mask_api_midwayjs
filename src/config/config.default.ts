@@ -3,8 +3,8 @@ import { type } from 'os';
 import { TOKEN_KEY } from '../framework/constants/TokenConstants';
 
 export default (): MidwayConfig => {
-  // 程序资源文件路径 示例（ Linux配置 /home/mask，Windows配置 D:/home/mask ）
-  const filePath = type() === 'Linux' ? '/home/mask' : 'D:/home/mask';
+  // 程序资源文件路径 示例（ Windows配置 D:/home/user/mask, 其余Linux配置 /home/user/mask ）
+  const filePath = type() === 'Windows_NT' ? 'D:/home/user/mask' : '/home/user/mask';
 
   return {
     // use for cookie sign key, should change to your own and keep security
