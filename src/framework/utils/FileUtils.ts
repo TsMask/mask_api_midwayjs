@@ -23,7 +23,7 @@ export async function getFileSize(filePath: string): Promise<number> {
     const { size } = await stat(filePath);
     return size || 0;
   } catch (error) {
-    console.error(error);
+    console.error(`Failed stat "${filePath}": ${error.message}`);
   }
   return 0;
 }
@@ -39,7 +39,7 @@ export async function checkExists(filePath: string): Promise<boolean> {
     await access(filePath, constants.F_OK);
     return true;
   } catch (error) {
-    console.error(error);
+    console.error(`Failed access "${filePath}": ${error.message}`);
     return false;
   }
 }
@@ -53,7 +53,7 @@ export async function checkDirPathExists(dirPath: string) {
   try {
     await access(dirPath, constants.F_OK);
   } catch (error) {
-    console.error(error);
+    console.error(`Failed access to mkdir "${dirPath}": ${error.message}`);
     await mkdir(dirPath, { recursive: true });
   }
 }
@@ -76,7 +76,7 @@ export async function deleteFile(absPath: string): Promise<boolean> {
       return true;
     }
   } catch (error) {
-    console.error(error);
+    console.error(`Failed delete "${absPath}": ${error.message}`);
   }
   return false;
 }
@@ -120,7 +120,7 @@ export async function getFileStream(
     await fd.read(buffer, 0, chunkSize, start);
     return buffer;
   } catch (error) {
-    console.error(error);
+    console.error(`Failed open "${filePath}": ${error.message}`);
   } finally {
     await fd.close();
   }
@@ -160,7 +160,7 @@ export async function getDirFileNameList(dirPath: string): Promise<string[]> {
     }
     return fileNames;
   } catch (error) {
-    console.error(error);
+    console.error(`Failed opendir "${dirPath}": ${error.message}`);
   }
   return [];
 }
@@ -208,7 +208,7 @@ export async function writeBufferFile(
   try {
     await writeFile(filePath, buf);
   } catch (error) {
-    console.error(error);
+    console.error(`Failed write file "${filePath}": ${error.message}`);
   }
   return filePath;
 }
@@ -232,13 +232,13 @@ export async function transferToNewFile(
 
   await checkDirPathExists(writePath);
 
+  const newFilePath = posix.join(writePath, fileName);
   try {
     // 读取文件转移到新路径文件
     const data = await readFile(readFilePath);
-    const newFilePath = posix.join(writePath, fileName);
     await writeFile(newFilePath, data);
-  } catch (err) {
-    throw new Error('目标文件转移失败 ' + err.message);
+  } catch (error) {
+    console.error(`Failed transfer file "${newFilePath}": ${error.message}`);
   }
 }
 
@@ -277,8 +277,8 @@ export async function mergeToNewFile(
     }
     // 写入新文件
     await writeFile(newFilePath, Buffer.concat(fileBuffers));
-  } catch (err) {
-    throw new Error('文件合并失败 ' + err.message);
+  } catch (error) {
+    console.error(`Failed merge file "${newFilePath}": ${error.message}`);
   } finally {
     await deleteFile(dirPath);
   }

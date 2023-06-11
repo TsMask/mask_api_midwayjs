@@ -110,7 +110,7 @@ export function parseStringToObject(str: string): Record<string, any> | null {
       return obj as Record<string, any>;
     }
   } catch (error) {
-    console.error(error);
+    console.error(`Failed parse json "${str}": ${error.message}`);
   }
   return null;
 }
@@ -125,7 +125,7 @@ export function parseCronExpression(cron: string): number | null {
     const interval = cronParser.parseExpression(cron);
     return interval.next().getTime();
   } catch (error) {
-    console.error(`Failed to parse Cron expression "${cron}": ${error.message}`);
+    console.error(`Failed parse cron "${cron}": ${error.message}`);
     return null;
   }
 }
