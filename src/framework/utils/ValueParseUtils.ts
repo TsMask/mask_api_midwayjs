@@ -103,32 +103,30 @@ export function parseObjLineToHump(obj: any) {
  * @param str JSON字符串
  * @returns false时为非标准json对象
  */
-export function parseStringToObject(
-  str: string
-): Record<string, any> | boolean {
+export function parseStringToObject(str: string): Record<string, any> | null {
   try {
     const obj = JSON.parse(str);
-    const type = Object.prototype.toString.call(obj).slice(8, -1);
-    if (type === 'Object') {
+    if (typeof obj === 'object' && obj !== null) {
       return obj as Record<string, any>;
     }
-    return false;
-  } catch (_) {
-    return false;
+  } catch (error) {
+    console.error(error);
   }
+  return null;
 }
 
 /**
- * 解析cron表达式下一次执行时间
- * @param cron cron表达式字符串
- * @returns 时间戳
+ * 解析 Cron 表达式，返回下一次执行的时间戳（毫秒）
+ * @param {string} cron Cron 表达式
+ * @returns {number | null} 下一次执行的时间戳（毫秒），如果解析失败则返回 null
  */
-export function parseCronExpression(cron: string): number {
+export function parseCronExpression(cron: string): number | null {
   try {
     const interval = cronParser.parseExpression(cron);
     return interval.next().getTime();
-  } catch (_) {
-    return 0;
+  } catch (error) {
+    console.error(`Failed to parse Cron expression "${cron}": ${error.message}`);
+    return null;
   }
 }
 
