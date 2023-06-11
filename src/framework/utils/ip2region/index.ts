@@ -4,24 +4,31 @@ import {
   IP_INNER_LOCATION,
 } from '../../constants/CommonConstants';
 import { join } from 'path';
-// 导入包
-import { newWithFileOnly } from './ip2region';
+// 读取xdb工具包
+import { loadContentFromFile, newWithBuffer } from './binding';
 // 指定ip2region数据文件路径
-const dbPath = join(__dirname, './ip2region.xdb');
+const dbPath = join(__dirname, '../../../assets/ip2region.xdb');
+// 读取文件Buffer缓存
+const ip2regionBuffer = loadContentFromFile(dbPath);
 
 /**
  * 查询IP所在地
- * @param ip ip地址
- * @returns 返回结果 {region: '中国|0|江苏省|苏州市|电信', ioCount: 3, took: 1.342389}
+ * @param ip ip地址 218.4.167.70
+ * @returns 返回结果 国家|区域|省份|城市|ISP
+ * {"region":"中国|0|江苏省|苏州市|电信","ioCount":0,"took":326.8}
  */
-export async function getRegionSearchByIp(ip: string) {
+export async function getRegionSearchByIp(ip: string): Promise<{
+  region: string;
+  ioCount: number;
+  took: number;
+}> {
   let data = { region: '0|0|0|0|0', ioCount: 0, took: 0 };
+  if (ip.includes(IP_INNER_ADDR)) {
+    data.region = '0|0|0|内网IP|内网IP';
+  }
   try {
-    // 创建searcher对象
-    const searcher = newWithFileOnly(dbPath);
-    // 查询
+    const searcher = newWithBuffer(ip2regionBuffer);
     data = await searcher.search(ip);
-    // data: {region: '中国|0|江苏省|苏州市|电信', ioCount: 3, took: 1.342389}
   } catch (e) {
     console.error('getRegionSearchByIp err =>', e.message);
   }
@@ -30,20 +37,16 @@ export async function getRegionSearchByIp(ip: string) {
 
 /**
  * 获取地址IP所在地
- * @param ip ip地址
+ * @param ip ip地址 218.4.167.70
  * @returns 返回结果 江苏省 苏州市
  */
-export async function getRealAddressByIp(ip: string) {
+export async function getRealAddressByIp(ip: string): Promise<string> {
   if (ip.includes(IP_INNER_ADDR)) return IP_INNER_LOCATION;
   try {
-    // 创建searcher对象
-    const searcher = newWithFileOnly(dbPath);
-    // 查询
-    const data = await searcher.search(ip);
-    if (data.region) {
-      const region_arr = data.region.split('|');
-      const province = region_arr[2];
-      const city = region_arr[3];
+    const searcher = newWithBuffer(ip2regionBuffer);
+    const { region } = await searcher.search(ip);
+    if (region) {
+      const [, , province, city] = region.split('|');
       if (province === '0' || province === '0') return '未知';
       return `${province} ${city}`;
     }
