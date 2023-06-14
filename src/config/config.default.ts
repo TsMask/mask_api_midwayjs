@@ -3,8 +3,12 @@ import { type } from 'os';
 import { TOKEN_KEY } from '../framework/constants/TokenConstants';
 
 export default (): MidwayConfig => {
-  // 程序资源文件路径 示例（ Linux配置 /home/mask，Windows配置 D:/home/mask ）
-  const filePath = type() === 'Linux' ? '/home/mask' : 'D:/home/mask';
+  // 程序资源文件路径 其余Linux配置 /home/user/mask
+  let filePath = '/home/user/mask';
+  // Windows配置 D:/home/user/mask,
+  if (type() === 'Windows_NT') {
+    filePath = 'D:/home/user/mask';
+  }
 
   return {
     // use for cookie sign key, should change to your own and keep security
@@ -73,7 +77,7 @@ export default (): MidwayConfig => {
         '.rmvb',
       ],
       /**上传的文件临时存储路径 */
-      tmpdir: `${filePath}/tmpPath`,
+      tmpdir: `${filePath}/temp`,
       /**上传的文件在临时目录中多久之后自动删除，默认为 5 分钟 */
       cleanTimeout: 5 * 60 * 1000,
       /**设置原始body是否是base64格式，默认为false，一般用于腾讯云的兼容 */
@@ -91,7 +95,7 @@ export default (): MidwayConfig => {
         // 文件上传资源目录映射
         upload: {
           prefix: '/upload',
-          dir: `${filePath}/uploadPath`,
+          dir: `${filePath}/upload`,
         },
       },
     },
