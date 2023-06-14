@@ -1,15 +1,10 @@
 import { MidwayConfig } from '@midwayjs/core';
-import { type } from 'os';
+import { resolve, join } from 'path';
 import { TOKEN_KEY } from '../framework/constants/TokenConstants';
 
 export default (): MidwayConfig => {
-  // 程序资源文件路径 其余Linux配置 /home/user/mask
-  let filePath = '/home/user/mask';
-  // Windows配置 D:/home/user/mask,
-  if (type() === 'Windows_NT') {
-    filePath = 'D:/home/user/mask';
-  }
-
+  // 程序资源文件路径，与项目目录同级
+  const filePath = join(resolve(__dirname, '../../..'), 'mask_file');
   return {
     // use for cookie sign key, should change to your own and keep security
     keys: '1662290627179_89234',
