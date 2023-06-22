@@ -148,9 +148,14 @@ export class SysMenuServiceImpl implements ISysMenuService {
       router.component = this.getComponent(menu);
       router.meta = this.getRouteMeta(menu);
 
-      // 子项菜单目录
+      // 非路径链接 子项菜单目录
       const cMenus = menu.children;
-      if (menu.menuType === MENU_TYPE_DIR && cMenus && cMenus.length > 0) {
+      if (
+        cMenus &&
+        cMenus.length > 0 &&
+        !validHttp(menu.path) &&
+        menu.menuType === MENU_TYPE_DIR
+      ) {
         // 获取重定向地址
         const { redirectPrefix, redirectPath } = this.getRouteRedirect(
           cMenus,
@@ -321,15 +326,16 @@ export class SysMenuServiceImpl implements ISysMenuService {
       );
     }
     if (firstChild) {
-      if (firstChild.path.startsWith('/')) {
-        redirectPath = firstChild.path;
+      const firstChildPath = this.getRouterPath(firstChild);
+      if (firstChildPath.startsWith('/')) {
+        redirectPath = firstChildPath;
       } else {
         // 拼接追加路径
         if (!routerPath.startsWith('/')) {
           prefix += '/';
         }
         prefix = `${prefix}${routerPath}`;
-        redirectPath = `${prefix}/${firstChild.path}`;
+        redirectPath = `${prefix}/${firstChildPath}`;
       }
     }
     return { redirectPrefix: prefix, redirectPath };
