@@ -110,7 +110,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
 
     // 查询条件数 长度必为0其值为0
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_role r
+      `select count(distinct r.role_id) as 'total' from sys_role r
       left join sys_user_role ur on ur.role_id = r.role_id
       left join sys_user u on u.user_id = ur.user_id
       left join sys_dept d on u.dept_id = d.dept_id where r.del_flag = '0' ${sqlStr}`,
