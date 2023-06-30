@@ -71,6 +71,8 @@ export class SysRegisterService {
     sysUser.roleIds = this.registerRoleInit(userType);
     // 新增用户的岗位管理
     sysUser.postIds = this.registerPostInit(userType);
+    // 创建来源
+    sysUser.createBy = '注册';
 
     // 添加到数据库中
     const insertId = await this.sysUserService.insertUser(sysUser);

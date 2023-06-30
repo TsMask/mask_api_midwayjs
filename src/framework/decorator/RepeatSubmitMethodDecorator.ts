@@ -6,6 +6,7 @@ import { REPEAT_SUBMIT_KEY } from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';
 import { diffSeconds } from '../utils/DateUtils';
 import { IP_INNER_ADDR } from '../constants/CommonConstants';
+import { APP_RESPONSE_HEADER_REPEATSUBMIT_REST } from '../constants/AppConstants';
 
 /**重复参数Redis格式数据类型 */
 type RepeatParamType = {
@@ -68,8 +69,11 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
         const compareTime = diffSeconds(Date.now(), rpObj.time);
         const compareParams =
           JSON.stringify(rpObj.params) === JSON.stringify(params);
-        // 设置重复提交声明响应头
-        ctx.set('X-RepeatSubmit-Rest', `${Date.now() + compareTime * 1000}`);
+        // 设置重复提交声明响应头（毫秒）
+        ctx.set(
+          APP_RESPONSE_HEADER_REPEATSUBMIT_REST,
+          `${Date.now() + compareTime * 1000}`
+        );
         // 小于间隔时间 且 参数内容一致
         if (compareTime < interval && compareParams) {
           return Result.errMsg('不允许重复提交，请稍候再试');

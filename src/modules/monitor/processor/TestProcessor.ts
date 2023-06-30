@@ -17,16 +17,20 @@ export class TestProcessor implements IProcessor {
 
     // 执行一次得到是直接得到传入的jobId
     // 重复任务得到编码格式的jobId => repeat:编码Jobid:执行时间戳
-    log.info('原始jonId: %s | 当前jobId %s', options.jobId, ctxJob.id);
+    // options 获取任务执行时外部给到的参数数据
+    // log 日志输出到bull配置的文件内
+    // ctxJob 当前任务的上下文，可控制暂停进度等数据
 
-    // 遍历参数传入，必有原始jobId
-    for (const key in options) {
-      if (Object.prototype.hasOwnProperty.call(options, key)) {
-        log.info('传入参数： %s => %s', key, options[key]);
-      }
-    }
+    const { repeat, sysJob } = options;
+
+    log.info('原始jonId: %s | 当前jobId %s', sysJob.jobId, ctxJob.id);
 
     // 返回结果，用于记录执行结果
-    return options;
+    return {
+      repeat: repeat,
+      jobName: sysJob.jobName,
+      invokeTarget: sysJob.invokeTarget,
+      targetParams: sysJob.targetParams,
+    };
   }
 }

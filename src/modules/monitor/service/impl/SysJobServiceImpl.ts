@@ -115,97 +115,94 @@ export class SysJobServiceImpl implements ISysJobService {
     if (!queue) return false;
 
     const jobId = sysJob.jobId;
-    const cron = sysJob.cronExpression;
-    const jobName = sysJob.jobName;
-    const jobGroup = sysJob.jobGroup;
-    const invokeTarget = sysJob.invokeTarget;
-    const targetParams = sysJob.targetParams;
 
-    // 移除全部监听
-    queue.removeAllListeners();
-    // 添加完成监听
-    queue.addListener('completed', async (job: Job, result: ProcessorData) => {
-      // 记录调度日志
-      const sysJobLog = new SysJobLog().new(
-        jobName,
-        jobGroup,
-        invokeTarget,
-        targetParams,
-        STATUS_YES,
-        JSON.stringify(result).substring(0, 500)
+    // 判断是否给队列添加完成和失败的监听事件
+    const completedOnCount = queue.listenerCount('completed');
+    if (completedOnCount === 0) {
+      // 添加完成监听
+      queue.addListener(
+        'completed',
+        async (job: Job, result: ProcessorData) => {
+          const { sysJob }: ProcessorOptions = job.data;
+          // 记录调度日志
+          const sysJobLog = new SysJobLog().new(
+            sysJob.jobName,
+            sysJob.jobGroup,
+            sysJob.invokeTarget,
+            sysJob.targetParams,
+            STATUS_YES,
+            JSON.stringify(result).substring(0, 500)
+          );
+          await this.sysJobLogRepository.insertJobLog(sysJobLog);
+          await job.remove();
+        }
       );
-      await this.sysJobLogRepository.insertJobLog(sysJobLog);
-      await job.remove();
-    });
-    // 添加失败监听
-    queue.addListener('failed', async (job: Job, error: Error) => {
-      const errorStr = JSON.stringify({
-        name: error.name,
-        message: error.message,
+      // 添加失败监听
+      queue.addListener('failed', async (job: Job, error: Error) => {
+        const { sysJob }: ProcessorOptions = job.data;
+        const errorStr = JSON.stringify({
+          name: error.name,
+          message: error.message,
+        });
+        // 记录调度日志
+        const sysJobLog = new SysJobLog().new(
+          sysJob.jobName,
+          sysJob.jobGroup,
+          sysJob.invokeTarget,
+          sysJob.targetParams,
+          STATUS_NO,
+          errorStr.substring(0, 500)
+        );
+        await this.sysJobLogRepository.insertJobLog(sysJobLog);
+        await job.remove();
       });
-      // 记录调度日志
-      const sysJobLog = new SysJobLog().new(
-        jobName,
-        jobGroup,
-        invokeTarget,
-        targetParams,
-        STATUS_NO,
-        errorStr.substring(0, 500)
-      );
-      await this.sysJobLogRepository.insertJobLog(sysJobLog);
-      await job.remove();
-    });
+    }
 
-    // 重复任务cron
-    if (repeat) {
-      // 移除重复任务，在执行中的无法移除
-      const repeatableJobs = await queue.getRepeatableJobs();
-      for (const repeatable of repeatableJobs) {
-        if (jobId === repeatable.id) {
-          await queue.removeRepeatableByKey(repeatable.key);
+    // 给执行任务数据参数
+    const options = {
+      repeat: repeat,
+      sysJob: sysJob,
+    };
+
+    // 不是重复任务的情况，立即执行一次
+    if (!repeat) {
+      // 判断是否已经有单次执行任务
+      let job = await queue.getJob(jobId);
+      if (job) {
+        // 拒绝执行已经进行中的，其他状态的移除
+        const isActive = await job.isActive();
+        if (isActive) {
+          return false;
         }
+        await job.remove();
       }
-      // 清除任务记录
-      await queue.clean(5000, 'active');
-      await queue.clean(5000, 'wait');
-
-      // 添加重复任务
-      await queue.runJob(
-        {
-          jobId: jobId,
-          cron: cron,
-          params: targetParams,
-        },
-        {
-          jobId: jobId,
-          repeat: {
-            cron: cron,
-          },
-        }
-      );
-      return true;
-    }
-
-    // 判断是否有单次执行任务
-    let job = await queue.getJob(jobId);
-    if (job) {
-      // 进行中的拒绝执行，其他状态移除
+      // 执行单次任务
+      job = await queue.runJob(options, { jobId: jobId });
+      // 执行中或等待中的都返回正常
       const isActive = await job.isActive();
-      if (isActive) return false;
-      await job.remove();
+      const isWaiting = await job.isWaiting();
+      return isActive || isWaiting;
     }
-    // 执行单次任务
-    job = await queue.runJob(
-      {
-        jobId: jobId,
-        params: targetParams,
+
+    // 移除重复任务，在执行中的无法移除
+    const repeatableJobs = await queue.getRepeatableJobs();
+    for (const repeatable of repeatableJobs) {
+      if (jobId === repeatable.id) {
+        await queue.removeRepeatableByKey(repeatable.key);
+      }
+    }
+    // 清除任务记录
+    await queue.clean(5000, 'active');
+    await queue.clean(5000, 'wait');
+
+    // 添加重复任务
+    await queue.runJob(options, {
+      jobId: jobId,
+      repeat: {
+        cron: sysJob.cronExpression,
       },
-      { jobId: jobId }
-    );
-    // 执行中或等待中的都返回正常
-    const isActive = await job.isActive();
-    const isWaiting = await job.isWaiting();
-    return isActive || isWaiting;
+    });
+    return true;
   }
 
   async deleteQueueJob(sysJob: SysJob): Promise<void> {
@@ -232,22 +229,16 @@ export class SysJobServiceImpl implements ISysJobService {
   }
 
   async resetQueueJob(): Promise<void> {
-    // 查询系统中定义状态为正常启用的任务
-    const sysJob = new SysJob();
-    sysJob.status = STATUS_YES;
-    const sysJobs = await this.sysJobRepository.selectJobList(sysJob);
-    if (sysJobs && sysJobs.length > 0) {
-      // 获取bull上注册的队列列表
-      const queueList = this.bullFramework.getQueueList();
-      if (queueList && queueList.length > 0) {
-        for (const queue of queueList) {
-          // 查询调度任务, 不是系统中定义不初始化
-          const job = sysJobs.find(
-            job => job.invokeTarget === queue.getQueueName()
-          );
-          if (job) {
-            await this.insertQueueJob(job, true);
-          }
+    // 获取bull上注册的队列列表
+    const queueList = this.bullFramework.getQueueList();
+    if (queueList && queueList.length > 0) {
+      for (const queue of queueList) {
+        // 查询系统中定义状态为正常启用的任务
+        const sysJob = await this.sysJobRepository.selectJobByInvokeTarget(
+          queue.getQueueName()
+        );
+        if (sysJob && sysJob.status === STATUS_YES) {
+          await this.insertQueueJob(sysJob, true);
         }
       }
     }

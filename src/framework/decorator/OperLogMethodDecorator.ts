@@ -143,6 +143,8 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       } else {
         operLog.status = STATUS_YES;
       }
+      // 请求耗时
+      operLog.costTime = Date.now() - ctx.startTime;
       await sysOperLogService.insertOperLog(operLog);
 
       // 返回执行结果

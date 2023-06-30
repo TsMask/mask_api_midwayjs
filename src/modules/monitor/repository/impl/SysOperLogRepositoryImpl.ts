@@ -12,7 +12,7 @@ import { ISysOperLogRepository } from '../ISysOperLogRepository';
 /**查询视图对象SQL */
 const SELECT_OPER_LOG_VO = `select 
 oper_id, title, business_type, method, request_method, operator_type, oper_name, dept_name, 
-oper_url, oper_ip, oper_location, oper_param, oper_msg, status, oper_time
+oper_url, oper_ip, oper_location, oper_param, oper_msg, status, oper_time, cost_time
 from sys_oper_log`;
 
 /**操作日志表信息实体映射 */
@@ -32,6 +32,7 @@ SYS_OPER_LOG_RESULT.set('oper_param', 'operParam');
 SYS_OPER_LOG_RESULT.set('oper_msg', 'operMsg');
 SYS_OPER_LOG_RESULT.set('status', 'status');
 SYS_OPER_LOG_RESULT.set('oper_time', 'operTime');
+SYS_OPER_LOG_RESULT.set('cost_time', 'costTime');
 
 /**
  *将结果记录转实体结果组
@@ -161,7 +162,6 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
 
   async insertOperLog(sysOperLog: SysOperLog): Promise<string> {
     const paramMap = new Map();
-    paramMap.set('oper_time', Date.now());
     if (sysOperLog.title) {
       paramMap.set('title', sysOperLog.title);
     }
@@ -201,6 +201,10 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     if (sysOperLog.status) {
       paramMap.set('status', parseNumber(sysOperLog.status));
     }
+    if (sysOperLog.costTime) {
+      paramMap.set('cost_time', parseNumber(sysOperLog.costTime));
+    }
+    paramMap.set('oper_time', Date.now());
 
     const sqlStr = `insert into sys_oper_log (${[...paramMap.keys()].join(
       ','
