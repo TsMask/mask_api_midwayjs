@@ -17,13 +17,17 @@ export class FooProcessor implements IProcessor {
 
     // 执行一次得到是直接得到传入的jobId
     // 重复任务得到编码格式的jobId => repeat:编码Jobid:执行时间戳
-    // log.info("原始jonId: %s | 当前jobId %s", options.jobId, ctxJob.id);
+    // options 获取任务执行时外部给到的参数数据
+    // log 日志输出到bull配置的文件内
+    // ctxJob 当前任务的上下文，可控制暂停进度等数据
+
+    const { repeat, sysJob } = options;
 
     let i = 0;
-    while (i < 100) {
+    while (i < 20) {
       // 获取任务进度
       const progress = await ctxJob.progress();
-      log.info('jonId: %s => 任务进度：', options.jobId, progress);
+      log.info('jonId: %s => 任务进度：', sysJob.jobId, progress);
       // 延迟响应
       await new Promise(resolve => setTimeout(() => resolve(i++), 2000));
       // 改变任务进度
@@ -31,6 +35,11 @@ export class FooProcessor implements IProcessor {
     }
 
     // 返回结果，用于记录执行结果
-    return options;
+    return {
+      repeat: repeat,
+      jobName: sysJob.jobName,
+      invokeTarget: sysJob.invokeTarget,
+      targetParams: sysJob.targetParams,
+    };
   }
 }
