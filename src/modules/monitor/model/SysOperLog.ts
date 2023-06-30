@@ -48,4 +48,7 @@ export class SysOperLog {
 
   /**操作时间 */
   operTime: number;
+
+  /**消耗时间（毫秒） */
+  costTime: number;
 }

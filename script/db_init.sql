@@ -352,6 +352,7 @@ create table sys_oper_log (
   oper_msg          varchar(2000)   default ''                 comment '操作消息',
   status            char(1)         default '0'                comment '操作状态（0异常 1正常）',
   oper_time         bigint          default 0                  comment '操作时间',
+  cost_time         bigint          default 0                  comment '消耗时间（毫秒）',
   primary key (oper_id)
 ) engine=innodb auto_increment=100 comment = '操作日志记录';
 
@@ -409,9 +410,9 @@ create table sys_dict_data
   primary key (dict_code)
 ) engine=innodb auto_increment=100 comment = '字典数据表';
 
-insert into sys_dict_data values(1,  1,  '未知',         '0',         'sys_user_sex',        '',   '',              '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '性别男');
-insert into sys_dict_data values(2,  2,  '男',           '1',         'sys_user_sex',        '',   '',              '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '性别女');
-insert into sys_dict_data values(3,  3,  '女',           '2',         'sys_user_sex',        '',   '',              '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '性别未知');
+insert into sys_dict_data values(1,  1,  '未知',         '0',         'sys_user_sex',        '',   '',              '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '性别未知');
+insert into sys_dict_data values(2,  2,  '男',           '1',         'sys_user_sex',        '',   '',              '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '性别男');
+insert into sys_dict_data values(3,  3,  '女',           '2',         'sys_user_sex',        '',   '',              '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '性别女');
 insert into sys_dict_data values(4,  1,  '显示',         '1',         'sys_show_hide',       '',   'success',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '显示菜单');
 insert into sys_dict_data values(5,  2,  '隐藏',         '0',         'sys_show_hide',       '',   'error',         '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '隐藏菜单');
 insert into sys_dict_data values(6,  1,  '正常',         '1',         'sys_normal_disable',  '',   'success',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '正常状态');
