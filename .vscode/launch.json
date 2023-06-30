@@ -10,7 +10,8 @@
       "name": "调试模式",
       "restart": true,
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"]
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal"
     }
   ]
 }
