@@ -191,6 +191,8 @@ export default (): MidwayConfig => {
           database: '<数据库>',
           /**输出sql日志 */
           logging: false,
+          /**配置实体模型以扫描形式 */
+          entities: ['**/model/*.entity{.ts,.js}'],
         },
       },
       // 多个数据源时可以用这个指定默认的数据源
