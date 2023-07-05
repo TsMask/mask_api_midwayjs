@@ -162,16 +162,19 @@ export class TokenService {
    * @param loginUser 登录用户信息对象
    */
   private async setUserToken(loginUser: LoginUser): Promise<void> {
-    const timestamp: number = ms(`${this.jwtExpiresIn}`);
-    const second = Number(timestamp / 1000);
-    loginUser.loginTime = Date.now();
-    loginUser.expireTime = loginUser.loginTime + timestamp;
-    // 根据token将loginUser缓存
+    // 计算配置的有效期
+    const expTimestamp: number = ms(`${this.jwtExpiresIn}`);
+    const iatTimestamp = Date.now();
+    loginUser.loginTime = iatTimestamp;
+    loginUser.expireTime = iatTimestamp + expTimestamp;
+    // 生成有效时间
+    const expSecond = Math.ceil(Number(expTimestamp / 1000));
+    // 根据登录标识将loginUser缓存
     const tokenKey = this.getTokenKey(loginUser.uuid);
     await this.redisCache.setByExpire(
       tokenKey,
       JSON.stringify(loginUser),
-      second
+      expSecond
     );
   }
 
