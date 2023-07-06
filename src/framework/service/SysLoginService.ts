@@ -17,7 +17,7 @@ import {
   STATUS_NO,
   STATUS_YES,
 } from '../constants/CommonConstants';
-import { LoginBodyVo } from '../../modules/system/model/vo/LoginBodyVo';
+import { LoginBodyVo } from '../model/vo/LoginBodyVo';
 import { SysUser } from '../../modules/system/model/SysUser';
 import { TOKEN_KEY } from '../constants/TokenConstants';
 

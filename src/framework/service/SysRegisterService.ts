@@ -8,7 +8,7 @@ import { SysLogininforServiceImpl } from '../../modules/monitor/service/impl/Sys
 import { ContextService } from './ContextService';
 import { STATUS_YES } from '../constants/CommonConstants';
 import { SysUser } from '../../modules/system/model/SysUser';
-import { RegisterBodyVo } from '../../modules/system/model/vo/RegisterBodyVo';
+import { RegisterBodyVo } from '../model/vo/RegisterBodyVo';
 
 /**
  * 注册校验方法

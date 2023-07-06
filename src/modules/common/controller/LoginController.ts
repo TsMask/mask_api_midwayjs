@@ -5,10 +5,10 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDec
 import { ContextService } from '../../../framework/service/ContextService';
 import { PermissionService } from '../../../framework/service/PermissionService';
 import { SysLoginService } from '../../../framework/service/SysLoginService';
-import { LoginBodyVo } from '../model/vo/LoginBodyVo';
-import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
+import { SysMenuServiceImpl } from '../../system/service/impl/SysMenuServiceImpl';
+import { LoginBodyVo } from '../../../framework/model/vo/LoginBodyVo';
 
 /**
  * 登录验证
@@ -16,7 +16,7 @@ import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator
  * @author TsMask
  */
 @Controller()
-export class SysLoginController {
+export class LoginController {
   @Inject()
   private contextService: ContextService;
 
