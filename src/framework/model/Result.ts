@@ -24,7 +24,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static ok(args?: Record<string, any>) {
-    return this.rest(RESULT_CODE_SUCCESS, RESULT_MSG_SUCCESS, args);
+    return this.newResult(RESULT_CODE_SUCCESS, RESULT_MSG_SUCCESS, args);
   }
 
   /**
@@ -34,7 +34,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static okMsg(msg: string, code: number = RESULT_CODE_SUCCESS) {
-    return this.rest(code, msg);
+    return this.newResult(code, msg);
   }
 
   /**
@@ -43,7 +43,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static okData<T>(data: T) {
-    return this.rest(RESULT_CODE_SUCCESS, RESULT_MSG_SUCCESS, { data });
+    return this.newResult(RESULT_CODE_SUCCESS, RESULT_MSG_SUCCESS, { data });
   }
 
   /**
@@ -52,7 +52,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static err(args?: Record<string, any>) {
-    return this.rest(RESULT_CODE_ERROR, RESULT_MSG_ERROR, args);
+    return this.newResult(RESULT_CODE_ERROR, RESULT_MSG_ERROR, args);
   }
 
   /**
@@ -62,7 +62,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static errMsg(msg: string, code: number = RESULT_CODE_ERROR) {
-    return this.rest(code, msg);
+    return this.newResult(code, msg);
   }
 
   /**
@@ -71,7 +71,7 @@ export class Result {
    * @return 响应结果对象
    */
   public static errData<T>(data: T) {
-    return this.rest(RESULT_CODE_ERROR, RESULT_MSG_ERROR, { data });
+    return this.newResult(RESULT_CODE_ERROR, RESULT_MSG_ERROR, { data });
   }
 
   /**
@@ -81,11 +81,7 @@ export class Result {
    * @param args 可展开的参数对象
    * @returns 返回结果
    */
-  public static rest(
-    code: number,
-    msg: string,
-    args: Record<string, any> = {}
-  ) {
+  public static newResult(code: number, msg: string, args: Record<string, any> = {}) {
     const res = new Result();
     res.code = code;
     res.msg = msg;
