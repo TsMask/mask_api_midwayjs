@@ -1,4 +1,4 @@
-FROM node:18-alpine AS build
+FROM node:18-alpine
 
 RUN npm config set registry https://registry.npmmirror.com
 

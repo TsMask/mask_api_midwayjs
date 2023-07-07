@@ -1,7 +1,7 @@
 # 基于 Midwayjs 的管理系统后端接口服务
 
 ![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
-![Release V0.1.8](https://img.shields.io/badge/Release-V0.1.8-orange.svg)
+![Release V0.1.9](https://img.shields.io/badge/Release-V0.1.9-orange.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
@@ -81,13 +81,14 @@ mask_api_midwayjs
 | Redis | 缓存存储程序 | 6+ |
 | Mysql | 数据存储程序 | 8+ |
 
-程序可用脚本内含初始化数据库数据SQL脚本文件
+程序可用脚本 `script` 目录内含初始化数据库SQL脚本文件
 
 ### 程序命令
 
 #### 本地开发-Window/Liunx
 
 ```bash
+# 修改配置参数 /src/connfig/config.local.ts
 npm install                 # 安装项目所需依赖
 npm run dev                 # 开发模式启动项目
 open http://localhost:6275  # 启动成功后得到服务访问地址
@@ -96,6 +97,7 @@ open http://localhost:6275  # 启动成功后得到服务访问地址
 #### 生产部署-Liunx
 
 ```bash
+# 修改配置参数 /src/connfig/config.prod.ts
 npm install             # 安装项目所需依赖
 npm run build           # 构建生产项目代码
 npm prune --production  # 移除开发依赖

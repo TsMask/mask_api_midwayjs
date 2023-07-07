@@ -23,7 +23,7 @@ export async function getRegionSearchByIp(ip: string): Promise<{
   took: number;
 }> {
   let data = { region: '0|0|0|0|0', ioCount: 0, took: 0 };
-  if (ip.includes(IP_INNER_ADDR)) {
+  if (ip === '::1' || ip.startsWith(IP_INNER_ADDR)) {
     data.region = '0|0|0|内网IP|内网IP';
   }
   try {
@@ -41,7 +41,9 @@ export async function getRegionSearchByIp(ip: string): Promise<{
  * @returns 返回结果 江苏省 苏州市
  */
 export async function getRealAddressByIp(ip: string): Promise<string> {
-  if (ip.includes(IP_INNER_ADDR)) return IP_INNER_LOCATION;
+  if (ip === '::1' || ip.startsWith(IP_INNER_ADDR)) {
+    return IP_INNER_LOCATION;
+  }
   try {
     const searcher = newWithBuffer(ip2regionBuffer);
     const { region } = await searcher.search(ip);

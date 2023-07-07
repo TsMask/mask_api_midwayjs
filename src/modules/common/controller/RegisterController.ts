@@ -2,14 +2,14 @@ import { Controller, Body, Post, Inject } from '@midwayjs/decorator';
 import { Result } from '../../../framework/model/Result';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
-import { RegisterBodyVo } from '../model/vo/RegisterBodyVo';
-import { SysConfigServiceImpl } from '../service/impl/SysConfigServiceImpl';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { SysRegisterService } from '../../../framework/service/SysRegisterService';
 import {
   validPassword,
   validUsername,
 } from '../../../framework/utils/RegularUtils';
+import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
+import { RegisterBodyVo } from '../../../framework/model/vo/RegisterBodyVo';
 
 /**
  * 注册验证
@@ -17,7 +17,7 @@ import {
  * @author TsMask
  */
 @Controller()
-export class SysRegisterController {
+export class RegisterController {
   @Inject()
   private sysConfigService: SysConfigServiceImpl;
 
