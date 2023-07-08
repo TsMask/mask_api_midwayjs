@@ -16,13 +16,6 @@ export interface ISysMenuRepository {
   selectMenuList(sysMenu: SysMenu, userId?: string): Promise<SysMenu[]>;
 
   /**
-   * 根据用户所有权限
-   *
-   * @return 权限列表
-   */
-  selectMenuPerms(): Promise<number[]>;
-
-  /**
    * 根据角色ID查询权限
    *
    * @param roleId 角色ID

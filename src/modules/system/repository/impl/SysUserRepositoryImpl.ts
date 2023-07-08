@@ -16,7 +16,7 @@ import { SysUser } from '../../model/SysUser';
 import { SysRole } from '../../model/SysRole';
 
 /**查询视图对象SQL */
-const SELECT_USER_VO = `select 
+const SELECT_USER_SQL = `select 
 u.user_id, u.dept_id, u.user_name, u.nick_name, u.user_type, u.email, u.avatar, u.phonenumber, u.password, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, 
 d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.status as dept_status,
 r.role_id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.status as role_status
@@ -71,7 +71,7 @@ SYS_ROLE_RESULT.set('role_status', 'status');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysUserResult(rows: any[]): SysUser[] {
+function convertResultRows(rows: any[]): SysUser[] {
   const sysUsers: SysUser[] = [];
   for (const row of rows) {
     const sysUser = new SysUser();
@@ -116,76 +116,81 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
-    const SELECT_USER_SQL = `select 
+    const selectUserSql = `select 
     u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
     from sys_user u
-		left join sys_dept d on u.dept_id = d.dept_id
-		where u.del_flag = '0' `;
+		left join sys_dept d on u.dept_id = d.dept_id`;
+    const selectUserTotalSql = `select count(1) as 'total'
+    from sys_user u left join sys_dept d on u.dept_id = d.dept_id`;
+
     // 查询条件拼接
-    let sqlStr = dataScopeSQL;
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.userId && query.userId !== '0') {
-      sqlStr += ' and u.user_id = ? ';
-      paramArr.push(query.userId);
+      conditions.push('u.user_id = ?');
+      params.push(query.userId);
     }
     if (query.userName) {
-      sqlStr += " and u.user_name like concat(?, '%') ";
-      paramArr.push(query.userName);
+      conditions.push("u.user_name like concat(?, '%')");
+      params.push(query.userName);
     }
     if (query.status) {
-      sqlStr += ' and u.status = ? ';
-      paramArr.push(query.status);
+      conditions.push('u.status = ?');
+      params.push(query.status);
     }
     if (query.phonenumber) {
-      sqlStr += " and u.phonenumber like concat(?, '%') ";
-      paramArr.push(query.phonenumber);
+      conditions.push("u.phonenumber like concat(?, '%')");
+      params.push(query.phonenumber);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and u.login_date >= ? ';
-      paramArr.push(beginDate);
+      conditions.push('u.login_date >= ?');
+      params.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and u.login_date <= ? ';
-      paramArr.push(endDate);
+      conditions.push('u.login_date <= ?');
+      params.push(endDate);
     }
     if (query.deptId) {
-      sqlStr +=
-        ' and (u.dept_id = ? or u.dept_id in ( select t.dept_id from sys_dept t where find_in_set(?, ancestors) )) ';
-      paramArr.push(query.deptId);
-      paramArr.push(query.deptId);
+      conditions.push(
+        '(u.dept_id = ? or u.dept_id in ( select t.dept_id from sys_dept t where find_in_set(?, ancestors) ))'
+      );
+      params.push(query.deptId);
+      params.push(query.deptId);
     }
 
-    // 查询条件数 长度必为0其值为0
-    const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_user u
-      left join sys_dept d on u.dept_id = d.dept_id
-      where u.del_flag = '0' ${sqlStr}`,
-      paramArr
-    );
+    // 构建查询条件语句
+    let whereSql = " where u.del_flag = '0' ";
+    if (conditions.length > 0) {
+      whereSql += ' and ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = selectUserTotalSql + whereSql + dataScopeSQL;
+    const countRow: RowTotalType[] = await this.db.execute(totalSql, params);
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' limit ?,? ';
+    const pageSql = ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_USER_SQL} ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysUserResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = selectUserSql + whereSql + dataScopeSQL + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
@@ -193,112 +198,123 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     sysUser: SysUser,
     dataScopeSQL = ''
   ): Promise<SysUser[]> {
-    // 查询条件拼接
-    let sqlStr = dataScopeSQL;
-    const paramArr = [];
-    if (sysUser.userId && sysUser.userId !== '0') {
-      sqlStr += ' and u.user_id = ? ';
-      paramArr.push(sysUser.userId);
-    }
-    if (sysUser.userName) {
-      sqlStr += " and u.user_name like concat(?, '%') ";
-      paramArr.push(sysUser.userName);
-    }
-    if (sysUser.status) {
-      sqlStr += ' and u.status = ? ';
-      paramArr.push(sysUser.status);
-    }
-    if (sysUser.phonenumber) {
-      sqlStr += " and u.phonenumber like concat(?, '%') ";
-      paramArr.push(sysUser.phonenumber);
-    }
-    // 查询数据数
-    const SELECT_USER_SQL = `select 
+    const selectUserSql = `select 
     u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
     from sys_user u
-		left join sys_dept d on u.dept_id = d.dept_id
-		where u.del_flag = '0' `;
-    const results = await this.db.execute(
-      `${SELECT_USER_SQL} ${sqlStr}`,
-      paramArr
-    );
-    return parseSysUserResult(results);
+		left join sys_dept d on u.dept_id = d.dept_id`;
+
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysUser.userId && sysUser.userId !== '0') {
+      conditions.push('u.user_id = ?');
+      params.push(sysUser.userId);
+    }
+    if (sysUser.userName) {
+      conditions.push("u.user_name like concat(?, '%')");
+      params.push(sysUser.userName);
+    }
+    if (sysUser.status) {
+      conditions.push('u.status = ?');
+      params.push(sysUser.status);
+    }
+    if (sysUser.phonenumber) {
+      conditions.push("u.phonenumber like concat(?, '%')");
+      params.push(sysUser.phonenumber);
+    }
+
+    // 构建查询条件语句
+    let whereSql = " where u.del_flag = '0' ";
+    if (conditions.length > 0) {
+      whereSql += ' and ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const querySql = selectUserSql + whereSql + dataScopeSQL;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectAllocatedPage(
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
+    const selectUserSql = `select distinct 
+    u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, 
+    u.phonenumber, u.status, u.create_time, d.dept_name
+    from sys_user u
+    left join sys_dept d on u.dept_id = d.dept_id
+    left join sys_user_role ur on u.user_id = ur.user_id
+    left join sys_role r on r.role_id = ur.role_id`;
+    const selectUserTotalSql = `select count(distinct u.user_id) as 'total' from sys_user u
+    left join sys_dept d on u.dept_id = d.dept_id
+    left join sys_user_role ur on u.user_id = ur.user_id
+    left join sys_role r on r.role_id = ur.role_id`;
+
     // 查询条件拼接
-    let sqlStr = dataScopeSQL;
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.userName) {
-      sqlStr += " and u.user_name like concat(?, '%') ";
-      paramArr.push(query.userName);
+      conditions.push("u.user_name like concat(?, '%')");
+      params.push(query.userName);
     }
     if (query.phonenumber) {
-      sqlStr += " and u.phonenumber like concat(?, '%') ";
-      paramArr.push(query.phonenumber);
+      conditions.push("u.phonenumber like concat(?, '%')");
+      params.push(query.phonenumber);
     }
     if (query.status) {
-      sqlStr += ' and u.status = ? ';
-      paramArr.push(query.status);
+      conditions.push('u.status = ?');
+      params.push(query.status);
     }
-
     // 分配角色用户
     if (parseBoolean(query.allocated)) {
-      sqlStr += ' and r.role_id = ? ';
-      paramArr.push(query.roleId);
+      conditions.push('r.role_id = ?');
+      params.push(query.roleId);
     } else {
-      sqlStr +=
-        ' and (r.role_id != ? or r.role_id IS NULL) and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = ?)';
-      paramArr.push(query.roleId);
-      paramArr.push(query.roleId);
+      conditions.push(
+        '(r.role_id != ? or r.role_id IS NULL) and u.user_id not in (select u.user_id from sys_user u inner join sys_user_role ur on u.user_id = ur.user_id and ur.role_id = ?)'
+      );
+      params.push(query.roleId);
+      params.push(query.roleId);
     }
 
-    // 查询条件数 长度必为0其值为0
-    const countRow: RowTotalType[] = await this.db.execute(
-      `select count(distinct u.user_id) as 'total' from sys_user u
-      left join sys_dept d on u.dept_id = d.dept_id
-      left join sys_user_role ur on u.user_id = ur.user_id
-      left join sys_role r on r.role_id = ur.role_id
-      where u.del_flag = '0' ${sqlStr}`,
-      paramArr
-    );
+    // 构建查询条件语句
+    let whereSql = " where u.del_flag = '0' ";
+    if (conditions.length > 0) {
+      whereSql += ' and ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = selectUserTotalSql + whereSql + dataScopeSQL;
+    const countRow: RowTotalType[] = await this.db.execute(totalSql, params);
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' limit ?,? ';
+    const pageSql = ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
 
-    const buildSql = `select distinct 
-    u.user_id, u.dept_id, u.user_name, u.nick_name, u.email, 
-    u.phonenumber, u.status, u.create_time, d.dept_name
-    from sys_user u
-    left join sys_dept d on u.dept_id = d.dept_id
-    left join sys_user_role ur on u.user_id = ur.user_id
-    left join sys_role r on r.role_id = ur.role_id
-    where u.del_flag = '0' ${sqlStr}`;
-    // 查询数据数
-    const results = await this.db.execute(buildSql, paramArr);
-    const rows = parseSysUserResult(results);
+    // 查询数据
+    const querySql = selectUserSql + whereSql + dataScopeSQL + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectUserByUserName(userName: string): Promise<SysUser> {
-    const sqlStr = `${SELECT_USER_VO} where u.del_flag = '0' and u.user_name = ?`;
+    const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_name = ?`;
     const paramArr = [userName];
     const rows = await this.db.execute(sqlStr, paramArr);
-    const sysUsers = parseSysUserResult(rows);
+    const sysUsers = convertResultRows(rows);
     if (sysUsers.length === 0) {
       return null;
     }
@@ -319,10 +335,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   }
 
   async selectUserById(userId: string): Promise<SysUser> {
-    const sqlStr = `${SELECT_USER_VO} where u.del_flag = '0' and u.user_id = ?`;
+    const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id = ?`;
     const paramArr = [userId];
     const rows = await this.db.execute(sqlStr, paramArr);
-    const sysUsers = parseSysUserResult(rows);
+    const sysUsers = convertResultRows(rows);
     if (sysUsers.length === 0) {
       return null;
     }

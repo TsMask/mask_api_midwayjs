@@ -10,7 +10,7 @@ import { SysLogininfor } from '../../model/SysLogininfor';
 import { ISysLogininforRepository } from '../ISysLogininforRepository';
 
 /**查询视图对象SQL */
-const SELECT_LOGININFOR_VO = `select info_id, user_name, ipaddr, login_location, 
+const SELECT_LOGININFOR_SQL = `select info_id, user_name, ipaddr, login_location, 
 browser, os, status, msg, login_time from sys_logininfor`;
 
 /**系统访问记录表信息实体映射 */
@@ -30,7 +30,7 @@ SYS_LOGININFOR_RESULT.set('login_time', 'loginTime');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysLogininforResult(rows: any[]): SysLogininfor[] {
+function convertResultRows(rows: any[]): SysLogininfor[] {
   const sysLogininfors: SysLogininfor[] = [];
   for (const row of rows) {
     const sysLogininfor = new SysLogininfor();
@@ -60,85 +60,97 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     query: ListQueryPageOptions
   ): Promise<RowPagesType> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.ipaddr) {
-      sqlStr += " and ipaddr like concat(?, '%') ";
-      paramArr.push(query.ipaddr);
+      conditions.push("ipaddr like concat(?, '%')");
+      params.push(query.ipaddr);
     }
     if (query.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(query.status);
+      conditions.push('status = ?');
+      params.push(query.status);
     }
     if (query.userName) {
-      sqlStr += " and user_name like concat(?, '%') ";
-      paramArr.push(query.userName);
+      conditions.push("user_name like concat(?, '%')");
+      params.push(query.userName);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and login_time >= ? ';
-      paramArr.push(beginDate);
+      conditions.push('login_time >= ?');
+      params.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and login_time <= ? ';
-      paramArr.push(endDate);
+      conditions.push('login_time <= ?');
+      params.push(endDate);
     }
 
-    // 查询条件数 长度必为0其值为0
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = "select count(1) as 'total' from sys_logininfor";
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_logininfor where 1 = 1 ${sqlStr}`,
-      paramArr
+      totalSql + whereSql,
+      params
     );
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' order by info_id desc limit ?,? ';
+    const pageSql = ' order by info_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_LOGININFOR_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysLogininforResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = SELECT_LOGININFOR_SQL + whereSql + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectLogininforList(
     sysLogininfor: SysLogininfor
   ): Promise<SysLogininfor[]> {
-    let sqlStr = '';
-    const paramArr = [];
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysLogininfor.ipaddr) {
-      sqlStr += " and ipaddr like concat(?, '%') ";
-      paramArr.push(sysLogininfor.ipaddr);
+      conditions.push("ipaddr like concat(?, '%')");
+      params.push(sysLogininfor.ipaddr);
     }
     if (sysLogininfor.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(sysLogininfor.status);
+      conditions.push('status = ?');
+      params.push(sysLogininfor.status);
     }
     if (sysLogininfor.userName) {
-      sqlStr += " and user_name like concat(?, '%') ";
-      paramArr.push(sysLogininfor.userName);
+      conditions.push("user_name like concat(?, '%')");
+      params.push(sysLogininfor.userName);
     }
 
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_LOGININFOR_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    return parseSysLogininforResult(results);
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const querySql = SELECT_LOGININFOR_SQL + whereSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async insertLogininfor(sysLogininfor: SysLogininfor): Promise<string> {

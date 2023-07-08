@@ -10,7 +10,7 @@ import {
 } from '../../../../framework/utils/DateUtils';
 
 /**查询视图对象SQL */
-const SELECT_JOB_LOG_VO = `select 
+const SELECT_JOB_LOG_SQL = `select 
 job_log_id, job_name, job_group, invoke_target, target_params, job_msg, status, create_time 
 from sys_job_log`;
 
@@ -30,7 +30,7 @@ SYS_JOB_LOG_RESULT.set('create_time', 'createTime');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysJobLogResult(rows: any[]): SysJobLog[] {
+function convertResultRows(rows: any[]): SysJobLog[] {
   const sysJobLogs: SysJobLog[] = [];
   for (const row of rows) {
     const sysJobLog = new SysJobLog();
@@ -58,97 +58,109 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
 
   async selectJobLogPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.jobName) {
-      sqlStr += " and job_name like concat(?, '%') ";
-      paramArr.push(query.jobName);
+      conditions.push("job_name like concat(?, '%')");
+      params.push(query.jobName);
     }
     if (query.jobGroup) {
-      sqlStr += ' and job_group = ? ';
-      paramArr.push(query.jobGroup);
+      conditions.push('job_group = ?');
+      params.push(query.jobGroup);
     }
     if (query.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(query.status);
+      conditions.push('status = ?');
+      params.push(query.status);
     }
     if (query.invokeTarget) {
-      sqlStr += " and invoke_target like concat(?, '%') ";
-      paramArr.push(query.invokeTarget);
+      conditions.push("invoke_target like concat(?, '%')");
+      params.push(query.invokeTarget);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and create_time >= ? ';
-      paramArr.push(beginDate);
+      conditions.push('create_time >= ?');
+      params.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and create_time <= ? ';
-      paramArr.push(endDate);
+      conditions.push('create_time <= ?');
+      params.push(endDate);
     }
 
-    // 查询条件数 长度必为0其值为0
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = "select count(1) as 'total' from sys_job_log";
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_job_log where 1 = 1 ${sqlStr}`,
-      paramArr
+      totalSql + whereSql,
+      params
     );
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' order by job_log_id desc limit ?,? ';
+    const pageSql = ' order by job_log_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_JOB_LOG_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysJobLogResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = SELECT_JOB_LOG_SQL + whereSql + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectJobLogList(sysJobLog: SysJobLog): Promise<SysJobLog[]> {
-    let sqlStr = '';
-    const paramArr = [];
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysJobLog.jobName) {
-      sqlStr += " and job_name like concat(?, '%') ";
-      paramArr.push(sysJobLog.jobName);
+      conditions.push("job_name like concat(?, '%')");
+      params.push(sysJobLog.jobName);
     }
     if (sysJobLog.jobGroup) {
-      sqlStr += ' and job_group = ? ';
-      paramArr.push(sysJobLog.jobGroup);
+      conditions.push('job_group = ?');
+      params.push(sysJobLog.jobGroup);
     }
     if (sysJobLog.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(sysJobLog.status);
+      conditions.push('status = ?');
+      params.push(sysJobLog.status);
     }
     if (sysJobLog.invokeTarget) {
-      sqlStr += " and invoke_target like concat(?, '%') ";
-      paramArr.push(sysJobLog.invokeTarget);
+      conditions.push("invoke_target like concat(?, '%')");
+      params.push(sysJobLog.invokeTarget);
     }
 
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SYS_JOB_LOG_RESULT} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    return parseSysJobLogResult(results);
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const querySql = SELECT_JOB_LOG_SQL + whereSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectJobLogById(jobLogId: string): Promise<SysJobLog> {
-    const sqlStr = `${SELECT_JOB_LOG_VO} where job_log_id = ? `;
+    const sqlStr = `${SELECT_JOB_LOG_SQL} where job_log_id = ? `;
     const rows = await this.db.execute(sqlStr, [jobLogId]);
-    return parseSysJobLogResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async insertJobLog(sysJobLog: SysJobLog): Promise<string> {

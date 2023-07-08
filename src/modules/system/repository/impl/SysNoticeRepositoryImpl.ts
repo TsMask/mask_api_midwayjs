@@ -6,7 +6,7 @@ import { SysNotice } from '../../model/SysNotice';
 import { ISysNoticeRepository } from '../ISysNoticeRepository';
 
 /**查询视图对象SQL */
-const SELECT_NOTICE_VO = `select 
+const SELECT_NOTICE_SQL = `select 
 notice_id, notice_title, notice_type, notice_content, status, del_flag, 
 create_by, create_time, update_by, update_time, remark from sys_notice`;
 
@@ -29,7 +29,7 @@ SYS_NOTICE_RESULT.set('remark', 'remark');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysNoticeResult(rows: any[]): SysNotice[] {
+function convertResultRows(rows: any[]): SysNotice[] {
   const sysNotices: SysNotice[] = [];
   for (const row of rows) {
     const sysNotice = new SysNotice();
@@ -57,81 +57,94 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
 
   async selectNoticePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.noticeTitle) {
-      sqlStr += " and notice_title like concat(?, '%') ";
-      paramArr.push(query.noticeTitle);
+      conditions.push("notice_title like concat(?, '%')");
+      params.push(query.noticeTitle);
     }
     if (query.noticeType) {
-      sqlStr += ' and notice_type = ? ';
-      paramArr.push(query.noticeType);
+      conditions.push('notice_type = ?');
+      params.push(query.noticeType);
     }
     if (query.createBy) {
-      sqlStr += " and create_by like concat(?, '%') ";
-      paramArr.push(query.createBy);
+      conditions.push("create_by like concat(?, '%')");
+      params.push(query.createBy);
     }
     if (query.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(query.status);
+      conditions.push('status = ?');
+      params.push(query.status);
     }
 
-    // 查询条件数 长度必为0其值为0
+    // 构建查询条件语句
+    let whereSql = " where del_flag = '0' ";
+    if (conditions.length > 0) {
+      whereSql += ' and ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = "select count(1) as 'total' from sys_notice";
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_notice where del_flag = '0' ${sqlStr}`,
-      paramArr
+      totalSql + whereSql,
+      params
     );
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' limit ?,? ';
+    const pageSql = ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_NOTICE_VO} where del_flag = '0' ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysNoticeResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = SELECT_NOTICE_SQL + whereSql + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectNoticeList(sysNotice: SysNotice): Promise<SysNotice[]> {
-    let sqlStr = '';
-    const paramArr = [];
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
     // 查询条件拼接
     if (sysNotice.noticeTitle) {
-      sqlStr += " and notice_title like concat(?, '%') ";
-      paramArr.push(sysNotice.noticeTitle);
+      conditions.push("notice_title like concat(?, '%')");
+      params.push(sysNotice.noticeTitle);
     }
     if (sysNotice.noticeType) {
-      sqlStr += ' and notice_type = ? ';
-      paramArr.push(sysNotice.noticeType);
+      conditions.push('notice_type = ?');
+      params.push(sysNotice.noticeType);
     }
     if (sysNotice.createBy) {
-      sqlStr += " and create_by like concat(?, '%') ";
-      paramArr.push(sysNotice.createBy);
+      conditions.push("create_by like concat(?, '%')");
+      params.push(sysNotice.createBy);
     }
 
-    const rows = await this.db.execute(
-      `${SELECT_NOTICE_VO} where del_flag = '0' ${sqlStr} `,
-      paramArr
-    );
-    return parseSysNoticeResult(rows);
+    // 构建查询条件语句
+    let whereSql = " where del_flag = '0' ";
+    if (conditions.length > 0) {
+      whereSql += ' and ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const querySql = SELECT_NOTICE_SQL + whereSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectNoticeById(noticeId: string): Promise<SysNotice> {
-    const sqlStr = `${SELECT_NOTICE_VO} where notice_id = ? `;
+    const sqlStr = `${SELECT_NOTICE_SQL} where notice_id = ? `;
     const rows = await this.db.execute(sqlStr, [noticeId]);
-    return parseSysNoticeResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async insertNotice(sysNotice: SysNotice): Promise<string> {

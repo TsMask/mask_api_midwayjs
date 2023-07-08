@@ -6,7 +6,7 @@ import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataS
 import { ISysDeptRepository } from '../ISysDeptRepository';
 
 /**查询视图对象SQL */
-const SELECT_DEPT_VO = `select 
+const SELECT_DEPT_SQL = `select 
 d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.phone, d.email, d.status, d.del_flag, d.create_by, d.create_time 
 from sys_dept d`;
 
@@ -33,7 +33,7 @@ SYS_DEPT_RESULT.set('update_time', 'updateTime');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysDeptResult(rows: any[]): SysDept[] {
+function convertResultRows(rows: any[]): SysDept[] {
   const sysDepts: SysDept[] = [];
   for (const row of rows) {
     const sysDept = new SysDept();
@@ -63,27 +63,37 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     sysDept: SysDept,
     dataScopeSQL = ''
   ): Promise<SysDept[]> {
-    let sqlStr = `${SELECT_DEPT_VO} where d.del_flag = '0' ${dataScopeSQL}`;
-    const paramArr = [];
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysDept?.deptId) {
-      sqlStr += ' and dept_id = ? ';
-      paramArr.push(sysDept.deptId);
+      conditions.push('dept_id = ?');
+      params.push(sysDept.deptId);
     }
     if (sysDept?.parentId) {
-      sqlStr += ' and parent_id = ? ';
-      paramArr.push(sysDept.parentId);
+      conditions.push('parent_id = ?');
+      params.push(sysDept.parentId);
     }
     if (sysDept?.deptName) {
-      sqlStr += " and dept_name like concat(?, '%') ";
-      paramArr.push(sysDept.deptName);
+      conditions.push("dept_name like concat(?, '%')");
+      params.push(sysDept.deptName);
     }
     if (sysDept?.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(sysDept.status);
+      conditions.push('status = ?');
+      params.push(sysDept.status);
     }
-    sqlStr += ' order by d.parent_id, d.order_num asc ';
-    const rows = await this.db.execute(sqlStr, paramArr);
-    return parseSysDeptResult(rows);
+
+    // 构建查询条件语句
+    let whereSql = " where d.del_flag = '0' ";
+    if (conditions.length > 0) {
+      whereSql += ' and ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const orderSql = ' order by d.parent_id, d.order_num asc ';
+    const querySql = SELECT_DEPT_SQL + whereSql + dataScopeSQL + orderSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectDeptListByRoleId(
@@ -113,13 +123,13 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     (select dept_name from sys_dept where dept_id = d.parent_id) parent_name 
     from sys_dept d where d.dept_id = ?`;
     const rows = await this.db.execute(sqlStr, [deptId]);
-    return parseSysDeptResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async selectChildrenDeptById(deptId: string): Promise<SysDept[]> {
-    const sqlStr = `${SELECT_DEPT_VO} where find_in_set(?, ancestors)`;
+    const sqlStr = `${SELECT_DEPT_SQL} where find_in_set(?, ancestors)`;
     const rows = await this.db.execute(sqlStr, [deptId]);
-    return parseSysDeptResult(rows);
+    return convertResultRows(rows);
   }
 
   async selectNormalChildrenDeptById(deptId: string): Promise<number> {
