@@ -108,7 +108,17 @@ export class SysConfigServiceImpl implements ISysConfigService {
     return await this.sysConfigRepository.deleteConfigByIds(configIds);
   }
 
-  async loadingConfigCache(configKey?: string): Promise<void> {
+  async loadingConfigCache(configKey: string): Promise<void> {
+    if (configKey === '*') {
+      // 查询全部参数
+      const sysConfigs = await this.selectConfigList(new SysConfig());
+      for (const sysConfig of sysConfigs) {
+        const key = this.cacheKey(sysConfig.configKey);
+        await this.redisCache.del(key);
+        await this.redisCache.set(key, sysConfig.configValue);
+      }
+      return
+    }
     if (configKey) {
       // 指定参数
       const cacheValue = await this.sysConfigRepository.selectconfigValueByKey(
@@ -120,25 +130,17 @@ export class SysConfigServiceImpl implements ISysConfigService {
         await this.redisCache.set(key, cacheValue);
       }
       return;
-    } else {
-      // 查询全部参数
-      const sysConfigs = await this.selectConfigList(new SysConfig());
-      for (const sysConfig of sysConfigs) {
-        const key = this.cacheKey(sysConfig.configKey);
-        await this.redisCache.del(key);
-        await this.redisCache.set(key, sysConfig.configValue);
-      }
     }
   }
 
-  async clearConfigCache(configKey = '*'): Promise<number> {
+  async clearConfigCache(configKey: string): Promise<number> {
     const key = this.cacheKey(configKey);
     const keys = await this.redisCache.getKeys(key);
     return await this.redisCache.delKeys(keys);
   }
 
   async resetConfigCache(): Promise<void> {
-    await this.clearConfigCache();
-    await this.loadingConfigCache();
+    await this.clearConfigCache('*');
+    await this.loadingConfigCache('*');
   }
 }

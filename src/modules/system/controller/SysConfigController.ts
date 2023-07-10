@@ -35,6 +35,135 @@ export class SysConfigController {
   private sysConfigService: SysConfigServiceImpl;
 
   /**
+   * 参数配置列表
+   * @returns 返回结果
+   */
+  @Get('/list')
+  @PreAuthorize({ hasPermissions: ['system:config:list'] })
+  async list(): Promise<Result> {
+    const query = this.contextService.getContext().query;
+    const data = await this.sysConfigService.selectConfigPage(query);
+    return Result.ok(data);
+  }
+
+  /**
+   * 参数配置信息
+   */
+  @Get('/:configId')
+  @PreAuthorize({ hasPermissions: ['system:config:query'] })
+  async getInfo(@Param('configId') configId: string): Promise<Result> {
+    if (!configId) return Result.err();
+    const data = await this.sysConfigService.selectConfigById(configId);
+    return Result.okData(data);
+  }
+
+  /**
+   * 参数配置新增
+   */
+  @Post()
+  @PreAuthorize({ hasPermissions: ['system:config:add'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
+  async add(@Body() sysConfig: SysConfig) {
+    const { configId, configName, configKey, configValue } = sysConfig;
+    if (configId || !configName || !configKey || !configValue) {
+      return Result.err();
+    }
+
+    // 检查属性值唯一
+    const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
+      sysConfig
+    );
+    if (!uniqueConfigKey) {
+      return Result.errMsg(`参数配置新增【${configKey}】失败，参数键名已存在`);
+    }
+
+    sysConfig.createBy = this.contextService.getUseName();
+    const insertId = await this.sysConfigService.insertConfig(sysConfig);
+    return Result[insertId ? 'ok' : 'err']();
+  }
+
+  /**
+   * 参数配置修改
+   */
+  @Put()
+  @PreAuthorize({ hasPermissions: ['system:config:edit'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
+  async edit(@Body() sysConfig: SysConfig) {
+    const { configId, configName, configKey, configValue } = sysConfig;
+    if (!configId || !configName || !configKey || !configValue) {
+      return Result.err();
+    }
+
+    // 检查属性值唯一
+    const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
+      sysConfig
+    );
+    if (!uniqueConfigKey) {
+      return Result.errMsg(`参数配置修改【${configKey}】失败，参数键名已存在`);
+    }
+
+    // 检查是否存在
+    const config = await this.sysConfigService.selectConfigById(configId);
+    if (!config) {
+      return Result.errMsg('没有权限访问参数配置数据！');
+    }
+
+    sysConfig.updateBy = this.contextService.getUseName();
+    const rows = await this.sysConfigService.updateConfig(sysConfig);
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 参数配置删除
+   */
+  @Del('/:configIds')
+  @PreAuthorize({ hasPermissions: ['system:config:remove'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
+  async remove(@Param('configIds') configIds: string) {
+    if (!configIds) return Result.err();
+    // 处理字符转有效数字id数组
+    const ids = configIds.split(',');
+    if (ids.length <= 0) return Result.err();
+    const rows = await this.sysConfigService.deleteConfigByIds([
+      ...new Set(ids),
+    ]);
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 参数配置根据参数键名
+   */
+  @Get('/configKey/:configKey')
+  async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
+    const data = await this.sysConfigService.selectConfigValueByKey(configKey);
+    return Result.okData(data || '');
+  }
+
+  /**
+   * 参数配置刷新缓存
+   */
+  @Put('/refreshCache')
+  @RepeatSubmit()
+  @PreAuthorize({ hasPermissions: ['system:config:remove'] })
+  @OperLog({
+    title: '参数配置信息',
+    businessType: OperatorBusinessTypeEnum.CLEAN,
+  })
+  async refreshCache(): Promise<Result> {
+    await this.sysConfigService.resetConfigCache();
+    return Result.ok();
+  }
+
+  /**
    * 导出参数配置信息
    */
   @Post('/export')
@@ -77,133 +206,5 @@ export class SysConfigController {
       '参数配置信息',
       fileName
     );
-  }
-
-  /**
-   * 参数配置列表
-   * @returns 返回结果
-   */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:config:list'] })
-  async list(): Promise<Result> {
-    const query = this.contextService.getContext().query;
-    const data = await this.sysConfigService.selectConfigPage(query);
-    return Result.ok(data);
-  }
-
-  /**
-   * 参数配置根据参数键名
-   */
-  @Get('/configKey/:configKey')
-  async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
-    const key = await this.sysConfigService.selectConfigValueByKey(configKey);
-    return Result.okData(key || '');
-  }
-
-  /**
-   * 参数配置信息
-   */
-  @Get('/:configId')
-  @PreAuthorize({ hasPermissions: ['system:config:query'] })
-  async getInfo(@Param('configId') configId: string): Promise<Result> {
-    if (!configId) return Result.err();
-    const data = await this.sysConfigService.selectConfigById(configId);
-    return Result.okData(data);
-  }
-
-  /**
-   * 参数配置新增
-   */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:config:add'] })
-  @OperLog({
-    title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.INSERT,
-  })
-  async add(@Body() sysConfig: SysConfig) {
-    if (!sysConfig.configName || !sysConfig.configKey || !sysConfig.configValue)
-      return Result.err();
-    // 检查属性值唯一
-    const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
-      sysConfig
-    );
-    if (!uniqueConfigKey) {
-      return Result.errMsg(
-        `参数配置新增【${sysConfig.configKey}】失败，参数键名已存在`
-      );
-    }
-
-    sysConfig.createBy = this.contextService.getUseName();
-    const insertId = await this.sysConfigService.insertConfig(sysConfig);
-    return Result[insertId ? 'ok' : 'err']();
-  }
-
-  /**
-   * 参数配置修改
-   */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:config:edit'] })
-  @OperLog({
-    title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
-  })
-  async edit(@Body() sysConfig: SysConfig) {
-    if (!sysConfig.configName || !sysConfig.configKey || !sysConfig.configValue)
-      return Result.err();
-    // 检查属性值唯一
-    const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
-      sysConfig
-    );
-    if (!uniqueConfigKey) {
-      return Result.errMsg(
-        `参数配置修改【${sysConfig.configKey}】失败，参数键名已存在`
-      );
-    }
-
-    // 检查是否存在
-    const config = await this.sysConfigService.selectConfigById(
-      sysConfig.configId
-    );
-    if (!config) {
-      return Result.errMsg('没有权限访问参数配置数据！');
-    }
-    sysConfig.updateBy = this.contextService.getUseName();
-    const rows = await this.sysConfigService.updateConfig(sysConfig);
-    return Result[rows > 0 ? 'ok' : 'err']();
-  }
-
-  /**
-   * 参数配置删除
-   */
-  @Del('/:configIds')
-  @PreAuthorize({ hasPermissions: ['system:config:remove'] })
-  @OperLog({
-    title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
-  })
-  async remove(@Param('configIds') configIds: string) {
-    if (!configIds) return Result.err();
-    // 处理字符转有效数字id数组
-    const ids = configIds.split(',');
-    if (ids.length <= 0) return Result.err();
-    const rows = await this.sysConfigService.deleteConfigByIds([
-      ...new Set(ids),
-    ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
-  }
-
-  /**
-   * 参数配置刷新缓存
-   */
-  @Put('/refreshCache')
-  @RepeatSubmit()
-  @PreAuthorize({ hasPermissions: ['system:config:remove'] })
-  @OperLog({
-    title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.CLEAN,
-  })
-  async refreshCache(): Promise<Result> {
-    await this.sysConfigService.resetConfigCache();
-    return Result.ok();
   }
 }

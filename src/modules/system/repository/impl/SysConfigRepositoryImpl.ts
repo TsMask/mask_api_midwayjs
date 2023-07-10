@@ -48,7 +48,7 @@ function convertResultRows(rows: any[]): SysConfig[] {
 }
 
 /**
- * 用户表 数据层处理
+ * 参数配置 数据层处理
  *
  * @author TsMask
  */
