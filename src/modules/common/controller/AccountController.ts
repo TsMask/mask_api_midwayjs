@@ -11,12 +11,12 @@ import { SysMenuServiceImpl } from '../../system/service/impl/SysMenuServiceImpl
 import { LoginBodyVo } from '../../../framework/model/vo/LoginBodyVo';
 
 /**
- * 登录验证
+ * 账号身份操作处理
  *
  * @author TsMask
  */
 @Controller()
-export class LoginController {
+export class AccountController {
   @Inject()
   private contextService: ContextService;
 
