@@ -8,7 +8,7 @@ import {
 import { LoginUser } from '../model/LoginUser';
 import { RedisCache } from '../cache/RedisCache';
 import { LOGIN_TOKEN_KEY } from '../constants/CacheKeysConstants';
-import { generateID } from '../utils/GenIdUtils';
+import { generateHash } from '../utils/GenIdUtils';
 import { getRealAddressByIp } from '../utils/ip2region';
 import { getUaInfo } from '../utils/UAParserUtils';
 import ms = require('ms');
@@ -89,7 +89,7 @@ export class TokenService {
     userAgent: string
   ): Promise<string> {
     // 生成用户唯一tokne32位
-    const uuid = generateID(32);
+    const uuid = generateHash(32);
     loginUser.uuid = uuid;
     // 设置请求用户登录客户端
     loginUser = await this.setUserAgent(loginUser, clientIP, userAgent);
