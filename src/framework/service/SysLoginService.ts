@@ -119,7 +119,6 @@ export class SysLoginService {
   ): Promise<void> {
     const verifyKey = CAPTCHA_CODE_KEY + uuid;
     const captcha = await this.redisCache.get(verifyKey);
-    await this.redisCache.del(verifyKey);
     if (!captcha) {
       // 验证码失效
       const sysLogininfor = await this.contextService.newSysLogininfor(
@@ -130,6 +129,7 @@ export class SysLoginService {
       await this.sysLogininforService.insertLogininfor(sysLogininfor);
       throw new Error('验证码已失效');
     }
+    await this.redisCache.del(verifyKey);
     if (code !== captcha) {
       // 验证码错误
       const sysLogininfor = await this.contextService.newSysLogininfor(
