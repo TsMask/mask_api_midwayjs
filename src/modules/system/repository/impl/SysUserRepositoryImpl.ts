@@ -119,8 +119,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const selectUserSql = `select 
     u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
     from sys_user u
-		left join sys_dept d on u.dept_id = d.dept_id`;
-    const selectUserTotalSql = `select count(1) as 'total'
+    left join sys_dept d on u.dept_id = d.dept_id`;
+    const selectUserTotalSql = `select count(distinct u.user_id) as 'total'
     from sys_user u left join sys_dept d on u.dept_id = d.dept_id`;
 
     // 查询条件拼接
@@ -201,7 +201,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const selectUserSql = `select 
     u.user_id, u.dept_id, u.nick_name, u.user_name, u.email, u.avatar, u.phonenumber, u.sex, u.status, u.del_flag, u.login_ip, u.login_date, u.create_by, u.create_time, u.remark, d.dept_name, d.leader 
     from sys_user u
-		left join sys_dept d on u.dept_id = d.dept_id`;
+    left join sys_dept d on u.dept_id = d.dept_id`;
 
     // 查询条件拼接
     const conditions: string[] = [];
@@ -312,8 +312,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
   async selectUserByUserName(userName: string): Promise<SysUser> {
     const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_name = ?`;
-    const paramArr = [userName];
-    const rows = await this.db.execute(sqlStr, paramArr);
+    const rows = await this.db.execute(sqlStr, [userName]);
     const sysUsers = convertResultRows(rows);
     if (sysUsers.length === 0) {
       return null;
@@ -336,8 +335,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
   async selectUserById(userId: string): Promise<SysUser> {
     const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id = ?`;
-    const paramArr = [userId];
-    const rows = await this.db.execute(sqlStr, paramArr);
+    const rows = await this.db.execute(sqlStr, [userId]);
     const sysUsers = convertResultRows(rows);
     if (sysUsers.length === 0) {
       return null;
