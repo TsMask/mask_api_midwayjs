@@ -88,7 +88,7 @@ export class ContextService {
   }
 
   /**
-   * 获取用户账号
+   * 获取用户登录账号
    **/
   getUseName(): string {
     return this.getSysUser().userName;
