@@ -7,12 +7,12 @@ import { SysNotice } from '../model/SysNotice';
  */
 export interface ISysNoticeRepository {
   /**
-   * 查询公告信息
+   * 分页查询公告列表
    *
-   * @param noticeId 公告ID
-   * @return 公告信息
+   * @param query 请求参数
+   * @return 列表数据结果
    */
-  selectNoticeById(noticeId: string): Promise<SysNotice>;
+  selectNoticePage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
   /**
    * 查询公告列表
@@ -21,6 +21,14 @@ export interface ISysNoticeRepository {
    * @return 公告集合
    */
   selectNoticeList(sysNotice: SysNotice): Promise<SysNotice[]>;
+
+  /**
+   * 查询公告信息
+   *
+   * @param noticeId 公告ID
+   * @return 公告信息
+   */
+  selectNoticeById(noticeId: string): Promise<SysNotice>;
 
   /**
    * 新增公告

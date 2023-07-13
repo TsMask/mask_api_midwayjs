@@ -15,20 +15,20 @@ export interface ISysNoticeService {
   selectNoticePage(query: ListQueryPageOptions): Promise<RowPagesType>;
 
   /**
-   * 查询公告信息
-   *
-   * @param noticeId 公告ID
-   * @return 公告信息
-   */
-  selectNoticeById(noticeId: string): Promise<SysNotice>;
-
-  /**
    * 查询公告列表
    *
    * @param sysNotice 公告信息
    * @return 公告集合
    */
   selectNoticeList(sysNotice: SysNotice): Promise<SysNotice[]>;
+
+  /**
+   * 查询公告信息
+   *
+   * @param noticeId 公告ID
+   * @return 公告信息
+   */
+  selectNoticeById(noticeId: string): Promise<SysNotice>;
 
   /**
    * 新增公告
