@@ -361,7 +361,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     }
 
     const sqlStr =
-      "select menu_id as 'str' from sys_menu" + whereSql + 'limit 1';
+      "select menu_id as 'str' from sys_menu" + whereSql + ' limit 1';
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
