@@ -9,7 +9,7 @@ import {
   Put,
   Query,
 } from '@midwayjs/decorator';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { SysJobLogService } from '../service/sys_job_log.service';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysJobLog } from '../model/sys_job_log.entity';

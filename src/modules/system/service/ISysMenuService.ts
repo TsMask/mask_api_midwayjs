@@ -1,6 +1,6 @@
-import { TreeSelect } from '../../../framework/model/TreeSelect';
+import { RouterVo } from '../../../framework/vo/RouterVo';
+import { TreeSelect } from '../../../framework/vo/TreeSelect';
 import { SysMenu } from '../model/SysMenu';
-import { RouterVo } from '../model/vo/RouterVo';
 
 /**
  * 菜单 服务层接口
@@ -120,16 +120,17 @@ export interface ISysMenuService {
   /**
    * 校验菜单名称是否唯一
    *
-   * @param sysMenu 菜单信息
+   * @param menuName 菜单名称
+   * @param parentId 父菜单ID
    * @return 结果
    */
-  checkUniqueNenuName(sysMenu: SysMenu): Promise<boolean>;
+  checkUniqueNenuName(menuName: string, parentId: string): Promise<boolean>;
 
   /**
    * 校验路由地址是否唯一（针对目录和菜单）
    *
-   * @param sysMenu 菜单信息
+   * @param path 路由地址
    * @return 结果
    */
-  checkUniqueNenuPath(sysMenu: SysMenu): Promise<boolean>;
+  checkUniqueNenuPath(path: string): Promise<boolean>;
 }

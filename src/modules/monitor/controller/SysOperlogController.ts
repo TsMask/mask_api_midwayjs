@@ -5,7 +5,7 @@ import {
 } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { OPERATOR_TYPE } from '../../../framework/enums/OperatorTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';

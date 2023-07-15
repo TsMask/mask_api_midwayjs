@@ -6,8 +6,8 @@ import { OperatorTypeEnum } from '../enums/OperatorTypeEnum';
 import { getRealAddressByIp } from '../utils/ip2region';
 import { SysOperLog } from '../../modules/monitor/model/SysOperLog';
 import { SysOperLogServiceImpl } from '../../modules/monitor/service/impl/SysOperLogServiceImpl';
-import { LoginUser } from '../model/LoginUser';
-import { Result } from '../model/Result';
+import { LoginUser } from '../vo/LoginUser';
+import { Result } from '../vo/Result';
 import {
   IP_INNER_ADDR,
   IP_INNER_LOCATION,

@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { SysDept } from '../../model/SysDept';
-import { TreeSelect } from '../../../../framework/model/TreeSelect';
+import { TreeSelect } from '../../../../framework/vo/TreeSelect';
 import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { ISysDeptService } from '../ISysDeptService';

@@ -4,9 +4,7 @@ import {
   parseFirstUpper,
 } from '../../../../framework/utils/ValueParseUtils';
 import { validHttp } from '../../../../framework/utils/RegularUtils';
-import { TreeSelect } from '../../../../framework/model/TreeSelect';
-import { MetaVo } from '../../model/vo/MetaVo';
-import { RouterVo } from '../../model/vo/RouterVo';
+import { TreeSelect } from '../../../../framework/vo/TreeSelect';
 import { SysMenuRepositoryImpl } from '../../repository/impl/SysMenuRepositoryImpl';
 import { ISysMenuService } from '../ISysMenuService';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
@@ -24,6 +22,8 @@ import {
   MENU_TYPE_MENU,
   MENU_PATH_INLINE,
 } from '../../../../framework/constants/MenuConstants';
+import { RouterVo } from '../../../../framework/vo/RouterVo';
+import { RouterMateVo } from '../../../../framework/vo/RouterMateVo';
 
 /**
  * 菜单 服务层实现
@@ -116,11 +116,14 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return await this.sysMenuRepository.deleteMenuById(menuId);
   }
 
-  async checkUniqueNenuName(sysMenu: SysMenu): Promise<boolean> {
-    const menuId = await this.sysMenuRepository.checkUniqueMenuName(
-      sysMenu.menuName,
-      sysMenu.parentId
-    );
+  async checkUniqueNenuName(
+    menuName: string,
+    parentId: string
+  ): Promise<boolean> {
+    const sysMenu = new SysMenu();
+    sysMenu.menuName = menuName;
+    sysMenu.parentId = parentId;
+    const menuId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);
     // 菜单信息与查询得到菜单ID一致
     if (menuId && sysMenu.menuId === menuId) {
       return true;
@@ -128,10 +131,10 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return !menuId;
   }
 
-  async checkUniqueNenuPath(sysMenu: SysMenu): Promise<boolean> {
-    const menuId = await this.sysMenuRepository.checkUniqueMenuPath(
-      sysMenu.path
-    );
+  async checkUniqueNenuPath(path: string): Promise<boolean> {
+    const sysMenu = new SysMenu();
+    sysMenu.path = path;
+    const menuId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);
     // 菜单信息与查询得到菜单ID一致
     if (menuId && sysMenu.menuId === menuId) {
       return true;
@@ -267,8 +270,8 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @param menu 菜单信息
    * @return 元信息
    */
-  private getRouteMeta(menu: SysMenu): MetaVo {
-    const meta = new MetaVo();
+  private getRouteMeta(menu: SysMenu): RouterMateVo {
+    const meta = new RouterMateVo();
     meta.icon = menu.icon === '#' ? '' : menu.icon;
     meta.title = menu.menuName;
     meta.hide = menu.visible === STATUS_NO;
