@@ -72,8 +72,10 @@ SYS_ROLE_RESULT.set('role_status', 'status');
  * @returns 实体组
  */
 function convertResultRows(rows: any[]): SysUser[] {
-  const sysUsers: SysUser[] = [];
-  for (const row of rows) {
+  const arr: SysUser[] = [];
+  const arrKeyIndex: Map<string,number> = new Map();
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]
     const sysUser = new SysUser();
     const sysDept = new SysDept();
     const sysRole = new SysRole();
@@ -96,9 +98,19 @@ function convertResultRows(rows: any[]): SysUser[] {
     if (sysRole.roleKey) {
       sysUser.roles.push(sysRole);
     }
-    sysUsers.push(sysUser);
+
+    let one = true
+    if(arrKeyIndex.has(sysUser.userId)){
+      const arrUser = arr[arrKeyIndex.get(sysUser.userId)];
+      arrUser.roles.push(...sysUser.roles)
+      one = false
+    }
+    if(one){
+      arr.push(sysUser);
+      arrKeyIndex.set(sysUser.userId, i)
+    }
   }
-  return sysUsers;
+  return arr;
 }
 
 /**
@@ -313,47 +325,21 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   async selectUserByUserName(userName: string): Promise<SysUser> {
     const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_name = ?`;
     const rows = await this.db.execute(sqlStr, [userName]);
-    const sysUsers = convertResultRows(rows);
-    if (sysUsers.length === 0) {
+    if (rows.length === 0) {
       return null;
     }
-    let sysUser = new SysUser();
-    sysUsers.forEach((v, i) => {
-      if (i === 0) {
-        if (v.roles && v.roles.length === 0) {
-          v.roles = [];
-        }
-        sysUser = v;
-      } else {
-        if (v.roles && v.roles.length !== 0) {
-          sysUser.roles = sysUser.roles.concat(v.roles);
-        }
-      }
-    });
-    return sysUser.userId ? sysUser : null;
+    const sysUsers = convertResultRows(rows);
+    return sysUsers[0]
   }
 
   async selectUserById(userId: string): Promise<SysUser> {
     const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id = ?`;
     const rows = await this.db.execute(sqlStr, [userId]);
-    const sysUsers = convertResultRows(rows);
-    if (sysUsers.length === 0) {
+    if (rows.length === 0) {
       return null;
     }
-    let sysUser = new SysUser();
-    sysUsers.forEach((v, i) => {
-      if (i === 0) {
-        if (v.roles && v.roles.length === 0) {
-          v.roles = [];
-        }
-        sysUser = v;
-      } else {
-        if (v.roles && v.roles.length !== 0) {
-          sysUser.roles = sysUser.roles.concat(v.roles);
-        }
-      }
-    });
-    return sysUser.userId ? sysUser : null;
+    const sysUsers = convertResultRows(rows);
+    return sysUsers[0]
   }
 
   async insertUser(sysUser: SysUser): Promise<string> {
