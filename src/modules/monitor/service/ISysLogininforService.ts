@@ -43,4 +43,16 @@ export interface ISysLogininforService {
    * @return 结果
    */
   cleanLogininfor(): Promise<number>;
+
+  /**
+   * 生成系统登录日志
+   *
+   * @return 结果
+   */
+  newLogininfor(
+    userName: string,
+    status: string,
+    msg: string,
+    ...ilobArgs: string[]
+  ): Promise<string>;
 }

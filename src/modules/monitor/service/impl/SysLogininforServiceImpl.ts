@@ -39,4 +39,21 @@ export class SysLogininforServiceImpl implements ISysLogininforService {
   async cleanLogininfor(): Promise<number> {
     return await this.sysLogininforRepository.cleanLogininfor();
   }
+
+  async newLogininfor(
+    userName: string,
+    status: string,
+    msg: string,
+    ...ilobArgs: string[]
+  ): Promise<string> {
+    const sysLogininfor = new SysLogininfor();
+    sysLogininfor.ipaddr = ilobArgs[0];
+    sysLogininfor.loginLocation = ilobArgs[1];
+    sysLogininfor.os = ilobArgs[2];
+    sysLogininfor.browser = ilobArgs[3];
+    sysLogininfor.userName = userName;
+    sysLogininfor.status = status;
+    sysLogininfor.msg = msg;
+    return await this.sysLogininforRepository.insertLogininfor(sysLogininfor);
+  }
 }

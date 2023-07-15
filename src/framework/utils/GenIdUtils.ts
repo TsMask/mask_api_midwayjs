@@ -1,16 +1,16 @@
-import { customAlphabet } from 'nanoid';
+import { customAlphabet, nanoid } from 'nanoid';
 // V4 不支持commonjs
 // https://github.com/ai/nanoid#readme
 // 查看重复率 https://zelark.github.io/nano-id-cc/
 
 /**
- * 生成随机ID
- * ID包含数字、小写字母
+ * 生成随机Hash
+ * 包含数字、小写字母
  * @param size 长度
  * @param prefix 前缀
- * @returns string
+ * @returns string 不保证长度满足
  */
-export function generateID(size: number, prefix?: string): string {
+export function generateHash(size: number, prefix?: string): string {
   const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
   const nanoid = customAlphabet(alphabet, size);
   if (prefix) return `${prefix}${nanoid()}`;
@@ -18,18 +18,15 @@ export function generateID(size: number, prefix?: string): string {
 }
 
 /**
- * 生成随机ID
- * ID包含数字、大小写字母、下划线、横杠
+ * 生成随机字符串
+ * 包含数字、大小写字母、下划线、横杠
  * @param size 长度
  * @param prefix 前缀
- * @returns string
+ * @returns string 不保证长度满足
  */
-export function generateUUID(size: number, prefix?: string): string {
-  const alphabet =
-    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-';
-  const nanoid = customAlphabet(alphabet, size);
-  if (prefix) return `${prefix}${nanoid()}`;
-  return nanoid();
+export function generateString(size: number, prefix?: string): string {
+  if (prefix) return `${prefix}${nanoid(size)}`;
+  return nanoid(size);
 }
 
 /**
@@ -38,6 +35,10 @@ export function generateUUID(size: number, prefix?: string): string {
  * @returns number
  */
 export function generateNumber(size: number): number {
-  const nanoid = customAlphabet('0123456789', size);
-  return parseInt(nanoid());
+  let result = '';
+  for (let i = 0; i < size; i++) {
+    const digit = Math.floor(Math.random() * 10);
+    result += digit.toString();
+  }
+  return parseInt(result);
 }

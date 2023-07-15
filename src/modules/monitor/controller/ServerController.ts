@@ -1,5 +1,5 @@
 import { Controller, Get, Inject } from '@midwayjs/decorator';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { SystemInfoService } from '../../../framework/service/SystemInfoService';
 

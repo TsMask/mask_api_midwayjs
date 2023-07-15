@@ -2,8 +2,8 @@ import { Controller, Get, Inject } from '@midwayjs/decorator';
 import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../framework/constants/CacheKeysConstants';
-import { generateID } from '../../../framework/utils/GenIdUtils';
-import { Result } from '../../../framework/model/Result';
+import { generateHash } from '../../../framework/utils/GenIdUtils';
+import { Result } from '../../../framework/vo/Result';
 import { RedisCache } from '../../../framework/cache/RedisCache';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
@@ -51,7 +51,7 @@ export class CaptchaController {
     }
 
     // 生成唯一标识
-    const uuid = generateID(16);
+    const uuid = generateHash(16);
     const verifyKey = CAPTCHA_CODE_KEY + uuid;
     const data = {
       captchaEnabled: captchaEnabled,

@@ -1,4 +1,4 @@
-import { LoginUser } from '../../../framework/model/LoginUser';
+import { LoginUser } from '../../../framework/vo/LoginUser';
 import { SysUserOnline } from '../model/SysUserOnline';
 
 /**

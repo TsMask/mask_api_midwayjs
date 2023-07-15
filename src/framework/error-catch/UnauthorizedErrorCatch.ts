@@ -1,7 +1,7 @@
 import { Catch } from '@midwayjs/decorator';
 import { httpError, HttpStatus, MidwayHttpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { Result } from '../model/Result';
+import { Result } from '../vo/Result';
 
 /**
  * 未授权认证用户-拦截器
@@ -16,6 +16,6 @@ export class UnauthorizedErrorCatch {
     ctx.logger.error('%s : %s > %s', userName, err.name, err.message);
     // 返回200，提示错误信息
     ctx.body = Result.errMsg(err.message, 401);
-    ctx.status = HttpStatus.OK;
+    ctx.status = HttpStatus.UNAUTHORIZED;
   }
 }

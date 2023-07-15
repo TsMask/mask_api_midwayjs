@@ -1,7 +1,7 @@
 import { JoinPoint, REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import { createCustomMethodDecorator } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { Result } from '../model/Result';
+import { Result } from '../vo/Result';
 import { REPEAT_SUBMIT_KEY } from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';
 import { diffSeconds } from '../utils/DateUtils';

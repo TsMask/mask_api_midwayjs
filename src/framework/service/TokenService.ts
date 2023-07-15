@@ -4,18 +4,17 @@ import {
   TOKEN_JWT_UUID,
   TOKEN_JWT_KEY,
   TOKEN_KEY_PREFIX,
+  TOKEN_JWT_NAME,
 } from '../constants/TokenConstants';
-import { LoginUser } from '../model/LoginUser';
+import { LoginUser } from '../vo/LoginUser';
 import { RedisCache } from '../cache/RedisCache';
 import { LOGIN_TOKEN_KEY } from '../constants/CacheKeysConstants';
-import { generateID } from '../utils/GenIdUtils';
-import { getRealAddressByIp } from '../utils/ip2region';
-import { getUaInfo } from '../utils/UAParserUtils';
+import { generateHash } from '../utils/GenIdUtils';
 import ms = require('ms');
 import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
-import { PermissionService } from './PermissionService';
 import { SysUser } from '../../modules/system/model/SysUser';
-import { IP_INNER_ADDR, IP_INNER_LOCATION } from '../constants/CommonConstants';
+import { SysMenuServiceImpl } from '../../modules/system/service/impl/SysMenuServiceImpl';
+import { ADMIN_PERMISSION } from '../constants/AdminConstants';
 
 /**
  * token验证处理
@@ -32,7 +31,7 @@ export class TokenService {
   private redisCache: RedisCache;
 
   @Inject()
-  private permissionService: PermissionService;
+  private sysMenuService: SysMenuServiceImpl;
 
   /**从本地配置获取jwt过期时间信息 */
   @Config('jwt.expiresIn')
@@ -69,10 +68,13 @@ export class TokenService {
     loginUser.deptId = user.deptId;
     loginUser.user = user;
     // 用户权限组标识
-    loginUser.permissions = await this.permissionService.getMenuPermission(
-      user.userId,
-      isAdmin
-    );
+    if (isAdmin) {
+      loginUser.permissions = [ADMIN_PERMISSION];
+    } else {
+      loginUser.permissions = await this.sysMenuService.selectMenuPermsByUserId(
+        user.userId
+      );
+    }
     return loginUser;
   }
 
@@ -83,22 +85,22 @@ export class TokenService {
    * @param userAgent 客户端UA标识
    * @returns 登录令牌
    */
-  async createToken(
-    loginUser: LoginUser,
-    clientIP: string,
-    userAgent: string
-  ): Promise<string> {
+  async createToken(loginUser: LoginUser, ilobArgs: string[]): Promise<string> {
     // 生成用户唯一tokne32位
-    const uuid = generateID(32);
+    const uuid = generateHash(32);
     loginUser.uuid = uuid;
     // 设置请求用户登录客户端
-    loginUser = await this.setUserAgent(loginUser, clientIP, userAgent);
+    loginUser.ipaddr = ilobArgs[0];
+    loginUser.loginLocation = ilobArgs[1];
+    loginUser.os = ilobArgs[3];
+    loginUser.browser = ilobArgs[4];
     // 设置用户令牌有效期并存入缓存
     await this.setUserToken(loginUser);
     // 生成令牌负荷uuid标识
     return this.jwtService.sign({
       [TOKEN_JWT_UUID]: uuid,
       [TOKEN_JWT_KEY]: loginUser.userId,
+      [TOKEN_JWT_NAME]: loginUser.user.userName,
     });
   }
 
@@ -114,45 +116,6 @@ export class TokenService {
     const currentTime = Date.now();
     if (expireTime - currentTime <= timeout) {
       await this.setUserToken(loginUser);
-    }
-    return loginUser;
-  }
-
-  /**
-   * 设置用户代理信息
-   * @param loginUser 登录用户信息对象
-   * @param clientIP 客户端IP
-   * @param userAgent 客户端UA标识
-   * @returns 登录用户信息对象
-   */
-  private async setUserAgent(
-    loginUser: LoginUser,
-    clientIP: string,
-    userAgent: string
-  ): Promise<LoginUser> {
-    // 解析ip地址
-    if (clientIP.includes(IP_INNER_ADDR)) {
-      loginUser.ipaddr = clientIP.replace(IP_INNER_ADDR, '');
-      loginUser.loginLocation = IP_INNER_LOCATION;
-    } else {
-      loginUser.ipaddr = clientIP;
-      loginUser.loginLocation = await getRealAddressByIp(clientIP);
-    }
-    // 解析请求用户代理信息
-    const ua = await getUaInfo(userAgent);
-    const bName = ua.getBrowser().name;
-    const bVersion = ua.getBrowser().version;
-    if (bName && bVersion) {
-      loginUser.browser = `${bName} ${bVersion}`;
-    } else {
-      loginUser.browser = '未知 未知';
-    }
-    const oName = ua.getOS().name;
-    const oVersion = ua.getOS().version;
-    if (oName && oVersion) {
-      loginUser.os = `${oName} ${oVersion}`;
-    } else {
-      loginUser.os = '未知 未知';
     }
     return loginUser;
   }
@@ -255,10 +218,13 @@ export class TokenService {
    */
   async setLoginUser(loginUser: LoginUser, isAdmin = false): Promise<void> {
     // 用户权限组标识
-    loginUser.permissions = await this.permissionService.getMenuPermission(
-      loginUser.userId,
-      isAdmin
-    );
+    if (isAdmin) {
+      loginUser.permissions = [ADMIN_PERMISSION];
+    } else {
+      loginUser.permissions = await this.sysMenuService.selectMenuPermsByUserId(
+        loginUser.userId
+      );
+    }
     // 重新设置刷新令牌有效期
     await this.setUserToken(loginUser);
   }

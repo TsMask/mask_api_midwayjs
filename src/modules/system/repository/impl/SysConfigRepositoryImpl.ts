@@ -10,8 +10,9 @@ import { SysConfig } from '../../model/SysConfig';
 import { ISysConfigRepository } from '../ISysConfigRepository';
 
 /**查询视图对象SQL */
-const SELECT_CONFIG_VO =
-  'select config_id, config_name, config_key, config_value, config_type, create_by, create_time, update_by, update_time, remark from sys_config';
+const SELECT_CONFIG_SQL = `select
+config_id, config_name, config_key, config_value, config_type, create_by, create_time, update_by, update_time, remark 
+from sys_config`;
 
 /**系统配置表信息实体映射 */
 const SYS_CONFIG_RESULT = new Map<string, string>();
@@ -31,7 +32,7 @@ SYS_CONFIG_RESULT.set('update_time', 'updateTime');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysConfigResult(rows: any[]): SysConfig[] {
+function convertResultRows(rows: any[]): SysConfig[] {
   const sysConfigs: SysConfig[] = [];
   for (const row of rows) {
     const sysConfig = new SysConfig();
@@ -47,7 +48,7 @@ function parseSysConfigResult(rows: any[]): SysConfig[] {
 }
 
 /**
- * 用户表 数据层处理
+ * 参数配置 数据层处理
  *
  * @author TsMask
  */
@@ -59,83 +60,99 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
 
   async selectConfigPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.configName) {
-      sqlStr += " and config_name like concat(?, '%') ";
-      paramArr.push(query.configName);
+      conditions.push("config_name like concat(?, '%')");
+      params.push(query.configName);
     }
     if (query.configType) {
-      sqlStr += ' and config_type = ? ';
-      paramArr.push(query.configType);
+      conditions.push('config_type = ?');
+      params.push(query.configType);
     }
     if (query.configKey) {
-      sqlStr += " and config_key like concat(?, '%') ";
-      paramArr.push(query.configKey);
+      conditions.push("config_key like concat(?, '%')");
+      params.push(query.configKey);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and create_time >= ? ';
-      paramArr.push(beginDate);
+      conditions.push('create_time >= ?');
+      params.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and create_time <= ? ';
-      paramArr.push(endDate);
+      conditions.push('create_time <= ?');
+      params.push(endDate);
     }
 
-    // 查询条件数 长度必为0其值为0
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = "select count(1) as 'total' from sys_config";
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_config where 1 = 1 ${sqlStr}`,
-      paramArr
+      totalSql + whereSql,
+      params
     );
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' limit ?,? ';
+    const pageSql = ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_CONFIG_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysConfigResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = SELECT_CONFIG_SQL + whereSql + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectConfigList(sysConfig: SysConfig): Promise<SysConfig[]> {
-    let sqlStr = `${SELECT_CONFIG_VO} where 1 = 1 `;
-    const paramArr = [];
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysConfig.configName) {
-      sqlStr += " and config_name like concat(?, '%') ";
-      paramArr.push(sysConfig.configName);
+      conditions.push("config_name like concat(?, '%')");
+      params.push(sysConfig.configName);
     }
     if (sysConfig.configType) {
-      sqlStr += ' and config_type = ? ';
-      paramArr.push(sysConfig.configType);
+      conditions.push('config_type = ?');
+      params.push(sysConfig.configType);
     }
     if (sysConfig.configKey) {
-      sqlStr += " and config_key like concat(?, '%') ";
-      paramArr.push(sysConfig.configKey);
+      conditions.push("config_key like concat(?, '%')");
+      params.push(sysConfig.configKey);
     }
     if (sysConfig.createTime) {
-      sqlStr += ' and create_time >= ? ';
-      paramArr.push(sysConfig.createTime);
+      conditions.push('create_time >= ?');
+      params.push(sysConfig.createTime);
     }
 
-    const rows = await this.db.execute(sqlStr, paramArr);
-    return parseSysConfigResult(rows);
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const querySql = SELECT_CONFIG_SQL + whereSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectconfigValueByKey(configKey: string): Promise<string> {
@@ -146,9 +163,9 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
   }
 
   async selectConfigById(configId: string): Promise<SysConfig> {
-    const sqlStr = `${SELECT_CONFIG_VO} where config_id = ?`;
+    const sqlStr = `${SELECT_CONFIG_SQL} where config_id = ?`;
     const rows = await this.db.execute(sqlStr, [configId]);
-    return parseSysConfigResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async checkUniqueConfigKey(configKey: string): Promise<string> {

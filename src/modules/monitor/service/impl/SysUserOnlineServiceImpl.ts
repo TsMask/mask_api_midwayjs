@@ -1,5 +1,5 @@
 import { Provide, Singleton } from '@midwayjs/decorator';
-import { LoginUser } from '../../../../framework/model/LoginUser';
+import { LoginUser } from '../../../../framework/vo/LoginUser';
 import { SysUserOnline } from '../../model/SysUserOnline';
 import { ISysUserOnlineService } from '../ISysUserOnlineService';
 

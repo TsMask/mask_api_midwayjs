@@ -16,13 +16,6 @@ export interface ISysMenuRepository {
   selectMenuList(sysMenu: SysMenu, userId?: string): Promise<SysMenu[]>;
 
   /**
-   * 根据用户所有权限
-   *
-   * @return 权限列表
-   */
-  selectMenuPerms(): Promise<number[]>;
-
-  /**
    * 根据角色ID查询权限
    *
    * @param roleId 角色ID
@@ -107,19 +100,9 @@ export interface ISysMenuRepository {
   deleteMenuById(menuId: string): Promise<number>;
 
   /**
-   * 校验菜单名称是否唯一
+   * 校验菜单是否唯一
    *
-   * @param menuName 菜单名称
-   * @param parentId 父菜单ID
-   * @return 结果
+   * @param sysMenu 菜单信息
    */
-  checkUniqueMenuName(menuName: string, parentId: string): Promise<string>;
-
-  /**
-   * 校验路由地址是否唯一（针对目录和菜单）
-   *
-   * @param path 路由地址
-   * @return 结果
-   */
-  checkUniqueMenuPath(path: string): Promise<string>;
+  checkUniqueMenu(sysMenu: SysMenu): Promise<string>;
 }

@@ -6,12 +6,12 @@ import {
   Param,
   Query,
 } from '@midwayjs/decorator';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/cache/RedisCache';
 import { LOGIN_TOKEN_KEY } from '../../../framework/constants/CacheKeysConstants';
 import { SysUserOnline } from '../model/SysUserOnline';
-import { LoginUser } from '../../../framework/model/LoginUser';
+import { LoginUser } from '../../../framework/vo/LoginUser';
 import { SysUserOnlineServiceImpl } from '../service/impl/SysUserOnlineServiceImpl';
 
 /**

@@ -10,7 +10,7 @@ import { SysOperLog } from '../../model/SysOperLog';
 import { ISysOperLogRepository } from '../ISysOperLogRepository';
 
 /**查询视图对象SQL */
-const SELECT_OPER_LOG_VO = `select 
+const SELECT_OPER_LOG_SQL = `select 
 oper_id, title, business_type, method, request_method, operator_type, oper_name, dept_name, 
 oper_url, oper_ip, oper_location, oper_param, oper_msg, status, oper_time, cost_time
 from sys_oper_log`;
@@ -39,7 +39,7 @@ SYS_OPER_LOG_RESULT.set('cost_time', 'costTime');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysOperLogResult(rows: any[]): SysOperLog[] {
+function convertResultRows(rows: any[]): SysOperLog[] {
   const sysOperLogs: SysOperLog[] = [];
   for (const row of rows) {
     const sysOperLog = new SysOperLog();
@@ -67,97 +67,109 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
 
   async selectOperLogPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.title) {
-      sqlStr += " and title like concat(?, '%') ";
-      paramArr.push(query.title);
+      conditions.push("title like concat(?, '%')");
+      params.push(query.title);
     }
     if (query.businessType) {
-      sqlStr += ' and business_type = ? ';
-      paramArr.push(query.businessType);
+      conditions.push('business_type = ?');
+      params.push(query.businessType);
     }
     if (query.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(query.status);
+      conditions.push('status = ?');
+      params.push(query.status);
     }
     if (query.operName) {
-      sqlStr += " and oper_name like concat(?, '%') ";
-      paramArr.push(query.operName);
+      conditions.push("oper_name like concat(?, '%')");
+      params.push(query.operName);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time >= ? ';
-      paramArr.push(beginDate);
+      conditions.push('oper_time >= ?');
+      params.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and oper_time <= ? ';
-      paramArr.push(endDate);
+      conditions.push('oper_time <= ?');
+      params.push(endDate);
     }
 
-    // 查询条件数 长度必为0其值为0
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = "select count(1) as 'total' from sys_oper_log";
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_oper_log where 1 = 1 ${sqlStr}`,
-      paramArr
+      totalSql + whereSql,
+      params
     );
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' order by oper_id desc limit ?,? ';
+    const pageSql = ' order by oper_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_OPER_LOG_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysOperLogResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据数据
+    const querySql = SELECT_OPER_LOG_SQL + whereSql + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectOperLogList(sysOperLog: SysOperLog): Promise<SysOperLog[]> {
-    let sqlStr = '';
-    const paramArr = [];
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysOperLog.title) {
-      sqlStr += " and title like concat(?, '%') ";
-      paramArr.push(sysOperLog.title);
+      conditions.push("title like concat(?, '%')");
+      params.push(sysOperLog.title);
     }
     if (sysOperLog.businessType) {
-      sqlStr += ' and business_type = ? ';
-      paramArr.push(sysOperLog.businessType);
+      conditions.push('business_type = ?');
+      params.push(sysOperLog.businessType);
     }
     if (sysOperLog.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(sysOperLog.status);
+      conditions.push('status = ?');
+      params.push(sysOperLog.status);
     }
     if (sysOperLog.operName) {
-      sqlStr += " and oper_name like concat(?, '%') ";
-      paramArr.push(sysOperLog.operName);
+      conditions.push("oper_name like concat(?, '%')");
+      params.push(sysOperLog.operName);
     }
 
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_OPER_LOG_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    return parseSysOperLogResult(results);
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' WHERE ' + conditions.join(' AND ');
+    }
+
+    // 查询数据
+    const querySql = SELECT_OPER_LOG_SQL + whereSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectOperLogById(operId: string): Promise<SysOperLog> {
-    const sqlStr = `${SELECT_OPER_LOG_VO} where oper_id = ? `;
+    const sqlStr = `${SELECT_OPER_LOG_SQL} where oper_id = ? `;
     const rows = await this.db.execute(sqlStr, [operId]);
-    return parseSysOperLogResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async insertOperLog(sysOperLog: SysOperLog): Promise<string> {

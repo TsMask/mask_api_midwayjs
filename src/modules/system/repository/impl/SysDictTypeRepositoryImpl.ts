@@ -10,10 +10,9 @@ import { ISysDictTypeRepository } from '../ISysDictTypeRepository';
 import { SysDictType } from '../../model/SysDictType';
 
 /**查询视图对象SQL */
-const SELECT_DICT_TYPE_VO = `select 
+const SELECT_DICT_TYPE_SQL = `select 
 dict_id, dict_name, dict_type, status, create_by, create_time, remark 
-from sys_dict_type
-`;
+from sys_dict_type`;
 
 /**字典表信息实体映射 */
 const SYS_DICT_TYPE_RESULT = new Map<string, string>();
@@ -32,7 +31,7 @@ SYS_DICT_TYPE_RESULT.set('update_time', 'updateTime');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysDictTypeResult(rows: any[]): SysDictType[] {
+function convertResultRows(rows: any[]): SysDictType[] {
   const sysDictTypes: SysDictType[] = [];
   for (const row of rows) {
     const sysDictType = new SysDictType();
@@ -60,37 +59,44 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
 
   async selectDictTypePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.dictName) {
-      sqlStr += " and dict_name like concat(?, '%') ";
-      paramArr.push(query.dictName);
+      conditions.push("dict_name like concat(?, '%')");
+      params.push(query.dictName);
     }
     if (query.dictType) {
-      sqlStr += " and dict_type like concat(?, '%') ";
-      paramArr.push(query.dictType);
+      conditions.push("dict_type like concat(?, '%')");
+      params.push(query.dictType);
     }
     if (query.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(query.status);
+      conditions.push('status = ?');
+      params.push(query.status);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and create_time >= ? ';
-      paramArr.push(beginDate);
+      conditions.push('create_time >= ?');
+      params.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and create_time <= ? ';
-      paramArr.push(endDate);
+      conditions.push('create_time <= ?');
+      params.push(endDate);
     }
 
-    // 查询条件数 长度必为0其值为0
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = "select count(1) as 'total' from sys_dict_type";
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_dict_type where 1 = 1 ${sqlStr}`,
-      paramArr
+      totalSql + whereSql,
+      params
     );
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
@@ -98,60 +104,62 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     }
 
     // 分页
-    sqlStr += ' limit ?,? ';
+    const pageSql = ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_DICT_TYPE_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysDictTypeResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = SELECT_DICT_TYPE_SQL + whereSql + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectDictTypeList(sysDictType: SysDictType): Promise<SysDictType[]> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysDictType.dictName) {
-      sqlStr += " and dict_name like concat(?, '%') ";
-      paramArr.push(sysDictType.dictName);
+      conditions.push("dict_name like concat(?, '%')");
+      params.push(sysDictType.dictName);
     }
     if (sysDictType.dictType) {
-      sqlStr += " and dict_type like concat(?, '%') ";
-      paramArr.push(sysDictType.dictType);
+      conditions.push("dict_type like concat(?, '%')");
+      params.push(sysDictType.dictType);
     }
     if (sysDictType.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(sysDictType.status);
+      conditions.push('status = ?');
+      params.push(sysDictType.status);
     }
 
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_DICT_TYPE_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    return parseSysDictTypeResult(results);
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const querySql = SELECT_DICT_TYPE_SQL + whereSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectDictTypeById(dictId: string): Promise<SysDictType> {
-    const sql = `${SELECT_DICT_TYPE_VO} where dict_id = ?`;
+    const sql = `${SELECT_DICT_TYPE_SQL} where dict_id = ?`;
     const rows = await this.db.execute(sql, [dictId]);
-
-    return parseSysDictTypeResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async selectDictTypeByType(dictType: string): Promise<SysDictType> {
-    const sql = `${SELECT_DICT_TYPE_VO} where dict_type = ?`;
+    const sql = `${SELECT_DICT_TYPE_SQL} where dict_type = ?`;
     const rows = await this.db.execute(sql, [dictType]);
-    return parseSysDictTypeResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async checkUniqueDictName(dictName: string): Promise<string> {

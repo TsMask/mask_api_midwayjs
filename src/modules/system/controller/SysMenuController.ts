@@ -11,7 +11,7 @@ import {
 } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { validHttp } from '../../../framework/utils/RegularUtils';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
@@ -73,7 +73,7 @@ export class SysMenuController {
     // 目录和菜单检查地址唯一
     if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(sysMenu.menuType)) {
       const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
-        sysMenu
+        sysMenu.path
       );
       if (!uniqueNenuPath) {
         return Result.errMsg(
@@ -84,7 +84,8 @@ export class SysMenuController {
 
     // 检查名称唯一
     const uniqueNenuName = await this.sysMenuService.checkUniqueNenuName(
-      sysMenu
+      sysMenu.menuName,
+      sysMenu.parentId
     );
     if (!uniqueNenuName) {
       return Result.errMsg(
@@ -131,7 +132,7 @@ export class SysMenuController {
     // 目录和菜单检查地址唯一
     if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menuType)) {
       const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
-        sysMenu
+        sysMenu.path
       );
       if (!uniqueNenuPath) {
         return Result.errMsg(
@@ -141,7 +142,8 @@ export class SysMenuController {
     }
     // 检查名称唯一
     const uniqueNenuName = await this.sysMenuService.checkUniqueNenuName(
-      sysMenu
+      sysMenu.menuName,
+      sysMenu.parentId
     );
     if (!uniqueNenuName) {
       return Result.errMsg(`菜单修改【${menuName}】失败，菜单名称已存在`);

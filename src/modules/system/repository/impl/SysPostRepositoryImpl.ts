@@ -6,10 +6,9 @@ import { SysPost } from '../../model/SysPost';
 import { ISysPostRepository } from '../ISysPostRepository';
 
 /**查询视图对象SQL */
-const SELECT_POST_VO = ` 
+const SELECT_POST_SQL = ` 
 select post_id, post_code, post_name, post_sort, status, create_by, create_time, remark 
-from sys_post
-`;
+from sys_post`;
 
 /**岗位表信息实体映射 */
 const SYS_POST_RESULT = new Map<string, string>();
@@ -29,7 +28,7 @@ SYS_POST_RESULT.set('remark', 'remark');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysPostResult(rows: any[]): SysPost[] {
+function convertResultRows(rows: any[]): SysPost[] {
   const sysPosts: SysPost[] = [];
   for (const row of rows) {
     const sysPost = new SysPost();
@@ -57,73 +56,89 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
 
   async selectPostPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.postCode) {
-      sqlStr += " and post_code like concat(?, '%') ";
-      paramArr.push(query.postCode);
+      conditions.push("post_code like concat(?, '%')");
+      params.push(query.postCode);
     }
     if (query.postName) {
-      sqlStr += " and post_name like concat(?, '%') ";
-      paramArr.push(query.postName);
+      conditions.push("post_name like concat(?, '%')");
+      params.push(query.postName);
     }
     if (query.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(query.status);
+      conditions.push('status = ?');
+      params.push(query.status);
     }
 
-    // 查询条件数 长度必为0其值为0
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = "select count(1) as 'total' from sys_post";
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_post where 1 = 1 ${sqlStr}`,
-      paramArr
+      totalSql + whereSql,
+      params
     );
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' limit ?,? ';
+    const pageSql = ' limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_POST_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysPostResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = SELECT_POST_SQL + whereSql + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectPostList(sysPost: SysPost): Promise<SysPost[]> {
-    let sqlStr = `${SELECT_POST_VO} where 1 = 1`;
-    const paramArr = [];
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysPost.postCode) {
-      sqlStr += " and post_code like concat(?, '%') ";
-      paramArr.push(sysPost.postCode);
+      conditions.push("post_code like concat(?, '%')");
+      params.push(sysPost.postCode);
     }
     if (sysPost.postName) {
-      sqlStr += " and post_name like concat(?, '%') ";
-      paramArr.push(sysPost.postName);
+      conditions.push("post_name like concat(?, '%')");
+      params.push(sysPost.postName);
     }
     if (sysPost.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(sysPost.status);
+      conditions.push('status = ?');
+      params.push(sysPost.status);
     }
 
-    const rows = await this.db.execute(sqlStr, paramArr);
-    return parseSysPostResult(rows);
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const querySql = SELECT_POST_SQL + whereSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectPostById(postId: string): Promise<SysPost> {
-    const sqlStr = `${SELECT_POST_VO} where post_id = ? `;
+    const sqlStr = `${SELECT_POST_SQL} where post_id = ? `;
     const rows = await this.db.execute(sqlStr, [postId]);
-    return parseSysPostResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async selectPostListByUserId(userId: string): Promise<string[]> {
@@ -132,7 +147,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     left join sys_user u on u.user_id = up.user_id 
     where u.user_id = ? `;
     const rows = await this.db.execute(sqlStr, [userId]);
-    const sysPosts = parseSysPostResult(rows);
+    const sysPosts = convertResultRows(rows);
     return sysPosts.map(item => item.postId);
   }
 
@@ -143,7 +158,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     left join sys_user u on u.user_id = up.user_id
 		where u.user_name = ?`;
     const rows = await this.db.execute(sql, [userName]);
-    return parseSysPostResult(rows);
+    return convertResultRows(rows);
   }
 
   async deletePostByIds(postIds: string[]): Promise<number> {

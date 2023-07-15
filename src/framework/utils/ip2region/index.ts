@@ -10,6 +10,8 @@ import { loadContentFromFile, newWithBuffer } from './binding';
 const dbPath = join(__dirname, '../../../assets/ip2region.xdb');
 // 读取文件Buffer缓存
 const ip2regionBuffer = loadContentFromFile(dbPath);
+// 检索实例
+const searcher = newWithBuffer(ip2regionBuffer);
 
 /**
  * 查询IP所在地
@@ -27,7 +29,6 @@ export async function getRegionSearchByIp(ip: string): Promise<{
     data.region = '0|0|0|内网IP|内网IP';
   }
   try {
-    const searcher = newWithBuffer(ip2regionBuffer);
     data = await searcher.search(ip);
   } catch (e) {
     console.error('getRegionSearchByIp err =>', e.message);
@@ -45,11 +46,12 @@ export async function getRealAddressByIp(ip: string): Promise<string> {
     return IP_INNER_LOCATION;
   }
   try {
-    const searcher = newWithBuffer(ip2regionBuffer);
     const { region } = await searcher.search(ip);
     if (region) {
       const [, , province, city] = region.split('|');
-      if (province === '0' || province === '0') return '未知';
+      if (province === '0' && city !== '0') {
+        return city;
+      }
       return `${province} ${city}`;
     }
   } catch (e) {

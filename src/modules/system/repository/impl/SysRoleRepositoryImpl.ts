@@ -10,7 +10,7 @@ import { ISysRoleRepository } from '../ISysRoleRepository';
 import { SysRole } from '../../model/SysRole';
 
 /**查询视图对象SQL */
-const SELECT_ROLE_VO = `select distinct 
+const SELECT_ROLE_SQL = `select distinct 
 r.role_id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.menu_check_strictly, 
 r.dept_check_strictly, r.status, r.del_flag, r.create_time, r.remark 
 from sys_role r
@@ -40,7 +40,7 @@ SYS_ROLE_RESULT.set('remark', 'remark');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysRoleResult(rows: any[]): SysRole[] {
+function convertResultRows(rows: any[]): SysRole[] {
   const sysRoles: SysRole[] = [];
   for (const row of rows) {
     const sysRole = new SysRole();
@@ -70,72 +70,79 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     query: ListQueryPageOptions,
     dataScopeSQL = ''
   ): Promise<RowPagesType> {
+    const selectRoleTotalSql = `select count(distinct r.role_id) as 'total' from sys_role r
+    left join sys_user_role ur on ur.role_id = r.role_id
+    left join sys_user u on u.user_id = ur.user_id
+    left join sys_dept d on u.dept_id = d.dept_id`;
+
     // 查询条件拼接
-    let sqlStr = dataScopeSQL;
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.roleId && query.roleId !== '0') {
-      sqlStr += ' and r.role_id = ? ';
-      paramArr.push(query.roleId);
+      conditions.push('r.role_id = ?');
+      params.push(query.roleId);
     }
     if (query.roleName) {
-      sqlStr += " and r.role_name like concat(?, '%') ";
-      paramArr.push(query.roleName);
-    }
-    if (query.status) {
-      sqlStr += ' and r.status = ? ';
-      paramArr.push(query.status);
+      conditions.push("r.role_name like concat(?, '%')");
+      params.push(query.roleName);
     }
     if (query.roleKey) {
-      sqlStr += " and r.role_key like concat(?, '%') ";
-      paramArr.push(query.roleKey);
+      conditions.push("r.role_key like concat(?, '%')");
+      params.push(query.roleKey);
+    }
+    if (query.status) {
+      conditions.push('r.status = ?');
+      params.push(query.status);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
       const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and r.create_time >= ? ';
-      paramArr.push(beginDate);
+      conditions.push('r.create_time >= ?');
+      params.push(beginDate);
     }
     const endTime = query.endTime || query['params[endTime]'];
     if (endTime) {
       const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
-      sqlStr += ' and r.create_time <= ? ';
-      paramArr.push(endDate);
+      conditions.push('r.create_time <= ?');
+      params.push(endDate);
     }
     if (query.deptId) {
-      sqlStr +=
-        ' and (u.dept_id = ? or u.dept_id in ( select t.dept_id from sys_dept t where find_in_set(?, ancestors) )) ';
-      paramArr.push(query.deptId);
-      paramArr.push(query.deptId);
+      conditions.push(
+        '(u.dept_id = ? or u.dept_id in ( select t.dept_id from sys_dept t where find_in_set(?, ancestors) ))'
+      );
+      params.push(query.deptId);
+      params.push(query.deptId);
     }
 
-    // 查询条件数 长度必为0其值为0
-    const countRow: RowTotalType[] = await this.db.execute(
-      `select count(distinct r.role_id) as 'total' from sys_role r
-      left join sys_user_role ur on ur.role_id = r.role_id
-      left join sys_user u on u.user_id = ur.user_id
-      left join sys_dept d on u.dept_id = d.dept_id where r.del_flag = '0' ${sqlStr}`,
-      paramArr
-    );
+    // 构建查询条件语句
+    let whereSql = " where r.del_flag = '0' ";
+    if (conditions.length > 0) {
+      whereSql += ' and ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = selectRoleTotalSql + whereSql + dataScopeSQL;
+    const countRow: RowTotalType[] = await this.db.execute(totalSql, params);
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
       return { total: 0, rows: [] };
     }
+
     // 分页
-    sqlStr += ' order by r.role_sort asc limit ?,? ';
+    const pageSql = ' order by r.role_sort asc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_ROLE_VO} where r.del_flag = '0' ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysRoleResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = SELECT_ROLE_SQL + whereSql + dataScopeSQL + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
@@ -143,36 +150,44 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     sysRole: SysRole,
     dataScopeSQL = ''
   ): Promise<SysRole[]> {
-    let sqlStr = dataScopeSQL;
-    const paramArr = [];
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysRole.roleId) {
-      sqlStr += ' and r.role_id = ? ';
-      paramArr.push(sysRole.roleId);
+      conditions.push('r.role_id = ?');
+      params.push(sysRole.roleId);
     }
     if (sysRole.roleKey) {
-      sqlStr += " and r.role_key like concat(?, '%') ";
-      paramArr.push(sysRole.roleKey);
+      conditions.push("r.role_key like concat(?, '%')");
+      params.push(sysRole.roleKey);
     }
     if (sysRole.roleName) {
-      sqlStr += " and r.role_name like concat(?, '%') ";
-      paramArr.push(sysRole.roleName);
+      conditions.push("r.role_name like concat(?, '%')");
+      params.push(sysRole.roleName);
     }
     if (sysRole.status) {
-      sqlStr += ' and r.status = ? ';
-      paramArr.push(sysRole.status);
+      conditions.push('r.status = ?');
+      params.push(sysRole.status);
     }
-    const rows = await this.db.execute(
-      `${SELECT_ROLE_VO} where r.del_flag = '0' ${sqlStr} order by r.role_sort`,
-      paramArr
-    );
-    return parseSysRoleResult(rows);
+
+    // 构建查询条件语句
+    let whereSql = " where r.del_flag = '0' ";
+    if (conditions.length > 0) {
+      whereSql += ' and ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const orderSql = ' order by r.role_sort ';
+    const querySql = SELECT_ROLE_SQL + whereSql + dataScopeSQL + orderSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectRolePermissionByUserId(userId: string): Promise<SysRole[]> {
-    const sqlStr = `${SELECT_ROLE_VO} where r.del_flag = '0' and ur.user_id = ?`;
+    const sqlStr = `${SELECT_ROLE_SQL} where r.del_flag = '0' and ur.user_id = ?`;
     const paramArr = [userId];
     const rows = await this.db.execute(sqlStr, paramArr);
-    return parseSysRoleResult(rows);
+    return convertResultRows(rows);
   }
 
   async selectRoleIdsByUserId(userId: string): Promise<string[]> {
@@ -185,17 +200,17 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
   }
 
   async selectRoleById(roleId: string): Promise<SysRole> {
-    const sqlStr = `${SELECT_ROLE_VO} where r.role_id = ?`;
+    const sqlStr = `${SELECT_ROLE_SQL} where r.role_id = ?`;
     const paramArr = [roleId];
     const rows = await this.db.execute(sqlStr, paramArr);
-    return parseSysRoleResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async selectRolesByUserName(userName: string): Promise<SysRole[]> {
-    const sqlStr = `${SELECT_ROLE_VO} where r.del_flag = '0' and u.user_name = ? `;
+    const sqlStr = `${SELECT_ROLE_SQL} where r.del_flag = '0' and u.user_name = ? `;
     const paramArr = [userName];
     const rows = await this.db.execute(sqlStr, paramArr);
-    return parseSysRoleResult(rows);
+    return convertResultRows(rows);
   }
 
   async checkUniqueRoleName(roleName: string): Promise<string> {

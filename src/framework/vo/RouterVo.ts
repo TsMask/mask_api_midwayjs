@@ -1,4 +1,4 @@
-import { MetaVo } from './MetaVo';
+import { RouterMateVo } from './RouterMateVo';
 
 /**
  * 路由配置信息
@@ -19,7 +19,7 @@ export class RouterVo {
   /**
    * 其他元素
    */
-  meta: MetaVo;
+  meta: RouterMateVo;
 
   /**
    * 组件地址

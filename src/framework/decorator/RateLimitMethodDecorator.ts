@@ -1,8 +1,8 @@
 import { JoinPoint, REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import { createCustomMethodDecorator } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
-import { LoginUser } from '../model/LoginUser';
-import { Result } from '../model/Result';
+import { LoginUser } from '../vo/LoginUser';
+import { Result } from '../vo/Result';
 import { LimitTypeEnum } from '../enums/LimitTypeEnum';
 import { RATE_LIMIT_KEY } from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';

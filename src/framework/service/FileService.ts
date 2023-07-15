@@ -16,7 +16,7 @@ import {
   mergeToNewFile,
   getFileSize,
 } from '../utils/FileUtils';
-import { generateID } from '../utils/GenIdUtils';
+import { generateHash } from '../utils/GenIdUtils';
 
 /**最大文件名长度 */
 const DEFAULT_FILE_NAME_LENGTH = 100;
@@ -55,7 +55,7 @@ export class FileService {
     // 替换掉后缀和特殊字符保留文件名
     let newFileName = fileName.replace(ext, '');
     newFileName = newFileName.replace(/[<>:"\\|?*]+/g, '');
-    return `${newFileName}_${generateID(6)}${ext}`;
+    return `${newFileName}_${generateHash(6)}${ext}`;
   }
 
   /**

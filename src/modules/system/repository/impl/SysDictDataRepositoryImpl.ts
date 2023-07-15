@@ -6,10 +6,9 @@ import { ISysDictDataRepository } from '../ISysDictDataRepository';
 import { SysDictData } from '../../model/SysDictData';
 
 /**查询视图对象SQL */
-const SELECT_DICT_DATA_VO = `select 
+const SELECT_DICT_DATA_SQL = `select 
 dict_code, dict_sort, dict_label, dict_value, dict_type, tag_class, tag_type, status, create_by, create_time, remark 
-from sys_dict_data
-`;
+from sys_dict_data`;
 
 /**字典表信息实体映射 */
 const SYS_DICT_DATA_RESULT = new Map<string, string>();
@@ -32,7 +31,7 @@ SYS_DICT_DATA_RESULT.set('update_time', 'updateTime');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function parseSysDictDataResult(rows: any[]): SysDictData[] {
+function convertResultRows(rows: any[]): SysDictData[] {
   const sysDictDatas: SysDictData[] = [];
   for (const row of rows) {
     const sysDictData = new SysDictData();
@@ -60,25 +59,32 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
 
   async selectDictDataPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (query.dictType) {
-      sqlStr += ' and dict_type = ? ';
-      paramArr.push(query.dictType);
+      conditions.push('dict_type = ?');
+      params.push(query.dictType);
     }
     if (query.dictLabel) {
-      sqlStr += " and dict_label like concat(?, '%') ";
-      paramArr.push(query.dictLabel);
+      conditions.push("dict_label like concat(?, '%')");
+      params.push(query.dictLabel);
     }
     if (query.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(query.status);
+      conditions.push('status = ?');
+      params.push(query.status);
     }
 
-    // 查询条件数 长度必为0其值为0
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数量 长度为0直接返回
+    const totalSql = "select count(1) as 'total' from sys_dict_data";
     const countRow: RowTotalType[] = await this.db.execute(
-      `select count(1) as 'total' from sys_dict_data where 1 = 1 ${sqlStr}`,
-      paramArr
+      totalSql + whereSql,
+      params
     );
     const total = parseNumber(countRow[0].total);
     if (total <= 0) {
@@ -86,48 +92,51 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     }
 
     // 分页
-    sqlStr += ' order by dict_sort asc limit ?,? ';
+    const pageSql = ' order by dict_sort asc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
     let pageSize = parseNumber(query.pageSize);
     pageSize = pageSize <= 50000 ? pageSize : 50000;
     pageSize = pageSize > 0 ? pageSize : 10;
-    paramArr.push(pageNum * pageSize);
-    paramArr.push(pageSize);
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_DICT_DATA_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    const rows = parseSysDictDataResult(results);
+    params.push(pageNum * pageSize);
+    params.push(pageSize);
+
+    // 查询数据
+    const querySql = SELECT_DICT_DATA_SQL + whereSql + pageSql;
+    const results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(results);
     return { total, rows };
   }
 
   async selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]> {
     // 查询条件拼接
-    let sqlStr = '';
-    const paramArr = [];
+    const conditions: string[] = [];
+    const params: any[] = [];
     if (sysDictData.dictType) {
-      sqlStr += ' and dict_type = ? ';
-      paramArr.push(sysDictData.dictType);
+      conditions.push('dict_type = ?');
+      params.push(sysDictData.dictType);
     }
     if (sysDictData.dictLabel) {
-      sqlStr += " and dict_label like concat(?, '%') ";
-      paramArr.push(sysDictData.dictLabel);
+      conditions.push("dict_label like concat(?, '%')");
+      params.push(sysDictData.dictLabel);
     }
     if (sysDictData.status) {
-      sqlStr += ' and status = ? ';
-      paramArr.push(sysDictData.status);
+      conditions.push('status = ?');
+      params.push(sysDictData.status);
     }
-    sqlStr += ' order by dict_sort asc ';
 
-    // 查询数据数
-    const results = await this.db.execute(
-      `${SELECT_DICT_DATA_VO} where 1 = 1 ${sqlStr}`,
-      paramArr
-    );
-    return parseSysDictDataResult(results);
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }
+
+    // 查询数据
+    const orderSql = ' order by dict_sort asc';
+    const querySql = SELECT_DICT_DATA_SQL + whereSql + orderSql;
+    const results = await this.db.execute(querySql, params);
+    return convertResultRows(results);
   }
 
   async selectDictLabel(dictType: string, dictValue: string): Promise<string> {
@@ -141,10 +150,9 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   }
 
   async selectDictDataByCode(dictCode: string): Promise<SysDictData> {
-    const sqlStr = `${SELECT_DICT_DATA_VO} where dict_code = ?`;
+    const sqlStr = `${SELECT_DICT_DATA_SQL} where dict_code = ?`;
     const rows = await this.db.execute(sqlStr, [dictCode]);
-
-    return parseSysDictDataResult(rows)[0] || null;
+    return convertResultRows(rows)[0] || null;
   }
 
   async countDictDataByType(dictType: string): Promise<number> {

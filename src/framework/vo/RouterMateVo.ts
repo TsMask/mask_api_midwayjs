@@ -1,9 +1,9 @@
 /**
- * 路由显示信息
+ * 路由元数据显示信息
  *
  * @author TsMask
  */
-export class MetaVo {
+export class RouterMateVo {
   /**
    * 设置该菜单在侧边栏和面包屑中展示的名字
    */
@@ -29,9 +29,4 @@ export class MetaVo {
    * 在菜单中隐藏自己和子节点
    */
   hide?: boolean;
-
-  /**
-   * 菜单选项禁用
-   */
-  disabled?: boolean;
 }

@@ -7,7 +7,7 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';

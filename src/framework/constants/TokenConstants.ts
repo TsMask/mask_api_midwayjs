@@ -20,3 +20,6 @@ export const TOKEN_JWT_UUID = 'login_key';
 
 /**令牌-JWT标识用户主键字段 */
 export const TOKEN_JWT_KEY = 'user_id';
+
+// 令牌-JWT标识用户登录账号字段
+export const TOKEN_JWT_NAME = 'user_name';

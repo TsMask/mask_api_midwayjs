@@ -7,7 +7,7 @@ import { createCustomMethodDecorator } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
 import { TOKEN_KEY } from '../constants/TokenConstants';
-import { LoginUser } from '../model/LoginUser';
+import { LoginUser } from '../vo/LoginUser';
 import { TokenService } from '../service/TokenService';
 
 /** 授权限制参数 */

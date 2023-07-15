@@ -8,7 +8,7 @@ import {
   SYS_CONFIG_KEY,
   SYS_DICT_KEY,
 } from '../../../framework/constants/CacheKeysConstants';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/cache/RedisCache';
 import { SysCache } from '../model/SysCache';

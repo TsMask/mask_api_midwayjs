@@ -1,15 +1,15 @@
 import { Controller, Body, Post, Inject } from '@midwayjs/decorator';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
-import { SysRegisterService } from '../../../framework/service/SysRegisterService';
+import { SysRegisterService } from '../service/SysRegisterService';
 import {
   validPassword,
   validUsername,
 } from '../../../framework/utils/RegularUtils';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
-import { RegisterBodyVo } from '../../../framework/model/vo/RegisterBodyVo';
+import { RegisterBodyVo } from '../model/RegisterBodyVo';
 
 /**
  * 注册验证
