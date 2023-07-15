@@ -5,10 +5,10 @@ import { Context } from '@midwayjs/koa';
 import { RoleDataScopeEnum } from '../enums/RoleDataScopeEnum';
 import { getRealAddressByIp } from '../utils/ip2region';
 import { getUaInfo } from '../utils/UAParserUtils';
-import { SysLogininfor } from '../../modules/monitor/model/SysLogininfor';
 import { SysUser } from '../../modules/system/model/SysUser';
-import { LoginUser } from '../model/LoginUser';
+import { LoginUser } from '../vo/LoginUser';
 import { IP_INNER_ADDR, IP_INNER_LOCATION } from '../constants/CommonConstants';
+import { TOKEN_KEY, TOKEN_KEY_PREFIX } from '../constants/TokenConstants';
 
 /**
  * 上下文对象服务
@@ -108,48 +108,46 @@ export class ContextService {
   }
 
   /**
-   * 系统访问记录
-   * @param status 记录状态（0成功 1失败）
-   * @param msg 记录提示消息
-   * @param userName 登录账号，无身份认证时指定具体参数
-   * @return 对象信息
+   * 获取请求携带的令牌
+   * @returns 去除前缀字符串
    */
-  async newSysLogininfor(
-    status: string,
-    msg: string,
-    userName?: string
-  ): Promise<SysLogininfor> {
-    const logininfor = new SysLogininfor();
-    logininfor.userName = userName || this.getUseName();
-    const ip = this.ctx.ip;
-    if (ip.includes(IP_INNER_ADDR)) {
-      logininfor.ipaddr = ip.replace(IP_INNER_ADDR, '');
-      logininfor.loginLocation = IP_INNER_LOCATION;
-    } else {
-      // 解析ip地址
-      logininfor.ipaddr = ip;
-      logininfor.loginLocation = await getRealAddressByIp(ip);
+  async getHeaderToken(): Promise<string> {
+    let headerToken = this.ctx.get(TOKEN_KEY);
+    if (headerToken && headerToken.startsWith(TOKEN_KEY_PREFIX)) {
+      headerToken = headerToken.replace(TOKEN_KEY_PREFIX, '');
     }
-    // 解析请求用户代理信息
+    return headerToken;
+  }
+
+  // 解析ip地址
+  async ipaddrLocation(): Promise<[string, string]> {
+    let ipaddr = this.ctx.ip;
+    let location = IP_INNER_LOCATION;
+    // 解析ip地址
+    if (ipaddr.includes(IP_INNER_ADDR)) {
+      ipaddr = ipaddr.replace(IP_INNER_ADDR, '');
+    } else {
+      location = await getRealAddressByIp(ipaddr);
+    }
+    return [ipaddr, location];
+  }
+
+  // 解析请求用户代理信息
+  async uaOsBrowser(): Promise<[string, string]> {
     const ua = await getUaInfo(this.ctx.get('user-agent'));
-    const bName = ua.getBrowser().name;
-    const bVersion = ua.getBrowser().version;
-    if (bName && bVersion) {
-      logininfor.browser = `${bName} ${bVersion}`;
-    } else {
-      logininfor.browser = '未知 未知';
-    }
     const oName = ua.getOS().name;
     const oVersion = ua.getOS().version;
+    let os = '未知 未知';
     if (oName && oVersion) {
-      logininfor.os = `${oName} ${oVersion}`;
-    } else {
-      logininfor.os = '未知 未知';
+      os = `${oName} ${oVersion}`;
     }
-    //
-    logininfor.msg = msg;
-    logininfor.status = status;
-    return logininfor;
+    const bName = ua.getBrowser().name;
+    const bVersion = ua.getBrowser().version;
+    let browser = '未知 未知';
+    if (bName && bVersion) {
+      browser = `${bName} ${bVersion}`;
+    }
+    return [os, browser];
   }
 
   /**
