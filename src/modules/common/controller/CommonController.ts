@@ -4,7 +4,7 @@ import {
   decryptWxData,
   encrypyHash,
 } from '../../../framework/utils/CryptoUtils';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 
 /**

@@ -9,7 +9,7 @@ import {
   Post,
 } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';

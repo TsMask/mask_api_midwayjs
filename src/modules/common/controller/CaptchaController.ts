@@ -3,7 +3,7 @@ import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../framework/constants/CacheKeysConstants';
 import { generateHash } from '../../../framework/utils/GenIdUtils';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { RedisCache } from '../../../framework/cache/RedisCache';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
