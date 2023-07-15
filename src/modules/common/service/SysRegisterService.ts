@@ -1,14 +1,14 @@
 import { Provide, Inject } from '@midwayjs/decorator';
-import { CAPTCHA_CODE_KEY } from '../constants/CacheKeysConstants';
-import { RedisCache } from '../cache/RedisCache';
-import { parseBoolean } from '../utils/ValueParseUtils';
-import { SysConfigServiceImpl } from '../../modules/system/service/impl/SysConfigServiceImpl';
-import { SysUserServiceImpl } from '../../modules/system/service/impl/SysUserServiceImpl';
-import { SysLogininforServiceImpl } from '../../modules/monitor/service/impl/SysLogininforServiceImpl';
-import { ContextService } from './ContextService';
-import { STATUS_YES } from '../constants/CommonConstants';
-import { SysUser } from '../../modules/system/model/SysUser';
-import { RegisterBodyVo } from '../model/vo/RegisterBodyVo';
+import { CAPTCHA_CODE_KEY } from '../../../framework/constants/CacheKeysConstants';
+import { RedisCache } from '../../../framework/cache/RedisCache';
+import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
+import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
+import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
+import { SysLogininforServiceImpl } from '../../monitor/service/impl/SysLogininforServiceImpl';
+import { ContextService } from '../../../framework/service/ContextService';
+import { STATUS_YES } from '../../../framework/constants/CommonConstants';
+import { SysUser } from '../../system/model/SysUser';
+import { RegisterBodyVo } from '../model/RegisterBodyVo';
 
 /**
  * 注册校验方法
@@ -77,12 +77,16 @@ export class SysRegisterService {
     // 添加到数据库中
     const insertId = await this.sysUserService.insertUser(sysUser);
     if (insertId) {
-      const sysLogininfor = await this.contextService.newSysLogininfor(
+      // 解析ip地址和请求用户代理信息
+      const il = await this.contextService.ipaddrLocation();
+      const ob = await this.contextService.uaOsBrowser();
+      await this.sysLogininforService.newLogininfor(
+        sysUser.userName,
         STATUS_YES,
         '注册成功',
-        sysUser.userName
+        ...il,
+        ...ob
       );
-      await this.sysLogininforService.insertLogininfor(sysLogininfor);
       return 'ok';
     }
     return '注册失败，请联系系统管理人员';
