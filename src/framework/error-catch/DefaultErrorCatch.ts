@@ -1,7 +1,7 @@
 import { Catch } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { HttpStatus } from '@midwayjs/core';
-import { Result } from '../model/Result';
+import { Result } from '../vo/Result';
 
 /**
  * 默认全局错误统一捕获
