@@ -1,14 +1,11 @@
 import { Controller, Body, Post, Get, Inject } from '@midwayjs/decorator';
 import { TOKEN_RESPONSE_FIELD } from '../../../framework/constants/TokenConstants';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/service/ContextService';
-import { PermissionService } from '../../../framework/service/PermissionService';
-import { SysLoginService } from '../../../framework/service/SysLoginService';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
-import { SysMenuServiceImpl } from '../../system/service/impl/SysMenuServiceImpl';
-import { LoginBodyVo } from '../../../framework/model/vo/LoginBodyVo';
+import { LoginBodyVo } from '../model/LoginBodyVo';
+import { AccountService } from '../service/AccountService';
 
 /**
  * 账号身份操作处理
@@ -18,16 +15,7 @@ import { LoginBodyVo } from '../../../framework/model/vo/LoginBodyVo';
 @Controller()
 export class AccountController {
   @Inject()
-  private contextService: ContextService;
-
-  @Inject()
-  private sysLoginService: SysLoginService;
-
-  @Inject()
-  private permissionService: PermissionService;
-
-  @Inject()
-  private sysMenuService: SysMenuServiceImpl;
+  private accountService: AccountService;
 
   /**
    * 系统登录
@@ -35,9 +23,10 @@ export class AccountController {
   @Post('/login')
   @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
   async login(@Body() loginBodyVo: LoginBodyVo): Promise<Result> {
-    const { username, password } = loginBodyVo;
-    if (!username || !password) return Result.err();
-    const token = await this.sysLoginService.login(loginBodyVo);
+    const { username, password, code, uuid } = loginBodyVo;
+    if (!username || !password || !code || !uuid) return Result.err();
+    await this.accountService.validateCaptcha(username, code, uuid);
+    const token = await this.accountService.loginByUsername(username, password);
     return Result.okData({
       [TOKEN_RESPONSE_FIELD]: token,
     });
@@ -49,24 +38,8 @@ export class AccountController {
   @Get('/getInfo')
   @PreAuthorize()
   async getInfo(): Promise<Result> {
-    const user = this.contextService.getSysUser();
-    // 管理员拥有所有权限
-    const isAdmin = this.contextService.isAdmin(user.userId);
-    // 角色集合
-    const roles = await this.permissionService.getRolePermission(
-      user.userId,
-      isAdmin
-    );
-    // 权限集合
-    const permissions = await this.permissionService.getMenuPermission(
-      user.userId,
-      isAdmin
-    );
-    return Result.okData({
-      permissions: permissions,
-      roles: roles,
-      user: user,
-    });
+    const data = await this.accountService.roleAndMenuPerms();
+    return Result.okData(data);
   }
 
   /**
@@ -75,12 +48,7 @@ export class AccountController {
   @Get('/getRouters')
   @PreAuthorize()
   async getRouters(): Promise<Result> {
-    const userId = this.contextService.getUserId();
-    const isAdmin = this.contextService.isAdmin(userId);
-    const menus = await this.sysMenuService.selectMenuTreeByUserId(
-      isAdmin ? null : userId
-    );
-    const buildMenus = await this.sysMenuService.buildRouteMenus(menus);
+    const buildMenus = await this.accountService.routeMenus();
     return Result.okData(buildMenus);
   }
 
@@ -90,7 +58,7 @@ export class AccountController {
   @Post('/logout')
   @RateLimit({ time: 300, count: 5, limitType: LimitTypeEnum.IP })
   async logout(): Promise<Result> {
-    await this.sysLoginService.logout();
+    await this.accountService.logout();
     return Result.okMsg('退出成功');
   }
 }

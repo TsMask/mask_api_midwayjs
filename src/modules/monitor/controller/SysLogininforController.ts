@@ -9,14 +9,14 @@ import {
 } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import { Result } from '../../../framework/model/Result';
+import { Result } from '../../../framework/vo/Result';
 import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
-import { SysLoginService } from '../../../framework/service/SysLoginService';
 import { SysLogininfor } from '../model/SysLogininfor';
 import { SysLogininforServiceImpl } from '../service/impl/SysLogininforServiceImpl';
+import { AccountService } from '../../common/service/AccountService';
 
 /**
  * 登录访问信息
@@ -35,7 +35,7 @@ export class SysLogininforController {
   private sysLogininforService: SysLogininforServiceImpl;
 
   @Inject()
-  private sysLoginService: SysLoginService;
+  private accountService: AccountService;
 
   /**
    * 导出登录访问信息
@@ -145,7 +145,7 @@ export class SysLogininforController {
   })
   async unlock(@Param('userName') userName: string): Promise<Result> {
     if (!userName) return Result.err();
-    const ok = await this.sysLoginService.clearLoginRecordCache(userName);
+    const ok = await this.accountService.clearLoginRecordCache(userName);
     return Result[ok ? 'ok' : 'err']();
   }
 }
