@@ -230,7 +230,7 @@ export class SysUserController {
 
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
-      sysUser
+      userName
     );
     if (!uniqueUserName) {
       return Result.errMsg(`新增用户【${userName}】失败，登录账号已存在`);
@@ -248,7 +248,9 @@ export class SysUserController {
     // 检查手机号码格式并判断是否唯一
     if (sysUser.phonenumber) {
       if (validMobile(sysUser.phonenumber)) {
-        const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
+        const uniquePhone = await this.sysUserService.checkUniquePhone(
+          sysUser.phonenumber
+        );
         if (!uniquePhone) {
           return Result.errMsg(`新增用户【${userName}】失败，手机号码已存在`);
         }
@@ -259,7 +261,9 @@ export class SysUserController {
     // 检查邮箱格式并判断是否唯一
     if (sysUser.email) {
       if (validEmail(sysUser.email)) {
-        const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
+        const uniqueEmail = await this.sysUserService.checkUniqueEmail(
+          sysUser.email
+        );
         if (!uniqueEmail) {
           return Result.errMsg(`新增用户【${userName}】失败，邮箱已存在`);
         }
@@ -293,7 +297,8 @@ export class SysUserController {
 
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
-      sysUser
+      userName,
+      userId
     );
     if (!uniqueUserName) {
       return Result.errMsg(
@@ -303,7 +308,10 @@ export class SysUserController {
     // 检查手机号码格式并判断是否唯一
     if (sysUser.phonenumber) {
       if (validMobile(sysUser.phonenumber)) {
-        const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
+        const uniquePhone = await this.sysUserService.checkUniquePhone(
+          sysUser.phonenumber,
+          userId
+        );
         if (!uniquePhone) {
           return Result.errMsg(`修改用户【${userName}】失败，手机号码已存在`);
         }
@@ -314,7 +322,10 @@ export class SysUserController {
     // 检查邮箱格式并判断是否唯一
     if (sysUser.email) {
       if (validEmail(sysUser.email)) {
-        const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
+        const uniqueEmail = await this.sysUserService.checkUniqueEmail(
+          sysUser.email,
+          userId
+        );
         if (!uniqueEmail) {
           return Result.errMsg(`修改用户【${userName}】失败，邮箱已存在`);
         }

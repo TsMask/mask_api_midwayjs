@@ -99,34 +99,42 @@ export class SysUserServiceImpl implements ISysUserService {
     return [];
   }
 
-  async checkUniqueUserName(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniqueUserName(
-      sysUser.userName
-    );
-    // 用户信息与查询得到用户ID一致
-    if (userId && sysUser.userId === userId) {
+  async checkUniqueUserName(
+    userName: string,
+    userId: string = ''
+  ): Promise<boolean> {
+    const sysUser = new SysUser();
+    sysUser.userName = userName;
+    const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
+    if (uniqueId === userId) {
       return true;
     }
     return !userId;
   }
-  async checkUniquePhone(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniquePhone(
-      sysUser.phonenumber
-    );
-    // 用户信息与查询得到用户ID一致
-    if (userId && sysUser.userId === userId) {
+
+  async checkUniquePhone(
+    phonenumber: string,
+    userId: string = ''
+  ): Promise<boolean> {
+    const sysUser = new SysUser();
+    sysUser.phonenumber = phonenumber;
+    const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
+    if (uniqueId === userId) {
       return true;
     }
     return !userId;
   }
-  async checkUniqueEmail(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniqueEmail(sysUser.email);
-    // 用户信息与查询得到用户ID一致
-    if (userId && sysUser.userId === userId) {
+
+  async checkUniqueEmail(email: string, userId: string = ''): Promise<boolean> {
+    const sysUser = new SysUser();
+    sysUser.email = email;
+    const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
+    if (uniqueId === userId) {
       return true;
     }
     return !userId;
   }
+
   async insertUser(sysUser: SysUser): Promise<string> {
     // 新增用户信息
     const insertId = await this.sysUserRepository.insertUser(sysUser);
@@ -263,7 +271,7 @@ export class SysUserServiceImpl implements ISysUserService {
 
       if (newSysUser.phonenumber) {
         if (validMobile(newSysUser.phonenumber)) {
-          const uniquePhone = await this.checkUniquePhone(newSysUser);
+          const uniquePhone = await this.checkUniquePhone(newSysUser.phonenumber);
           if (!uniquePhone) {
             failureNum++;
             failureMsgArr.push(
@@ -281,7 +289,7 @@ export class SysUserServiceImpl implements ISysUserService {
       }
       if (newSysUser.email) {
         if (validEmail(newSysUser.email)) {
-          const uniqueEmail = await this.checkUniqueEmail(newSysUser);
+          const uniqueEmail = await this.checkUniqueEmail(newSysUser.email);
           if (!uniqueEmail) {
             failureNum++;
             failureMsgArr.push(

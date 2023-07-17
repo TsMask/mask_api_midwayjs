@@ -80,26 +80,10 @@ export interface ISysUserRepository {
   deleteUserByIds(userIds: string[]): Promise<number>;
 
   /**
-   * 校验用户名称是否唯一
+   * 校验用户信息是否唯一
    *
-   * @param userName 用户名称
+   * @param sysUser 用户信息
    * @return 结果
    */
-  checkUniqueUserName(userName: string): Promise<string>;
-
-  /**
-   * 校验手机号码是否唯一
-   *
-   * @param phonenumber 手机号码
-   * @return 结果
-   */
-  checkUniquePhone(phonenumber: string): Promise<string>;
-
-  /**
-   * 校验email是否唯一
-   *
-   * @param email 用户邮箱
-   * @return 结果
-   */
-  checkUniqueEmail(email: string): Promise<string>;
+  checkUniqueUser(sysUser: SysUser): Promise<string>;
 }

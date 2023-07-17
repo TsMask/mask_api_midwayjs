@@ -460,27 +460,34 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return result.affectedRows;
   }
 
-  async checkUniqueUserName(userName: string): Promise<string> {
-    const sqlStr =
-      "select user_id as 'str' from sys_user where user_name = ? and del_flag = '0' limit 1";
-    const paramArr = [userName];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+  async checkUniqueUser(sysUser: SysUser): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysUser.userName) {
+      conditions.push('user_name = ?');
+      params.push(sysUser.userName);
+    }
+    if (sysUser.phonenumber) {
+      conditions.push('phonenumber = ?');
+      params.push(sysUser.phonenumber);
+    }
+    if (sysUser.email) {
+      conditions.push('email = ?');
+      params.push(sysUser.email);
+    }
 
-  async checkUniquePhone(phonenumber: string): Promise<string> {
-    const sqlStr =
-      "select user_id as 'str' from sys_user where phonenumber = ? and del_flag = '0' limit 1";
-    const paramArr = [phonenumber];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    }else{
+      return null
+    }
 
-  async checkUniqueEmail(email: string): Promise<string> {
     const sqlStr =
-      "select user_id as 'str' from sys_user where email = ? and del_flag = '0' limit 1";
-    const paramArr = [email];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
+      "select user_id as 'str' from sys_user " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 }
