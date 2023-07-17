@@ -71,10 +71,16 @@ export interface ISysDeptService {
   /**
    * 校验部门名称是否唯一
    *
-   * @param sysDept 部门信息
+   * @param deptName 部门名称
+   * @param parentId 上级部门ID
+   * @param deptId 部门ID，更新时传入
    * @return 结果
    */
-  checkUniqueDeptName(sysDept: SysDept): Promise<boolean>;
+  checkUniqueDeptName(
+    deptName: string,
+    parentId: string,
+    deptId: string
+  ): Promise<boolean>;
 
   /**
    * 新增保存部门信息

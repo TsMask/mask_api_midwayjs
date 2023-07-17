@@ -153,14 +153,32 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     return parseNumber(countRow[0].total);
   }
 
-  async checkUniqueDeptName(
-    deptName: string,
-    parentId: string
-  ): Promise<string> {
+  async checkUniqueDept(sysDept: SysDept): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysDept.deptName) {
+      conditions.push('dept_name = ?');
+      params.push(sysDept.deptName);
+    }
+    if (sysDept.parentId) {
+      conditions.push('parent_id = ?');
+      params.push(sysDept.parentId);
+    }
+
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select dept_id as 'str' from sys_dept where dept_name = ? and parent_id = ? and del_flag = '0' limit 1";
-    const paramArr = [deptName, parentId];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
+      "select dept_id as 'str' from sys_dept " +
+      whereSql +
+      " and del_flag = '0' limit 1";
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 

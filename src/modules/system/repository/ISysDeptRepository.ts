@@ -68,13 +68,12 @@ export interface ISysDeptRepository {
   checkDeptExistUser(deptId: string): Promise<number>;
 
   /**
-   * 校验部门名称是否唯一
+   * 校验部门是否唯一
    *
-   * @param deptName 部门名称
-   * @param parentId 父部门ID
+   * @param  sysDept 部门信息
    * @return 结果
    */
-  checkUniqueDeptName(deptName: string, parentId: string): Promise<string>;
+  checkUniqueDept(sysDept: SysDept): Promise<string>;
 
   /**
    * 新增部门信息

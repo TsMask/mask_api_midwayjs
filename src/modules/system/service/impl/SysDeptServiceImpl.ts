@@ -66,16 +66,19 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return (await this.sysDeptRepository.checkDeptExistUser(deptId)) > 0;
   }
 
-  async checkUniqueDeptName(sysDept: SysDept): Promise<boolean> {
-    const deptId = await this.sysDeptRepository.checkUniqueDeptName(
-      sysDept.deptName,
-      sysDept.parentId
-    );
-    // 部门信息与查询得到部门ID一致
-    if (deptId && sysDept.deptId === deptId) {
+  async checkUniqueDeptName(
+    deptName: string,
+    parentId: string,
+    deptId: string = ''
+  ): Promise<boolean> {
+    const sysDept = new SysDept();
+    sysDept.deptName = deptName;
+    sysDept.parentId = parentId;
+    const uniqueId = await this.sysDeptRepository.checkUniqueDept(sysDept);
+    if (uniqueId === deptId) {
       return true;
     }
-    return !deptId;
+    return !uniqueId;
   }
 
   async insertDept(sysDept: SysDept): Promise<string> {

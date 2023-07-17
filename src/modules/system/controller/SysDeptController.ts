@@ -84,12 +84,11 @@ export class SysDeptController {
     if (!parentId || !deptName) return Result.err();
     // 检查同级下同名唯一
     const uniqueDeptName = await this.sysDeptService.checkUniqueDeptName(
-      sysDept
+      deptName,
+      parentId
     );
     if (!uniqueDeptName) {
-      return Result.errMsg(
-        `部门新增【${sysDept.deptName}】失败，部门名称已存在`
-      );
+      return Result.errMsg(`部门新增【${deptName}】失败，部门名称已存在`);
     }
     // 如果父节点不为正常状态,则不允许新增子节点
     const deptParent = await this.sysDeptService.selectDeptById(parentId);
@@ -129,7 +128,9 @@ export class SysDeptController {
     }
     // 检查同级下同名唯一
     const uniqueDeptName = await this.sysDeptService.checkUniqueDeptName(
-      sysDept
+      deptName,
+      parentId,
+      deptId
     );
     if (!uniqueDeptName) {
       return Result.errMsg(
