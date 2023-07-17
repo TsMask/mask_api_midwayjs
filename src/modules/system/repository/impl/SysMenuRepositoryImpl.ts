@@ -345,23 +345,25 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       conditions.push('menu_name = ?');
       params.push(sysMenu.menuName);
     }
-    if (sysMenu.visible) {
+    if (sysMenu.parentId) {
       conditions.push('parent_id = ?');
-      params.push(sysMenu.visible);
+      params.push(sysMenu.parentId);
     }
-    if (sysMenu.status) {
+    if (sysMenu.path) {
       conditions.push('path = ?');
-      params.push(sysMenu.status);
+      params.push(sysMenu.path);
     }
 
     // 构建查询条件语句
     let whereSql = '';
     if (conditions.length > 0) {
       whereSql = ' where ' + conditions.join(' and ');
+    }else{
+      return null
     }
 
     const sqlStr =
-      "select menu_id as 'str' from sys_menu" + whereSql + ' limit 1';
+      "select menu_id as 'str' from sys_menu " + whereSql + ' limit 1';
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }

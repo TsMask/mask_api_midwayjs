@@ -122,15 +122,21 @@ export interface ISysMenuService {
    *
    * @param menuName 菜单名称
    * @param parentId 父菜单ID
+   * @param menuId 菜单ID，更新时传入
    * @return 结果
    */
-  checkUniqueNenuName(menuName: string, parentId: string): Promise<boolean>;
+  checkUniqueNenuName(
+    menuName: string,
+    parentId: string,
+    menuId?: string
+  ): Promise<boolean>;
 
   /**
    * 校验路由地址是否唯一（针对目录和菜单）
    *
    * @param path 路由地址
+   * @param menuId 菜单ID，更新时传入
    * @return 结果
    */
-  checkUniqueNenuPath(path: string): Promise<boolean>;
+  checkUniqueNenuPath(path: string, menuId?: string): Promise<boolean>;
 }

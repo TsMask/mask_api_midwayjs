@@ -118,28 +118,30 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
   async checkUniqueNenuName(
     menuName: string,
-    parentId: string
+    parentId: string,
+    menuId: string = ''
   ): Promise<boolean> {
     const sysMenu = new SysMenu();
     sysMenu.menuName = menuName;
     sysMenu.parentId = parentId;
-    const menuId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);
-    // 菜单信息与查询得到菜单ID一致
-    if (menuId && sysMenu.menuId === menuId) {
+    const uniqueId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);
+    if (uniqueId === menuId) {
       return true;
     }
-    return !menuId;
+    return !uniqueId;
   }
 
-  async checkUniqueNenuPath(path: string): Promise<boolean> {
+  async checkUniqueNenuPath(
+    path: string,
+    menuId: string = ''
+  ): Promise<boolean> {
     const sysMenu = new SysMenu();
     sysMenu.path = path;
-    const menuId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);
-    // 菜单信息与查询得到菜单ID一致
-    if (menuId && sysMenu.menuId === menuId) {
+    const uniqueId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);
+    if (uniqueId === menuId) {
       return true;
     }
-    return !menuId;
+    return !uniqueId;
   }
 
   async buildRouteMenus(sysMenus: SysMenu[], prefix = ''): Promise<RouterVo[]> {
