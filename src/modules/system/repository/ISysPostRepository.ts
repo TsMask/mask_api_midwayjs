@@ -71,18 +71,10 @@ export interface ISysPostRepository {
   insertPost(sysPost: SysPost): Promise<string>;
 
   /**
-   * 校验岗位名称
+   * 校验岗位唯一
    *
-   * @param postName 岗位名称
+   * @param sysPost 岗位信息
    * @return 结果
    */
-  checkUniquePostName(postName: string): Promise<string>;
-
-  /**
-   * 校验岗位编码
-   *
-   * @param postCode 岗位编码
-   * @return 结果
-   */
-  checkUniquePostCode(postCode: string): Promise<string>;
+  checkUniquePost(sysPost: SysPost): Promise<string>;
 }

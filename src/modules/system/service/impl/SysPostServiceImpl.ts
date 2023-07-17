@@ -58,25 +58,29 @@ export class SysPostServiceImpl implements ISysPostService {
     return await this.sysPostRepository.updatePost(sysPost);
   }
 
-  async checkUniquePostName(sysPost: SysPost): Promise<boolean> {
-    const postId = await this.sysPostRepository.checkUniquePostName(
-      sysPost.postName
-    );
-    // 岗位信息与查询得到岗位ID一致
-    if (postId && sysPost.postId === postId) {
+  async checkUniquePostName(
+    postName: string,
+    postId: string = ''
+  ): Promise<boolean> {
+    const sysPost = new SysPost();
+    sysPost.postName = postName;
+    const uniqueId = await this.sysPostRepository.checkUniquePost(sysPost);
+    if (uniqueId === postId) {
       return true;
     }
-    return !postId;
+    return !uniqueId;
   }
 
-  async checkUniquePostCode(sysPost: SysPost): Promise<boolean> {
-    const postId = await this.sysPostRepository.checkUniquePostCode(
-      sysPost.postCode
-    );
-    // 岗位信息与查询得到岗位ID一致
-    if (postId && sysPost.postId === postId) {
+  async checkUniquePostCode(
+    postCode: string,
+    postId: string = ''
+  ): Promise<boolean> {
+    const sysPost = new SysPost();
+    sysPost.postCode = postCode;
+    const uniqueId = await this.sysPostRepository.checkUniquePost(sysPost);
+    if (uniqueId === postId) {
       return true;
     }
-    return !postId;
+    return !uniqueId;
   }
 }

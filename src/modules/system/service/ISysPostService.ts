@@ -63,18 +63,20 @@ export interface ISysPostService {
   updatePost(sysPost: SysPost): Promise<number>;
 
   /**
-   * 校验岗位名称
+   * 校验岗位名称唯一
    *
-   * @param sysPost 岗位信息
+   * @param postName 岗位名称
+   * @param postId 岗位ID，更新时传入
    * @return 结果
    */
-  checkUniquePostName(sysPost: SysPost): Promise<boolean>;
+  checkUniquePostName(postName: string, postId: string): Promise<boolean>;
 
   /**
-   * 校验岗位编码
+   * 校验岗位编码唯一
    *
-   * @param sysPost 岗位信息
+   * @param postCode 岗位编码
+   * @param postId 岗位ID，更新时传入
    * @return 结果
    */
-  checkUniquePostCode(sysPost: SysPost): Promise<boolean>;
+  checkUniquePostCode(postCode: string, postId: string): Promise<boolean>;
 }

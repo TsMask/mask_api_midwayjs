@@ -234,19 +234,30 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     return `${result.insertId}`;
   }
 
-  async checkUniquePostName(postName: string): Promise<string> {
-    const sqlStr =
-      "select post_id as 'str' from sys_post where post_name= ? limit 1";
-    const paramArr = [postName];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+  async checkUniquePost(sysPost: SysPost): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysPost.postName) {
+      conditions.push('post_name= ?');
+      params.push(sysPost.postName);
+    }
+    if (sysPost.postCode) {
+      conditions.push('post_code = ?');
+      params.push(sysPost.postName);
+    }
 
-  async checkUniquePostCode(postCode: string): Promise<string> {
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select post_id as 'str' from sys_post where post_code = ? limit 1";
-    const paramArr = [postCode];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
+      "select post_id as 'str' from sys_post " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 }

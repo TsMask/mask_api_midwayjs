@@ -108,13 +108,13 @@ export class SysPostController {
 
     // 检查属性值唯一
     const uniqueuPostName = await this.sysPostService.checkUniquePostName(
-      sysPost
+      postName
     );
     if (!uniqueuPostName) {
       return Result.errMsg(`岗位新增【${postName}】失败，岗位名称已存在`);
     }
     const uniquePostCode = await this.sysPostService.checkUniquePostCode(
-      sysPost
+      postCode
     );
     if (!uniquePostCode) {
       return Result.errMsg(`岗位新增【${postCode}】失败，岗位编码已存在`);
@@ -142,13 +142,15 @@ export class SysPostController {
 
     // 检查属性值唯一
     const uniqueuPostName = await this.sysPostService.checkUniquePostName(
-      sysPost
+      postName,
+      postId
     );
     if (!uniqueuPostName) {
       return Result.errMsg(`岗位修改【${postName}】失败，岗位名称已存在`);
     }
     const uniquePostCode = await this.sysPostService.checkUniquePostCode(
-      sysPost
+      postCode,
+      postId
     );
     if (!uniquePostCode) {
       return Result.errMsg(`岗位修改【${postCode}】失败，岗位编码已存在`);
