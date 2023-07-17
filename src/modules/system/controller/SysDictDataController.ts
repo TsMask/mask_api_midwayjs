@@ -127,7 +127,8 @@ export class SysDictDataController {
 
     // 检查属性值唯一
     const uniqueDictLabel = await this.sysDictDataServer.checkUniqueDictLabel(
-      sysDictData
+      dictType,
+      dictLabel
     );
     if (!uniqueDictLabel) {
       return Result.errMsg(
@@ -135,7 +136,8 @@ export class SysDictDataController {
       );
     }
     const uniqueDictValue = await this.sysDictDataServer.checkUniqueDictValue(
-      sysDictData
+      dictType,
+      dictValue
     );
     if (!uniqueDictValue) {
       return Result.errMsg(
@@ -174,7 +176,9 @@ export class SysDictDataController {
 
     // 检查属性值唯一
     const uniqueDictLabel = await this.sysDictDataServer.checkUniqueDictLabel(
-      sysDictData
+      dictType,
+      dictLabel,
+      dictCode
     );
     if (!uniqueDictLabel) {
       return Result.errMsg(
@@ -182,7 +186,9 @@ export class SysDictDataController {
       );
     }
     const uniqueDictValue = await this.sysDictDataServer.checkUniqueDictValue(
-      sysDictData
+      dictType,
+      dictValue,
+      dictCode
     );
     if (!uniqueDictValue) {
       return Result.errMsg(

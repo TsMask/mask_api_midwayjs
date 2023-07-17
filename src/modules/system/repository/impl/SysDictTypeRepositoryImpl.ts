@@ -162,17 +162,30 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     return convertResultRows(rows)[0] || null;
   }
 
-  async checkUniqueDictName(dictName: string): Promise<string> {
-    const sqlStr =
-      "select dict_id as 'str' from sys_dict_type where dict_name = ? limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [dictName]);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+  async checkUniqueDictType(sysDictType: SysDictType): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysDictType.dictName) {
+      conditions.push('dict_name = ?');
+      params.push(sysDictType.dictName);
+    }
+    if (sysDictType.dictType) {
+      conditions.push('dict_type = ?');
+      params.push(sysDictType.dictType);
+    }
 
-  async checkUniqueDictType(dictType: string): Promise<string> {
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select dict_id as 'str' from sys_dict_type where dict_type = ? limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [dictType]);
+      "select dict_id as 'str' from sys_dict_type " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 

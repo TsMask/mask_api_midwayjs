@@ -117,13 +117,13 @@ export class SysDictTypeController {
 
     // 检查属性值唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
-      sysDictType
+      dictName
     );
     if (!uniqueDictName) {
       return Result.errMsg(`字典新增【${dictName}】失败，字典名称已存在`);
     }
     const uniqueDictType = await this.sysDictTypeService.checkUniqueDictType(
-      sysDictType
+      dictType
     );
     if (!uniqueDictType) {
       return Result.errMsg(`字典新增【${dictType}】失败，字典类型已存在`);
@@ -154,13 +154,15 @@ export class SysDictTypeController {
 
     // 检查属性值唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
-      sysDictType
+      dictName,
+      dictId
     );
     if (!uniqueDictName) {
       return Result.errMsg(`字典修改【${dictName}】失败，字典名称已存在`);
     }
     const uniqueDictType = await this.sysDictTypeService.checkUniqueDictType(
-      sysDictType
+      dictType,
+      dictId
     );
     if (!uniqueDictType) {
       return Result.errMsg(`字典修改【${dictType}】失败，字典类型已存在`);

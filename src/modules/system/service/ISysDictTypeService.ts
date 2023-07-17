@@ -34,18 +34,20 @@ export interface ISysDictTypeService {
   /**
    * 校验字典名称是否唯一
    *
-   * @param sysDictType 字典类型信息
+   * @param dictName 字典名称
+   * @param dictId 字典类型ID，更新时传入
    * @return 结果
    */
-  checkUniqueDictName(sysDictType: SysDictType): Promise<boolean>;
+  checkUniqueDictName(dictName: string, dictId: string): Promise<boolean>;
 
   /**
    * 校验字典类型是否唯一
    *
-   * @param sysDictType 字典类型信息
+   * @param dictType 字典类型
+   * @param dictId 字典类型ID，更新时传入
    * @return 结果
    */
-  checkUniqueDictType(sysDictType: SysDictType): Promise<boolean>;
+  checkUniqueDictType(dictType: string, dictId: string): Promise<boolean>;
 
   /**
    * 新增保存字典类型信息

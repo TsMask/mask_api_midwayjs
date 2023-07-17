@@ -56,26 +56,34 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     return await this.sysDictTypeRepository.selectDictTypeByType(dictType);
   }
 
-  async checkUniqueDictName(sysDictType: SysDictType): Promise<boolean> {
-    const dictId = await this.sysDictTypeRepository.checkUniqueDictName(
-      sysDictType.dictName
+  async checkUniqueDictName(
+    dictName: string,
+    dictId: string = ''
+  ): Promise<boolean> {
+    const sysDictType = new SysDictType();
+    sysDictType.dictName = dictName;
+    const uniqueId = await this.sysDictTypeRepository.checkUniqueDictType(
+      sysDictType
     );
-    // 字典类型与查询得到字典类型ID一致
-    if (dictId && sysDictType.dictId === dictId) {
+    if (uniqueId === dictId) {
       return true;
     }
-    return !dictId;
+    return !uniqueId;
   }
 
-  async checkUniqueDictType(sysDictType: SysDictType): Promise<boolean> {
-    const dictId = await this.sysDictTypeRepository.checkUniqueDictType(
-      sysDictType.dictType
+  async checkUniqueDictType(
+    dictType: string,
+    dictId: string = ''
+  ): Promise<boolean> {
+    const sysDictType = new SysDictType();
+    sysDictType.dictType = dictType;
+    const uniqueId = await this.sysDictTypeRepository.checkUniqueDictType(
+      sysDictType
     );
-    // 字典类型与查询得到字典类型ID一致
-    if (dictId && sysDictType.dictId === dictId) {
+    if (uniqueId === dictId) {
       return true;
     }
-    return !dictId;
+    return !uniqueId;
   }
 
   async insertDictType(sysDictType: SysDictType): Promise<string> {

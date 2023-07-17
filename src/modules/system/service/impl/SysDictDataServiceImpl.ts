@@ -41,28 +41,38 @@ export class SysDictDataServiceImpl implements ISysDictDataService {
     return await this.sysDictTypeService.getDictCache(dictType);
   }
 
-  async checkUniqueDictLabel(sysDictData: SysDictData): Promise<boolean> {
-    const dictCode = await this.sysDictDataRepository.checkUniqueDictLabel(
-      sysDictData.dictType,
-      sysDictData.dictLabel
+  async checkUniqueDictLabel(
+    dictType: string,
+    dictLabel: string,
+    dictCode?: string
+  ): Promise<boolean> {
+    const sysDictData = new SysDictData();
+    sysDictData.dictType = dictType;
+    sysDictData.dictLabel = dictLabel;
+    const uniqueCode = await this.sysDictDataRepository.checkUniqueDictData(
+      sysDictData
     );
-    // 字典数据与查询得到字典数据code一致
-    if (dictCode && sysDictData.dictCode === dictCode) {
+    if (uniqueCode === dictCode) {
       return true;
     }
-    return !dictCode;
+    return !uniqueCode;
   }
 
-  async checkUniqueDictValue(sysDictData: SysDictData): Promise<boolean> {
-    const dictCode = await this.sysDictDataRepository.checkUniqueDictValue(
-      sysDictData.dictType,
-      sysDictData.dictValue
+  async checkUniqueDictValue(
+    dictType: string,
+    dictValue: string,
+    dictCode?: string
+  ): Promise<boolean> {
+    const sysDictData = new SysDictData();
+    sysDictData.dictType = dictType;
+    sysDictData.dictValue = dictValue;
+    const uniqueCode = await this.sysDictDataRepository.checkUniqueDictData(
+      sysDictData
     );
-    // 字典数据与查询得到字典数据code一致
-    if (dictCode && sysDictData.dictCode === dictCode) {
+    if (uniqueCode === dictCode) {
       return true;
     }
-    return !dictCode;
+    return !uniqueCode;
   }
 
   async insertDictData(sysDictData: SysDictData): Promise<string> {
