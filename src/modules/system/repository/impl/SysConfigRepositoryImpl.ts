@@ -168,10 +168,26 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     return convertResultRows(rows)[0] || null;
   }
 
-  async checkUniqueConfigKey(configKey: string): Promise<string> {
+  async checkUniqueConfig(sysConfig: SysConfig): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysConfig.configKey) {
+      conditions.push('config_key = ?');
+      params.push(sysConfig.configKey);
+    }
+
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select config_id as 'str' from sys_config where config_key = ? limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [configKey]);
+      "select config_id as 'str' from sys_config " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 

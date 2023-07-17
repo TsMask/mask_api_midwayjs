@@ -41,10 +41,11 @@ export interface ISysConfigService {
   /**
    * 校验参数键名是否唯一
    *
-   * @param sysConfig 参数配置信息
+   * @param configKey 参数键名
+   * @param configId 参数ID，更新时传入
    * @return 结果
    */
-  checkUniqueConfigKey(sysConfig: SysConfig): Promise<boolean>;
+  checkUniqueConfigKey(configKey: string, configId: string): Promise<boolean>;
 
   /**
    * 新增参数配置

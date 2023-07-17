@@ -40,10 +40,10 @@ export interface ISysConfigRepository {
   /**
    * 校验参数键名是否唯一
    *
-   * @param configKey 参数键名
+   *@param sysConfig 参数配置信息
    * @return 结果
    */
-  checkUniqueConfigKey(configKey: string): Promise<string>;
+  checkUniqueConfig(sysConfig: SysConfig): Promise<string>;
 
   /**
    * 新增参数配置

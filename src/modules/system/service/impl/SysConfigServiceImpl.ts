@@ -64,15 +64,19 @@ export class SysConfigServiceImpl implements ISysConfigService {
     return await this.sysConfigRepository.selectConfigList(sysConfig);
   }
 
-  async checkUniqueConfigKey(sysConfig: SysConfig): Promise<boolean> {
-    const configId = await this.sysConfigRepository.checkUniqueConfigKey(
-      sysConfig.configKey
+  async checkUniqueConfigKey(
+    configKey: string,
+    configId: string = ''
+  ): Promise<boolean> {
+    const sysConfig = new SysConfig();
+    sysConfig.configKey = configKey;
+    const uniqueCode = await this.sysConfigRepository.checkUniqueConfig(
+      sysConfig
     );
-    // 参数配置与查询得到参数配置configId一致
-    if (configId && sysConfig.configId === configId) {
+    if (uniqueCode === configId) {
       return true;
     }
-    return !configId;
+    return !uniqueCode;
   }
 
   async insertConfig(sysConfig: SysConfig): Promise<string> {
@@ -117,7 +121,7 @@ export class SysConfigServiceImpl implements ISysConfigService {
         await this.redisCache.del(key);
         await this.redisCache.set(key, sysConfig.configValue);
       }
-      return
+      return;
     }
     if (configKey) {
       // 指定参数

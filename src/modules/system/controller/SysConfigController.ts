@@ -74,7 +74,7 @@ export class SysConfigController {
 
     // 检查属性值唯一
     const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
-      sysConfig
+      configKey
     );
     if (!uniqueConfigKey) {
       return Result.errMsg(`参数配置新增【${configKey}】失败，参数键名已存在`);
@@ -102,7 +102,8 @@ export class SysConfigController {
 
     // 检查属性值唯一
     const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
-      sysConfig
+      configKey,
+      configId
     );
     if (!uniqueConfigKey) {
       return Result.errMsg(`参数配置修改【${configKey}】失败，参数键名已存在`);
