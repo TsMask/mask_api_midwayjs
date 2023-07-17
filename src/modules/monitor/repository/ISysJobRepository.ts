@@ -31,13 +31,12 @@ export interface ISysJobRepository {
   selectJobById(jobId: string): Promise<SysJob>;
 
   /**
-   * 校验调度任务名称和组是否唯一
+   * 校验调度任务是否唯一
    *
-   * @param jobName 调度任务名称
-   * @param jobGroup 调度任务组
+   * @param sysJob 调度任务信息
    * @return 调度任务id
    */
-  checkUniqueJob(jobName: string, jobGroup: string): Promise<string>;
+  checkUniqueJob(sysJob: SysJob): Promise<string>;
 
   /**
    * 通过调用目标字符串查询调度任务信息

@@ -158,13 +158,30 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     return convertResultRows(rows)[0] || null;
   }
 
-  async checkUniqueJob(jobName: string, jobGroup: string): Promise<string> {
+  async checkUniqueJob(sysJob: SysJob): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysJob.jobName) {
+      conditions.push('job_name = ?');
+      params.push(sysJob.jobName);
+    }
+    if (sysJob.jobGroup) {
+      conditions.push('job_group = ?');
+      params.push(sysJob.jobGroup);
+    }
+
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select job_id as 'str' from sys_job where job_name = ? and job_group = ? limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
-      jobName,
-      jobGroup,
-    ]);
+      "select job_id as 'str' from sys_job " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 

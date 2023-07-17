@@ -136,9 +136,15 @@ export class SysJobController {
     businessType: OperatorBusinessTypeEnum.INSERT,
   })
   async add(@Body() job: SysJob): Promise<Result> {
-    const { jobName, jobGroup, cronExpression, invokeTarget, targetParams } =
-      job;
-    if (!jobName && !jobGroup && !cronExpression && !invokeTarget) {
+    const {
+      jobId,
+      jobName,
+      jobGroup,
+      cronExpression,
+      invokeTarget,
+      targetParams,
+    } = job;
+    if (jobId && !jobName && !jobGroup && !cronExpression && !invokeTarget) {
       return Result.err();
     }
     // 检查cron表达式格式
@@ -146,7 +152,10 @@ export class SysJobController {
       return Result.errMsg(`调度任务新增【${jobName}】失败，Cron表达式不正确`);
     }
     // 检查属性唯一
-    const uniqueJob = await this.sysJobService.checkUniqueJob(job);
+    const uniqueJob = await this.sysJobService.checkUniqueJob(
+      jobName,
+      jobGroup
+    );
     if (!uniqueJob) {
       return Result.errMsg(
         `调度任务新增【${jobName}】失败，同任务组内有相同任务名称`
@@ -178,9 +187,15 @@ export class SysJobController {
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
   async edit(@Body() job: SysJob): Promise<Result> {
-    const { jobName, jobGroup, cronExpression, invokeTarget, targetParams } =
-      job;
-    if (!jobName && !jobGroup && !cronExpression && !invokeTarget) {
+    const {
+      jobId,
+      jobName,
+      jobGroup,
+      cronExpression,
+      invokeTarget,
+      targetParams,
+    } = job;
+    if (!jobId && !jobName && !jobGroup && !cronExpression && !invokeTarget) {
       return Result.err();
     }
     // 检查cron表达式格式
@@ -188,7 +203,11 @@ export class SysJobController {
       return Result.errMsg(`调度任务修改【${jobName}】失败，Cron表达式不正确`);
     }
     // 检查属性唯一
-    const uniqueJob = await this.sysJobService.checkUniqueJob(job);
+    const uniqueJob = await this.sysJobService.checkUniqueJob(
+      jobName,
+      jobGroup,
+      jobId
+    );
     if (!uniqueJob) {
       return Result.errMsg(
         `调度任务修改【${jobName}】失败，同任务组内有相同任务名称`

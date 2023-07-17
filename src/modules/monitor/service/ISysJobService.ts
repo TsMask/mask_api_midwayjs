@@ -33,10 +33,15 @@ export interface ISysJobService {
   /**
    * 校验调度任务名称和组是否唯一
    *
-   * @param sysJob 调度任务信息
+   * @param jobName 调度任务名称
+   * @param jobGroup 调度任务组
    * @return 调度任务ID
    */
-  checkUniqueJob(sysJob: SysJob): Promise<boolean>;
+  checkUniqueJob(
+    jobName: string,
+    jobGroup: string,
+    jobId: string
+  ): Promise<boolean>;
 
   /**
    * 新增调度任务信息

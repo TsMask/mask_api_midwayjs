@@ -44,16 +44,19 @@ export class SysJobServiceImpl implements ISysJobService {
     return await this.sysJobRepository.selectJobById(jobId);
   }
 
-  async checkUniqueJob(sysJob: SysJob): Promise<boolean> {
-    const jobId = await this.sysJobRepository.checkUniqueJob(
-      sysJob.jobName,
-      sysJob.jobGroup
-    );
-    // 任务数据与查询得到任务id一致
-    if (jobId && sysJob.jobId === jobId) {
+  async checkUniqueJob(
+    jobName: string,
+    jobGroup: string,
+    jobId: string = ''
+  ): Promise<boolean> {
+    const sysJob = new SysJob();
+    sysJob.jobName = jobName;
+    sysJob.jobGroup = jobGroup;
+    const uniqueId = await this.sysJobRepository.checkUniqueJob(sysJob);
+    if (uniqueId === jobId) {
       return true;
     }
-    return !jobId;
+    return !uniqueId;
   }
 
   async insertJob(sysJob: SysJob): Promise<string> {
