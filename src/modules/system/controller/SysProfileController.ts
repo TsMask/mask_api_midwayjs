@@ -78,7 +78,10 @@ export class SysProfileController {
     // 检查手机号码格式并判断是否唯一
     if (sysUser.phonenumber) {
       if (validMobile(sysUser.phonenumber)) {
-        const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
+        const uniquePhone = await this.sysUserService.checkUniquePhone(
+          sysUser.phonenumber,
+          userId
+        );
         if (!uniquePhone) {
           return Result.errMsg(
             `修改用户【${sysUser.userName}】失败，手机号码已存在`
@@ -93,7 +96,10 @@ export class SysProfileController {
     // 检查邮箱格式并判断是否唯一
     if (sysUser.email) {
       if (validEmail(sysUser.email)) {
-        const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
+        const uniqueEmail = await this.sysUserService.checkUniqueEmail(
+          sysUser.email,
+          userId
+        );
         if (!uniqueEmail) {
           return Result.errMsg(
             `修改用户【${sysUser.userName}】失败，邮箱已存在`

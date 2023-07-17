@@ -54,7 +54,7 @@ export class SysRegisterService {
 
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
-      sysUser
+      username
     );
     if (!uniqueUserName) {
       return `注册用户【${sysUser.userName}】失败，注册账号已存在`;
