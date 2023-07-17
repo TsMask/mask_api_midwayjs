@@ -213,19 +213,32 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return convertResultRows(rows);
   }
 
-  async checkUniqueRoleName(roleName: string): Promise<string> {
-    const sqlStr =
-      "select role_id as 'str' from sys_role r where r.role_name = ? and r.del_flag = '0' limit 1";
-    const paramArr = [roleName];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+  async checkUniqueRole(sysRole: SysRole): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysRole.roleName) {
+      conditions.push('r.role_name = ?');
+      params.push(sysRole.roleName);
+    }
+    if (sysRole.roleKey) {
+      conditions.push('r.role_key = ?');
+      params.push(sysRole.roleKey);
+    }
 
-  async checkUniqueRoleKey(roleKey: string): Promise<string> {
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select role_id as 'str' from sys_role r where r.role_key = ? and r.del_flag = '0' limit 1";
-    const paramArr = [roleKey];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
+      "select role_id as 'str' from sys_role r " +
+      whereSql +
+      " and r.del_flag = '0' limit 1";
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 

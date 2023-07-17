@@ -62,18 +62,20 @@ export interface ISysRoleService {
   /**
    * 校验角色名称是否唯一
    *
-   * @param sysRole 角色信息
+   * @param roleName 角色名称
+   * @param roleId 角色ID，更新时传入
    * @return 结果
    */
-  checkUniqueRoleName(sysRole: SysRole): Promise<boolean>;
+  checkUniqueRoleName(roleName: string, roleId: string): Promise<boolean>;
 
   /**
    * 校验角色权限是否唯一
    *
-   * @param sysRole 角色信息
+   * @param roleKey 角色Key
+   * @param roleId 角色ID，更新时传入
    * @return 结果
    */
-  checkUniqueRoleKey(sysRole: SysRole): Promise<boolean>;
+  checkUniqueRoleKey(roleKey: string, roleId: string): Promise<boolean>;
 
   /**
    * 通过角色ID查询角色使用数量

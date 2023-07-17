@@ -117,20 +117,18 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:add'] })
   @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysRole: SysRole): Promise<Result> {
+    const { roleName, roleKey } = sysRole;
+    if (!roleName || !roleKey) return Result.err();
     // 判断属性值是否唯一
     const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
-      sysRole
+      roleName
     );
     if (!uniqueRoleName) {
-      return Result.errMsg(
-        `角色新增【${sysRole.roleName}】失败，角色名称已存在`
-      );
+      return Result.errMsg(`角色新增【${roleName}】失败，角色名称已存在`);
     }
-    const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(sysRole);
+    const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(roleKey);
     if (!uniqueRoleKey) {
-      return Result.errMsg(
-        `角色新增【${sysRole.roleName}】失败，角色键值已存在`
-      );
+      return Result.errMsg(`角色新增【${roleName}】失败，角色键值已存在`);
     }
 
     sysRole.createBy = this.contextService.getUseName();
@@ -145,8 +143,8 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysRole: SysRole): Promise<Result> {
-    const { roleId, roleName } = sysRole;
-    if (!roleId || !roleName) return Result.err();
+    const { roleId, roleName, roleKey } = sysRole;
+    if (!roleId || !roleName || !roleKey) return Result.err();
     // 检查是否管理员角色
     if (roleId === ADMIN_ROLE_ID) {
       return Result.errMsg('不允许操作管理员角色');
@@ -157,12 +155,16 @@ export class SysRoleController {
     }
     // 判断属性值是否唯一
     const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
-      sysRole
+      roleName,
+      roleId
     );
     if (!uniqueRoleName) {
       return Result.errMsg(`角色修改【${roleName}】失败，角色名称已存在`);
     }
-    const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(sysRole);
+    const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(
+      roleKey,
+      roleId
+    );
     if (!uniqueRoleKey) {
       return Result.errMsg(`角色修改【${roleName}】失败，角色键值已存在`);
     }

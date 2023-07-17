@@ -60,20 +60,12 @@ export interface ISysRoleRepository {
   selectRolesByUserName(userName: string): Promise<SysRole[]>;
 
   /**
-   * 校验角色名称是否唯一
+   * 校验角色是否唯一
    *
-   * @param roleName 角色名称
+   * @param sysRole 角色信息
    * @return 角色信息
    */
-  checkUniqueRoleName(roleName: string): Promise<string>;
-
-  /**
-   * 校验角色权限是否唯一
-   *
-   * @param roleKey 角色权限
-   * @return 角色信息
-   */
-  checkUniqueRoleKey(roleKey: string): Promise<string>;
+  checkUniqueRole(sysRole: SysRole): Promise<string>;
 
   /**
    * 修改角色信息

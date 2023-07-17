@@ -81,26 +81,30 @@ export class SysRoleServiceImpl implements ISysRoleService {
     return await this.sysRoleRepository.selectRoleById(roleId);
   }
 
-  async checkUniqueRoleName(sysRole: SysRole): Promise<boolean> {
-    const { roleId, roleName } = sysRole;
-    const roleIdTemp = await this.sysRoleRepository.checkUniqueRoleName(
-      roleName
-    );
-    // 角色信息与查询得到角色ID一致
-    if (roleIdTemp && roleIdTemp === roleId) {
+  async checkUniqueRoleName(
+    roleName: string,
+    roleId: string = ''
+  ): Promise<boolean> {
+    const sysRole = new SysRole();
+    sysRole.roleName = roleName;
+    const uniqueId = await this.sysRoleRepository.checkUniqueRole(sysRole);
+    if (uniqueId === roleId) {
       return true;
     }
-    return !roleIdTemp;
+    return !uniqueId;
   }
 
-  async checkUniqueRoleKey(sysRole: SysRole): Promise<boolean> {
-    const { roleId, roleKey } = sysRole;
-    const roleIdTemp = await this.sysRoleRepository.checkUniqueRoleKey(roleKey);
-    // 角色信息与查询得到角色ID一致
-    if (roleIdTemp && roleIdTemp === roleId) {
+  async checkUniqueRoleKey(
+    roleKey: string,
+    roleId: string = ''
+  ): Promise<boolean> {
+    const sysRole = new SysRole();
+    sysRole.roleKey = roleKey;
+    const uniqueId = await this.sysRoleRepository.checkUniqueRole(sysRole);
+    if (uniqueId === roleId) {
       return true;
     }
-    return !roleIdTemp;
+    return !uniqueId;
   }
 
   async countUserRoleByRoleId(roleId: string): Promise<number> {
