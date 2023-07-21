@@ -50,10 +50,10 @@ export interface ISysUserRepository {
   /**
    * 通过用户ID查询用户
    *
-   * @param userId 用户ID
-   * @return 用户对象信息
+   * @param userIds 用户ID组
+   * @return 用户对象集合信息
    */
-  selectUserById(userId: string): Promise<SysUser>;
+  selectUserById(userIds: string[]): Promise<SysUser[]>;
 
   /**
    * 新增用户信息

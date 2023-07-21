@@ -180,16 +180,20 @@ export class SysUserController {
   @PreAuthorize({ hasPermissions: ['system:user:query'] })
   async getInfo(@Param('userId') userId: string): Promise<Result> {
     if (!userId) return Result.err();
+    // 查询系统角色列表
     const dataScopeSQL = this.contextService.getDataScopeSQL('d');
     let roles = await this.sysRoleService.selectRoleList(
       new SysRole(),
       dataScopeSQL
     );
-    const posts = await this.sysPostService.selectPostList(new SysPost());
     // 不是系统指定管理员需要排除其角色
     if (!this.contextService.isAdmin(userId)) {
       roles = roles.filter(r => r.roleId !== ADMIN_ROLE_ID);
     }
+    // 查询岗位列表
+    const posts = await this.sysPostService.selectPostList(new SysPost());
+
+    // 新增用户时，用户ID为0
     if (userId === '0') {
       return Result.okData({
         user: {},
@@ -199,16 +203,23 @@ export class SysUserController {
         posts,
       });
     }
+
     // 检查用户是否存在
     const sysUser = await this.sysUserService.selectUserById(userId);
     if (!sysUser) {
       return Result.errMsg('没有权限访问用户数据');
     }
+    delete sysUser.password;
+
+    // 角色ID组
     const userRoleIds = sysUser.roles.map(r => r.roleId);
-    const userPostIds = await this.sysPostService.selectPostListByUserId(
+
+    // 岗位ID组
+    const userPosts = await this.sysPostService.selectPostListByUserId(
       sysUser.userId
     );
-    delete sysUser.password;
+    const userPostIds = userPosts.map(p => p.postId);
+    
     return Result.okData({
       user: sysUser,
       roleIds: userRoleIds,

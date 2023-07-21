@@ -73,9 +73,7 @@ SYS_ROLE_RESULT.set('role_status', 'status');
  */
 function convertResultRows(rows: any[]): SysUser[] {
   const arr: SysUser[] = [];
-  const arrKeyIndex: Map<string,number> = new Map();
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]
+  for (const row of rows) {
     const sysUser = new SysUser();
     const sysDept = new SysDept();
     const sysRole = new SysRole();
@@ -99,15 +97,14 @@ function convertResultRows(rows: any[]): SysUser[] {
       sysUser.roles.push(sysRole);
     }
 
-    let one = true
-    if(arrKeyIndex.has(sysUser.userId)){
-      const arrUser = arr[arrKeyIndex.get(sysUser.userId)];
-      arrUser.roles.push(...sysUser.roles)
-      one = false
+    let one = true;
+    for (let i = 0; i < arr.length; i++) {
+      arr[i].roles.push(...sysUser.roles);
+      one = false;
+      break;
     }
-    if(one){
+    if (one) {
       arr.push(sysUser);
-      arrKeyIndex.set(sysUser.userId, i)
     }
   }
   return arr;
@@ -329,17 +326,15 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       return null;
     }
     const sysUsers = convertResultRows(rows);
-    return sysUsers[0]
+    return sysUsers[0];
   }
 
-  async selectUserById(userId: string): Promise<SysUser> {
-    const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id = ?`;
-    const rows = await this.db.execute(sqlStr, [userId]);
-    if (rows.length === 0) {
-      return null;
-    }
-    const sysUsers = convertResultRows(rows);
-    return sysUsers[0]
+  async selectUserById(userIds: string[]): Promise<SysUser[]> {
+    const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id in (${userIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, userIds);
+    return convertResultRows(rows);
   }
 
   async insertUser(sysUser: SysUser): Promise<string> {
@@ -481,8 +476,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     let whereSql = '';
     if (conditions.length > 0) {
       whereSql = ' where ' + conditions.join(' and ');
-    }else{
-      return null
+    } else {
+      return null;
     }
 
     const sqlStr =
