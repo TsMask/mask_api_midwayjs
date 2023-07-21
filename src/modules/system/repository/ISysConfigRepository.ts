@@ -32,18 +32,18 @@ export interface ISysConfigRepository {
   /**
    * 通过配置ID查询参数配置信息
    *
-   * @param configId 参数配置ID
+   * @param configIds 参数配置ID
    * @return 用户对象信息
    */
-  selectConfigById(configId: string): Promise<SysConfig>;
+  selectConfigByIds(configIds: string[]): Promise<SysConfig[]>
 
   /**
-   * 校验参数键名是否唯一
+   * 校验配置参数是否唯一
    *
    *@param sysConfig 参数配置信息
    * @return 结果
    */
-  checkUniqueConfig(sysConfig: SysConfig): Promise<string>;
+   checkUniqueConfig(sysConfig: SysConfig): Promise<string>;
 
   /**
    * 新增参数配置

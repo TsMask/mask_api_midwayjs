@@ -162,10 +162,12 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     return rows.length > 0 ? rows[0].str : null;
   }
 
-  async selectConfigById(configId: string): Promise<SysConfig> {
-    const sqlStr = `${SELECT_CONFIG_SQL} where config_id = ?`;
-    const rows = await this.db.execute(sqlStr, [configId]);
-    return convertResultRows(rows)[0] || null;
+  async selectConfigByIds(configIds: string[]): Promise<SysConfig[]> {
+    const sqlStr = `${SELECT_CONFIG_SQL} where config_id in (${configIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, configIds);
+    return convertResultRows(rows);
   }
 
   async checkUniqueConfig(sysConfig: SysConfig): Promise<string> {

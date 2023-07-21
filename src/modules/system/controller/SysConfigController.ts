@@ -141,15 +141,6 @@ export class SysConfigController {
   }
 
   /**
-   * 参数配置根据参数键名
-   */
-  @Get('/configKey/:configKey')
-  async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
-    const data = await this.sysConfigService.selectConfigValueByKey(configKey);
-    return Result.okData(data || '');
-  }
-
-  /**
    * 参数配置刷新缓存
    */
   @Put('/refreshCache')
@@ -162,6 +153,15 @@ export class SysConfigController {
   async refreshCache(): Promise<Result> {
     await this.sysConfigService.resetConfigCache();
     return Result.ok();
+  }
+
+  /**
+   * 参数配置根据参数键名
+   */
+  @Get('/configKey/:configKey')
+  async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
+    const data = await this.sysConfigService.selectConfigValueByKey(configKey);
+    return Result.okData(data || '');
   }
 
   /**

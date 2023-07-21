@@ -25,21 +25,19 @@ export class SysConfigServiceImpl implements ISysConfigService {
     await this.resetConfigCache();
   }
 
-  /**
-   * 设置cache key
-   * @param configKey 参数键
-   * @return 缓存键key
-   */
-  private cacheKey(configKey: string): string {
-    return SYS_CONFIG_KEY + configKey;
-  }
-
   async selectConfigPage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysConfigRepository.selectConfigPage(query);
   }
 
   async selectConfigById(configId: string): Promise<SysConfig> {
-    return await this.sysConfigRepository.selectConfigById(configId);
+    if (!configId) return null;
+    const configs = await this.sysConfigRepository.selectConfigByIds([
+      configId,
+    ]);
+    if (configs.length > 0) {
+      return configs[0];
+    }
+    return null;
   }
 
   async selectConfigValueByKey(configKey: string): Promise<string> {
@@ -70,13 +68,13 @@ export class SysConfigServiceImpl implements ISysConfigService {
   ): Promise<boolean> {
     const sysConfig = new SysConfig();
     sysConfig.configKey = configKey;
-    const uniqueCode = await this.sysConfigRepository.checkUniqueConfig(
+    const uniqueId = await this.sysConfigRepository.checkUniqueConfig(
       sysConfig
     );
-    if (uniqueCode === configId) {
+    if (uniqueId === configId) {
       return true;
     }
-    return !uniqueCode;
+    return !uniqueId;
   }
 
   async insertConfig(sysConfig: SysConfig): Promise<string> {
@@ -96,12 +94,11 @@ export class SysConfigServiceImpl implements ISysConfigService {
   }
 
   async deleteConfigByIds(configIds: string[]): Promise<number> {
-    for (const configId of configIds) {
-      // 检查是否存在
-      const config = await this.sysConfigRepository.selectConfigById(configId);
-      if (!config) {
-        throw new Error('没有权限访问参数配置数据！');
-      }
+    const configs = await this.sysConfigRepository.selectConfigByIds(configIds);
+    if (configs.length <= 0) {
+      throw new Error('没有权限访问参数配置数据！');
+    }
+    for (const config of configs) {
       // 检查是否为内置参数
       if (config.configType === 'Y') {
         throw new Error(`内置参数 ${config.configKey} 不能删除`);
@@ -109,10 +106,31 @@ export class SysConfigServiceImpl implements ISysConfigService {
       // 清除缓存
       await this.clearConfigCache(config.configKey);
     }
-    return await this.sysConfigRepository.deleteConfigByIds(configIds);
+    if (configs.length === configIds.length) {
+      return await this.sysConfigRepository.deleteConfigByIds(configIds);
+    }
+    return 0;
   }
 
-  async loadingConfigCache(configKey: string): Promise<void> {
+  async resetConfigCache(): Promise<void> {
+    await this.clearConfigCache('*');
+    await this.loadingConfigCache('*');
+  }
+
+  /**
+   * 组装缓存key
+   * @param configKey 参数键
+   * @return 缓存键key
+   */
+  private cacheKey(configKey: string): string {
+    return SYS_CONFIG_KEY + configKey;
+  }
+
+  /**
+   * 加载参数缓存数据
+   * @param configKey 参数键名，不指定即加载所有
+   */
+  private async loadingConfigCache(configKey: string): Promise<void> {
     if (configKey === '*') {
       // 查询全部参数
       const sysConfigs = await this.selectConfigList(new SysConfig());
@@ -137,14 +155,13 @@ export class SysConfigServiceImpl implements ISysConfigService {
     }
   }
 
-  async clearConfigCache(configKey: string): Promise<number> {
+  /**
+   * 清空参数缓存数据
+   *  @param configKey 参数键名，不指定即清除所有
+   */
+  private async clearConfigCache(configKey: string): Promise<number> {
     const key = this.cacheKey(configKey);
     const keys = await this.redisCache.getKeys(key);
     return await this.redisCache.delKeys(keys);
-  }
-
-  async resetConfigCache(): Promise<void> {
-    await this.clearConfigCache('*');
-    await this.loadingConfigCache('*');
   }
 }

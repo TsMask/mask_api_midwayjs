@@ -71,18 +71,6 @@ export interface ISysConfigService {
   deleteConfigByIds(configIds: string[]): Promise<number>;
 
   /**
-   * 加载参数缓存数据
-   * @param configKey 参数键名，不指定即加载所有
-   */
-  loadingConfigCache(configKey: string): Promise<void>;
-
-  /**
-   * 清空参数缓存数据
-   *  @param configKey 参数键名，不指定即清除所有
-   */
-  clearConfigCache(configKey: string): Promise<number>;
-
-  /**
    * 重置参数缓存数据
    */
   resetConfigCache(): Promise<void>;
