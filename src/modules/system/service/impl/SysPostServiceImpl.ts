@@ -29,7 +29,7 @@ export class SysPostServiceImpl implements ISysPostService {
     return await this.sysPostRepository.selectPostById(postId);
   }
 
-  async selectPostListByUserId(userId: string): Promise<string[]> {
+  async selectPostListByUserId(userId: string): Promise<SysPost[]> {
     return await this.sysPostRepository.selectPostListByUserId(userId);
   }
 

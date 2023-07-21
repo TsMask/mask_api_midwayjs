@@ -52,7 +52,7 @@ export class SysProfileController {
       sysUser.userName
     );
     const postGroup = await this.sysUserService.selectUserPostGroup(
-      sysUser.userName
+      sysUser.userId
     );
     return Result.okData({
       user: sysUser,

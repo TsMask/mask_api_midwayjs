@@ -34,17 +34,9 @@ export interface ISysPostRepository {
    * 根据用户ID获取岗位选择框列表
    *
    * @param userId 用户ID
-   * @return 选中岗位ID列表
+   * @return 岗位数据集合
    */
-  selectPostListByUserId(userId: string): Promise<string[]>;
-
-  /**
-   * 查询用户所属岗位组
-   *
-   * @param userName 用户名
-   * @return 结果
-   */
-  selectPostsByUserName(userName: string): Promise<SysPost[]>;
+  selectPostListByUserId(userId: string): Promise<SysPost[]>;
 
   /**
    * 批量删除岗位信息

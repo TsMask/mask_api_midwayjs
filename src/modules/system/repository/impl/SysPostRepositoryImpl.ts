@@ -6,8 +6,8 @@ import { SysPost } from '../../model/SysPost';
 import { ISysPostRepository } from '../ISysPostRepository';
 
 /**查询视图对象SQL */
-const SELECT_POST_SQL = ` 
-select post_id, post_code, post_name, post_sort, status, create_by, create_time, remark 
+const SELECT_POST_SQL = `select 
+post_id, post_code, post_name, post_sort, status, create_by, create_time, remark 
 from sys_post`;
 
 /**岗位表信息实体映射 */
@@ -141,26 +141,16 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     return convertResultRows(rows)[0] || null;
   }
 
-  async selectPostListByUserId(userId: string): Promise<string[]> {
-    const sqlStr = `select p.post_id from sys_post p 
+  async selectPostListByUserId(userId: string): Promise<SysPost[]> {
+    const sqlStr = `select p.post_id, p.post_name, p.post_code 
+    from sys_post p 
     left join sys_user_post up on up.post_id = p.post_id 
     left join sys_user u on u.user_id = up.user_id 
     where u.user_id = ? `;
     const rows = await this.db.execute(sqlStr, [userId]);
-    const sysPosts = convertResultRows(rows);
-    return sysPosts.map(item => item.postId);
-  }
-
-  async selectPostsByUserName(userName: string): Promise<SysPost[]> {
-    const sql = `select p.post_id, p.post_name, p.post_code 
-    from sys_post p 
-    left join sys_user_post up on up.post_id = p.post_id 
-    left join sys_user u on u.user_id = up.user_id
-		where u.user_name = ?`;
-    const rows = await this.db.execute(sql, [userName]);
     return convertResultRows(rows);
   }
-
+  
   async deletePostByIds(postIds: string[]): Promise<number> {
     const sqlStr = `delete from sys_post where post_id in (${postIds
       .map(() => '?')
