@@ -25,10 +25,10 @@ export interface ISysNoticeRepository {
   /**
    * 查询公告信息
    *
-   * @param noticeId 公告ID
+   * @param noticeIds 公告ID
    * @return 公告信息
    */
-  selectNoticeById(noticeId: string): Promise<SysNotice>;
+  selectNoticeByIds(noticeIds: string[]): Promise<SysNotice[]>;
 
   /**
    * 新增公告

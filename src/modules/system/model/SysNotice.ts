@@ -5,7 +5,7 @@
  */
 export class SysNotice {
   /**公告ID */
-  noticeId: number;
+  noticeId: string;
 
   /**公告标题 */
   noticeTitle: string;
