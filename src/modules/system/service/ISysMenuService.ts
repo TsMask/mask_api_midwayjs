@@ -26,14 +26,6 @@ export interface ISysMenuService {
   selectMenuPermsByUserId(userId: string): Promise<string[]>;
 
   /**
-   * 根据角色ID查询权限
-   *
-   * @param roleId 角色ID
-   * @return 权限列表
-   */
-  selectMenuPermsByRoleId(roleId: string): Promise<string[]>;
-
-  /**
    * 根据用户ID查询菜单树信息
    *
    * @param userId 用户ID
@@ -78,20 +70,20 @@ export interface ISysMenuService {
   selectMenuById(menuId: string): Promise<SysMenu>;
 
   /**
-   * 是否存在菜单子节点
+   * 存在菜单子节点数量
    *
    * @param menuId 菜单ID
-   * @return 结果 true 存在 false 不存在
+   * @return 结果
    */
-  hasChildByMenuId(menuId: string): Promise<boolean>;
+  hasChildByMenuId(menuId: string): Promise<number>;
 
   /**
-   * 查询菜单是否存在角色
+   * 查询菜单分配角色数量
    *
    * @param menuId 菜单ID
-   * @return 结果 true 存在 false 不存在
+   * @return 结果
    */
-  checkMenuExistRole(menuId: string): Promise<boolean>;
+  checkMenuExistRole(menuId: string): Promise<number>;
 
   /**
    * 新增保存菜单信息

@@ -7,7 +7,7 @@ import { SysRoleMenu } from '../model/SysRoleMenu';
  */
 export interface ISysRoleMenuRepository {
   /**
-   * 查询菜单使用数量
+   * 查询菜单分配给角色使用数量
    *
    * @param menuId 菜单ID
    * @return 结果

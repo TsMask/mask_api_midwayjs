@@ -18,15 +18,17 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
 
   async checkMenuExistRole(menuId: string): Promise<number> {
     const sqlStr =
-      "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
+      "select count(1) as 'total' from sys_role_menu where menu_id = ?";
     const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
     return parseNumber(countRow[0].total);
   }
+
   async deleteRoleMenuByRoleId(roleId: string): Promise<number> {
     const sqlStr = 'delete from sys_role_menu where role_id = ?';
     const result: ResultSetHeader = await this.db.execute(sqlStr, [roleId]);
     return result.affectedRows;
   }
+
   async deleteRoleMenu(roleIds: string[]): Promise<number> {
     const sqlStr = `delete from sys_role_menu where role_id in (${roleIds
       .map(() => '?')
@@ -34,6 +36,7 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
     const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }
+  
   async batchRoleMenu(sysRoleMenus: SysRoleMenu[]): Promise<number> {
     const sqlStr = `insert into sys_role_menu(role_id, menu_id) values ${sysRoleMenus
       .map(item => `(${item.roleId},${item.menuId})`)

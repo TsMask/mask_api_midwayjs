@@ -57,17 +57,6 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return [...new Set(permsArr)];
   }
 
-  async selectMenuPermsByRoleId(roleId: string): Promise<string[]> {
-    const perms = await this.sysMenuRepository.selectMenuPermsByRoleId(roleId);
-    const permsArr: string[] = [];
-    for (const perm of perms) {
-      if (perm) {
-        permsArr.push(...perm.split(','));
-      }
-    }
-    return [...new Set(permsArr)];
-  }
-
   async selectMenuTreeByUserId(userId: string): Promise<SysMenu[]> {
     const menus = await this.sysMenuRepository.selectMenuTreeByUserId(userId);
     return parseDataToTree<SysMenu>(menus, 'menuId');
@@ -93,15 +82,20 @@ export class SysMenuServiceImpl implements ISysMenuService {
   }
 
   async selectMenuById(menuId: string): Promise<SysMenu> {
-    return await this.sysMenuRepository.selectMenuById(menuId);
+    if (!menuId) return null;
+    const menus = await this.sysMenuRepository.selectMenuByIds([menuId]);
+    if (menus.length > 0) {
+      return menus[0];
+    }
+    return null;
   }
 
-  async hasChildByMenuId(menuId: string): Promise<boolean> {
-    return (await this.sysMenuRepository.hasChildByMenuId(menuId)) > 0;
+  async hasChildByMenuId(menuId: string): Promise<number> {
+    return await this.sysMenuRepository.hasChildByMenuId(menuId);
   }
 
-  async checkMenuExistRole(menuId: string): Promise<boolean> {
-    return (await this.sysRoleMenuRepository.checkMenuExistRole(menuId)) > 0;
+  async checkMenuExistRole(menuId: string): Promise<number> {
+    return await this.sysRoleMenuRepository.checkMenuExistRole(menuId);
   }
 
   async insertMenu(sysMenu: SysMenu): Promise<string> {

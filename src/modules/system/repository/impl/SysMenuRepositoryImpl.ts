@@ -109,7 +109,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     }
 
     // 查询数据
-    const orderSql = ' order by m.parent_id, m.menu_sort ';
+    const orderSql = ' order by m.parent_id, m.menu_sort';
     const querySql = fromSql + whereSql + orderSql;
     const results = await this.db.execute(querySql, params);
     return convertResultRows(results);
@@ -130,15 +130,6 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     }
     const rows = await this.db.execute(buildSqlStr, paramArr);
     return convertResultRows(rows);
-  }
-
-  async selectMenuPermsByRoleId(roleId: string): Promise<string[]> {
-    const sqlStr = `select distinct m.perms as 'str' from sys_menu m 
-    left join sys_role_menu rm on m.menu_id = rm.menu_id
-    where m.status = '1' and rm.role_id = ?`;
-
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [roleId]);
-    return rows.map(item => item.str);
   }
 
   async selectMenuPermsByUserId(userId: string): Promise<string[]> {
@@ -169,22 +160,17 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     return rows.map(item => item.str);
   }
 
-  async selectMenuById(menuId: string): Promise<SysMenu> {
-    const sqlStr = `${SELECT_MENU_SQL} where menu_id = ?`;
-    const rows = await this.db.execute(sqlStr, [menuId]);
-    return convertResultRows(rows)[0] || null;
+  async selectMenuByIds(menuIds: string[]): Promise<SysMenu[]> {
+    const sqlStr = `${SELECT_MENU_SQL} where m.menu_id in (${menuIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, menuIds);
+    return convertResultRows(rows);
   }
 
   async hasChildByMenuId(menuId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_menu where parent_id = ? ";
-    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
-    return parseNumber(countRow[0].total);
-  }
-
-  async checkMenuExistRole(menuId: string): Promise<number> {
-    const sqlStr =
-      "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
     const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
     return parseNumber(countRow[0].total);
   }
@@ -358,8 +344,8 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     let whereSql = '';
     if (conditions.length > 0) {
       whereSql = ' where ' + conditions.join(' and ');
-    }else{
-      return null
+    } else {
+      return null;
     }
 
     const sqlStr =
