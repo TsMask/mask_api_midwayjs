@@ -10,8 +10,6 @@ import {
 import { SysUser } from '../../model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
-import { SysPostRepositoryImpl } from '../../repository/impl/SysPostRepositoryImpl';
-import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { SysUserPostRepositoryImpl } from '../../repository/impl/SysUserPostRepositoryImpl';
 import { SysUserRepositoryImpl } from '../../repository/impl/SysUserRepositoryImpl';
 import { SysUserRoleRepositoryImpl } from '../../repository/impl/SysUserRoleRepositoryImpl';
@@ -32,13 +30,7 @@ export class SysUserServiceImpl implements ISysUserService {
   private sysUserRepository: SysUserRepositoryImpl;
 
   @Inject()
-  private sysRoleRepository: SysRoleRepositoryImpl;
-
-  @Inject()
   private sysUserRoleRepository: SysUserRoleRepositoryImpl;
-
-  @Inject()
-  private sysPostRepository: SysPostRepositoryImpl;
 
   @Inject()
   private sysUserPostRepository: SysUserPostRepositoryImpl;
@@ -82,26 +74,6 @@ export class SysUserServiceImpl implements ISysUserService {
       return users[0];
     }
     return null;
-  }
-
-  async selectUserRoleGroup(userName: string): Promise<string[]> {
-    const sysRoles = await this.sysRoleRepository.selectRolesByUserName(
-      userName
-    );
-    if (sysRoles && sysRoles.length > 0) {
-      return sysRoles.map(item => item.roleName);
-    }
-    return [];
-  }
-
-  async selectUserPostGroup(userName: string): Promise<string[]> {
-    const sysPosts = await this.sysPostRepository.selectPostListByUserId(
-      userName
-    );
-    if (sysPosts && sysPosts.length > 0) {
-      return sysPosts.map(item => item.postName);
-    }
-    return [];
   }
 
   async checkUniqueUserName(

@@ -56,22 +56,6 @@ export interface ISysUserService {
   selectUserById(userId: string): Promise<SysUser>;
 
   /**
-   * 根据用户ID查询用户所属角色组
-   *
-   * @param userName 用户名
-   * @return 结果
-   */
-  selectUserRoleGroup(userName: string): Promise<string[]>;
-
-  /**
-   * 根据用户ID查询用户所属岗位组
-   *
-   * @param userName 用户名
-   * @return 结果
-   */
-  selectUserPostGroup(userName: string): Promise<string[]>;
-
-  /**
    * 校验用户名称是否唯一
    *
    * @param userName 用户名称
