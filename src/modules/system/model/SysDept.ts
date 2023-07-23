@@ -50,4 +50,7 @@ export class SysDept {
 
   /**子部门 */
   children: SysDept[];
+
+  /**父部门名称 */
+  parentName: string;
 }

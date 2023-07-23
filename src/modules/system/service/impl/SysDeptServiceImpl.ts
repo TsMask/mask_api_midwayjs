@@ -54,10 +54,6 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return await this.sysDeptRepository.selectDeptById(deptId);
   }
 
-  async selectNormalChildrenDeptById(deptId: string): Promise<number> {
-    return await this.sysDeptRepository.selectNormalChildrenDeptById(deptId);
-  }
-
   async hasChildByDeptId(deptId: string): Promise<number> {
     return await this.sysDeptRepository.hasChildByDeptId(deptId);
   }
@@ -123,14 +119,15 @@ export class SysDeptServiceImpl implements ISysDeptService {
   ): Promise<void> {
     let childrens: SysDept[] =
       await this.sysDeptRepository.selectChildrenDeptById(deptId);
+    if (childrens && childrens.length == 0) {
+      return;
+    }
     // 替换父ID
     childrens = childrens.map(child => {
       child.ancestors = child.ancestors.replace(oldAncestors, newAncestors);
       return child;
     });
-    if (childrens && childrens.length > 0) {
-      this.sysDeptRepository.updateDeptChildren(childrens);
-    }
+    this.sysDeptRepository.updateDeptChildren(childrens);
   }
 
   /**

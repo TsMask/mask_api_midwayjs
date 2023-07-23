@@ -44,14 +44,6 @@ export interface ISysDeptRepository {
   selectChildrenDeptById(deptId: string): Promise<SysDept[]>;
 
   /**
-   * 根据ID查询所有子部门（正常状态）
-   *
-   * @param deptId 部门ID
-   * @return 子部门数
-   */
-  selectNormalChildrenDeptById(deptId: string): Promise<number>;
-
-  /**
    * 是否存在子节点
    *
    * @param deptId 部门ID

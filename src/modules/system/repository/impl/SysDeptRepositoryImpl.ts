@@ -22,11 +22,11 @@ SYS_DEPT_RESULT.set('phone', 'phone');
 SYS_DEPT_RESULT.set('email', 'email');
 SYS_DEPT_RESULT.set('status', 'status');
 SYS_DEPT_RESULT.set('del_flag', 'delFlag');
-SYS_DEPT_RESULT.set('parent_name', 'parentName');
 SYS_DEPT_RESULT.set('create_by', 'createBy');
 SYS_DEPT_RESULT.set('create_time', 'createTime');
 SYS_DEPT_RESULT.set('update_by', 'updateBy');
 SYS_DEPT_RESULT.set('update_time', 'updateTime');
+SYS_DEPT_RESULT.set('parent_name', 'parentName');
 
 /**
  *将结果记录转实体结果组
@@ -127,16 +127,9 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async selectChildrenDeptById(deptId: string): Promise<SysDept[]> {
-    const sqlStr = `${SELECT_DEPT_SQL} where find_in_set(?, ancestors)`;
+    const sqlStr = `${SELECT_DEPT_SQL} where find_in_set(?, d.ancestors)`;
     const rows = await this.db.execute(sqlStr, [deptId]);
     return convertResultRows(rows);
-  }
-
-  async selectNormalChildrenDeptById(deptId: string): Promise<number> {
-    const sqlStr =
-      "select count(1) as 'total' from sys_dept where status = '1' and del_flag = '0' and find_in_set(?, ancestors) ";
-    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [deptId]);
-    return parseNumber(countRow[0].total);
   }
 
   async hasChildByDeptId(deptId: string): Promise<number> {
