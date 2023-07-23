@@ -60,6 +60,7 @@ export default (): MidwayConfig => {
         '.xlsx',
         '.ppt',
         '.pptx',
+        // 文本文件
         '.html',
         '.htm',
         '.txt',
