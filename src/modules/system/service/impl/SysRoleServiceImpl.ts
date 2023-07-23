@@ -46,7 +46,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
 
   async selectRolesByUserId(userId: string): Promise<SysRole[]> {
     const roles = await this.sysRoleRepository.selectRoleList(new SysRole());
-    const userRoles = await this.sysRoleRepository.selectRolePermissionByUserId(
+    const userRoles = await this.sysRoleRepository.selectRoleListByUserId(
       userId
     );
     for (const role of roles) {
@@ -60,17 +60,8 @@ export class SysRoleServiceImpl implements ISysRoleService {
     return roles;
   }
 
-  async selectRolePermissionByUserId(userId: string): Promise<string[]> {
-    const perms = await this.sysRoleRepository.selectRolePermissionByUserId(
-      userId
-    );
-    const role_arr: string[] = [];
-    for (const perm of perms) {
-      if (perm && perm.roleKey) {
-        role_arr.push(...perm.roleKey.split(','));
-      }
-    }
-    return [...new Set(role_arr)];
+  async selectRoleListByUserId(userId: string): Promise<SysRole[]> {
+    return await this.sysRoleRepository.selectRoleListByUserId(userId);
   }
 
   async selectRoleIdsByUserId(userId: string): Promise<string[]> {

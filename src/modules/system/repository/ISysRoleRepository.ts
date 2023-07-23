@@ -28,12 +28,12 @@ export interface ISysRoleRepository {
   selectRoleList(sysRole: SysRole, dataScopeSQL?: string): Promise<SysRole[]>;
 
   /**
-   * 根据用户ID查询角色
+   * 根据用户ID获取角色选择框列表
    *
    * @param userId 用户ID
    * @return 角色列表
    */
-  selectRolePermissionByUserId(userId: string): Promise<SysRole[]>;
+  selectRoleListByUserId(userId: string): Promise<SysRole[]> 
 
   /**
    * 根据用户ID获取拥有角色ID

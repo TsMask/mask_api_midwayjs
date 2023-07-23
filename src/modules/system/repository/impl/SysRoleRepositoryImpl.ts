@@ -183,7 +183,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return convertResultRows(results);
   }
 
-  async selectRolePermissionByUserId(userId: string): Promise<SysRole[]> {
+  async selectRoleListByUserId(userId: string): Promise<SysRole[]> {
     const sqlStr = `${SELECT_ROLE_SQL} where r.del_flag = '0' and ur.user_id = ?`;
     const paramArr = [userId];
     const rows = await this.db.execute(sqlStr, paramArr);
