@@ -188,7 +188,7 @@ export class AccountService {
         ...il,
         ...ob
       );
-      throw new Error('用户已封禁，请联系管理员');
+      throw new Error('对不起，您的账号已禁用');
     }
 
     // 匹配用户密码，清除错误记录次数

@@ -12,7 +12,7 @@ import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigService
 import { RegisterBodyVo } from '../model/RegisterBodyVo';
 
 /**
- * 注册验证
+ * 账号注册操作处理
  *
  * @author TsMask
  */

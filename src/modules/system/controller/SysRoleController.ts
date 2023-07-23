@@ -185,7 +185,7 @@ export class SysRoleController {
       }
       return Result.ok();
     }
-    return Result.errMsg(`角色修改【${roleName}】失败，请联系管理员`);
+    return Result.errMsg(`角色修改【${roleName}】失败`);
   }
 
   /**
