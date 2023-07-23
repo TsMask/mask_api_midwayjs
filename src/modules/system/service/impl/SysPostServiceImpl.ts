@@ -26,7 +26,12 @@ export class SysPostServiceImpl implements ISysPostService {
   }
 
   async selectPostById(postId: string): Promise<SysPost> {
-    return await this.sysPostRepository.selectPostById(postId);
+    if (!postId) return null;
+    const posts = await this.sysPostRepository.selectPostByIds([postId]);
+    if (posts.length > 0) {
+      return posts[0];
+    }
+    return null;
   }
 
   async selectPostListByUserId(userId: string): Promise<SysPost[]> {
@@ -34,20 +39,22 @@ export class SysPostServiceImpl implements ISysPostService {
   }
 
   async deletePostByIds(postIds: string[]): Promise<number> {
-    for (const postId of postIds) {
-      // 检查是否存在
-      const post = await this.selectPostById(postId);
-      if (!post) {
-        throw new Error('没有权限访问岗位数据！');
-      }
+    const posts = await this.sysPostRepository.selectPostByIds(postIds);
+    if (posts.length <= 0) {
+      throw new Error('没有权限访问岗位数据！');
+    }
+    for (const post of posts) {
       const useCount = await this.sysUserPostRepository.countUserPostByPostId(
-        postId
+        post.postId
       );
       if (useCount > 0) {
         throw new Error(`【${post.postName}】已分配给用户,不能删除`);
       }
     }
-    return await this.sysPostRepository.deletePostByIds(postIds);
+    if (posts.length === postIds.length) {
+      return await this.sysPostRepository.deletePostByIds(postIds);
+    }
+    return 0;
   }
 
   async insertPost(sysPost: SysPost): Promise<string> {

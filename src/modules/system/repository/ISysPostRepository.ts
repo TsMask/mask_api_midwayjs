@@ -25,10 +25,10 @@ export interface ISysPostRepository {
   /**
    * 通过岗位ID查询岗位信息
    *
-   * @param postId 岗位ID
+   * @param postIds 岗位ID组
    * @return 角色对象信息
    */
-  selectPostById(postId: string): Promise<SysPost>;
+  selectPostByIds(postIds: string[]): Promise<SysPost[]>;
 
   /**
    * 根据用户ID获取岗位选择框列表

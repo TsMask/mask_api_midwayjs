@@ -44,7 +44,7 @@ function convertResultRows(rows: any[]): SysPost[] {
 }
 
 /**
- * 角色表 数据层处理
+ * 岗位表 数据层处理
  *
  * @author TsMask
  */
@@ -135,18 +135,21 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     return convertResultRows(results);
   }
 
-  async selectPostById(postId: string): Promise<SysPost> {
-    const sqlStr = `${SELECT_POST_SQL} where post_id = ? `;
-    const rows = await this.db.execute(sqlStr, [postId]);
-    return convertResultRows(rows)[0] || null;
+  async selectPostByIds(postIds: string[]): Promise<SysPost[]> {
+    const sqlStr = `${SELECT_POST_SQL} where post_id in (${postIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, postIds);
+    return convertResultRows(rows);
   }
 
   async selectPostListByUserId(userId: string): Promise<SysPost[]> {
-    const sqlStr = `select p.post_id, p.post_name, p.post_code 
+    const sqlStr = `select distinct 
+    p.post_id, p.post_name, p.post_code 
     from sys_post p 
     left join sys_user_post up on up.post_id = p.post_id 
     left join sys_user u on u.user_id = up.user_id 
-    where u.user_id = ? `;
+    where u.user_id = ? order by p.post_id`;
     const rows = await this.db.execute(sqlStr, [userId]);
     return convertResultRows(rows);
   }
