@@ -149,11 +149,13 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   ): Promise<string[]> {
     let sqlStr = `select m.menu_id as 'str' from sys_menu m 
     left join sys_role_menu rm on m.menu_id = rm.menu_id
-    where rm.role_id = ?`;
+    where rm.role_id = ? `;
     const paramArr = [roleId];
     if (menuCheckStrictly) {
-      sqlStr +=
-        ' and m.menu_id not in (select m.parent_id from sys_menu m inner join sys_role_menu rm on m.menu_id = rm.menu_id and rm.role_id = ?) ';
+      sqlStr += ` and m.menu_id not in 
+      (select m.parent_id from sys_menu m 
+      inner join sys_role_menu rm on m.menu_id = rm.menu_id 
+      and rm.role_id = ?) `;
       paramArr.push(roleId);
     }
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
