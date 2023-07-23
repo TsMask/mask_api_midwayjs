@@ -44,10 +44,9 @@ export class SysDeptServiceImpl implements ISysDeptService {
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
     const sysRole = await this.sysRoleRepository.selectRoleById(roleId);
     if (!sysRole) return [];
-    const deptCheckStrictly = sysRole.deptCheckStrictly === '1';
     return this.sysDeptRepository.selectDeptListByRoleId(
-      roleId,
-      deptCheckStrictly
+      sysRole.roleId,
+      sysRole.deptCheckStrictly === '1'
     );
   }
 
@@ -59,11 +58,11 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return await this.sysDeptRepository.selectNormalChildrenDeptById(deptId);
   }
 
-  async hasChildByDeptId(deptId: string): Promise<boolean> {
-    return (await this.sysDeptRepository.hasChildByDeptId(deptId)) > 0;
+  async hasChildByDeptId(deptId: string): Promise<number> {
+    return await this.sysDeptRepository.hasChildByDeptId(deptId);
   }
-  async checkDeptExistUser(deptId: string): Promise<boolean> {
-    return (await this.sysDeptRepository.checkDeptExistUser(deptId)) > 0;
+  async checkDeptExistUser(deptId: string): Promise<number> {
+    return await this.sysDeptRepository.checkDeptExistUser(deptId);
   }
 
   async checkUniqueDeptName(

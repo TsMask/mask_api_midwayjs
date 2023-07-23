@@ -102,14 +102,14 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   ): Promise<string[]> {
     let sqlStr = `select d.dept_id as 'str' from sys_dept d
     left join sys_role_dept rd on d.dept_id = rd.dept_id
-    where rd.role_id = ?`;
+    where rd.role_id = ? `;
     const paramArr = [roleId];
     // 关联显示
     if (deptCheckStrictly) {
-      sqlStr += `and d.dept_id not in 
+      sqlStr += ` and d.dept_id not in 
       (select d.parent_id from sys_dept d
       inner join sys_role_dept rd on d.dept_id = rd.dept_id 
-      and rd.role_id = ?)`;
+      and rd.role_id = ?) `;
       paramArr.push(roleId);
     }
     sqlStr += ' order by d.parent_id, d.order_num ';
