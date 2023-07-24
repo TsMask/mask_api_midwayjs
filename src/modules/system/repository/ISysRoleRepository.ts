@@ -49,15 +49,7 @@ export interface ISysRoleRepository {
    * @param roleId 角色ID
    * @return 角色对象信息
    */
-  selectRoleById(roleId: string): Promise<SysRole>;
-
-  /**
-   * 根据用户ID查询角色
-   *
-   * @param userName 用户名
-   * @return 角色列表
-   */
-  selectRolesByUserName(userName: string): Promise<SysRole[]>;
+  selectRoleByIds(roleIds: string[]): Promise<SysRole[]>
 
   /**
    * 校验角色是否唯一

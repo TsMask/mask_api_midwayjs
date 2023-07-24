@@ -70,14 +70,6 @@ export interface ISysRoleService {
   checkUniqueRoleKey(roleKey: string, roleId: string): Promise<boolean>;
 
   /**
-   * 通过角色ID查询角色使用数量
-   *
-   * @param roleId 角色ID
-   * @return 结果
-   */
-  countUserRoleByRoleId(roleId: string): Promise<number>;
-
-  /**
    * 新增保存角色信息
    *
    * @param sysRole 角色信息
@@ -119,7 +111,7 @@ export interface ISysRoleService {
   deleteAuthUsers(roleId: string, userIds: string[]): Promise<number>;
 
   /**
-   * 批量选择授权用户角色
+   * 批量新增授权用户角色
    *
    * @param roleId 角色ID
    * @param userIds 需要删除的用户数据ID

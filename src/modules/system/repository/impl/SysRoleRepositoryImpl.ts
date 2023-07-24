@@ -199,17 +199,11 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return rows.map(item => item.str);
   }
 
-  async selectRoleById(roleId: string): Promise<SysRole> {
-    const sqlStr = `${SELECT_ROLE_SQL} where r.role_id = ?`;
-    const paramArr = [roleId];
-    const rows = await this.db.execute(sqlStr, paramArr);
-    return convertResultRows(rows)[0] || null;
-  }
-
-  async selectRolesByUserName(userName: string): Promise<SysRole[]> {
-    const sqlStr = `${SELECT_ROLE_SQL} where r.del_flag = '0' and u.user_name = ? `;
-    const paramArr = [userName];
-    const rows = await this.db.execute(sqlStr, paramArr);
+  async selectRoleByIds(roleIds: string[]): Promise<SysRole[]> {
+    const sqlStr = `${SELECT_ROLE_SQL} where r.role_id in (${roleIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, roleIds);
     return convertResultRows(rows);
   }
 
@@ -329,7 +323,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       paramMap.set('create_time', Date.now());
     }
 
-    const sqlStr = `insert into sys_role(${[...paramMap.keys()].join(
+    const sqlStr = `insert into sys_role (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [

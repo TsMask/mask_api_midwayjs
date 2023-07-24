@@ -23,12 +23,6 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
     return parseNumber(countRow[0].total);
   }
 
-  async deleteRoleMenuByRoleId(roleId: string): Promise<number> {
-    const sqlStr = 'delete from sys_role_menu where role_id = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [roleId]);
-    return result.affectedRows;
-  }
-
   async deleteRoleMenu(roleIds: string[]): Promise<number> {
     const sqlStr = `delete from sys_role_menu where role_id in (${roleIds
       .map(() => '?')
