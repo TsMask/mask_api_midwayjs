@@ -1,7 +1,7 @@
 # 基于 Midwayjs 的管理系统后端接口服务
 
 ![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
-![Release V0.2.3](https://img.shields.io/badge/Release-V0.2.3-orange.svg)
+![Release V0.2.4](https://img.shields.io/badge/Release-V0.2.4-orange.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
