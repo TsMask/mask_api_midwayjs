@@ -219,7 +219,7 @@ export class SysUserController {
       sysUser.userId
     );
     const userPostIds = userPosts.map(p => p.postId);
-    
+
     return Result.okData({
       user: sysUser,
       roleIds: userRoleIds,
@@ -424,7 +424,9 @@ export class SysUserController {
       return Result.errMsg('没有权限访问用户数据！');
     }
     // 与旧值相等不变更
-    if (user.status === status) return Result.err();
+    if (user.status === status) {
+      return Result.errMsg('变更状态与旧值相等！');
+    }
     const sysUser = new SysUser();
     sysUser.userId = userId;
     sysUser.status = status;
