@@ -46,14 +46,15 @@ export class CacheController {
   @Get('/getNames')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getNames(): Promise<Result> {
-    const caches: SysCache[] = [];
-    caches.push(new SysCache().newNames('用户信息', LOGIN_TOKEN_KEY));
-    caches.push(new SysCache().newNames('配置信息', SYS_CONFIG_KEY));
-    caches.push(new SysCache().newNames('数据字典', SYS_DICT_KEY));
-    caches.push(new SysCache().newNames('验证码', CAPTCHA_CODE_KEY));
-    caches.push(new SysCache().newNames('防重提交', REPEAT_SUBMIT_KEY));
-    caches.push(new SysCache().newNames('限流处理', RATE_LIMIT_KEY));
-    caches.push(new SysCache().newNames('密码错误次数', PWD_ERR_CNT_KEY));
+    const caches: SysCache[] = [
+      new SysCache().newNames('用户信息', LOGIN_TOKEN_KEY),
+      new SysCache().newNames('配置信息', SYS_CONFIG_KEY),
+      new SysCache().newNames('数据字典', SYS_DICT_KEY),
+      new SysCache().newNames('验证码', CAPTCHA_CODE_KEY),
+      new SysCache().newNames('防重提交', REPEAT_SUBMIT_KEY),
+      new SysCache().newNames('限流处理', RATE_LIMIT_KEY),
+      new SysCache().newNames('密码错误次数', PWD_ERR_CNT_KEY),
+    ];
     return Result.okData(caches);
   }
 
@@ -135,16 +136,16 @@ export class CacheController {
   @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
   async clearCacheSafe(): Promise<Result> {
     // 指定清除的缓存列表
-    const keyArr = [
-      SYS_CONFIG_KEY,
-      SYS_DICT_KEY,
-      CAPTCHA_CODE_KEY,
-      REPEAT_SUBMIT_KEY,
-      RATE_LIMIT_KEY,
-      PWD_ERR_CNT_KEY,
+    const caches: SysCache[] = [
+      new SysCache().newNames('配置信息', SYS_CONFIG_KEY),
+      new SysCache().newNames('数据字典', SYS_DICT_KEY),
+      new SysCache().newNames('验证码', CAPTCHA_CODE_KEY),
+      new SysCache().newNames('防重提交', REPEAT_SUBMIT_KEY),
+      new SysCache().newNames('限流处理', RATE_LIMIT_KEY),
+      new SysCache().newNames('密码错误次数', PWD_ERR_CNT_KEY),
     ];
-    for (const key of keyArr) {
-      const cacheKeys = await this.redisCache.getKeys(`${key}*`);
+    for (const v of caches) {
+      const cacheKeys = await this.redisCache.getKeys(`${v.cacheName}:*`);
       await this.redisCache.delKeys(cacheKeys);
     }
     return Result.ok();
