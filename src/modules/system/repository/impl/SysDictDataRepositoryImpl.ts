@@ -139,20 +139,12 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return convertResultRows(results);
   }
 
-  async selectDictLabel(dictType: string, dictValue: string): Promise<string> {
-    const sqlStr =
-      "select dict_label as 'str' from sys_dict_data where dict_type = ? and dict_value = ?";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
-      dictType,
-      dictValue,
-    ]);
-    return rows[0].str || null;
-  }
-
-  async selectDictDataByCode(dictCode: string): Promise<SysDictData> {
-    const sqlStr = `${SELECT_DICT_DATA_SQL} where dict_code = ?`;
-    const rows = await this.db.execute(sqlStr, [dictCode]);
-    return convertResultRows(rows)[0] || null;
+  async selectDictDataByCodes(dictCodes: string[]): Promise<SysDictData[]> {
+    const sqlStr = `${SELECT_DICT_DATA_SQL} where dict_code in (${dictCodes
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, dictCodes);
+    return convertResultRows(rows);
   }
 
   async countDictDataByType(dictType: string): Promise<number> {

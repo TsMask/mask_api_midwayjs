@@ -23,15 +23,6 @@ export interface ISysDictDataService {
   selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]>;
 
   /**
-   * 根据字典类型和字典键值查询字典数据信息
-   *
-   * @param dictType 字典类型
-   * @param dictValue 字典键值
-   * @return 字典标签
-   */
-  selectDictLabel(dictType: string, dictValue: string): Promise<string>;
-
-  /**
    * 根据字典数据编码查询信息
    *
    * @param dictCode 字典数据编码
