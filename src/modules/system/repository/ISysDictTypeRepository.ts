@@ -25,10 +25,10 @@ export interface ISysDictTypeRepository {
   /**
    * 根据字典类型ID查询信息
    *
-   * @param dictId 字典类型ID
+   * @param dictIds 字典类型ID
    * @return 字典类型
    */
-  selectDictTypeById(dictId: string): Promise<SysDictType>;
+  selectDictTypeByIds(dictIds: string[]): Promise<SysDictType[]>;
 
   /**
    * 根据字典类型查询信息

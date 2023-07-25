@@ -31,15 +31,6 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     await this.resetDictCache();
   }
 
-  /**
-   * 设置cache key
-   * @param dictType 字典类型
-   * @return 缓存键key
-   */
-  private cacheKey(dictType: string): string {
-    return SYS_DICT_KEY + dictType;
-  }
-
   async selectDictTypePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     return await this.sysDictTypeRepository.selectDictTypePage(query);
   }
@@ -49,7 +40,13 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
   }
 
   async selectDictTypeById(dictId: string): Promise<SysDictType> {
-    return await this.sysDictTypeRepository.selectDictTypeById(dictId);
+    const dicts = await this.sysDictTypeRepository.selectDictTypeByIds([
+      dictId,
+    ]);
+    if (dicts.length > 0) {
+      return dicts[0];
+    }
+    return null;
   }
 
   async selectDictTypeByType(dictType: string): Promise<SysDictType> {
@@ -106,19 +103,19 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
         dict.dictType,
         sysDictType.dictType
       );
-      await this.clearDictCache(dict.dictType);
-      await this.loadingDictCache(sysDictType.dictType);
     }
+    // 刷新缓存
+    await this.clearDictCache(dict.dictType);
+    await this.loadingDictCache(sysDictType.dictType);
     return rows;
   }
 
   async deleteDictTypeByIds(dictIds: string[]): Promise<number> {
-    for (const dictId of dictIds) {
-      // 检查是否存在
-      const dict = await this.sysDictTypeRepository.selectDictTypeById(dictId);
-      if (!dict) {
-        throw new Error('没有权限访问字典类型数据！');
-      }
+    const dicts = await this.sysDictTypeRepository.selectDictTypeByIds(dictIds);
+    if (dicts.length <= 0) {
+      throw new Error('没有权限访问字典类型数据！');
+    }
+    for (const dict of dicts) {
       const useCount = await this.sysDictDataRepository.countDictDataByType(
         dict.dictType
       );
@@ -128,28 +125,24 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
       // 清除缓存
       await this.clearDictCache(dict.dictType);
     }
-    return await this.sysDictTypeRepository.deleteDictTypeByIds(dictIds);
+    if (dicts.length === dictIds.length) {
+      return await this.sysDictTypeRepository.deleteDictTypeByIds(dictIds);
+    }
+    return 0;
   }
 
-  async getDictCache(dictType: string): Promise<SysDictData[]> {
-    const key = this.cacheKey(dictType);
-    let data: SysDictData[] = [];
-    const str = await this.redisCache.get(key);
-    if (str && str.length > 7) {
-      // 反序列化得到数组数据
-      data = JSON.parse(str);
-    } else {
-      // 查询类型字典数据放入缓存
-      const sysDictData = new SysDictData();
-      sysDictData.status = STATUS_YES;
-      sysDictData.dictType = dictType;
-      data = await this.sysDictDataRepository.selectDictDataList(sysDictData);
-      if (data && data.length > 0) {
-        await this.redisCache.del(key);
-        await this.redisCache.set(key, JSON.stringify(data));
-      }
-    }
-    return data;
+  async resetDictCache(): Promise<void> {
+    await this.clearDictCache('*');
+    await this.loadingDictCache();
+  }
+
+  /**
+   * 设置cache key
+   * @param dictType 字典类型
+   * @return 缓存键key
+   */
+  private cacheKey(dictType: string): string {
+    return SYS_DICT_KEY + dictType;
   }
 
   async loadingDictCache(dictType?: string): Promise<void> {
@@ -158,6 +151,7 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     // 指定字典类型
     if (dictType) {
       sysDictData.dictType = dictType;
+      // 删除缓存
       await this.redisCache.del(SYS_DICT_KEY + dictType);
     }
     const sysDictDataList = await this.sysDictDataRepository.selectDictDataList(
@@ -183,14 +177,30 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     });
   }
 
-  async clearDictCache(dictType = '*'): Promise<number> {
+  async clearDictCache(dictType: string): Promise<number> {
     const key = this.cacheKey(dictType);
     const keys = await this.redisCache.getKeys(key);
     return await this.redisCache.delKeys(keys);
   }
 
-  async resetDictCache(): Promise<void> {
-    await this.clearDictCache();
-    await this.loadingDictCache();
+  async getDictCache(dictType: string): Promise<SysDictData[]> {
+    const key = this.cacheKey(dictType);
+    let data: SysDictData[] = [];
+    const str = await this.redisCache.get(key);
+    if (str && str.length > 7) {
+      // 反序列化得到数组数据
+      data = JSON.parse(str);
+    } else {
+      // 查询类型字典数据放入缓存
+      const sysDictData = new SysDictData();
+      sysDictData.status = STATUS_YES;
+      sysDictData.dictType = dictType;
+      data = await this.sysDictDataRepository.selectDictDataList(sysDictData);
+      if (data && data.length > 0) {
+        await this.redisCache.del(key);
+        await this.redisCache.set(key, JSON.stringify(data));
+      }
+    }
+    return data;
   }
 }

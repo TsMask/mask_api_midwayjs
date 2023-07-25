@@ -35,53 +35,6 @@ export class SysDictTypeController {
   private sysDictTypeService: SysDictTypeServiceImpl;
 
   /**
-   * 字典类型列表导出
-   */
-  @Post('/export')
-  @PreAuthorize({ hasPermissions: ['system:dict:export'] })
-  @OperLog({
-    title: '字典类型信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
-  })
-  async export() {
-    const ctx = this.contextService.getContext();
-    // 查询结果，根据查询条件结果，单页最大值限制
-    const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    const data = await this.sysDictTypeService.selectDictTypePage(query);
-    if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
-    }
-    // 导出数据组装
-    const rows = data.rows.reduce(
-      (pre: Record<string, string>[], cur: SysDictType) => {
-        pre.push({
-          字典主键: cur.dictId,
-          字典名称: cur.dictName,
-          字典类型: cur.dictType,
-          状态: ['停用', '正常'][+cur.status],
-        });
-        return pre;
-      },
-      []
-    );
-    // 导出数据表格
-    const fileName = `dict_type_export_${rows.length}_${Date.now()}.xlsx`;
-    ctx.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    ctx.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.fileService.excelWriteRecord(
-      rows,
-      '字典类型信息',
-      fileName
-    );
-  }
-
-  /**
    * 字典类型列表
    */
   @Get('/list')
@@ -115,13 +68,15 @@ export class SysDictTypeController {
     const { dictId, dictName, dictType } = sysDictType;
     if (dictId || !dictName || !dictType) return Result.err();
 
-    // 检查属性值唯一
+    // 检查字典名称唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
       dictName
     );
     if (!uniqueDictName) {
       return Result.errMsg(`字典新增【${dictName}】失败，字典名称已存在`);
     }
+
+    // 检查字典类型唯一
     const uniqueDictType = await this.sysDictTypeService.checkUniqueDictType(
       dictType
     );
@@ -146,13 +101,14 @@ export class SysDictTypeController {
   async edit(@Body() sysDictType: SysDictType): Promise<Result> {
     const { dictId, dictName, dictType } = sysDictType;
     if (!dictId || !dictName || !dictType) return Result.err();
+
     // 检查是否存在
-    const dict = await this.sysDictTypeService.selectDictTypeById(dictId);
-    if (!dict) {
+    const dictInfo = await this.sysDictTypeService.selectDictTypeById(dictId);
+    if (!dictInfo) {
       throw new Error('没有权限访问字典类型数据！');
     }
 
-    // 检查属性值唯一
+    // 检查字典名称唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
       dictName,
       dictId
@@ -160,6 +116,8 @@ export class SysDictTypeController {
     if (!uniqueDictName) {
       return Result.errMsg(`字典修改【${dictName}】失败，字典名称已存在`);
     }
+
+    // 检查字典类型唯一
     const uniqueDictType = await this.sysDictTypeService.checkUniqueDictType(
       dictType,
       dictId
@@ -216,13 +174,61 @@ export class SysDictTypeController {
     const sysDictData = new SysDictType();
     sysDictData.status = STATUS_YES;
     const data = await this.sysDictTypeService.selectDictTypeList(sysDictData);
-    let labelValueObj: { label: string; value: any }[] = [];
+    // 数据组
+    let arr: { label: string; value: string }[] = [];
     if (data && data.length > 0) {
-      labelValueObj = data.map(item => ({
+      arr = data.map(item => ({
         label: item.dictName,
         value: item.dictType,
       }));
     }
-    return Result.okData(labelValueObj);
+    return Result.okData(arr);
+  }
+
+  /**
+   * 字典类型列表导出
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['system:dict:export'] })
+  @OperLog({
+    title: '字典类型信息',
+    businessType: OperatorBusinessTypeEnum.EXPORT,
+  })
+  async export() {
+    const ctx = this.contextService.getContext();
+    // 查询结果，根据查询条件结果，单页最大值限制
+    const query: Record<string, any> = Object.assign({}, ctx.request.body);
+    const data = await this.sysDictTypeService.selectDictTypePage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysDictType) => {
+        pre.push({
+          字典主键: cur.dictId,
+          字典名称: cur.dictName,
+          字典类型: cur.dictType,
+          状态: ['停用', '正常'][+cur.status],
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `dict_type_export_${rows.length}_${Date.now()}.xlsx`;
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.excelWriteRecord(
+      rows,
+      '字典类型信息',
+      fileName
+    );
   }
 }

@@ -150,10 +150,12 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     return convertResultRows(results);
   }
 
-  async selectDictTypeById(dictId: string): Promise<SysDictType> {
-    const sql = `${SELECT_DICT_TYPE_SQL} where dict_id = ?`;
-    const rows = await this.db.execute(sql, [dictId]);
-    return convertResultRows(rows)[0] || null;
+  async selectDictTypeByIds(dictIds: string[]): Promise<SysDictType[]> {
+    const sqlStr = `${SELECT_DICT_TYPE_SQL} where dict_id in (${dictIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, dictIds);
+    return convertResultRows(rows);
   }
 
   async selectDictTypeByType(dictType: string): Promise<SysDictType> {
