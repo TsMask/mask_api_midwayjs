@@ -1,7 +1,7 @@
 import { Controller, Get, Inject } from '@midwayjs/decorator';
 import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { SystemInfoService } from '../../../framework/service/SystemInfoService';
+import { SystemInfoServiceImpl } from '../service/impl/SystemInfoServiceImpl';
 
 /**
  * 服务器监控
@@ -11,7 +11,7 @@ import { SystemInfoService } from '../../../framework/service/SystemInfoService'
 @Controller('/monitor/server')
 export class ServerController {
   @Inject()
-  private systemInfoService: SystemInfoService;
+  private systemInfoService: SystemInfoServiceImpl;
 
   /**
    * 服务器信息

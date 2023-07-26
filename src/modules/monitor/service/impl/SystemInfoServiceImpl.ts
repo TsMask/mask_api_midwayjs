@@ -1,33 +1,33 @@
+import { Inject, Provide, Singleton } from '@midwayjs/decorator';
+import { diskinfo } from '@dropb/diskinfo';
 import {
-  hostname,
-  homedir,
+  MidwayInformationService,
+  MidwayEnvironmentService,
+} from '@midwayjs/core';
+import {
   type,
   release,
+  hostname,
+  homedir,
+  uptime,
+  totalmem,
+  freemem,
   cpus,
   networkInterfaces,
-  uptime,
-  freemem,
-  totalmem,
 } from 'os';
-import {
-  Inject,
-  MidwayEnvironmentService,
-  MidwayInformationService,
-} from '@midwayjs/core';
-import { Provide, Singleton } from '@midwayjs/decorator';
-import { diskinfo } from '@dropb/diskinfo';
-import { parseBit } from '../utils/ValueParseUtils';
-import { parseDateToStr } from '../utils/DateUtils';
+import { parseDateToStr } from '../../../../framework/utils/DateUtils';
+import { parseBit } from '../../../../framework/utils/ValueParseUtils';
+import { ISystemInfoService } from '../ISystemInfoService';
 import ms = require('ms');
 
 /**
- * 服务器系统相关信息
+ * 服务器系统相关信息 服务层实现
  *
  * @author TsMask
  */
 @Provide()
 @Singleton()
-export class SystemInfoService {
+export class SystemInfoServiceImpl implements ISystemInfoService {
   @Inject()
   private midwayInformationService: MidwayInformationService;
 
@@ -144,17 +144,17 @@ export class SystemInfoService {
       if (newType === 'lo') {
         return pre;
       }
-      pre[newType] = netItemList
-        .sort(item => {
-          if (item.family === 'IPv4') {
-            return -1;
-          }
-          return 1;
-        })
-        .map(netItem => {
-          return `${netItem.family} ${netItem.address}`;
-        })
-        .join(' / ');
+      // 过滤地址
+      let addrs: string[] = []
+      for (const item of netItemList) {
+        if(item.family === 'IPv6' && item.address.includes("::")){
+          addrs.push("IPv6 " +item.address)
+        }
+        if(item.family === 'IPv4' && item.address.includes(".")){
+          addrs.push("IPv4 " +item.address)
+        }
+      }
+      pre[newType] = addrs.join(' / ');
       return pre;
     }, {});
   }
