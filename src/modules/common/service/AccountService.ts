@@ -12,7 +12,6 @@ import {
 } from '../../../framework/utils/ValueParseUtils';
 import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
 import {
-  IP_INNER_ADDR,
   STATUS_NO,
   STATUS_YES,
 } from '../../../framework/constants/CommonConstants';
@@ -26,6 +25,7 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { SysLogininforServiceImpl } from '../../monitor/service/impl/SysLogininforServiceImpl';
 import { TokenService } from '../../../framework/service/TokenService';
 import { SysUser } from '../../system/model/SysUser';
+import { getClientIP } from '../../../framework/utils/ip2region';
 
 /**
  * 账号身份操作服务
@@ -245,9 +245,7 @@ export class AccountService {
     const sysUser = new SysUser();
     sysUser.userId = userId;
     const ip = this.contextService.getContext().ip;
-    sysUser.loginIp = ip.includes(IP_INNER_ADDR)
-      ? ip.replace(IP_INNER_ADDR, '')
-      : ip;
+    sysUser.loginIp = getClientIP(ip);
     sysUser.loginDate = Date.now();
     return await this.sysUserService.updateUser(sysUser);
   }

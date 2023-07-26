@@ -3,11 +3,10 @@ import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
 import { Inject, Provide } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { RoleDataScopeEnum } from '../enums/RoleDataScopeEnum';
-import { getRealAddressByIp } from '../utils/ip2region';
+import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { getUaInfo } from '../utils/UAParserUtils';
 import { SysUser } from '../../modules/system/model/SysUser';
 import { LoginUser } from '../vo/LoginUser';
-import { IP_INNER_ADDR, IP_INNER_LOCATION } from '../constants/CommonConstants';
 import { TOKEN_KEY, TOKEN_KEY_PREFIX } from '../constants/TokenConstants';
 
 /**
@@ -121,14 +120,8 @@ export class ContextService {
 
   // 解析ip地址
   async ipaddrLocation(): Promise<[string, string]> {
-    let ipaddr = this.ctx.ip;
-    let location = IP_INNER_LOCATION;
-    // 解析ip地址
-    if (ipaddr.includes(IP_INNER_ADDR)) {
-      ipaddr = ipaddr.replace(IP_INNER_ADDR, '');
-    } else {
-      location = await getRealAddressByIp(ipaddr);
-    }
+    let ipaddr = getClientIP(this.ctx.ip);
+    let location = await getRealAddressByIp(ipaddr);
     return [ipaddr, location];
   }
 

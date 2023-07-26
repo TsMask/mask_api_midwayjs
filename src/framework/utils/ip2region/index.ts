@@ -1,8 +1,4 @@
 // 依赖来源 https://gitee.com/lionsoul/ip2region
-import {
-  IP_INNER_ADDR,
-  IP_INNER_LOCATION,
-} from '../../constants/CommonConstants';
 import { join } from 'path';
 // 读取xdb工具包
 import { loadContentFromFile, newWithBuffer } from './binding';
@@ -12,6 +8,8 @@ const dbPath = join(__dirname, '../../../assets/ip2region.xdb');
 const ip2regionBuffer = loadContentFromFile(dbPath);
 // 检索实例
 const searcher = newWithBuffer(ip2regionBuffer);
+// 网络地址(内网)
+const LOCAT_HOST = '127.0.0.1';
 
 /**
  * 查询IP所在地
@@ -25,7 +23,7 @@ export async function getRegionSearchByIp(ip: string): Promise<{
   took: number;
 }> {
   let data = { region: '0|0|0|0|0', ioCount: 0, took: 0 };
-  if (ip === '::1' || ip.startsWith(IP_INNER_ADDR)) {
+  if (getClientIP(ip) === LOCAT_HOST) {
     data.region = '0|0|0|内网IP|内网IP';
   }
   try {
@@ -42,8 +40,8 @@ export async function getRegionSearchByIp(ip: string): Promise<{
  * @returns 返回结果 江苏省 苏州市
  */
 export async function getRealAddressByIp(ip: string): Promise<string> {
-  if (ip === '::1' || ip.startsWith(IP_INNER_ADDR)) {
-    return IP_INNER_LOCATION;
+  if (getClientIP(ip) === LOCAT_HOST) {
+    return '内网IP';
   }
   try {
     const { region } = await searcher.search(ip);
@@ -59,4 +57,19 @@ export async function getRealAddressByIp(ip: string): Promise<string> {
   }
   // 未知IP
   return '未知';
+}
+
+/**
+ * 处理客户端IP地址显示iPv4
+ * @param ip ip地址 ::1
+ * @returns 返回结果 iPv4
+ */
+export function getClientIP(ip: string): string {
+  if (ip.startsWith('::ffff:')) {
+    ip = ip.replace('::ffff:', '');
+  }
+  if (ip === LOCAT_HOST || ip === '::1') {
+    return LOCAT_HOST;
+  }
+  return ip;
 }
