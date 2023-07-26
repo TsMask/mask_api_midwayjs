@@ -37,7 +37,7 @@ export interface ISysJobService {
    * @param jobGroup 调度任务组
    * @return 调度任务ID
    */
-  checkUniqueJob(
+  checkUniqueJobName(
     jobName: string,
     jobGroup: string,
     jobId: string
@@ -74,23 +74,6 @@ export interface ISysJobService {
    * @return 结果
    */
   changeStatus(sysJob: SysJob): Promise<boolean>;
-
-  /**
-   * 添加调度任务
-   *
-   * @param sysJob 调度任务信息
-   * @param repeat 触发执行cron重复多次
-   * @return 结果
-   */
-  insertQueueJob(sysJob: SysJob, repeat: boolean): Promise<boolean>;
-
-  /**
-   * 删除调度任务
-   *
-   * @param sysJob 调度任务信息
-   * @return 结果
-   */
-  deleteQueueJob(sysJob: SysJob): Promise<void>;
 
   /**
    * 立即运行一次调度任务

@@ -41,10 +41,14 @@ export class SysJobServiceImpl implements ISysJobService {
     return await this.sysJobRepository.selectJobList(sysJob);
   }
   async selectJobById(jobId: string): Promise<SysJob> {
-    return await this.sysJobRepository.selectJobById(jobId);
+    const jobs = await this.sysJobRepository.selectJobByIds([jobId]);
+    if (jobs.length > 0) {
+      return jobs[0];
+    }
+    return null;
   }
 
-  async checkUniqueJob(
+  async checkUniqueJobName(
     jobName: string,
     jobGroup: string,
     jobId: string = ''
@@ -85,13 +89,19 @@ export class SysJobServiceImpl implements ISysJobService {
   }
 
   async deleteJobByIds(jobIds: string[]): Promise<number> {
-    for (const jobId of jobIds) {
-      // 检查是否存在
-      const sysJob = await this.sysJobRepository.selectJobById(jobId);
-      if (!sysJob) continue;
-      await this.deleteQueueJob(sysJob);
+    // 检查是否存在
+    const jobs = await this.sysJobRepository.selectJobByIds(jobIds);
+    if (jobs.length <= 0) {
+      throw new Error('没有权限访问调度任务数据！');
     }
-    return await this.sysJobRepository.deleteJobByIds(jobIds);
+    if (jobs.length === jobIds.length) {
+      // 清除任务
+      for (const job of jobs) {
+        await this.deleteQueueJob(job);
+      }
+      return await this.sysJobRepository.deleteJobByIds(jobIds);
+    }
+    return 0;
   }
 
   async changeStatus(sysJob: SysJob): Promise<boolean> {
@@ -109,10 +119,21 @@ export class SysJobServiceImpl implements ISysJobService {
     newSysJob.jobId = sysJob.jobId;
     newSysJob.status = status;
     newSysJob.updateBy = sysJob.updateBy;
-    return (await this.sysJobRepository.updateJob(newSysJob)) > 0;
+    const rows = await this.sysJobRepository.updateJob(newSysJob);
+    return rows > 0;
   }
 
-  async insertQueueJob(sysJob: SysJob, repeat: boolean): Promise<boolean> {
+  /**
+   * 添加调度任务
+   *
+   * @param sysJob 调度任务信息
+   * @param repeat 触发执行cron重复多次
+   * @return 结果
+   */
+  private async insertQueueJob(
+    sysJob: SysJob,
+    repeat: boolean
+  ): Promise<boolean> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
     if (!queue) return false;
@@ -208,7 +229,13 @@ export class SysJobServiceImpl implements ISysJobService {
     return true;
   }
 
-  async deleteQueueJob(sysJob: SysJob): Promise<void> {
+  /**
+   * 删除调度任务
+   *
+   * @param sysJob 调度任务信息
+   * @return 结果
+   */
+  private async deleteQueueJob(sysJob: SysJob): Promise<void> {
     // 获取队列 Processor
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
     if (!queue) return;

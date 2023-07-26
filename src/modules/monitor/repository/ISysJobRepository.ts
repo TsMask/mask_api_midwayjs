@@ -28,7 +28,7 @@ export interface ISysJobRepository {
    * @param jobId 调度ID
    * @return 调度任务信息
    */
-  selectJobById(jobId: string): Promise<SysJob>;
+  selectJobByIds(jobIds: string[]): Promise<SysJob[]>;
 
   /**
    * 校验调度任务是否唯一

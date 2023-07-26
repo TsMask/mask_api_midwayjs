@@ -69,13 +69,13 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       conditions.push('job_group = ?');
       params.push(query.jobGroup);
     }
-    if (query.status) {
-      conditions.push('status = ?');
-      params.push(query.status);
-    }
     if (query.invokeTarget) {
       conditions.push("invoke_target like concat(?, '%')");
       params.push(query.invokeTarget);
+    }
+    if (query.status) {
+      conditions.push('status = ?');
+      params.push(query.status);
     }
 
     // 构建查询条件语句
@@ -125,19 +125,19 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       conditions.push('job_group = ?');
       params.push(sysJob.jobGroup);
     }
-    if (sysJob.status) {
-      conditions.push('status = ?');
-      params.push(sysJob.status);
-    }
     if (sysJob.invokeTarget) {
       conditions.push("invoke_target like concat(?, '%')");
       params.push(sysJob.invokeTarget);
+    }
+    if (sysJob.status) {
+      conditions.push('status = ?');
+      params.push(sysJob.status);
     }
 
     // 构建查询条件语句
     let whereSql = '';
     if (conditions.length > 0) {
-      whereSql = ' WHERE ' + conditions.join(' AND ');
+      whereSql = ' where ' + conditions.join(' and ');
     }
 
     // 查询数据
@@ -152,10 +152,12 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     return convertResultRows(rows)[0] || null;
   }
 
-  async selectJobById(jobId: string): Promise<SysJob> {
-    const sqlStr = `${SELECT_JOB_SQL} where job_id = ? `;
-    const rows = await this.db.execute(sqlStr, [jobId]);
-    return convertResultRows(rows)[0] || null;
+  async selectJobByIds(jobIds: string[]): Promise<SysJob[]> {
+    const sqlStr = `${SELECT_JOB_SQL} where job_id in (${jobIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, jobIds);
+    return convertResultRows(rows);
   }
 
   async checkUniqueJob(sysJob: SysJob): Promise<string> {
