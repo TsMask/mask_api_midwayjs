@@ -30,64 +30,6 @@ export class SysJobLogController {
   private sysDictDataService: SysDictDataServiceImpl;
 
   /**
-   * 导出调度任务日志信息
-   */
-  @Post('/export')
-  @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
-  @OperLog({
-    title: '调度任务日志信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
-  })
-  async export() {
-    const ctx = this.contextService.getContext();
-    // 查询结果，根据查询条件结果，单页最大值限制
-    const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    const data = await this.sysJobLogService.selectJobLogPage(query);
-    if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
-    }
-    // 读取任务组名字典数据
-    const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(
-      'sys_job_group'
-    );
-    // 导出数据组装
-    const rows = data.rows.reduce(
-      (pre: Record<string, string>[], cur: SysJobLog) => {
-        const sysJobGroup = dictSysJobGroup.find(
-          item => item.dictValue === cur.jobGroup
-        );
-        pre.push({
-          日志序号: cur.jobLogId,
-          任务名称: cur.jobName,
-          任务组名: sysJobGroup.dictLabel ?? '',
-          调用目标: cur.invokeTarget,
-          传入参数: cur.targetParams,
-          日志信息: cur.jobMsg,
-          执行状态: ['失败', '成功'][+cur.status],
-          创建时间: parseDateToStr(+cur.createTime),
-        });
-        return pre;
-      },
-      []
-    );
-    // 导出数据表格
-    const fileName = `jobLog_export_${data.total}_${Date.now()}.xlsx`;
-    ctx.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    ctx.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.fileService.excelWriteRecord(
-      rows,
-      '调度任务日志信息',
-      fileName
-    );
-  }
-
-  /**
    * 调度任务日志列表
    */
   @Get('/list')
@@ -141,5 +83,63 @@ export class SysJobLogController {
   async clean(): Promise<Result> {
     const rows = await this.sysJobLogService.cleanJobLog();
     return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 导出调度任务日志信息
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
+  @OperLog({
+    title: '调度任务日志信息',
+    businessType: OperatorBusinessTypeEnum.EXPORT,
+  })
+  async export() {
+    const ctx = this.contextService.getContext();
+    // 查询结果，根据查询条件结果，单页最大值限制
+    const query: Record<string, any> = Object.assign({}, ctx.request.body);
+    const data = await this.sysJobLogService.selectJobLogPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
+    // 读取任务组名字典数据
+    const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(
+      'sys_job_group'
+    );
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysJobLog) => {
+        const sysJobGroup = dictSysJobGroup.find(
+          item => item.dictValue === cur.jobGroup
+        );
+        pre.push({
+          日志序号: cur.jobLogId,
+          任务名称: cur.jobName,
+          任务组名: sysJobGroup.dictLabel ?? '',
+          调用目标: cur.invokeTarget,
+          传入参数: cur.targetParams,
+          日志信息: cur.jobMsg,
+          执行状态: ['失败', '成功'][+cur.status],
+          记录时间: parseDateToStr(+cur.createTime),
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `jobLog_export_${data.total}_${Date.now()}.xlsx`;
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.excelWriteRecord(
+      rows,
+      '调度任务日志信息',
+      fileName
+    );
   }
 }

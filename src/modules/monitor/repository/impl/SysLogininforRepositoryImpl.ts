@@ -66,13 +66,13 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
       conditions.push("ipaddr like concat(?, '%')");
       params.push(query.ipaddr);
     }
-    if (query.status) {
-      conditions.push('status = ?');
-      params.push(query.status);
-    }
     if (query.userName) {
       conditions.push("user_name like concat(?, '%')");
       params.push(query.userName);
+    }
+    if (query.status) {
+      conditions.push('status = ?');
+      params.push(query.status);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
@@ -132,13 +132,13 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
       conditions.push("ipaddr like concat(?, '%')");
       params.push(sysLogininfor.ipaddr);
     }
-    if (sysLogininfor.status) {
-      conditions.push('status = ?');
-      params.push(sysLogininfor.status);
-    }
     if (sysLogininfor.userName) {
       conditions.push("user_name like concat(?, '%')");
       params.push(sysLogininfor.userName);
+    }
+    if (sysLogininfor.status) {
+      conditions.push('status = ?');
+      params.push(sysLogininfor.status);
     }
 
     // 构建查询条件语句

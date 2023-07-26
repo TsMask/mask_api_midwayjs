@@ -38,58 +38,6 @@ export class SysLogininforController {
   private accountService: AccountService;
 
   /**
-   * 导出登录访问信息
-   */
-  @Post('/export')
-  @PreAuthorize({ hasPermissions: ['system:logininfor:export'] })
-  @OperLog({
-    title: '登录访问信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
-  })
-  async export() {
-    const ctx = this.contextService.getContext();
-    // 查询结果，根据查询条件结果，单页最大值限制
-    const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    const data = await this.sysLogininforService.selectLogininforPage(query);
-    if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
-    }
-    // 导出数据组装
-    const rows = data.rows.reduce(
-      (pre: Record<string, string>[], cur: SysLogininfor) => {
-        pre.push({
-          序号: cur.infoId,
-          用户账号: cur.userName,
-          登录状态: ['失败', '成功'][+cur.status],
-          登录地址: cur.ipaddr,
-          登录地点: cur.loginLocation,
-          浏览器: cur.browser,
-          操作系统: cur.os,
-          提示消息: cur.msg,
-          访问时间: parseDateToStr(+cur.loginTime),
-        });
-        return pre;
-      },
-      []
-    );
-    // 导出数据表格
-    const fileName = `logininfor_export_${rows.length}_${Date.now()}.xlsx`;
-    ctx.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    ctx.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.fileService.excelWriteRecord(
-      rows,
-      '登录访问信息',
-      fileName
-    );
-  }
-
-  /**
    * 登录访问列表
    */
   @Get('/list')
@@ -147,5 +95,57 @@ export class SysLogininforController {
     if (!userName) return Result.err();
     const ok = await this.accountService.clearLoginRecordCache(userName);
     return Result[ok ? 'ok' : 'err']();
+  }
+
+  /**
+   * 导出登录访问信息
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['system:logininfor:export'] })
+  @OperLog({
+    title: '登录访问信息',
+    businessType: OperatorBusinessTypeEnum.EXPORT,
+  })
+  async export() {
+    const ctx = this.contextService.getContext();
+    // 查询结果，根据查询条件结果，单页最大值限制
+    const query: Record<string, any> = Object.assign({}, ctx.request.body);
+    const data = await this.sysLogininforService.selectLogininforPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysLogininfor) => {
+        pre.push({
+          序号: cur.infoId,
+          用户账号: cur.userName,
+          登录状态: ['失败', '成功'][+cur.status],
+          登录地址: cur.ipaddr,
+          登录地点: cur.loginLocation,
+          浏览器: cur.browser,
+          操作系统: cur.os,
+          提示消息: cur.msg,
+          访问时间: parseDateToStr(+cur.loginTime),
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `logininfor_export_${rows.length}_${Date.now()}.xlsx`;
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.excelWriteRecord(
+      rows,
+      '登录访问信息',
+      fileName
+    );
   }
 }

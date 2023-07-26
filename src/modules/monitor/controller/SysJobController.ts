@@ -43,68 +43,6 @@ export class SysJobController {
   private sysDictDataService: SysDictDataServiceImpl;
 
   /**
-   * 导出调度任务信息
-   */
-  @Post('/export')
-  @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
-  @OperLog({
-    title: '调度任务信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
-  })
-  async export() {
-    const ctx = this.contextService.getContext();
-    // 查询结果，根据查询条件结果，单页最大值限制
-    const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    const data = await this.sysJobService.selectJobPage(query);
-    if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
-    }
-    // 读取任务组名字典数据
-    const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(
-      'sys_job_group'
-    );
-    // 导出数据组装
-    const rows = data.rows.reduce(
-      (pre: Record<string, string>[], cur: SysJob) => {
-        const sysJobGroup = dictSysJobGroup.find(
-          item => item.dictValue === cur.jobGroup
-        );
-        pre.push({
-          任务编号: cur.jobId,
-          任务名称: cur.jobName,
-          任务组名: sysJobGroup?.dictLabel ?? '',
-          调用目标: cur.invokeTarget,
-          传入参数: cur.targetParams,
-          执行表达式: cur.cronExpression,
-          计划策略: ['立即执行', '执行一次', '放弃执行'][
-            +cur.misfirePolicy - 1
-          ],
-          并发执行: ['禁止', '允许'][+cur.concurrent],
-          任务状态: ['暂停', '正常'][+cur.status],
-          备注说明: cur.remark,
-        });
-        return pre;
-      },
-      []
-    );
-    // 导出数据表格
-    const fileName = `job_export_${data.total}_${Date.now()}.xlsx`;
-    ctx.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    ctx.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.fileService.excelWriteRecord(
-      rows,
-      '调度任务信息',
-      fileName
-    );
-  }
-
-  /**
    * 调度任务列表
    */
   @Get('/list')
@@ -152,7 +90,7 @@ export class SysJobController {
       return Result.errMsg(`调度任务新增【${jobName}】失败，Cron表达式不正确`);
     }
     // 检查属性唯一
-    const uniqueJob = await this.sysJobService.checkUniqueJob(
+    const uniqueJob = await this.sysJobService.checkUniqueJobName(
       jobName,
       jobGroup
     );
@@ -203,7 +141,7 @@ export class SysJobController {
       return Result.errMsg(`调度任务修改【${jobName}】失败，Cron表达式不正确`);
     }
     // 检查属性唯一
-    const uniqueJob = await this.sysJobService.checkUniqueJob(
+    const uniqueJob = await this.sysJobService.checkUniqueJobName(
       jobName,
       jobGroup,
       jobId
@@ -265,7 +203,9 @@ export class SysJobController {
     const sysJob = await this.sysJobService.selectJobById(jobId);
     if (!sysJob) return Result.err();
     // 与旧值相等不变更
-    if (sysJob.status === status) return Result.err();
+    if (sysJob.status === status) {
+      return Result.errMsg("变更状态与旧值相等！")
+    }
     sysJob.status = status;
     sysJob.updateBy = this.contextService.getUseName();
     const ok = await this.sysJobService.changeStatus(sysJob);
@@ -303,5 +243,67 @@ export class SysJobController {
   async resetQueueJob(): Promise<Result> {
     await this.sysJobService.resetQueueJob();
     return Result.ok();
+  }
+
+  /**
+   * 导出调度任务信息
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
+  @OperLog({
+    title: '调度任务信息',
+    businessType: OperatorBusinessTypeEnum.EXPORT,
+  })
+  async export() {
+    const ctx = this.contextService.getContext();
+    // 查询结果，根据查询条件结果，单页最大值限制
+    const query: Record<string, any> = Object.assign({}, ctx.request.body);
+    const data = await this.sysJobService.selectJobPage(query);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
+    // 读取任务组名字典数据
+    const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(
+      'sys_job_group'
+    );
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysJob) => {
+        const sysJobGroup = dictSysJobGroup.find(
+          item => item.dictValue === cur.jobGroup
+        );
+        pre.push({
+          任务编号: cur.jobId,
+          任务名称: cur.jobName,
+          任务组名: sysJobGroup?.dictLabel ?? '',
+          调用目标: cur.invokeTarget,
+          传入参数: cur.targetParams,
+          执行表达式: cur.cronExpression,
+          计划策略: ['立即执行', '执行一次', '放弃执行'][
+            +cur.misfirePolicy - 1
+          ],
+          并发执行: ['禁止', '允许'][+cur.concurrent],
+          任务状态: ['暂停', '正常'][+cur.status],
+          备注说明: cur.remark,
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `job_export_${data.total}_${Date.now()}.xlsx`;
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.excelWriteRecord(
+      rows,
+      '调度任务信息',
+      fileName
+    );
   }
 }
