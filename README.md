@@ -1,7 +1,8 @@
 # 基于 Midwayjs 的管理系统后端接口服务
 
+[![star](https://gitee.com/TsMask/mask_api_midwayjs/badge/star.svg?theme=dark)](https://gitee.com/TsMask/mask_api_midwayjs/stargazers)
 ![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
-![Release V0.2.6](https://img.shields.io/badge/Release-V0.2.6-orange.svg)
+![Release V0.2.7](https://img.shields.io/badge/Release-V0.2.7-orange.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
