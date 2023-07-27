@@ -1,15 +1,12 @@
 import { Inject, Provide, Singleton } from '@midwayjs/decorator';
 import { diskinfo } from '@dropb/diskinfo';
-import {
-  MidwayInformationService,
-  MidwayEnvironmentService,
-} from '@midwayjs/core';
+import { MidwayInformationService, App } from '@midwayjs/core';
+import { Application } from '@midwayjs/koa';
 import {
   type,
   release,
   hostname,
   homedir,
-  uptime,
   totalmem,
   freemem,
   cpus,
@@ -31,8 +28,8 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
   @Inject()
   private midwayInformationService: MidwayInformationService;
 
-  @Inject()
-  private environment: MidwayEnvironmentService;
+  @App()
+  private app: Application;
 
   /**
    * 获取程序项目信息
@@ -41,8 +38,8 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
   getProjectInfo(): ProjectInfoType {
     const pkg = this.midwayInformationService.getPkg();
     return {
-      appDir: this.midwayInformationService.getAppDir(),
-      env: this.environment.getCurrentEnvironment(),
+      appDir: this.app.getAppDir(),
+      env: this.app.getEnv(),
       name: pkg.name || '',
       version: pkg.version || '',
       dependencies: pkg.dependencies || {},
@@ -75,14 +72,12 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
    */
   getTimeInfo(): TimeInfoType {
     const t = Date().toString().split(' ');
+    const runTime: number = this.app.getAttr('runTime');
     return {
       current: parseDateToStr(new Date()),
-      uptime: ms(uptime() * 1000),
+      uptime: ms(Date.now() - runTime),
       timezone: t.length >= 7 ? t[5] : '',
-      timezoneName:
-        t.length >= 7
-          ? t.slice(6).join(' ').replace(/\(/g, '').replace(/\)/g, '')
-          : '',
+      timezoneName: t.length >= 7 ? t[6].slice(1, -1) : '',
     };
   }
 
@@ -145,13 +140,13 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
         return pre;
       }
       // 过滤地址
-      let addrs: string[] = []
+      let addrs: string[] = [];
       for (const item of netItemList) {
-        if(item.family === 'IPv6' && item.address.includes("::")){
-          addrs.push("IPv6 " +item.address)
+        if (item.family === 'IPv6' && item.address.includes('::')) {
+          addrs.push('IPv6 ' + item.address);
         }
-        if(item.family === 'IPv4' && item.address.includes(".")){
-          addrs.push("IPv4 " +item.address)
+        if (item.family === 'IPv4' && item.address.includes('.')) {
+          addrs.push('IPv4 ' + item.address);
         }
       }
       pre[newType] = addrs.join(' / ');
