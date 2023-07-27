@@ -25,10 +25,10 @@ export interface ISysDictTypeRepository {
   /**
    * 根据字典类型ID查询信息
    *
-   * @param dictId 字典类型ID
+   * @param dictIds 字典类型ID
    * @return 字典类型
    */
-  selectDictTypeById(dictId: string): Promise<SysDictType>;
+  selectDictTypeByIds(dictIds: string[]): Promise<SysDictType[]>;
 
   /**
    * 根据字典类型查询信息
@@ -39,20 +39,12 @@ export interface ISysDictTypeRepository {
   selectDictTypeByType(dictType: string): Promise<SysDictType>;
 
   /**
-   * 校验字典名称是否唯一
-   *
-   * @param dictName 字典名称
-   * @return 结果
-   */
-  checkUniqueDictName(dictName: string): Promise<string>;
-
-  /**
    * 校验字典类型是否唯一
    *
-   * @param dictType 字典类型
+   * @param sysDictType 字典类型信息
    * @return 结果
    */
-  checkUniqueDictType(dictType: string): Promise<string>;
+  checkUniqueDictType(sysDictType: SysDictType): Promise<string>;
 
   /**
    * 新增字典类型信息

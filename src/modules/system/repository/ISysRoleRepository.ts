@@ -28,12 +28,12 @@ export interface ISysRoleRepository {
   selectRoleList(sysRole: SysRole, dataScopeSQL?: string): Promise<SysRole[]>;
 
   /**
-   * 根据用户ID查询角色
+   * 根据用户ID获取角色选择框列表
    *
    * @param userId 用户ID
    * @return 角色列表
    */
-  selectRolePermissionByUserId(userId: string): Promise<SysRole[]>;
+  selectRoleListByUserId(userId: string): Promise<SysRole[]> 
 
   /**
    * 根据用户ID获取拥有角色ID
@@ -49,31 +49,15 @@ export interface ISysRoleRepository {
    * @param roleId 角色ID
    * @return 角色对象信息
    */
-  selectRoleById(roleId: string): Promise<SysRole>;
+  selectRoleByIds(roleIds: string[]): Promise<SysRole[]>
 
   /**
-   * 根据用户ID查询角色
+   * 校验角色是否唯一
    *
-   * @param userName 用户名
-   * @return 角色列表
-   */
-  selectRolesByUserName(userName: string): Promise<SysRole[]>;
-
-  /**
-   * 校验角色名称是否唯一
-   *
-   * @param roleName 角色名称
+   * @param sysRole 角色信息
    * @return 角色信息
    */
-  checkUniqueRoleName(roleName: string): Promise<string>;
-
-  /**
-   * 校验角色权限是否唯一
-   *
-   * @param roleKey 角色权限
-   * @return 角色信息
-   */
-  checkUniqueRoleKey(roleKey: string): Promise<string>;
+  checkUniqueRole(sysRole: SysRole): Promise<string>;
 
   /**
    * 修改角色信息

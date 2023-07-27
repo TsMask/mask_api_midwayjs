@@ -10,14 +10,13 @@ import {
 import { SysUser } from '../../model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
-import { SysPostRepositoryImpl } from '../../repository/impl/SysPostRepositoryImpl';
-import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { SysUserPostRepositoryImpl } from '../../repository/impl/SysUserPostRepositoryImpl';
 import { SysUserRepositoryImpl } from '../../repository/impl/SysUserRepositoryImpl';
 import { SysUserRoleRepositoryImpl } from '../../repository/impl/SysUserRoleRepositoryImpl';
 import { ISysUserService } from '../ISysUserService';
 import { SysConfigServiceImpl } from './SysConfigServiceImpl';
 import { SysDictDataServiceImpl } from './SysDictDataServiceImpl';
+import { ADMIN_ROLE_ID } from '../../../../framework/constants/AdminConstants';
 
 /**
  * 用户 业务层处理
@@ -31,13 +30,7 @@ export class SysUserServiceImpl implements ISysUserService {
   private sysUserRepository: SysUserRepositoryImpl;
 
   @Inject()
-  private sysRoleRepository: SysRoleRepositoryImpl;
-
-  @Inject()
   private sysUserRoleRepository: SysUserRoleRepositoryImpl;
-
-  @Inject()
-  private sysPostRepository: SysPostRepositoryImpl;
 
   @Inject()
   private sysUserPostRepository: SysUserPostRepositoryImpl;
@@ -76,64 +69,56 @@ export class SysUserServiceImpl implements ISysUserService {
   }
   async selectUserById(userId: string): Promise<SysUser> {
     if (!userId) return null;
-    return await this.sysUserRepository.selectUserById(userId);
+    const users = await this.sysUserRepository.selectUserById([userId]);
+    if (users.length > 0) {
+      return users[0];
+    }
+    return null;
   }
 
-  async selectUserRoleGroup(userName: string): Promise<string[]> {
-    const sysRoles = await this.sysRoleRepository.selectRolesByUserName(
-      userName
-    );
-    if (sysRoles && sysRoles.length > 0) {
-      return sysRoles.map(item => item.roleName);
+  async checkUniqueUserName(
+    userName: string,
+    userId: string = ''
+  ): Promise<boolean> {
+    const sysUser = new SysUser();
+    sysUser.userName = userName;
+    const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
+    if (uniqueId === userId) {
+      return true;
     }
-    return [];
+    return !uniqueId;
   }
 
-  async selectUserPostGroup(userName: string): Promise<string[]> {
-    const sysPosts = await this.sysPostRepository.selectPostsByUserName(
-      userName
-    );
-    if (sysPosts && sysPosts.length > 0) {
-      return sysPosts.map(item => item.postName);
+  async checkUniquePhone(
+    phonenumber: string,
+    userId: string = ''
+  ): Promise<boolean> {
+    const sysUser = new SysUser();
+    sysUser.phonenumber = phonenumber;
+    const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
+    if (uniqueId === userId) {
+      return true;
     }
-    return [];
+    return !uniqueId;
   }
 
-  async checkUniqueUserName(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniqueUserName(
-      sysUser.userName
-    );
-    // 用户信息与查询得到用户ID一致
-    if (userId && sysUser.userId === userId) {
+  async checkUniqueEmail(email: string, userId: string = ''): Promise<boolean> {
+    const sysUser = new SysUser();
+    sysUser.email = email;
+    const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
+    if (uniqueId === userId) {
       return true;
     }
-    return !userId;
+    return !uniqueId;
   }
-  async checkUniquePhone(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniquePhone(
-      sysUser.phonenumber
-    );
-    // 用户信息与查询得到用户ID一致
-    if (userId && sysUser.userId === userId) {
-      return true;
-    }
-    return !userId;
-  }
-  async checkUniqueEmail(sysUser: SysUser): Promise<boolean> {
-    const userId = await this.sysUserRepository.checkUniqueEmail(sysUser.email);
-    // 用户信息与查询得到用户ID一致
-    if (userId && sysUser.userId === userId) {
-      return true;
-    }
-    return !userId;
-  }
+
   async insertUser(sysUser: SysUser): Promise<string> {
     // 新增用户信息
     const insertId = await this.sysUserRepository.insertUser(sysUser);
     if (insertId) {
-      // 新增用户与角色管理
+      // 新增用户角色信息
       await this.insertUserRole(insertId, sysUser.roleIds);
-      // 新增用户与岗位管理
+      // 新增用户岗位信息
       await this.insertUserPost(insertId, sysUser.postIds);
     }
     return insertId;
@@ -147,11 +132,11 @@ export class SysUserServiceImpl implements ISysUserService {
     const { userId, roleIds, postIds } = sysUser;
     // 删除用户与角色关联
     await this.sysUserRoleRepository.deleteUserRole([userId]);
-    // 新增用户与角色管理
+    // 新增用户角色信息
     await this.insertUserRole(userId, roleIds);
     // 删除用户与岗位关联
     await this.sysUserPostRepository.deleteUserPost([userId]);
-    // 新增用户与岗位管理
+    // 新增用户岗位信息
     await this.insertUserPost(userId, postIds);
     return await this.sysUserRepository.updateUser(sysUser);
   }
@@ -166,11 +151,14 @@ export class SysUserServiceImpl implements ISysUserService {
     roleIds: string[] = []
   ): Promise<number> {
     if (roleIds && roleIds.length <= 0) return 0;
-    const sysUserRoles: SysUserRole[] = roleIds.map(roleId => {
-      if (roleId) {
-        return new SysUserRole(userId, roleId);
+    const sysUserRoles: SysUserRole[] = [];
+    for (const roleId of roleIds) {
+      // 管理员角色禁止操作，只能通过配置指定用户ID分配
+      if (!roleId || roleId === ADMIN_ROLE_ID) {
+        continue;
       }
-    });
+      sysUserRoles.push(new SysUserRole(userId, roleId));
+    }
     if (sysUserRoles.length <= 0) return 0;
     return await this.sysUserRoleRepository.batchUserRole(sysUserRoles);
   }
@@ -185,11 +173,13 @@ export class SysUserServiceImpl implements ISysUserService {
     postIds: string[] = []
   ): Promise<number> {
     if (postIds && postIds.length <= 0) return 0;
-    const sysUserPosts: SysUserPost[] = postIds.map(postId => {
-      if (postId) {
-        return new SysUserPost(userId, postId);
+    const sysUserPosts: SysUserPost[] = [];
+    for (const postId of postIds) {
+      if (!postId) {
+        continue;
       }
-    });
+      sysUserPosts.push(new SysUserPost(userId, postId));
+    }
     if (sysUserPosts.length <= 0) return 0;
     return await this.sysUserPostRepository.batchUserPost(sysUserPosts);
   }
@@ -200,20 +190,21 @@ export class SysUserServiceImpl implements ISysUserService {
   }
 
   async deleteUserByIds(userIds: string[]): Promise<number> {
-    // 遍历检查是否都存在
-    for (const userId of userIds) {
-      // 检查是否存在
-      const user = await this.sysUserRepository.selectUserById(userId);
-      if (!user) {
-        throw new Error('没有权限访问用户数据！');
-      }
+    // 检查是否存在
+    const users = await this.sysUserRepository.selectUserById(userIds);
+    if (users.length <= 0) {
+      throw new Error('没有权限访问用户数据！');
     }
-
-    // 删除用户与角色关联
-    await this.sysUserRoleRepository.deleteUserRole(userIds);
-    // 删除用户与岗位关联
-    await this.sysUserPostRepository.deleteUserPost(userIds);
-    return await this.sysUserRepository.deleteUserByIds(userIds);
+    if (users.length === userIds.length) {
+      // 删除用户与角色关联
+      await this.sysUserRoleRepository.deleteUserRole(userIds);
+      // 删除用户与岗位关联
+      await this.sysUserPostRepository.deleteUserPost(userIds);
+      // ... 注意其他userId进行关联的表
+      // 删除用户
+      return await this.sysUserRepository.deleteUserByIds(userIds);
+    }
+    return 0;
   }
 
   async importUser(
@@ -263,7 +254,9 @@ export class SysUserServiceImpl implements ISysUserService {
 
       if (newSysUser.phonenumber) {
         if (validMobile(newSysUser.phonenumber)) {
-          const uniquePhone = await this.checkUniquePhone(newSysUser);
+          const uniquePhone = await this.checkUniquePhone(
+            newSysUser.phonenumber
+          );
           if (!uniquePhone) {
             failureNum++;
             failureMsgArr.push(
@@ -281,7 +274,7 @@ export class SysUserServiceImpl implements ISysUserService {
       }
       if (newSysUser.email) {
         if (validEmail(newSysUser.email)) {
-          const uniqueEmail = await this.checkUniqueEmail(newSysUser);
+          const uniqueEmail = await this.checkUniqueEmail(newSysUser.email);
           if (!uniqueEmail) {
             failureNum++;
             failureMsgArr.push(

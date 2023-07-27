@@ -45,36 +45,34 @@ export interface ISysDeptService {
   selectDeptById(deptId: string): Promise<SysDept>;
 
   /**
-   * 根据ID查询所有子部门（正常状态）
-   *
-   * @param deptId 部门ID
-   * @return 子部门数
-   */
-  selectNormalChildrenDeptById(deptId: string): Promise<number>;
-
-  /**
    * 是否存在部门子节点
    *
    * @param deptId 部门ID
    * @return 结果
    */
-  hasChildByDeptId(deptId: string): Promise<boolean>;
+  hasChildByDeptId(deptId: string): Promise<number>;
 
   /**
    * 查询部门是否存在用户
    *
    * @param deptId 部门ID
-   * @return 结果 true 存在 false 不存在
+   * @return 结果
    */
-  checkDeptExistUser(deptId: string): Promise<boolean>;
+  checkDeptExistUser(deptId: string): Promise<number>;
 
   /**
    * 校验部门名称是否唯一
    *
-   * @param sysDept 部门信息
+   * @param deptName 部门名称
+   * @param parentId 上级部门ID
+   * @param deptId 部门ID，更新时传入
    * @return 结果
    */
-  checkUniqueDeptName(sysDept: SysDept): Promise<boolean>;
+  checkUniqueDeptName(
+    deptName: string,
+    parentId: string,
+    deptId: string
+  ): Promise<boolean>;
 
   /**
    * 新增保存部门信息

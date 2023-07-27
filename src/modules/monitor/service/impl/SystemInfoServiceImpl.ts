@@ -1,38 +1,35 @@
+import { Inject, Provide, Singleton } from '@midwayjs/decorator';
+import { diskinfo } from '@dropb/diskinfo';
+import { MidwayInformationService, App } from '@midwayjs/core';
+import { Application } from '@midwayjs/koa';
 import {
-  hostname,
-  homedir,
   type,
   release,
+  hostname,
+  homedir,
+  totalmem,
+  freemem,
   cpus,
   networkInterfaces,
-  uptime,
-  freemem,
-  totalmem,
 } from 'os';
-import {
-  Inject,
-  MidwayEnvironmentService,
-  MidwayInformationService,
-} from '@midwayjs/core';
-import { Provide, Singleton } from '@midwayjs/decorator';
-import { diskinfo } from '@dropb/diskinfo';
-import { parseBit } from '../utils/ValueParseUtils';
-import { parseDateToStr } from '../utils/DateUtils';
+import { parseDateToStr } from '../../../../framework/utils/DateUtils';
+import { parseBit } from '../../../../framework/utils/ValueParseUtils';
+import { ISystemInfoService } from '../ISystemInfoService';
 import ms = require('ms');
 
 /**
- * 服务器系统相关信息
+ * 服务器系统相关信息 服务层实现
  *
  * @author TsMask
  */
 @Provide()
 @Singleton()
-export class SystemInfoService {
+export class SystemInfoServiceImpl implements ISystemInfoService {
   @Inject()
   private midwayInformationService: MidwayInformationService;
 
-  @Inject()
-  private environment: MidwayEnvironmentService;
+  @App()
+  private app: Application;
 
   /**
    * 获取程序项目信息
@@ -41,8 +38,8 @@ export class SystemInfoService {
   getProjectInfo(): ProjectInfoType {
     const pkg = this.midwayInformationService.getPkg();
     return {
-      appDir: this.midwayInformationService.getAppDir(),
-      env: this.environment.getCurrentEnvironment(),
+      appDir: this.app.getAppDir(),
+      env: this.app.getEnv(),
       name: pkg.name || '',
       version: pkg.version || '',
       dependencies: pkg.dependencies || {},
@@ -75,14 +72,12 @@ export class SystemInfoService {
    */
   getTimeInfo(): TimeInfoType {
     const t = Date().toString().split(' ');
+    const runTime: number = this.app.getAttr('runTime');
     return {
       current: parseDateToStr(new Date()),
-      uptime: ms(uptime() * 1000),
+      uptime: ms(Date.now() - runTime),
       timezone: t.length >= 7 ? t[5] : '',
-      timezoneName:
-        t.length >= 7
-          ? t.slice(6).join(' ').replace(/\(/g, '').replace(/\)/g, '')
-          : '',
+      timezoneName: t.length >= 7 ? t[6].slice(1, -1) : '',
     };
   }
 
@@ -144,17 +139,17 @@ export class SystemInfoService {
       if (newType === 'lo') {
         return pre;
       }
-      pre[newType] = netItemList
-        .sort(item => {
-          if (item.family === 'IPv4') {
-            return -1;
-          }
-          return 1;
-        })
-        .map(netItem => {
-          return `${netItem.family} ${netItem.address}`;
-        })
-        .join(' / ');
+      // 过滤地址
+      let addrs: string[] = [];
+      for (const item of netItemList) {
+        if (item.family === 'IPv6' && item.address.includes('::')) {
+          addrs.push('IPv6 ' + item.address);
+        }
+        if (item.family === 'IPv4' && item.address.includes('.')) {
+          addrs.push('IPv4 ' + item.address);
+        }
+      }
+      pre[newType] = addrs.join(' / ');
       return pre;
     }, {});
   }

@@ -34,9 +34,9 @@ export interface ISysPostService {
    * 根据用户ID获取岗位选择框列表
    *
    * @param userId 用户ID
-   * @return 选中岗位ID列表
+   * @return 岗位数据集合
    */
-  selectPostListByUserId(userId: string): Promise<string[]>;
+  selectPostListByUserId(userId: string): Promise<SysPost[]>;
 
   /**
    * 批量删除岗位信息
@@ -63,18 +63,20 @@ export interface ISysPostService {
   updatePost(sysPost: SysPost): Promise<number>;
 
   /**
-   * 校验岗位名称
+   * 校验岗位名称唯一
    *
-   * @param sysPost 岗位信息
+   * @param postName 岗位名称
+   * @param postId 岗位ID，更新时传入
    * @return 结果
    */
-  checkUniquePostName(sysPost: SysPost): Promise<boolean>;
+  checkUniquePostName(postName: string, postId: string): Promise<boolean>;
 
   /**
-   * 校验岗位编码
+   * 校验岗位编码唯一
    *
-   * @param sysPost 岗位信息
+   * @param postCode 岗位编码
+   * @param postId 岗位ID，更新时传入
    * @return 结果
    */
-  checkUniquePostCode(sysPost: SysPost): Promise<boolean>;
+  checkUniquePostCode(postCode: string, postId: string): Promise<boolean>;
 }

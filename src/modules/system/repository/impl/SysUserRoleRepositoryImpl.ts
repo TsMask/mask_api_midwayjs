@@ -39,7 +39,7 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
     return result.affectedRows;
   }
 
-  async deleteUserRoleInfos(
+  async deleteUserRoleByRoleId(
     roleId: string,
     userIds: string[]
   ): Promise<number> {

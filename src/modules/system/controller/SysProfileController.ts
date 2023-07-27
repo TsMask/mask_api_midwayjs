@@ -20,6 +20,8 @@ import { UploadFileInfo } from '@midwayjs/upload';
 import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
 import { SysUser } from '../model/SysUser';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
+import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
+import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 
 /**
  * 个人信息
@@ -35,6 +37,12 @@ export class SysProfileController {
   private sysUserService: SysUserServiceImpl;
 
   @Inject()
+  private sysRoleService: SysRoleServiceImpl;
+
+  @Inject()
+  private sysPostService: SysPostServiceImpl;
+
+  @Inject()
   private tokenService: TokenService;
 
   @Inject()
@@ -48,16 +56,31 @@ export class SysProfileController {
   async profile(): Promise<Result> {
     const sysUser = this.contextService.getSysUser();
     delete sysUser.password;
-    const roleGroup = await this.sysUserService.selectUserRoleGroup(
-      sysUser.userName
+
+    // 查询用户所属角色组
+    let roleGroup: string[] = [];
+    const roles = await this.sysRoleService.selectRoleListByUserId(sysUser.userId);
+    for (const role of roles) {
+      roleGroup.push(role.roleName);
+    }
+    const isAdmin = this.contextService.isAdmin(sysUser.userId);
+    if (isAdmin) {
+      roleGroup.push('管理员');
+    }
+
+    // 查询用户所属岗位组
+    let postGroup: string[] = [];
+    const posts = await this.sysPostService.selectPostListByUserId(
+      sysUser.userId
     );
-    const postGroup = await this.sysUserService.selectUserPostGroup(
-      sysUser.userName
-    );
+    for (const post of posts) {
+      postGroup.push(post.postName);
+    }
+
     return Result.okData({
       user: sysUser,
-      roleGroup: roleGroup,
-      postGroup: postGroup,
+      roleGroup: [...new Set(roleGroup)],
+      postGroup: [...new Set(postGroup)],
     });
   }
 
@@ -68,42 +91,45 @@ export class SysProfileController {
   @PreAuthorize()
   @OperLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async updateProfile(@Body() sysUser: SysUser): Promise<Result> {
-    if (!sysUser.nickName || !sysUser.sex) return Result.err();
+    if (!sysUser.nickName || !sysUser.sex) {
+      return Result.err();
+    }
     const loginUser = this.contextService.getLoginUser();
     const userName = loginUser.user.userName;
     const userId = loginUser.userId;
-    sysUser.userId = userId;
-    sysUser.userName = userName;
 
     // 检查手机号码格式并判断是否唯一
     if (sysUser.phonenumber) {
       if (validMobile(sysUser.phonenumber)) {
-        const uniquePhone = await this.sysUserService.checkUniquePhone(sysUser);
+        const uniquePhone = await this.sysUserService.checkUniquePhone(
+          sysUser.phonenumber,
+          userId
+        );
         if (!uniquePhone) {
-          return Result.errMsg(
-            `修改用户【${sysUser.userName}】失败，手机号码已存在`
-          );
+          return Result.errMsg(`修改用户【${userName}】失败，手机号码已存在`);
         }
       } else {
-        return Result.errMsg(
-          `修改用户【${sysUser.userName}】失败，手机号码格式错误`
-        );
+        return Result.errMsg(`修改用户【${userName}】失败，手机号码格式错误`);
       }
+    }else{
+      sysUser.phonenumber = "null"
     }
+
     // 检查邮箱格式并判断是否唯一
     if (sysUser.email) {
       if (validEmail(sysUser.email)) {
-        const uniqueEmail = await this.sysUserService.checkUniqueEmail(sysUser);
+        const uniqueEmail = await this.sysUserService.checkUniqueEmail(
+          sysUser.email,
+          userId
+        );
         if (!uniqueEmail) {
-          return Result.errMsg(
-            `修改用户【${sysUser.userName}】失败，邮箱已存在`
-          );
+          return Result.errMsg(`修改用户【${userName}】失败，邮箱已存在`);
         }
       } else {
-        return Result.errMsg(
-          `修改用户【${sysUser.userName}】失败，邮箱格式错误`
-        );
+        return Result.errMsg(`修改用户【${userName}】失败，邮箱格式错误`);
       }
+    }else{
+      sysUser.email = "null"
     }
 
     // 用户基本资料
@@ -125,7 +151,7 @@ export class SysProfileController {
       await this.tokenService.setLoginUser(loginUser, isAdmin);
       return Result.ok();
     }
-    return Result.errMsg('修改个人信息异常，请联系管理员');
+    return Result.errMsg('修改个人信息异常');
   }
 
   /**
@@ -144,7 +170,7 @@ export class SysProfileController {
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
-    // 匹配用户密码
+    // 检查匹配用户密码
     const oldCompare = await bcryptCompare(oldPassword, user.password);
     if (!oldCompare) {
       return Result.errMsg('修改密码失败，旧密码错误');
@@ -153,6 +179,7 @@ export class SysProfileController {
     if (newCompare) {
       return Result.errMsg('新密码不能与旧密码相同');
     }
+    // 用户修改新密码
     const newSysUser = new SysUser();
     newSysUser.userId = loginUser.userId;
     newSysUser.updateBy = loginUser.user.userName;
@@ -195,6 +222,6 @@ export class SysProfileController {
       await this.tokenService.setLoginUser(loginUser, isAdmin);
       return Result.okData(filePath);
     }
-    return Result.errMsg('上传图片异常，请联系管理员');
+    return Result.errMsg('上传图片异常');
   }
 }

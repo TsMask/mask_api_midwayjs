@@ -3,14 +3,12 @@ import { createCustomMethodDecorator } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
 import { OperatorBusinessTypeEnum } from '../enums/OperatorBusinessTypeEnum';
 import { OperatorTypeEnum } from '../enums/OperatorTypeEnum';
-import { getRealAddressByIp } from '../utils/ip2region';
+import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { SysOperLog } from '../../modules/monitor/model/SysOperLog';
 import { SysOperLogServiceImpl } from '../../modules/monitor/service/impl/SysOperLogServiceImpl';
 import { LoginUser } from '../vo/LoginUser';
 import { Result } from '../vo/Result';
 import {
-  IP_INNER_ADDR,
-  IP_INNER_LOCATION,
   STATUS_NO,
   STATUS_YES,
 } from '../constants/CommonConstants';
@@ -84,13 +82,8 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       operLog.operUrl = ctx.path;
       operLog.requestMethod = ctx.method;
       // 解析ip地址
-      if (ctx.ip.includes(IP_INNER_ADDR)) {
-        operLog.operIp = ctx.ip.replace(IP_INNER_ADDR, '');
-        operLog.operLocation = IP_INNER_LOCATION;
-      } else {
-        operLog.operIp = ctx.ip;
-        operLog.operLocation = await getRealAddressByIp(ctx.ip);
-      }
+      operLog.operIp = getClientIP(ctx.ip);
+      operLog.operLocation = await getRealAddressByIp(ctx.ip);
 
       // 获取登录用户信息
       const loginUser: LoginUser = ctx.loginUser;

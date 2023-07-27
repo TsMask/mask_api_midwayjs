@@ -6,8 +6,8 @@ import { SysPost } from '../../model/SysPost';
 import { ISysPostRepository } from '../ISysPostRepository';
 
 /**查询视图对象SQL */
-const SELECT_POST_SQL = ` 
-select post_id, post_code, post_name, post_sort, status, create_by, create_time, remark 
+const SELECT_POST_SQL = `select 
+post_id, post_code, post_name, post_sort, status, create_by, create_time, remark 
 from sys_post`;
 
 /**岗位表信息实体映射 */
@@ -44,7 +44,7 @@ function convertResultRows(rows: any[]): SysPost[] {
 }
 
 /**
- * 角色表 数据层处理
+ * 岗位表 数据层处理
  *
  * @author TsMask
  */
@@ -135,32 +135,25 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     return convertResultRows(results);
   }
 
-  async selectPostById(postId: string): Promise<SysPost> {
-    const sqlStr = `${SELECT_POST_SQL} where post_id = ? `;
-    const rows = await this.db.execute(sqlStr, [postId]);
-    return convertResultRows(rows)[0] || null;
-  }
-
-  async selectPostListByUserId(userId: string): Promise<string[]> {
-    const sqlStr = `select p.post_id from sys_post p 
-    left join sys_user_post up on up.post_id = p.post_id 
-    left join sys_user u on u.user_id = up.user_id 
-    where u.user_id = ? `;
-    const rows = await this.db.execute(sqlStr, [userId]);
-    const sysPosts = convertResultRows(rows);
-    return sysPosts.map(item => item.postId);
-  }
-
-  async selectPostsByUserName(userName: string): Promise<SysPost[]> {
-    const sql = `select p.post_id, p.post_name, p.post_code 
-    from sys_post p 
-    left join sys_user_post up on up.post_id = p.post_id 
-    left join sys_user u on u.user_id = up.user_id
-		where u.user_name = ?`;
-    const rows = await this.db.execute(sql, [userName]);
+  async selectPostByIds(postIds: string[]): Promise<SysPost[]> {
+    const sqlStr = `${SELECT_POST_SQL} where post_id in (${postIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, postIds);
     return convertResultRows(rows);
   }
 
+  async selectPostListByUserId(userId: string): Promise<SysPost[]> {
+    const sqlStr = `select distinct 
+    p.post_id, p.post_name, p.post_code 
+    from sys_post p 
+    left join sys_user_post up on up.post_id = p.post_id 
+    left join sys_user u on u.user_id = up.user_id 
+    where u.user_id = ? order by p.post_id`;
+    const rows = await this.db.execute(sqlStr, [userId]);
+    return convertResultRows(rows);
+  }
+  
   async deletePostByIds(postIds: string[]): Promise<number> {
     const sqlStr = `delete from sys_post where post_id in (${postIds
       .map(() => '?')
@@ -234,19 +227,30 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     return `${result.insertId}`;
   }
 
-  async checkUniquePostName(postName: string): Promise<string> {
-    const sqlStr =
-      "select post_id as 'str' from sys_post where post_name= ? limit 1";
-    const paramArr = [postName];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+  async checkUniquePost(sysPost: SysPost): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysPost.postName) {
+      conditions.push('post_name= ?');
+      params.push(sysPost.postName);
+    }
+    if (sysPost.postCode) {
+      conditions.push('post_code = ?');
+      params.push(sysPost.postName);
+    }
 
-  async checkUniquePostCode(postCode: string): Promise<string> {
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select post_id as 'str' from sys_post where post_code = ? limit 1";
-    const paramArr = [postCode];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
+      "select post_id as 'str' from sys_post " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 }

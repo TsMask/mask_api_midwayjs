@@ -5,8 +5,8 @@ import { Result } from '../vo/Result';
 import { REPEAT_SUBMIT_KEY } from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';
 import { diffSeconds } from '../utils/DateUtils';
-import { IP_INNER_ADDR } from '../constants/CommonConstants';
 import { APP_RESPONSE_HEADER_REPEATSUBMIT_REST } from '../constants/AppConstants';
+import { getClientIP } from '../utils/ip2region';
 
 /**重复参数Redis格式数据类型 */
 type RepeatParamType = {
@@ -52,9 +52,7 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       );
 
       // 获取客户端IP
-      const clientIP = ctx.ip.includes(IP_INNER_ADDR)
-        ? ctx.ip.replace(IP_INNER_ADDR, '')
-        : ctx.ip;
+      const clientIP = getClientIP(ctx.ip);
 
       // 唯一标识（指定key + 客户端IP + 请求地址）
       const cacheKey = REPEAT_SUBMIT_KEY + `${clientIP}:${ctx.path}`;

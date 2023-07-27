@@ -22,11 +22,11 @@ SYS_DEPT_RESULT.set('phone', 'phone');
 SYS_DEPT_RESULT.set('email', 'email');
 SYS_DEPT_RESULT.set('status', 'status');
 SYS_DEPT_RESULT.set('del_flag', 'delFlag');
-SYS_DEPT_RESULT.set('parent_name', 'parentName');
 SYS_DEPT_RESULT.set('create_by', 'createBy');
 SYS_DEPT_RESULT.set('create_time', 'createTime');
 SYS_DEPT_RESULT.set('update_by', 'updateBy');
 SYS_DEPT_RESULT.set('update_time', 'updateTime');
+SYS_DEPT_RESULT.set('parent_name', 'parentName');
 
 /**
  *将结果记录转实体结果组
@@ -102,14 +102,14 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   ): Promise<string[]> {
     let sqlStr = `select d.dept_id as 'str' from sys_dept d
     left join sys_role_dept rd on d.dept_id = rd.dept_id
-    where rd.role_id = ?`;
+    where rd.role_id = ? `;
     const paramArr = [roleId];
     // 关联显示
     if (deptCheckStrictly) {
-      sqlStr += `and d.dept_id not in 
+      sqlStr += ` and d.dept_id not in 
       (select d.parent_id from sys_dept d
       inner join sys_role_dept rd on d.dept_id = rd.dept_id 
-      and rd.role_id = ?)`;
+      and rd.role_id = ?) `;
       paramArr.push(roleId);
     }
     sqlStr += ' order by d.parent_id, d.order_num ';
@@ -127,16 +127,9 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async selectChildrenDeptById(deptId: string): Promise<SysDept[]> {
-    const sqlStr = `${SELECT_DEPT_SQL} where find_in_set(?, ancestors)`;
+    const sqlStr = `${SELECT_DEPT_SQL} where find_in_set(?, d.ancestors)`;
     const rows = await this.db.execute(sqlStr, [deptId]);
     return convertResultRows(rows);
-  }
-
-  async selectNormalChildrenDeptById(deptId: string): Promise<number> {
-    const sqlStr =
-      "select count(1) as 'total' from sys_dept where status = '1' and del_flag = '0' and find_in_set(?, ancestors) ";
-    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [deptId]);
-    return parseNumber(countRow[0].total);
   }
 
   async hasChildByDeptId(deptId: string): Promise<number> {
@@ -153,14 +146,32 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     return parseNumber(countRow[0].total);
   }
 
-  async checkUniqueDeptName(
-    deptName: string,
-    parentId: string
-  ): Promise<string> {
+  async checkUniqueDept(sysDept: SysDept): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysDept.deptName) {
+      conditions.push('dept_name = ?');
+      params.push(sysDept.deptName);
+    }
+    if (sysDept.parentId) {
+      conditions.push('parent_id = ?');
+      params.push(sysDept.parentId);
+    }
+
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select dept_id as 'str' from sys_dept where dept_name = ? and parent_id = ? and del_flag = '0' limit 1";
-    const paramArr = [deptName, parentId];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
+      "select dept_id as 'str' from sys_dept " +
+      whereSql +
+      " and del_flag = '0' limit 1";
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 

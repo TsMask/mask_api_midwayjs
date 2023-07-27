@@ -37,5 +37,5 @@ export interface ISysUserRoleRepository {
    * @param userIds 需要删除的用户数据ID
    * @return 结果
    */
-  deleteUserRoleInfos(roleId: string, userIds: string[]): Promise<number>;
+  deleteUserRoleByRoleId(roleId: string, userIds: string[]): Promise<number>;
 }

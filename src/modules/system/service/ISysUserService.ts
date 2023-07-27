@@ -56,44 +56,31 @@ export interface ISysUserService {
   selectUserById(userId: string): Promise<SysUser>;
 
   /**
-   * 根据用户ID查询用户所属角色组
-   *
-   * @param userName 用户名
-   * @return 结果
-   */
-  selectUserRoleGroup(userName: string): Promise<string[]>;
-
-  /**
-   * 根据用户ID查询用户所属岗位组
-   *
-   * @param userName 用户名
-   * @return 结果
-   */
-  selectUserPostGroup(userName: string): Promise<string[]>;
-
-  /**
    * 校验用户名称是否唯一
    *
-   * @param sysUser 用户信息
+   * @param userName 用户名称
+   * @param userId 用户ID，更新时传入
    * @return 结果
    */
-  checkUniqueUserName(sysUser: SysUser): Promise<boolean>;
+  checkUniqueUserName(userName: string, userId: string): Promise<boolean>;
 
   /**
    * 校验手机号码是否唯一
    *
-   * @param sysUser 用户信息
+   * @param phonenumber 用户手机
+   * @param userId 用户ID，更新时传入
    * @return 结果
    */
-  checkUniquePhone(sysUser: SysUser): Promise<boolean>;
+  checkUniquePhone(phonenumber: string, userId: string): Promise<boolean>;
 
   /**
    * 校验email是否唯一
    *
-   * @param sysUser 用户信息
+   * @param email 用户email
+   * @param userId 用户ID，更新时传入
    * @return 结果
    */
-  checkUniqueEmail(sysUser: SysUser): Promise<boolean>;
+  checkUniqueEmail(email: string, userId: string): Promise<boolean>;
 
   /**
    * 新增用户信息

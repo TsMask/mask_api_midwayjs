@@ -183,7 +183,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return convertResultRows(results);
   }
 
-  async selectRolePermissionByUserId(userId: string): Promise<SysRole[]> {
+  async selectRoleListByUserId(userId: string): Promise<SysRole[]> {
     const sqlStr = `${SELECT_ROLE_SQL} where r.del_flag = '0' and ur.user_id = ?`;
     const paramArr = [userId];
     const rows = await this.db.execute(sqlStr, paramArr);
@@ -199,33 +199,40 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return rows.map(item => item.str);
   }
 
-  async selectRoleById(roleId: string): Promise<SysRole> {
-    const sqlStr = `${SELECT_ROLE_SQL} where r.role_id = ?`;
-    const paramArr = [roleId];
-    const rows = await this.db.execute(sqlStr, paramArr);
-    return convertResultRows(rows)[0] || null;
-  }
-
-  async selectRolesByUserName(userName: string): Promise<SysRole[]> {
-    const sqlStr = `${SELECT_ROLE_SQL} where r.del_flag = '0' and u.user_name = ? `;
-    const paramArr = [userName];
-    const rows = await this.db.execute(sqlStr, paramArr);
+  async selectRoleByIds(roleIds: string[]): Promise<SysRole[]> {
+    const sqlStr = `${SELECT_ROLE_SQL} where r.role_id in (${roleIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, roleIds);
     return convertResultRows(rows);
   }
 
-  async checkUniqueRoleName(roleName: string): Promise<string> {
-    const sqlStr =
-      "select role_id as 'str' from sys_role r where r.role_name = ? and r.del_flag = '0' limit 1";
-    const paramArr = [roleName];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+  async checkUniqueRole(sysRole: SysRole): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysRole.roleName) {
+      conditions.push('r.role_name = ?');
+      params.push(sysRole.roleName);
+    }
+    if (sysRole.roleKey) {
+      conditions.push('r.role_key = ?');
+      params.push(sysRole.roleKey);
+    }
 
-  async checkUniqueRoleKey(roleKey: string): Promise<string> {
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select role_id as 'str' from sys_role r where r.role_key = ? and r.del_flag = '0' limit 1";
-    const paramArr = [roleKey];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
+      "select role_id as 'str' from sys_role r " +
+      whereSql +
+      " and r.del_flag = '0' limit 1";
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 
@@ -316,7 +323,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
       paramMap.set('create_time', Date.now());
     }
 
-    const sqlStr = `insert into sys_role(${[...paramMap.keys()].join(
+    const sqlStr = `insert into sys_role (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [

@@ -118,11 +118,12 @@ export class SysMenuController {
     if (menuId === parentId) {
       return Result.errMsg(`菜单修改【${menuName}】失败，上级菜单不能选择自己`);
     }
-    // 检查数据是否存在，父级ID不为0是要检查
+    // 检查数据是否存在
     const menu = await this.sysMenuService.selectMenuById(menuId);
     if (!menu) {
       return Result.errMsg('没有权限访问菜单数据');
     }
+    // 父级ID不为0是要检查
     if (parentId !== '0') {
       const menuParent = await this.sysMenuService.selectMenuById(parentId);
       if (!menuParent) {
@@ -132,7 +133,8 @@ export class SysMenuController {
     // 目录和菜单检查地址唯一
     if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menuType)) {
       const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
-        sysMenu.path
+        sysMenu.path,
+        sysMenu.menuId
       );
       if (!uniqueNenuPath) {
         return Result.errMsg(
@@ -143,7 +145,8 @@ export class SysMenuController {
     // 检查名称唯一
     const uniqueNenuName = await this.sysMenuService.checkUniqueNenuName(
       sysMenu.menuName,
-      sysMenu.parentId
+      sysMenu.parentId,
+      sysMenu.menuId
     );
     if (!uniqueNenuName) {
       return Result.errMsg(`菜单修改【${menuName}】失败，菜单名称已存在`);
@@ -170,17 +173,17 @@ export class SysMenuController {
     // 检查数据是否存在
     const menu = await this.sysMenuService.selectMenuById(menuId);
     if (!menu) {
-      return Result.errMsg('没有权限访问菜单数据');
+      return Result.errMsg('没有权限访问菜单数据！');
     }
     // 检查是否存在子菜单
     const hasChild = await this.sysMenuService.hasChildByMenuId(menuId);
-    if (hasChild) {
-      return Result.errMsg('存在子菜单,不允许删除');
+    if (hasChild > 0) {
+      return Result.errMsg(`不允许删除，存在子菜单数：${hasChild}`);
     }
     // 检查是否分配给角色
     const existRole = await this.sysMenuService.checkMenuExistRole(menuId);
-    if (existRole) {
-      return Result.errMsg('菜单已分配给角色,不允许删除');
+    if (existRole > 0) {
+      return Result.errMsg(`不允许删除，菜单已分配给角色数：${existRole}`);
     }
     const rows = await this.sysMenuService.deleteMenuById(menuId);
     return Result[rows > 0 ? 'ok' : 'err']();

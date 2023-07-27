@@ -109,7 +109,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     }
 
     // 查询数据
-    const orderSql = ' order by m.parent_id, m.menu_sort ';
+    const orderSql = ' order by m.parent_id, m.menu_sort';
     const querySql = fromSql + whereSql + orderSql;
     const results = await this.db.execute(querySql, params);
     return convertResultRows(results);
@@ -132,15 +132,6 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     return convertResultRows(rows);
   }
 
-  async selectMenuPermsByRoleId(roleId: string): Promise<string[]> {
-    const sqlStr = `select distinct m.perms as 'str' from sys_menu m 
-    left join sys_role_menu rm on m.menu_id = rm.menu_id
-    where m.status = '1' and rm.role_id = ?`;
-
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [roleId]);
-    return rows.map(item => item.str);
-  }
-
   async selectMenuPermsByUserId(userId: string): Promise<string[]> {
     const sqlStr = `select distinct m.perms as 'str' from sys_menu m 
     left join sys_role_menu rm on m.menu_id = rm.menu_id 
@@ -158,33 +149,30 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   ): Promise<string[]> {
     let sqlStr = `select m.menu_id as 'str' from sys_menu m 
     left join sys_role_menu rm on m.menu_id = rm.menu_id
-    where rm.role_id = ?`;
+    where rm.role_id = ? `;
     const paramArr = [roleId];
     if (menuCheckStrictly) {
-      sqlStr +=
-        ' and m.menu_id not in (select m.parent_id from sys_menu m inner join sys_role_menu rm on m.menu_id = rm.menu_id and rm.role_id = ?) ';
+      sqlStr += ` and m.menu_id not in 
+      (select m.parent_id from sys_menu m 
+      inner join sys_role_menu rm on m.menu_id = rm.menu_id 
+      and rm.role_id = ?) `;
       paramArr.push(roleId);
     }
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
     return rows.map(item => item.str);
   }
 
-  async selectMenuById(menuId: string): Promise<SysMenu> {
-    const sqlStr = `${SELECT_MENU_SQL} where menu_id = ?`;
-    const rows = await this.db.execute(sqlStr, [menuId]);
-    return convertResultRows(rows)[0] || null;
+  async selectMenuByIds(menuIds: string[]): Promise<SysMenu[]> {
+    const sqlStr = `${SELECT_MENU_SQL} where m.menu_id in (${menuIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, menuIds);
+    return convertResultRows(rows);
   }
 
   async hasChildByMenuId(menuId: string): Promise<number> {
     const sqlStr =
       "select count(1) as 'total' from sys_menu where parent_id = ? ";
-    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
-    return parseNumber(countRow[0].total);
-  }
-
-  async checkMenuExistRole(menuId: string): Promise<number> {
-    const sqlStr =
-      "select count(1) as 'total' from sys_role_menu where menu_id = ? ";
     const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
     return parseNumber(countRow[0].total);
   }
@@ -345,23 +333,25 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       conditions.push('menu_name = ?');
       params.push(sysMenu.menuName);
     }
-    if (sysMenu.visible) {
+    if (sysMenu.parentId) {
       conditions.push('parent_id = ?');
-      params.push(sysMenu.visible);
+      params.push(sysMenu.parentId);
     }
-    if (sysMenu.status) {
+    if (sysMenu.path) {
       conditions.push('path = ?');
-      params.push(sysMenu.status);
+      params.push(sysMenu.path);
     }
 
     // 构建查询条件语句
     let whereSql = '';
     if (conditions.length > 0) {
       whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
     }
 
     const sqlStr =
-      "select menu_id as 'str' from sys_menu" + whereSql + ' limit 1';
+      "select menu_id as 'str' from sys_menu " + whereSql + ' limit 1';
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }

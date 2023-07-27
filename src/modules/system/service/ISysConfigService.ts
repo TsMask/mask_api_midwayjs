@@ -41,10 +41,11 @@ export interface ISysConfigService {
   /**
    * 校验参数键名是否唯一
    *
-   * @param sysConfig 参数配置信息
+   * @param configKey 参数键名
+   * @param configId 参数ID，更新时传入
    * @return 结果
    */
-  checkUniqueConfigKey(sysConfig: SysConfig): Promise<boolean>;
+  checkUniqueConfigKey(configKey: string, configId: string): Promise<boolean>;
 
   /**
    * 新增参数配置
@@ -68,18 +69,6 @@ export interface ISysConfigService {
    * @param configIds 需要删除的参数ID
    */
   deleteConfigByIds(configIds: string[]): Promise<number>;
-
-  /**
-   * 加载参数缓存数据
-   * @param configKey 参数键名，不指定即加载所有
-   */
-  loadingConfigCache(configKey: string): Promise<void>;
-
-  /**
-   * 清空参数缓存数据
-   *  @param configKey 参数键名，不指定即清除所有
-   */
-  clearConfigCache(configKey: string): Promise<number>;
 
   /**
    * 重置参数缓存数据

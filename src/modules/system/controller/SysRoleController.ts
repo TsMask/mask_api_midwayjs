@@ -13,7 +13,6 @@ import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
-import { TokenService } from '../../../framework/service/TokenService';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
 import { ROLE_DATA_SCOPE } from '../../../framework/enums/RoleDataScopeEnum';
@@ -35,56 +34,10 @@ export class SysRoleController {
   private fileService: FileService;
 
   @Inject()
-  private tokenService: TokenService;
-
-  @Inject()
   private sysUserService: SysUserServiceImpl;
 
   @Inject()
   private sysRoleService: SysRoleServiceImpl;
-
-  /**
-   * 导出角色信息
-   */
-  @Post('/export')
-  @PreAuthorize({ hasPermissions: ['system:role:export'] })
-  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.EXPORT })
-  async export() {
-    const ctx = this.contextService.getContext();
-    // 查询结果，根据查询条件结果，单页最大值限制
-    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
-    const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
-    if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
-    }
-    // 导出数据组装
-    const rows = data.rows.reduce(
-      (pre: Record<string, string>[], cur: SysRole) => {
-        pre.push({
-          角色序号: cur.roleId,
-          角色名称: cur.roleName,
-          角色权限: cur.roleKey,
-          角色排序: `${cur.roleSort}`,
-          数据范围: ROLE_DATA_SCOPE[cur.dataScope],
-          角色状态: ['停用', '正常'][+cur.status],
-        });
-        return pre;
-      },
-      []
-    );
-    // 导出数据表格
-    const fileName = `role_export_${rows.length}_${Date.now()}.xlsx`;
-    ctx.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    ctx.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.fileService.excelWriteRecord(rows, '角色信息', fileName);
-  }
 
   /**
    * 角色列表
@@ -117,20 +70,21 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:add'] })
   @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysRole: SysRole): Promise<Result> {
-    // 判断属性值是否唯一
+    const { roleName, roleKey } = sysRole;
+    if (!roleName || !roleKey) return Result.err();
+
+    // 判断角色名称是否唯一
     const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
-      sysRole
+      roleName
     );
     if (!uniqueRoleName) {
-      return Result.errMsg(
-        `角色新增【${sysRole.roleName}】失败，角色名称已存在`
-      );
+      return Result.errMsg(`角色新增【${roleName}】失败，角色名称已存在`);
     }
-    const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(sysRole);
+
+    // 判断角色键值是否唯一
+    const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(roleKey);
     if (!uniqueRoleKey) {
-      return Result.errMsg(
-        `角色新增【${sysRole.roleName}】失败，角色键值已存在`
-      );
+      return Result.errMsg(`角色新增【${roleName}】失败，角色键值已存在`);
     }
 
     sysRole.createBy = this.contextService.getUseName();
@@ -145,24 +99,33 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysRole: SysRole): Promise<Result> {
-    const { roleId, roleName } = sysRole;
-    if (!roleId || !roleName) return Result.err();
+    const { roleId, roleName, roleKey } = sysRole;
+    if (!roleId || !roleName || !roleKey) return Result.err();
+
     // 检查是否管理员角色
     if (roleId === ADMIN_ROLE_ID) {
       return Result.errMsg('不允许操作管理员角色');
     }
+
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
       return Result.errMsg('没有权限访问角色数据！');
     }
-    // 判断属性值是否唯一
+
+    // 判断角色名称是否唯一
     const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
-      sysRole
+      roleName,
+      roleId
     );
     if (!uniqueRoleName) {
       return Result.errMsg(`角色修改【${roleName}】失败，角色名称已存在`);
     }
-    const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(sysRole);
+
+    // 判断角色键值是否唯一
+    const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(
+      roleKey,
+      roleId
+    );
     if (!uniqueRoleKey) {
       return Result.errMsg(`角色修改【${roleName}】失败，角色键值已存在`);
     }
@@ -170,20 +133,9 @@ export class SysRoleController {
     sysRole.updateBy = this.contextService.getUseName();
     const rows = await this.sysRoleService.updateRole(sysRole);
     if (rows > 0) {
-      // 更新缓存用户权限
-      // 非管理员用户 同时 自己拥有角色权限
-      const loginUser = this.contextService.getLoginUser();
-      const isAdmin = this.contextService.isAdmin(loginUser.userId);
-      if (!isAdmin && loginUser.user.roleIds.includes(sysRole.roleId)) {
-        const user = await this.sysUserService.selectUserByUserName(
-          loginUser.user.userName
-        );
-        loginUser.user = user;
-        await this.tokenService.setLoginUser(loginUser, isAdmin);
-      }
       return Result.ok();
     }
-    return Result.errMsg(`角色修改【${roleName}】失败，请联系管理员`);
+    return Result.errMsg(`角色修改【${roleName}】失败`);
   }
 
   /**
@@ -197,7 +149,14 @@ export class SysRoleController {
     // 处理字符转id数组
     const ids = roleIds.split(',');
     if (ids.length <= 0) return Result.err();
-    const rows = await this.sysRoleService.deleteRoleByIds([...new Set(ids)]);
+    const uniqueIDs = [...new Set(ids)];
+    // 检查是否管理员角色
+    for (const id of uniqueIDs) {
+      if (id === ADMIN_ROLE_ID) {
+        return Result.errMsg('不允许操作管理员角色');
+      }
+    }
+    const rows = await this.sysRoleService.deleteRoleByIds(uniqueIDs);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -212,16 +171,23 @@ export class SysRoleController {
     @Body('status') status: string
   ): Promise<Result> {
     if (!roleId || !status || status.length > 1) return Result.err();
+
     // 检查是否管理员角色
     if (roleId === ADMIN_ROLE_ID) {
       return Result.errMsg('不允许操作管理员角色');
     }
+
+    // 检查是否存在
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
       return Result.errMsg('没有权限访问角色数据！');
     }
+
     // 与旧值相等不变更
-    if (role.status === status) return Result.err();
+    if (role.status === status) {
+      return Result.errMsg('变更状态与旧值相等！');
+    }
+
     // 更新状态不刷新缓存
     const sysRole = new SysRole();
     sysRole.roleId = roleId;
@@ -281,17 +247,17 @@ export class SysRoleController {
   /**
    * 角色分配选择授权
    *
-   * @param select 添加true 取消false
-   * @param select 添加true 取消false
-   * @param select 选择操作 添加true 取消false
+   * @param roleId 分配的角色
+   * @param userIds 选择用户ID
+   * @param checked 选择操作 添加true 取消false
    */
-  @Put('/authUser/select')
+  @Put('/authUser/checked')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.GRANT })
-  async authUserSelect(
+  async authUserChecked(
     @Body('roleId') roleId: string,
     @Body('userIds') userIds: string,
-    @Body('select') select: boolean
+    @Body('checked') checked: boolean
   ): Promise<Result> {
     if (!roleId || !userIds) return Result.err();
     // 处理字符转id数组
@@ -301,10 +267,59 @@ export class SysRoleController {
     if (!role) {
       return Result.errMsg('没有权限访问角色数据！');
     }
-    const authUsers = select ? 'insertAuthUsers' : 'deleteAuthUsers';
-    const rows = await this.sysRoleService[authUsers](roleId, [
-      ...new Set(ids),
-    ]);
+    let rows = 0
+    if(checked){
+      rows = await this.sysRoleService.insertAuthUsers(roleId, [
+        ...new Set(ids),
+      ]);
+    }else{
+      rows = await this.sysRoleService.deleteAuthUsers(roleId, [
+        ...new Set(ids),
+      ]);
+    }
     return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 导出角色信息
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['system:role:export'] })
+  @OperLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.EXPORT })
+  async export() {
+    const ctx = this.contextService.getContext();
+    // 查询结果，根据查询条件结果，单页最大值限制
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    const query: Record<string, any> = Object.assign({}, ctx.request.body);
+    const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysRole) => {
+        pre.push({
+          角色序号: cur.roleId,
+          角色名称: cur.roleName,
+          角色权限: cur.roleKey,
+          角色排序: `${cur.roleSort}`,
+          数据范围: ROLE_DATA_SCOPE[cur.dataScope],
+          角色状态: ['停用', '正常'][+cur.status],
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `role_export_${rows.length}_${Date.now()}.xlsx`;
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.excelWriteRecord(rows, '角色信息', fileName);
   }
 }

@@ -42,12 +42,12 @@ export class SysDeptServiceImpl implements ISysDeptService {
   }
 
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
-    const sysRole = await this.sysRoleRepository.selectRoleById(roleId);
-    if (!sysRole) return [];
-    const deptCheckStrictly = sysRole.deptCheckStrictly === '1';
+    const roles = await this.sysRoleRepository.selectRoleByIds([roleId]);
+    if (Array.isArray(roles) && roles.length === 0) return [];
+    const role = roles[0]
     return this.sysDeptRepository.selectDeptListByRoleId(
-      roleId,
-      deptCheckStrictly
+      role.roleId,
+      role.deptCheckStrictly === '1'
     );
   }
 
@@ -55,27 +55,26 @@ export class SysDeptServiceImpl implements ISysDeptService {
     return await this.sysDeptRepository.selectDeptById(deptId);
   }
 
-  async selectNormalChildrenDeptById(deptId: string): Promise<number> {
-    return await this.sysDeptRepository.selectNormalChildrenDeptById(deptId);
+  async hasChildByDeptId(deptId: string): Promise<number> {
+    return await this.sysDeptRepository.hasChildByDeptId(deptId);
+  }
+  async checkDeptExistUser(deptId: string): Promise<number> {
+    return await this.sysDeptRepository.checkDeptExistUser(deptId);
   }
 
-  async hasChildByDeptId(deptId: string): Promise<boolean> {
-    return (await this.sysDeptRepository.hasChildByDeptId(deptId)) > 0;
-  }
-  async checkDeptExistUser(deptId: string): Promise<boolean> {
-    return (await this.sysDeptRepository.checkDeptExistUser(deptId)) > 0;
-  }
-
-  async checkUniqueDeptName(sysDept: SysDept): Promise<boolean> {
-    const deptId = await this.sysDeptRepository.checkUniqueDeptName(
-      sysDept.deptName,
-      sysDept.parentId
-    );
-    // 部门信息与查询得到部门ID一致
-    if (deptId && sysDept.deptId === deptId) {
+  async checkUniqueDeptName(
+    deptName: string,
+    parentId: string,
+    deptId: string = ''
+  ): Promise<boolean> {
+    const sysDept = new SysDept();
+    sysDept.deptName = deptName;
+    sysDept.parentId = parentId;
+    const uniqueId = await this.sysDeptRepository.checkUniqueDept(sysDept);
+    if (uniqueId === deptId) {
       return true;
     }
-    return !deptId;
+    return !uniqueId;
   }
 
   async insertDept(sysDept: SysDept): Promise<string> {
@@ -121,14 +120,15 @@ export class SysDeptServiceImpl implements ISysDeptService {
   ): Promise<void> {
     let childrens: SysDept[] =
       await this.sysDeptRepository.selectChildrenDeptById(deptId);
+    if (childrens && childrens.length == 0) {
+      return;
+    }
     // 替换父ID
     childrens = childrens.map(child => {
       child.ancestors = child.ancestors.replace(oldAncestors, newAncestors);
       return child;
     });
-    if (childrens && childrens.length > 0) {
-      this.sysDeptRepository.updateDeptChildren(childrens);
-    }
+    this.sysDeptRepository.updateDeptChildren(childrens);
   }
 
   /**

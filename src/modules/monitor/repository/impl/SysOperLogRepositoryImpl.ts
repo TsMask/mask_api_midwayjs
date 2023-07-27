@@ -77,13 +77,13 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
       conditions.push('business_type = ?');
       params.push(query.businessType);
     }
-    if (query.status) {
-      conditions.push('status = ?');
-      params.push(query.status);
-    }
     if (query.operName) {
       conditions.push("oper_name like concat(?, '%')");
       params.push(query.operName);
+    }
+    if (query.status) {
+      conditions.push('status = ?');
+      params.push(query.status);
     }
     const beginTime = query.beginTime || query['params[beginTime]'];
     if (beginTime) {
@@ -145,19 +145,19 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
       conditions.push('business_type = ?');
       params.push(sysOperLog.businessType);
     }
-    if (sysOperLog.status) {
-      conditions.push('status = ?');
-      params.push(sysOperLog.status);
-    }
     if (sysOperLog.operName) {
       conditions.push("oper_name like concat(?, '%')");
       params.push(sysOperLog.operName);
+    }
+    if (sysOperLog.status) {
+      conditions.push('status = ?');
+      params.push(sysOperLog.status);
     }
 
     // 构建查询条件语句
     let whereSql = '';
     if (conditions.length > 0) {
-      whereSql = ' WHERE ' + conditions.join(' AND ');
+      whereSql = ' where ' + conditions.join(' and ');
     }
 
     // 查询数据

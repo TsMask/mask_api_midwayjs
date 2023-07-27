@@ -30,6 +30,45 @@ export class SysOperLogController {
   private sysOperLogService: SysOperLogServiceImpl;
 
   /**
+   * 操作日志列表
+   */
+  @Get('/list')
+  @PreAuthorize({ hasPermissions: ['monitor:operlog:list'] })
+  async list(): Promise<Result> {
+    const query = this.contextService.getContext().query;
+    const data = await this.sysOperLogService.selectOperLogPage(query);
+    return Result.ok(data);
+  }
+
+  /**
+   * 操作日志删除
+   */
+  @Del('/:operIds')
+  @PreAuthorize({ hasPermissions: ['monitor:operlog:remove'] })
+  @OperLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.DELETE })
+  async remove(@Param('operIds') operIds: string): Promise<Result> {
+    if (!operIds) return Result.err();
+    // 处理字符转id数组
+    const ids = operIds.split(',');
+    if (ids.length <= 0) return Result.err();
+    const rows = await this.sysOperLogService.deleteOperLogByIds([
+      ...new Set(ids),
+    ]);
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 操作日志清空
+   */
+  @Del('/clean')
+  @PreAuthorize({ hasPermissions: ['monitor:operlog:remove'] })
+  @OperLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.CLEAN })
+  async clean(): Promise<Result> {
+    const rows = await this.sysOperLogService.cleanOperLog();
+    return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
    * 导出操作日志
    */
   @Post('/export')
@@ -78,44 +117,5 @@ export class SysOperLogController {
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
     return await this.fileService.excelWriteRecord(rows, '操作日志', fileName);
-  }
-
-  /**
-   * 操作日志列表
-   */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['monitor:operlog:list'] })
-  async list(): Promise<Result> {
-    const query = this.contextService.getContext().query;
-    const data = await this.sysOperLogService.selectOperLogPage(query);
-    return Result.ok(data);
-  }
-
-  /**
-   * 操作日志删除
-   */
-  @Del('/:operIds')
-  @PreAuthorize({ hasPermissions: ['monitor:operlog:remove'] })
-  @OperLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.DELETE })
-  async remove(@Param('operIds') operIds: string): Promise<Result> {
-    if (!operIds) return Result.err();
-    // 处理字符转id数组
-    const ids = operIds.split(',');
-    if (ids.length <= 0) return Result.err();
-    const rows = await this.sysOperLogService.deleteOperLogByIds([
-      ...new Set(ids),
-    ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
-  }
-
-  /**
-   * 操作日志清空
-   */
-  @Del('/clean')
-  @PreAuthorize({ hasPermissions: ['monitor:operlog:remove'] })
-  @OperLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.CLEAN })
-  async clean(): Promise<Result> {
-    const rows = await this.sysOperLogService.cleanOperLog();
-    return Result[rows > 0 ? 'ok' : 'err']();
   }
 }

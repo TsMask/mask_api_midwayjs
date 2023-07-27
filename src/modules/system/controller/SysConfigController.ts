@@ -74,7 +74,7 @@ export class SysConfigController {
 
     // 检查属性值唯一
     const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
-      sysConfig
+      configKey
     );
     if (!uniqueConfigKey) {
       return Result.errMsg(`参数配置新增【${configKey}】失败，参数键名已存在`);
@@ -102,7 +102,8 @@ export class SysConfigController {
 
     // 检查属性值唯一
     const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
-      sysConfig
+      configKey,
+      configId
     );
     if (!uniqueConfigKey) {
       return Result.errMsg(`参数配置修改【${configKey}】失败，参数键名已存在`);
@@ -140,15 +141,6 @@ export class SysConfigController {
   }
 
   /**
-   * 参数配置根据参数键名
-   */
-  @Get('/configKey/:configKey')
-  async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
-    const data = await this.sysConfigService.selectConfigValueByKey(configKey);
-    return Result.okData(data || '');
-  }
-
-  /**
    * 参数配置刷新缓存
    */
   @Put('/refreshCache')
@@ -161,6 +153,15 @@ export class SysConfigController {
   async refreshCache(): Promise<Result> {
     await this.sysConfigService.resetConfigCache();
     return Result.ok();
+  }
+
+  /**
+   * 参数配置根据参数键名
+   */
+  @Get('/configKey/:configKey')
+  async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
+    const data = await this.sysConfigService.selectConfigValueByKey(configKey);
+    return Result.okData(data || '');
   }
 
   /**

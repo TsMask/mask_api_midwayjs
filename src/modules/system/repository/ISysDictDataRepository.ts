@@ -23,21 +23,12 @@ export interface ISysDictDataRepository {
   selectDictDataList(sysDictData: SysDictData): Promise<SysDictData[]>;
 
   /**
-   * 根据字典类型和字典键值查询字典数据信息
-   *
-   * @param dictType 字典类型
-   * @param dictValue 字典键值
-   * @return 字典标签
-   */
-  selectDictLabel(dictType: string, dictValue: string): Promise<string>;
-
-  /**
    * 根据字典数据编码查询信息
    *
-   * @param dictCode 字典数据编码
+   * @param dictCodes 字典数据编码
    * @return 字典数据
    */
-  selectDictDataByCode(dictCode: string): Promise<SysDictData>;
+  selectDictDataByCodes(dictCodes: string[]): Promise<SysDictData[]>;
 
   /**
    * 查询字典数据
@@ -48,20 +39,12 @@ export interface ISysDictDataRepository {
   countDictDataByType(dictType: string): Promise<number>;
 
   /**
-   * 校验字典标签是否唯一
+   * 校验字典数据是否唯一
    *
-   * @param dictLabel 字典标签
+   * @param sysDictData 字典数据信息
    * @return 结果
    */
-  checkUniqueDictLabel(dictType: string, dictLabel: string): Promise<string>;
-
-  /**
-   * 校验字典键值是否唯一
-   *
-   * @param dictValue 字典键值
-   * @return 结果
-   */
-  checkUniqueDictValue(dictType: string, dictValue: string): Promise<string>;
+  checkUniqueDictData(sysDictData: SysDictData): Promise<string>;
 
   /**
    * 批量删除字典数据信息

@@ -69,13 +69,13 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       conditions.push('job_group = ?');
       params.push(query.jobGroup);
     }
-    if (query.status) {
-      conditions.push('status = ?');
-      params.push(query.status);
-    }
     if (query.invokeTarget) {
       conditions.push("invoke_target like concat(?, '%')");
       params.push(query.invokeTarget);
+    }
+    if (query.status) {
+      conditions.push('status = ?');
+      params.push(query.status);
     }
 
     // 构建查询条件语句
@@ -125,19 +125,19 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       conditions.push('job_group = ?');
       params.push(sysJob.jobGroup);
     }
-    if (sysJob.status) {
-      conditions.push('status = ?');
-      params.push(sysJob.status);
-    }
     if (sysJob.invokeTarget) {
       conditions.push("invoke_target like concat(?, '%')");
       params.push(sysJob.invokeTarget);
+    }
+    if (sysJob.status) {
+      conditions.push('status = ?');
+      params.push(sysJob.status);
     }
 
     // 构建查询条件语句
     let whereSql = '';
     if (conditions.length > 0) {
-      whereSql = ' WHERE ' + conditions.join(' AND ');
+      whereSql = ' where ' + conditions.join(' and ');
     }
 
     // 查询数据
@@ -152,19 +152,38 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     return convertResultRows(rows)[0] || null;
   }
 
-  async selectJobById(jobId: string): Promise<SysJob> {
-    const sqlStr = `${SELECT_JOB_SQL} where job_id = ? `;
-    const rows = await this.db.execute(sqlStr, [jobId]);
-    return convertResultRows(rows)[0] || null;
+  async selectJobByIds(jobIds: string[]): Promise<SysJob[]> {
+    const sqlStr = `${SELECT_JOB_SQL} where job_id in (${jobIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, jobIds);
+    return convertResultRows(rows);
   }
 
-  async checkUniqueJob(jobName: string, jobGroup: string): Promise<string> {
+  async checkUniqueJob(sysJob: SysJob): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysJob.jobName) {
+      conditions.push('job_name = ?');
+      params.push(sysJob.jobName);
+    }
+    if (sysJob.jobGroup) {
+      conditions.push('job_group = ?');
+      params.push(sysJob.jobGroup);
+    }
+
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select job_id as 'str' from sys_job where job_name = ? and job_group = ? limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
-      jobName,
-      jobGroup,
-    ]);
+      "select job_id as 'str' from sys_job " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 

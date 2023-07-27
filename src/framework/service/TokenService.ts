@@ -92,8 +92,8 @@ export class TokenService {
     // 设置请求用户登录客户端
     loginUser.ipaddr = ilobArgs[0];
     loginUser.loginLocation = ilobArgs[1];
-    loginUser.os = ilobArgs[3];
-    loginUser.browser = ilobArgs[4];
+    loginUser.os = ilobArgs[2];
+    loginUser.browser = ilobArgs[3];
     // 设置用户令牌有效期并存入缓存
     await this.setUserToken(loginUser);
     // 生成令牌负荷uuid标识

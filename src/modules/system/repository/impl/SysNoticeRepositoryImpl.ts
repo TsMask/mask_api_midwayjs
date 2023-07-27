@@ -4,6 +4,7 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysNotice } from '../../model/SysNotice';
 import { ISysNoticeRepository } from '../ISysNoticeRepository';
+import { YYYY_MM_DD, parseStrToDate } from '../../../../framework/utils/DateUtils';
 
 /**查询视图对象SQL */
 const SELECT_NOTICE_SQL = `select 
@@ -75,6 +76,18 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       conditions.push('status = ?');
       params.push(query.status);
     }
+    const beginTime = query.beginTime || query['params[beginTime]'];
+    if (beginTime) {
+      const beginDate = parseStrToDate(beginTime, YYYY_MM_DD).getTime();
+      conditions.push('create_time >= ?');
+      params.push(beginDate);
+    }
+    const endTime = query.endTime || query['params[endTime]'];
+    if (endTime) {
+      const endDate = parseStrToDate(endTime, YYYY_MM_DD).getTime();
+      conditions.push('create_time <= ?');
+      params.push(endDate);
+    }
 
     // 构建查询条件语句
     let whereSql = " where del_flag = '0' ";
@@ -141,10 +154,12 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     return convertResultRows(results);
   }
 
-  async selectNoticeById(noticeId: string): Promise<SysNotice> {
-    const sqlStr = `${SELECT_NOTICE_SQL} where notice_id = ? `;
-    const rows = await this.db.execute(sqlStr, [noticeId]);
-    return convertResultRows(rows)[0] || null;
+  async selectNoticeByIds(noticeIds: string[]): Promise<SysNotice[]> {
+    const sqlStr = `${SELECT_NOTICE_SQL} where notice_id (${noticeIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, noticeIds);
+    return convertResultRows(rows);
   }
 
   async insertNotice(sysNotice: SysNotice): Promise<string> {

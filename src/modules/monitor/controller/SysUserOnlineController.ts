@@ -36,13 +36,17 @@ export class SysUserOnlineController {
     @Query('ipaddr') ipaddr: string,
     @Query('userName') userName: string
   ): Promise<Result> {
-    // 获取所有在线用户
+    // 获取所有在线用户key
     const keys = await this.redisCache.getKeys(`${LOGIN_TOKEN_KEY}*`);
 
     // 分批获取
     const result: string[] = [];
     for (let i = 0; i < keys.length; i += 20) {
-      const chunk = keys.slice(i, i + 20);
+      let end = i + 20;
+      if (end > keys.length) {
+        end = keys.length;
+      }
+      const chunk = keys.slice(i, end);
       const values = await this.redisCache.getBatch(chunk);
       result.push(...values);
     }

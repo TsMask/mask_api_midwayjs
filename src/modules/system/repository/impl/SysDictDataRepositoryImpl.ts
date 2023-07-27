@@ -139,20 +139,12 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return convertResultRows(results);
   }
 
-  async selectDictLabel(dictType: string, dictValue: string): Promise<string> {
-    const sqlStr =
-      "select dict_label as 'str' from sys_dict_data where dict_type = ? and dict_value = ?";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
-      dictType,
-      dictValue,
-    ]);
-    return rows[0].str || null;
-  }
-
-  async selectDictDataByCode(dictCode: string): Promise<SysDictData> {
-    const sqlStr = `${SELECT_DICT_DATA_SQL} where dict_code = ?`;
-    const rows = await this.db.execute(sqlStr, [dictCode]);
-    return convertResultRows(rows)[0] || null;
+  async selectDictDataByCodes(dictCodes: string[]): Promise<SysDictData[]> {
+    const sqlStr = `${SELECT_DICT_DATA_SQL} where dict_code in (${dictCodes
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, dictCodes);
+    return convertResultRows(rows);
   }
 
   async countDictDataByType(dictType: string): Promise<number> {
@@ -162,29 +154,34 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     return parseNumber(countRow[0].total);
   }
 
-  async checkUniqueDictLabel(
-    dictType: string,
-    dictLabel: string
-  ): Promise<string> {
-    const sqlStr =
-      "select dict_code as 'str' from sys_dict_data where dict_type = ? and dict_label = ? limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
-      dictType,
-      dictLabel,
-    ]);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+  async checkUniqueDictData(sysDictData: SysDictData): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysDictData.dictType) {
+      conditions.push('dict_type = ?');
+      params.push(sysDictData.dictType);
+    }
+    if (sysDictData.dictLabel) {
+      conditions.push('dict_label = ?');
+      params.push(sysDictData.dictLabel);
+    }
+    if (sysDictData.dictValue) {
+      conditions.push('dict_value = ?');
+      params.push(sysDictData.dictValue);
+    }
 
-  async checkUniqueDictValue(
-    dictType: string,
-    dictValue: string
-  ): Promise<string> {
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
     const sqlStr =
-      "select dict_code as 'str' from sys_dict_data where dict_type = ? and dict_value = ? limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [
-      dictType,
-      dictValue,
-    ]);
+      "select dict_code as 'str' from sys_dict_data " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 

@@ -73,9 +73,7 @@ SYS_ROLE_RESULT.set('role_status', 'status');
  */
 function convertResultRows(rows: any[]): SysUser[] {
   const arr: SysUser[] = [];
-  const arrKeyIndex: Map<string,number> = new Map();
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i]
+  for (const row of rows) {
     const sysUser = new SysUser();
     const sysDept = new SysDept();
     const sysRole = new SysRole();
@@ -99,15 +97,14 @@ function convertResultRows(rows: any[]): SysUser[] {
       sysUser.roles.push(sysRole);
     }
 
-    let one = true
-    if(arrKeyIndex.has(sysUser.userId)){
-      const arrUser = arr[arrKeyIndex.get(sysUser.userId)];
-      arrUser.roles.push(...sysUser.roles)
-      one = false
+    let one = true;
+    for (let i = 0; i < arr.length; i++) {
+      arr[i].roles.push(...sysUser.roles);
+      one = false;
+      break;
     }
-    if(one){
+    if (one) {
       arr.push(sysUser);
-      arrKeyIndex.set(sysUser.userId, i)
     }
   }
   return arr;
@@ -329,17 +326,15 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       return null;
     }
     const sysUsers = convertResultRows(rows);
-    return sysUsers[0]
+    return sysUsers[0];
   }
 
-  async selectUserById(userId: string): Promise<SysUser> {
-    const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id = ?`;
-    const rows = await this.db.execute(sqlStr, [userId]);
-    if (rows.length === 0) {
-      return null;
-    }
-    const sysUsers = convertResultRows(rows);
-    return sysUsers[0]
+  async selectUserById(userIds: string[]): Promise<SysUser[]> {
+    const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id in (${userIds
+      .map(() => '?')
+      .join(',')})`;
+    const rows = await this.db.execute(sqlStr, userIds);
+    return convertResultRows(rows);
   }
 
   async insertUser(sysUser: SysUser): Promise<string> {
@@ -409,11 +404,19 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.userType) {
       paramMap.set('user_type', sysUser.userType);
     }
-    if (sysUser.email || sysUser.email === '') {
-      paramMap.set('email', sysUser.email);
+    if (sysUser.email) {
+      if (sysUser.email === 'null') {
+        paramMap.set('email', '');
+      } else {
+        paramMap.set('email', sysUser.email);
+      }
     }
-    if (sysUser.phonenumber || sysUser.phonenumber === '') {
-      paramMap.set('phonenumber', sysUser.phonenumber);
+    if (sysUser.phonenumber) {
+      if (sysUser.phonenumber === 'null') {
+        paramMap.set('phonenumber', '');
+      } else {
+        paramMap.set('phonenumber', sysUser.phonenumber);
+      }
     }
     if (sysUser.sex) {
       paramMap.set('sex', parseNumber(sysUser.sex));
@@ -460,27 +463,34 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     return result.affectedRows;
   }
 
-  async checkUniqueUserName(userName: string): Promise<string> {
-    const sqlStr =
-      "select user_id as 'str' from sys_user where user_name = ? and del_flag = '0' limit 1";
-    const paramArr = [userName];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+  async checkUniqueUser(sysUser: SysUser): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysUser.userName) {
+      conditions.push('user_name = ?');
+      params.push(sysUser.userName);
+    }
+    if (sysUser.phonenumber) {
+      conditions.push('phonenumber = ?');
+      params.push(sysUser.phonenumber);
+    }
+    if (sysUser.email) {
+      conditions.push('email = ?');
+      params.push(sysUser.email);
+    }
 
-  async checkUniquePhone(phonenumber: string): Promise<string> {
-    const sqlStr =
-      "select user_id as 'str' from sys_user where phonenumber = ? and del_flag = '0' limit 1";
-    const paramArr = [phonenumber];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
-    return rows.length > 0 ? rows[0].str : null;
-  }
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
 
-  async checkUniqueEmail(email: string): Promise<string> {
     const sqlStr =
-      "select user_id as 'str' from sys_user where email = ? and del_flag = '0' limit 1";
-    const paramArr = [email];
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, paramArr);
+      "select user_id as 'str' from sys_user " + whereSql + ' limit 1';
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
     return rows.length > 0 ? rows[0].str : null;
   }
 }
