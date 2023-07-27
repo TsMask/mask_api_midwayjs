@@ -21,12 +21,17 @@ export class RouterMateVo {
 
   /**
    * 内链地址（http(s)://开头）
-   * 打开目标位置 '_blank' | '_self' | null | undefined
+   * 打开目标位置 '_blank' | '_self' | ''
    */
   target?: string;
 
   /**
+   * 在菜单中隐藏子节点
+   */
+  hideChildInMenu?: boolean;
+
+  /**
    * 在菜单中隐藏自己和子节点
    */
-  hide?: boolean;
+  hideInMenu?: boolean;
 }

@@ -75,7 +75,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
   async selectMenuListByRoleId(roleId: string): Promise<string[]> {
     const roles = await this.sysRoleRepository.selectRoleByIds([roleId]);
     if (Array.isArray(roles) && roles.length === 0) return [];
-    const role = roles[0]
+    const role = roles[0];
     return await this.sysMenuRepository.selectMenuListByRoleId(
       role.roleId,
       role.menuCheckStrictly === '1'
@@ -141,20 +141,20 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
   async buildRouteMenus(sysMenus: SysMenu[], prefix = ''): Promise<RouterVo[]> {
     const routers: RouterVo[] = [];
-    for (const menu of sysMenus) {
+    for (const item of sysMenus) {
       const router = new RouterVo();
-      router.name = this.getRouteName(menu);
-      router.path = this.getRouterPath(menu);
-      router.component = this.getComponent(menu);
-      router.meta = this.getRouteMeta(menu);
+      router.name = this.getRouteName(item);
+      router.path = this.getRouterPath(item);
+      router.component = this.getComponent(item);
+      router.meta = this.getRouteMeta(item);
 
-      // 非路径链接 子项菜单目录
-      const cMenus = menu.children;
+      // 子项菜单 目录类型 非路径链接
+      const cMenus = item.children;
       if (
         cMenus &&
         cMenus.length > 0 &&
-        !validHttp(menu.path) &&
-        menu.menuType === MENU_TYPE_DIR
+        item.menuType === MENU_TYPE_DIR &&
+        !validHttp(item.path)
       ) {
         // 获取重定向地址
         const { redirectPrefix, redirectPath } = this.getRouteRedirect(
@@ -165,7 +165,46 @@ export class SysMenuServiceImpl implements ISysMenuService {
         router.redirect = redirectPath;
         // 子菜单进入递归
         router.children = await this.buildRouteMenus(cMenus, redirectPrefix);
+      } else if (
+        item.parentId === '0' &&
+        item.isFrame === STATUS_YES &&
+        item.menuType === MENU_TYPE_MENU
+      ) {
+        // 父菜单 内部跳转 菜单类型
+        const menuPath = '/' + item.menuId;
+        const childPath = menuPath + this.getRouterPath(item);
+        const children = new RouterVo();
+        children.name = this.getRouteName(item);
+        children.path = childPath;
+        children.component = item.component;
+        children.meta = this.getRouteMeta(item);
+        router.meta.hideChildInMenu = true;
+        router.children = [children];
+        router.name = item.menuId;
+        router.path = menuPath;
+        router.redirect = childPath;
+        router.component = MENU_COMPONENT_LAYOUT_BASIC;
+      } else if (
+        item.parentId === '0' &&
+        item.isFrame === STATUS_YES &&
+        validHttp(item.path)
+      ) {
+        // 父菜单 内部跳转 路径链接
+        const menuPath = '/' + item.menuId;
+        const childPath = menuPath + this.getRouterPath(item);
+        const children = new RouterVo();
+        children.name = this.getRouteName(item);
+        children.path = childPath;
+        children.component = MENU_COMPONENT_LAYOUT_LINK;
+        children.meta = this.getRouteMeta(item);
+        router.meta.hideChildInMenu = true;
+        router.children = [children];
+        router.name = item.menuId;
+        router.path = menuPath;
+        router.redirect = childPath;
+        router.component = MENU_COMPONENT_LAYOUT_BASIC;
       }
+
       routers.push(router);
     }
     return routers;
@@ -176,14 +215,14 @@ export class SysMenuServiceImpl implements ISysMenuService {
    *
    * 路径英文首字母大写
    *
-   * @param menu 菜单信息
+   * @param sysMenu 菜单信息
    * @return 路由名称
    */
-  private getRouteName(menu: SysMenu): string {
-    const routerName = parseFirstUpper(menu.path);
+  private getRouteName(sysMenu: SysMenu): string {
+    const routerName = parseFirstUpper(sysMenu.path);
     // 路径链接
-    if (validHttp(menu.path)) {
-      return `${routerName.substring(0, 5)}Link${menu.menuId}`;
+    if (validHttp(sysMenu.path)) {
+      return `${routerName.substring(0, 5)}Link${sysMenu.menuId}`;
     }
     return routerName;
   }
@@ -191,37 +230,25 @@ export class SysMenuServiceImpl implements ISysMenuService {
   /**
    * 获取路由地址
    *
-   * @param menu 菜单信息
+   * @param sysMenu 菜单信息
    * @return 路由地址
    */
-  private getRouterPath(menu: SysMenu): string {
-    let routerPath = `${menu.path}`;
+  private getRouterPath(sysMenu: SysMenu): string {
+    let routerPath = `${sysMenu.path}`;
 
     // 显式路径
-    if (routerPath.startsWith('/')) {
+    if (!routerPath || routerPath.startsWith('/')) {
       return routerPath;
     }
 
-    // 路径链接
-    if (validHttp(routerPath)) {
-      // 内部跳转 非父菜单 目录类型或菜单类型
-      if (
-        menu.isFrame === STATUS_YES &&
-        menu.parentId !== '0' &&
-        [MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menu.menuType)
-      ) {
-        routerPath = routerPath.replace(/^http(s)?:\/\/+/, '');
-        return Buffer.from(routerPath, 'utf8').toString('base64');
-      }
-      // 非内部跳转
-      return routerPath;
+    // 路径链接 内部跳转
+    if (validHttp(routerPath) && sysMenu.isFrame === STATUS_YES) {
+      routerPath = routerPath.replace(/^http(s)?:\/\/+/, '');
+      routerPath = Buffer.from(routerPath, 'utf8').toString('base64');
     }
 
-    // 父菜单 目录类型或菜单类型
-    if (
-      menu.parentId === '0' &&
-      [MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menu.menuType)
-    ) {
+    // 父菜单 内部跳转
+    if (sysMenu.parentId === '0' && sysMenu.isFrame === STATUS_YES) {
       routerPath = `/${routerPath}`;
     }
 
@@ -231,31 +258,31 @@ export class SysMenuServiceImpl implements ISysMenuService {
   /**
    * 获取组件信息
    *
-   * @param menu 菜单信息
+   * @param sysMenu 菜单信息
    * @return 组件信息
    */
-  private getComponent(menu: SysMenu): string {
-    // 路径链接 非父菜单 目录类型或菜单类型
-    if (
-      validHttp(menu.path) &&
-      menu.parentId !== '0' &&
-      [MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menu.menuType)
-    ) {
+  private getComponent(sysMenu: SysMenu): string {
+    // 内部跳转 路径链接
+    if (sysMenu.isFrame === STATUS_YES && validHttp(sysMenu.path)) {
       return MENU_COMPONENT_LAYOUT_LINK;
     }
 
     // 非父菜单 目录类型
-    if (menu.parentId !== '0' && menu.menuType === MENU_TYPE_DIR) {
+    if (sysMenu.parentId !== '0' && sysMenu.menuType === MENU_TYPE_DIR) {
       return MENU_COMPONENT_LAYOUT_BLANK;
     }
 
-    // 菜单类型 内部跳转 有组件路径
+    // 组件路径 内部跳转 菜单类型
     if (
-      menu.menuType === MENU_TYPE_MENU &&
-      menu.isFrame === STATUS_YES &&
-      menu.component
+      sysMenu.component &&
+      sysMenu.isFrame === STATUS_YES &&
+      sysMenu.menuType === MENU_TYPE_MENU
     ) {
-      return menu.component;
+      // 父菜单套外层布局
+      if (sysMenu.parentId === '0') {
+        return MENU_COMPONENT_LAYOUT_BASIC;
+      }
+      return sysMenu.component;
     }
 
     return MENU_COMPONENT_LAYOUT_BASIC;
@@ -264,31 +291,21 @@ export class SysMenuServiceImpl implements ISysMenuService {
   /**
    * 获取路由元信息
    *
-   * @param menu 菜单信息
+   * @param sysMenu 菜单信息
    * @return 元信息
    */
-  private getRouteMeta(menu: SysMenu): RouterMateVo {
+  private getRouteMeta(sysMenu: SysMenu): RouterMateVo {
     const meta = new RouterMateVo();
-    meta.icon = menu.icon === '#' ? '' : menu.icon;
-    meta.title = menu.menuName;
-    meta.hide = menu.visible === STATUS_NO;
-    meta.cache = menu.isCache === STATUS_YES;
-    meta.target = null;
+    meta.icon = sysMenu.icon === '#' ? '' : sysMenu.icon;
+    meta.title = sysMenu.menuName;
+    meta.hideChildInMenu = false;
+    meta.hideInMenu = sysMenu.visible === STATUS_NO;
+    meta.cache = sysMenu.isCache === STATUS_YES;
+    meta.target = '';
 
-    // 路径链接
-    if (validHttp(menu.path)) {
-      // 内部跳转 父菜单 目录类型或菜单类型
-      if (
-        menu.isFrame === STATUS_YES &&
-        menu.parentId === '0' &&
-        [MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menu.menuType)
-      ) {
-        meta.target = '_self';
-      }
-      // 非内部跳转
-      if (menu.isFrame === STATUS_NO) {
-        meta.target = '_blank';
-      }
+    // 路径链接 非内部跳转
+    if (validHttp(sysMenu.path) && sysMenu.isFrame === STATUS_NO) {
+      meta.target = '_blank';
     }
 
     return meta;
