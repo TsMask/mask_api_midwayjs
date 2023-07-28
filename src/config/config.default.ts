@@ -2,10 +2,10 @@ import { MidwayConfig } from '@midwayjs/core';
 import { resolve, join } from 'path';
 import { TOKEN_KEY } from '../framework/constants/TokenConstants';
 import {
-  APP_REQUEST_HEADER_CODE,
-  APP_REQUEST_HEADER_VERSION,
-  APP_RESPONSE_HEADER_REPEATSUBMIT_REST,
-} from '../framework/constants/AppConstants';
+  REQUEST_HEADER_CODE,
+  REQUEST_HEADER_VERSION,
+  RESPONSE_HEADER_REPEATSUBMIT_REST,
+} from '../framework/constants/HerderConstants';
 
 export default (): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级
@@ -112,8 +112,8 @@ export default (): MidwayConfig => {
       origin: '*',
       // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
       allowHeaders: [
-        APP_REQUEST_HEADER_CODE,
-        APP_REQUEST_HEADER_VERSION,
+        REQUEST_HEADER_CODE,
+        REQUEST_HEADER_VERSION,
         TOKEN_KEY,
         'Origin',
         'X-Requested-With',
@@ -123,7 +123,7 @@ export default (): MidwayConfig => {
         'Range',
       ],
       // 设置 Access-Control-Expose-Headers 的值
-      exposeHeaders: [APP_RESPONSE_HEADER_REPEATSUBMIT_REST],
+      exposeHeaders: [RESPONSE_HEADER_REPEATSUBMIT_REST],
       // 设置 Access-Control-Allow-Credentials，【默认值】false
       // 也可以配置为一个回调方法，传入的参数为 request，返回值为 true 或 false
       credentials: true,

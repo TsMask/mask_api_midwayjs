@@ -5,7 +5,7 @@ import { Result } from '../vo/Result';
 import { REPEAT_SUBMIT_KEY } from '../constants/CacheKeysConstants';
 import { RedisCache } from '../cache/RedisCache';
 import { diffSeconds } from '../utils/DateUtils';
-import { APP_RESPONSE_HEADER_REPEATSUBMIT_REST } from '../constants/AppConstants';
+import { RESPONSE_HEADER_REPEATSUBMIT_REST } from '../constants/HerderConstants';
 import { getClientIP } from '../utils/ip2region';
 
 /**重复参数Redis格式数据类型 */
@@ -69,7 +69,7 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
           JSON.stringify(rpObj.params) === JSON.stringify(params);
         // 设置重复提交声明响应头（毫秒）
         ctx.set(
-          APP_RESPONSE_HEADER_REPEATSUBMIT_REST,
+          RESPONSE_HEADER_REPEATSUBMIT_REST,
           `${Date.now() + compareTime * 1000}`
         );
         // 小于间隔时间 且 参数内容一致
