@@ -126,7 +126,7 @@ export function parseCronExpression(cron: string): number | null {
     return interval.next().getTime();
   } catch (error) {
     console.error(`Failed parse cron "${cron}": ${error.message}`);
-    return null;
+    return 0;
   }
 }
 

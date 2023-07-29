@@ -31,14 +31,6 @@ export interface ISysJobLogService {
   selectJobLogById(jobLogId: string): Promise<SysJobLog>;
 
   /**
-   * 新增调度任务日志信息
-   *
-   * @param sysJobLog 调度任务日志信息
-   * @return 调度任务日志ID
-   */
-  insertJobLog(sysJobLog: SysJobLog): Promise<string>;
-
-  /**
    * 批量删除调度任务日志信息
    *
    * @param jobLogId 需要删除的调度任务日志ID

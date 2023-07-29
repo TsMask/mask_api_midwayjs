@@ -24,7 +24,7 @@ export class AccountController {
   @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
   async login(@Body() loginBodyVo: LoginBodyVo): Promise<Result> {
     const { username, password, code, uuid } = loginBodyVo;
-    if (!username || !password || !code || !uuid) return Result.err();
+    if (!username || !password) return Result.err();
     await this.accountService.validateCaptcha(username, code, uuid);
     const token = await this.accountService.loginByUsername(username, password);
     return Result.okData({

@@ -2,12 +2,12 @@ import { Processor, IProcessor, Context } from '@midwayjs/bull';
 import { Inject } from '@midwayjs/decorator';
 
 /**
- * 测试 队列任务处理
+ * 简单示例 队列任务处理
  *
  * @author TsMask
  */
-@Processor('test')
-export class TestProcessor implements IProcessor {
+@Processor('simple')
+export class SimpleProcessor implements IProcessor {
   @Inject()
   private ctx: Context;
 

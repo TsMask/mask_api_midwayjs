@@ -39,14 +39,6 @@ export interface ISysJobRepository {
   checkUniqueJob(sysJob: SysJob): Promise<string>;
 
   /**
-   * 通过调用目标字符串查询调度任务信息
-   *
-   * @param invokeTarget 调用目标字符串
-   * @return 调度任务信息
-   */
-  selectJobByInvokeTarget(invokeTarget: string): Promise<SysJob>;
-
-  /**
    * 新增调度任务信息
    *
    * @param sysJob 调度任务信息

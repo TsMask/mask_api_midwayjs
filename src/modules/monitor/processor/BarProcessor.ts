@@ -27,7 +27,7 @@ export class BarProcessor implements IProcessor {
     while (i < 10) {
       // 获取任务进度
       const progress = await ctxJob.progress();
-      log.info('jonId: %s => 任务进度：', sysJob.jobId, progress);
+      log.info('jonId: %s => 任务进度：%d', sysJob.jobId, progress);
       // 延迟响应
       await new Promise(resolve => setTimeout(() => resolve(i), 1000));
       // 程序中途执行错误

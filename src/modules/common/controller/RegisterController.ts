@@ -54,9 +54,19 @@ export class RegisterController {
     if (password !== confirmPassword) {
       return Result.errMsg('用户确认输入密码不一致');
     }
+    // 检查验证码
+    await this.sysRegisterService.validateCaptcha(
+      username,
+      registerBodyVo.code,
+      registerBodyVo.uuid
+    );
 
     // 进行注册
-    const msg = await this.sysRegisterService.register(registerBodyVo);
+    const msg = await this.sysRegisterService.register(
+      username,
+      password,
+      registerBodyVo.userType
+    );
     if (msg !== 'ok') {
       return Result.errMsg(msg);
     }
