@@ -123,6 +123,29 @@ export class SysJobServiceImpl implements ISysJobService {
     return rows > 0;
   }
 
+  async resetQueueJob(): Promise<void> {
+    // 获取bull上注册的队列列表
+    const queueList = this.bullFramework.getQueueList();
+    if (queueList && queueList.length == 0) {
+      return;
+    }
+    // 查询系统中定义状态为正常启用的任务
+    const sysJob = new SysJob();
+    sysJob.status = STATUS_YES;
+    const sysJobs = await this.sysJobRepository.selectJobList(sysJob);
+    for (const sysJob of sysJobs) {
+      for (const queue of queueList) {
+        if (queue.getQueueName() === sysJob.invokeTarget) {
+          await this.insertQueueJob(sysJob, true);
+        }
+      }
+    }
+  }
+
+  async runQueueJob(sysJob: SysJob): Promise<boolean> {
+    return await this.insertQueueJob(sysJob, false);
+  }
+
   /**
    * 添加调度任务
    *
@@ -147,36 +170,40 @@ export class SysJobServiceImpl implements ISysJobService {
       queue.addListener(
         'completed',
         async (job: Job, result: ProcessorData) => {
+          // 结果信息序列化字符串
+          let msgMap = {
+            name: 'completed',
+            message: JSON.stringify(result).substring(0, 450),
+          };
           const { sysJob }: ProcessorOptions = job.data;
-          // 记录调度日志
-          const sysJobLog = new SysJobLog().new(
-            sysJob.jobName,
-            sysJob.jobGroup,
-            sysJob.invokeTarget,
-            sysJob.targetParams,
-            STATUS_YES,
-            JSON.stringify(result).substring(0, 500)
-          );
+          // 读取任务信息创建日志对象
+          const sysJobLog = new SysJobLog();
+          sysJobLog.jobName = sysJob.jobName;
+          sysJobLog.jobGroup = sysJob.jobGroup;
+          sysJobLog.invokeTarget = sysJob.invokeTarget;
+          sysJobLog.targetParams = sysJob.targetParams;
+          sysJobLog.status = STATUS_YES;
+          sysJobLog.jobMsg = JSON.stringify(msgMap);
           await this.sysJobLogRepository.insertJobLog(sysJobLog);
           await job.remove();
         }
       );
       // 添加失败监听
       queue.addListener('failed', async (job: Job, error: Error) => {
-        const { sysJob }: ProcessorOptions = job.data;
-        const errorStr = JSON.stringify({
+        // 结果信息序列化字符串
+        let msgMap = {
           name: error.name,
-          message: error.message,
-        });
-        // 记录调度日志
-        const sysJobLog = new SysJobLog().new(
-          sysJob.jobName,
-          sysJob.jobGroup,
-          sysJob.invokeTarget,
-          sysJob.targetParams,
-          STATUS_NO,
-          errorStr.substring(0, 500)
-        );
+          message: error.message.substring(0, 450),
+        };
+        const { sysJob }: ProcessorOptions = job.data;
+        // 读取任务信息创建日志对象
+        const sysJobLog = new SysJobLog();
+        sysJobLog.jobName = sysJob.jobName;
+        sysJobLog.jobGroup = sysJob.jobGroup;
+        sysJobLog.invokeTarget = sysJob.invokeTarget;
+        sysJobLog.targetParams = sysJob.targetParams;
+        sysJobLog.status = STATUS_NO;
+        sysJobLog.jobMsg = JSON.stringify(msgMap);
         await this.sysJobLogRepository.insertJobLog(sysJobLog);
         await job.remove();
       });
@@ -252,25 +279,5 @@ export class SysJobServiceImpl implements ISysJobService {
     // 清除任务记录
     await queue.clean(5000, 'active');
     await queue.clean(5000, 'wait');
-  }
-
-  async runQueueJob(sysJob: SysJob): Promise<boolean> {
-    return await this.insertQueueJob(sysJob, false);
-  }
-
-  async resetQueueJob(): Promise<void> {
-    // 获取bull上注册的队列列表
-    const queueList = this.bullFramework.getQueueList();
-    if (queueList && queueList.length > 0) {
-      for (const queue of queueList) {
-        // 查询系统中定义状态为正常启用的任务
-        const sysJob = await this.sysJobRepository.selectJobByInvokeTarget(
-          queue.getQueueName()
-        );
-        if (sysJob && sysJob.status === STATUS_YES) {
-          await this.insertQueueJob(sysJob, true);
-        }
-      }
-    }
   }
 }

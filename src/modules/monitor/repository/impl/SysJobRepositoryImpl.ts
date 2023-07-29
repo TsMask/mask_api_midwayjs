@@ -146,12 +146,6 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     return convertResultRows(results);
   }
 
-  async selectJobByInvokeTarget(invokeTarget: string): Promise<SysJob> {
-    const sqlStr = `${SELECT_JOB_SQL} where invoke_target = ? `;
-    const rows = await this.db.execute(sqlStr, [invokeTarget]);
-    return convertResultRows(rows)[0] || null;
-  }
-
   async selectJobByIds(jobIds: string[]): Promise<SysJob[]> {
     const sqlStr = `${SELECT_JOB_SQL} where job_id in (${jobIds
       .map(() => '?')
