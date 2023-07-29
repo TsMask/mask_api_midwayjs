@@ -6,9 +6,11 @@ import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigService
 import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
 import { SysLogininforServiceImpl } from '../../monitor/service/impl/SysLogininforServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../framework/constants/CommonConstants';
 import { SysUser } from '../../system/model/SysUser';
-import { RegisterBodyVo } from '../model/RegisterBodyVo';
 
 /**
  * 注册校验方法
@@ -34,21 +36,17 @@ export class SysRegisterService {
 
   /**
    * 账号注册
-   * @param registerBodyVo 注册参数信息
+   * 
+   * @param username 登录用户名
+   * @param password 密码
+   * @param userType 用户类型
    * @returns 注册信息
    */
-  async register(registerBodyVo: RegisterBodyVo): Promise<string> {
-    // 验证码检查，从数据库配置获取验证码开关 true开启，false关闭
-    const captchaEnabledStr =
-      await this.sysConfigService.selectConfigValueByKey(
-        'sys.account.captchaEnabled'
-      );
-    const captchaEnabled = parseBoolean(captchaEnabledStr);
-    if (captchaEnabled) {
-      await this.validateCaptcha(registerBodyVo.code, registerBodyVo.uuid);
-    }
-
-    const { username, password, userType } = registerBodyVo;
+  async register(
+    username: string,
+    password: string,
+    userType: string
+  ): Promise<string> {
     const sysUser = new SysUser();
     sysUser.userName = username;
 
@@ -94,18 +92,57 @@ export class SysRegisterService {
 
   /**
    * 校验验证码
+   * @param username 登录用户名
    * @param code 验证码
    * @param uuid 唯一标识
-   * @return void 或 异常
+   * @return 结果
    */
-  private async validateCaptcha(code: string, uuid: string): Promise<void> {
+  async validateCaptcha(
+    username: string,
+    code: string,
+    uuid: string
+  ): Promise<void> {
+    // 验证码检查，从数据库配置获取验证码开关 true开启，false关闭
+    const captchaEnabledStr =
+      await this.sysConfigService.selectConfigValueByKey(
+        'sys.account.captchaEnabled'
+      );
+    if (!parseBoolean(captchaEnabledStr)) {
+      return;
+    }
+    if (!code || !uuid) {
+      // 验证码信息错误
+      throw new Error('验证码信息错误');
+    }
     const verifyKey = CAPTCHA_CODE_KEY + uuid;
     const captcha = await this.redisCache.get(verifyKey);
-    await this.redisCache.del(verifyKey);
     if (!captcha) {
+      // 解析ip地址和请求用户代理信息
+      const il = await this.contextService.ipaddrLocation();
+      const ob = await this.contextService.uaOsBrowser();
+      await this.sysLogininforService.newLogininfor(
+        username,
+        STATUS_NO,
+        `验证码失效 ${code}`,
+        ...il,
+        ...ob
+      );
+      // 验证码失效
       throw new Error('验证码已失效');
     }
-    if (code !== captcha) {
+    this.redisCache.del(verifyKey);
+    if (captcha !== code) {
+      // 解析ip地址和请求用户代理信息
+      const il = await this.contextService.ipaddrLocation();
+      const ob = await this.contextService.uaOsBrowser();
+      await this.sysLogininforService.newLogininfor(
+        username,
+        STATUS_NO,
+        `验证码错误 ${code}`,
+        ...il,
+        ...ob
+      );
+      // 验证码错误
       throw new Error('验证码错误');
     }
   }

@@ -72,38 +72,43 @@ export class AccountService {
       await this.sysConfigService.selectConfigValueByKey(
         'sys.account.captchaEnabled'
       );
-    if (parseBoolean(captchaEnabledStr)) {
-      const verifyKey = CAPTCHA_CODE_KEY + uuid;
-      const captcha = await this.redisCache.get(verifyKey);
-      if (!captcha) {
-        // 解析ip地址和请求用户代理信息
-        const il = await this.contextService.ipaddrLocation();
-        const ob = await this.contextService.uaOsBrowser();
-        await this.sysLogininforService.newLogininfor(
-          username,
-          STATUS_NO,
-          `验证码失效 ${code}`,
-          ...il,
-          ...ob
-        );
-        // 验证码失效
-        throw new Error('验证码已失效');
-      }
-      this.redisCache.del(verifyKey);
-      if (captcha !== code) {
-        // 解析ip地址和请求用户代理信息
-        const il = await this.contextService.ipaddrLocation();
-        const ob = await this.contextService.uaOsBrowser();
-        await this.sysLogininforService.newLogininfor(
-          username,
-          STATUS_NO,
-          `验证码错误 ${code}`,
-          ...il,
-          ...ob
-        );
-        // 验证码错误
-        throw new Error('验证码错误');
-      }
+    if (!parseBoolean(captchaEnabledStr)) {
+      return;
+    }
+    if (!code || !uuid) {
+      // 验证码信息错误
+      throw new Error('验证码信息错误');
+    }
+    const verifyKey = CAPTCHA_CODE_KEY + uuid;
+    const captcha = await this.redisCache.get(verifyKey);
+    if (!captcha) {
+      // 解析ip地址和请求用户代理信息
+      const il = await this.contextService.ipaddrLocation();
+      const ob = await this.contextService.uaOsBrowser();
+      await this.sysLogininforService.newLogininfor(
+        username,
+        STATUS_NO,
+        `验证码失效 ${code}`,
+        ...il,
+        ...ob
+      );
+      // 验证码失效
+      throw new Error('验证码已失效');
+    }
+    this.redisCache.del(verifyKey);
+    if (captcha !== code) {
+      // 解析ip地址和请求用户代理信息
+      const il = await this.contextService.ipaddrLocation();
+      const ob = await this.contextService.uaOsBrowser();
+      await this.sysLogininforService.newLogininfor(
+        username,
+        STATUS_NO,
+        `验证码错误 ${code}`,
+        ...il,
+        ...ob
+      );
+      // 验证码错误
+      throw new Error('验证码错误');
     }
   }
 
@@ -145,7 +150,7 @@ export class AccountService {
 
     // 查询用户登录账号
     const sysUser = await this.sysUserService.selectUserByUserName(username);
-    if (sysUser.userName != username) {
+    if (!sysUser || sysUser.userName != username) {
       const msg = `登录用户：${username} 不存在`;
       this.contextService.getLogger().info(msg);
       // 解析ip地址和请求用户代理信息
