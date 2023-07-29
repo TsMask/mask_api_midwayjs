@@ -1,3 +1,36 @@
+
+-- ----------------------------
+-- 0、测试ORM表
+-- ----------------------------
+drop table if exists zz_orm;
+create table zz_orm (
+  id                int             not null auto_increment    comment '测试ID',
+  title             varchar(50)     not null                   comment '测试标题',
+  orm_type          varchar(50)     not null                   comment 'orm类型',
+  status            char(1)         default '0'                comment '状态（0关闭 1正常）',
+  create_by         varchar(50)     default ''                 comment '创建者',
+  create_time       bigint          default 0                  comment '创建时间',
+  update_by         varchar(50)     default ''                 comment '更新者',
+  update_time       bigint          default 0                  comment '更新时间',
+  remark            varchar(500)    default ''                 comment '备注',
+  primary key (id)
+) engine=innodb auto_increment=10 comment = '测试ORM表';
+
+-- ----------------------------
+-- 初始化-测试ORM表数据
+-- ----------------------------
+insert into zz_orm values('1', 'MySQL', 'mysql', '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '测试ORM');
+insert into zz_orm values('2', 'PgSQL', 'pg',    '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '测试ORM');
+
+
+
+-- ----------------------------
+-- 测试zz_表，根据模块dome内删除其引用
+-- 系统初始17张数据表，前缀sys_开头
+-- ----------------------------
+
+
+
 -- ----------------------------
 -- 1、部门表
 -- ----------------------------
@@ -458,7 +491,7 @@ create table sys_config (
   primary key (config_id)
 ) engine=innodb auto_increment=100 comment = '参数配置表';
 
-insert into sys_config values(1, '用户管理-账号初始密码',         'sys.user.initPassword',         'Abcd@1234..',        'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '导入用户初始化密码 123456' );
+insert into sys_config values(1, '用户管理-账号初始密码',         'sys.user.initPassword',         'Abcd@1234..',   'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '导入用户初始化密码 123456' );
 insert into sys_config values(2, '账号自助-验证码开关',           'sys.account.captchaEnabled',    'true',          'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启验证码功能（true开启，false关闭）');
 insert into sys_config values(3, '账号自助-验证码类型',           'sys.account.captchaType',       'math',          'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '使用验证码类型（math数值计算，char字符验证）');
 insert into sys_config values(4, '账号自助-是否开启用户注册功能',  'sys.account.registerUser',      'false',         'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启注册用户功能（true开启，false关闭）');
@@ -503,9 +536,9 @@ create table sys_job (
   primary key (job_id, job_name, job_group)
 ) engine=innodb auto_increment=100 comment = '调度任务调度表';
 
-insert into sys_job values(1, '触发执行', 'SYSTEM', 'test', '字符串参数', '0/10 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_job values(2, '缓慢执行', 'SYSTEM', 'foo',  '字符串参数', '0/15 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_job values(3, '异常执行', 'SYSTEM', 'bar',  '字符串参数', '0/20 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_job values(1, '触发执行', 'SYSTEM', 'simple', '{"t":10}', '0/10 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_job values(2, '缓慢执行', 'SYSTEM', 'foo',    '{"t":15}', '0/15 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_job values(3, '异常执行', 'SYSTEM', 'bar',    '{"t":20}', '0/20 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 
 
 -- ----------------------------
