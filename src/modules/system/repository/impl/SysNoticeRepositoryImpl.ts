@@ -155,7 +155,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
   }
 
   async selectNoticeByIds(noticeIds: string[]): Promise<SysNotice[]> {
-    const sqlStr = `${SELECT_NOTICE_SQL} where notice_id (${noticeIds
+    const sqlStr = `${SELECT_NOTICE_SQL} where notice_id in (${noticeIds
       .map(() => '?')
       .join(',')})`;
     const rows = await this.db.execute(sqlStr, noticeIds);
