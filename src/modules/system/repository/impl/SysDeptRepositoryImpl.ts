@@ -189,7 +189,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     if (sysDept.ancestors) {
       paramMap.set('ancestors', sysDept.ancestors);
     }
-    if (sysDept.orderNum >= 0) {
+    if (sysDept.orderNum > 0) {
       paramMap.set('order_num', parseNumber(sysDept.orderNum));
     }
     if (sysDept.leader) {
@@ -229,8 +229,9 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     if (sysDept.ancestors) {
       paramMap.set('ancestors', sysDept.ancestors);
     }
-    if (sysDept.orderNum >= 0) {
-      paramMap.set('order_num', parseNumber(sysDept.orderNum));
+    sysDept.orderNum = parseNumber(sysDept.orderNum);
+    if (sysDept.orderNum > 0) {
+      paramMap.set('order_num', sysDept.orderNum);
     }
     if (sysDept.leader) {
       paramMap.set('leader', sysDept.leader);

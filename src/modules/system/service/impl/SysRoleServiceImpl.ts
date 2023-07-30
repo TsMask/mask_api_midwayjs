@@ -141,20 +141,21 @@ export class SysRoleServiceImpl implements ISysRoleService {
   }
 
   async authDataScope(sysRole: SysRole): Promise<number> {
+    // 修改角色信息
+    let rows = await this.sysRoleRepository.updateRole(sysRole);
     const roleId = sysRole.roleId;
     // 删除角色与部门关联
     await this.sysRoleDeptRepository.deleteRoleDept([roleId]);
     // 新增角色和部门信息
-    if (sysRole.deptIds && sysRole.deptIds.length > 0) {
+    if (sysRole.dataScope === '2' && sysRole.deptIds && sysRole.deptIds.length > 0) {
       const sysRoleDepts: SysRoleDept[] = sysRole.deptIds.map(deptId => {
         if (deptId) {
           return new SysRoleDept(roleId, deptId);
         }
       });
-      await this.sysRoleDeptRepository.batchRoleDept(sysRoleDepts);
+      rows += await this.sysRoleDeptRepository.batchRoleDept(sysRoleDepts);
     }
-    // 修改角色信息
-    return await this.sysRoleRepository.updateRole(sysRole);
+    return rows;
   }
 
   async deleteRoleByIds(roleIds: string[]): Promise<number> {

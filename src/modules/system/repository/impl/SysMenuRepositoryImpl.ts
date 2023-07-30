@@ -188,8 +188,9 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.menuName) {
       paramMap.set('menu_name', sysMenu.menuName);
     }
-    if (parseNumber(sysMenu.menuSort) >= 0) {
-      paramMap.set('menu_sort', parseNumber(sysMenu.menuSort));
+    sysMenu.menuSort = parseNumber(sysMenu.menuSort);
+    if (sysMenu.menuSort > 0) {
+      paramMap.set('menu_sort', sysMenu.menuSort);
     }
     if (sysMenu.path) {
       paramMap.set('path', sysMenu.path);
@@ -259,8 +260,9 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.menuName) {
       paramMap.set('menu_name', sysMenu.menuName);
     }
-    if (parseNumber(sysMenu.menuSort) >= 0) {
-      paramMap.set('menu_sort', parseNumber(sysMenu.menuSort));
+    sysMenu.menuSort = parseNumber(sysMenu.menuSort);
+    if (sysMenu.menuSort > 0) {
+      paramMap.set('menu_sort', sysMenu.menuSort);
     }
     if (sysMenu.path) {
       paramMap.set('path', sysMenu.path);
