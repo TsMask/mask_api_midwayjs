@@ -89,7 +89,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     }
 
     // 分页
-    const pageSql = ' limit ?,? ';
+    const pageSql = ' order by post_sort limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
@@ -130,7 +130,8 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     }
 
     // 查询数据
-    const querySql = SELECT_POST_SQL + whereSql;
+    const orderSql = ' order by post_sort';
+    const querySql = SELECT_POST_SQL + whereSql + orderSql;
     const results = await this.db.execute(querySql, params);
     return convertResultRows(results);
   }
@@ -153,7 +154,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const rows = await this.db.execute(sqlStr, [userId]);
     return convertResultRows(rows);
   }
-  
+
   async deletePostByIds(postIds: string[]): Promise<number> {
     const sqlStr = `delete from sys_post where post_id in (${postIds
       .map(() => '?')
@@ -170,8 +171,9 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     if (sysPost.postName) {
       paramMap.set('post_name', sysPost.postName);
     }
-    if (sysPost.postSort >= 0) {
-      paramMap.set('post_sort', parseNumber(sysPost.postSort));
+    sysPost.postSort = parseNumber(sysPost.postSort);
+    if (sysPost.postSort > 0) {
+      paramMap.set('post_sort', sysPost.postSort);
     }
     if (sysPost.status) {
       paramMap.set('status', parseNumber(sysPost.status));
@@ -204,8 +206,9 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     if (sysPost.postName) {
       paramMap.set('post_name', sysPost.postName);
     }
-    if (sysPost.postSort >= 0) {
-      paramMap.set('post_sort', parseNumber(sysPost.postSort));
+    sysPost.postSort = parseNumber(sysPost.postSort);
+    if (sysPost.postSort > 0) {
+      paramMap.set('post_sort', sysPost.postSort);
     }
     if (sysPost.status) {
       paramMap.set('status', parseNumber(sysPost.status));

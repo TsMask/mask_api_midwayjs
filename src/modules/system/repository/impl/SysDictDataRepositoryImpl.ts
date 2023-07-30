@@ -195,8 +195,9 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
 
   async insertDictData(sysDictData: SysDictData): Promise<string> {
     const paramMap = new Map();
-    if (sysDictData.dictSort >= 0) {
-      paramMap.set('dict_sort', parseNumber(sysDictData.dictSort));
+    sysDictData.dictSort = parseNumber(sysDictData.dictSort)
+    if (sysDictData.dictSort > 0) {
+      paramMap.set('dict_sort', sysDictData.dictSort);
     }
     if (sysDictData.dictLabel) {
       paramMap.set('dict_label', sysDictData.dictLabel);
@@ -235,8 +236,9 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
 
   async updateDictData(sysDictData: SysDictData): Promise<number> {
     const paramMap = new Map();
-    if (sysDictData.dictSort >= 0) {
-      paramMap.set('dict_sort', parseNumber(sysDictData.dictSort));
+    sysDictData.dictSort = parseNumber(sysDictData.dictSort)
+    if (sysDictData.dictSort > 0) {
+      paramMap.set('dict_sort', sysDictData.dictSort);
     }
     if (sysDictData.dictLabel) {
       paramMap.set('dict_label', sysDictData.dictLabel);

@@ -244,8 +244,9 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     if (sysRole.roleKey) {
       paramMap.set('role_key', sysRole.roleKey);
     }
-    if (sysRole.roleSort >= 0) {
-      paramMap.set('role_sort', parseNumber(sysRole.roleSort));
+    sysRole.roleSort = parseNumber(sysRole.roleSort)
+    if (sysRole.roleSort > 0) {
+      paramMap.set('role_sort', sysRole.roleSort);
     }
     if (sysRole.dataScope) {
       paramMap.set('data_scope', parseNumber(sysRole.dataScope));
@@ -294,8 +295,9 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     if (sysRole.roleKey) {
       paramMap.set('role_key', sysRole.roleKey);
     }
-    if (sysRole.roleSort >= 0) {
-      paramMap.set('role_sort', parseNumber(sysRole.roleSort));
+    sysRole.roleSort = parseNumber(sysRole.roleSort);
+    if (sysRole.roleSort > 0) {
+      paramMap.set('role_sort', sysRole.roleSort);
     }
     if (sysRole.dataScope) {
       paramMap.set('data_scope', parseNumber(sysRole.dataScope));
