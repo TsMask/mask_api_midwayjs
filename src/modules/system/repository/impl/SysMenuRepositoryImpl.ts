@@ -217,6 +217,8 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     }
     if (sysMenu.icon) {
       paramMap.set('icon', sysMenu.icon);
+    } else {
+      paramMap.set('icon', '#');
     }
     if (sysMenu.remark) {
       paramMap.set('remark', sysMenu.remark);
@@ -286,6 +288,8 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     }
     if (sysMenu.icon) {
       paramMap.set('icon', sysMenu.icon);
+    } else {
+      paramMap.set('icon', '#');
     }
     if (sysMenu.remark) {
       paramMap.set('remark', sysMenu.remark);
