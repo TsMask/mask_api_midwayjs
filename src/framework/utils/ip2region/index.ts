@@ -23,7 +23,8 @@ export async function getRegionSearchByIp(ip: string): Promise<{
   took: number;
 }> {
   let data = { region: '0|0|0|0|0', ioCount: 0, took: 0 };
-  if (getClientIP(ip) === LOCAT_HOST) {
+  ip = getClientIP(ip)
+  if (ip === LOCAT_HOST) {
     data.region = '0|0|0|内网IP|内网IP';
   }
   try {
@@ -40,7 +41,8 @@ export async function getRegionSearchByIp(ip: string): Promise<{
  * @returns 返回结果 江苏省 苏州市
  */
 export async function getRealAddressByIp(ip: string): Promise<string> {
-  if (getClientIP(ip) === LOCAT_HOST) {
+  ip = getClientIP(ip)
+  if (ip === LOCAT_HOST) {
     return '内网IP';
   }
   try {
