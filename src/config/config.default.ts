@@ -103,13 +103,18 @@ export default (): MidwayConfig => {
 
     /**cors 跨域 http://www.midwayjs.org/docs/extensions/cross_domain */
     cors: {
-      // 允许跨域的方法，【默认值】为 GET,HEAD,PUT,POST,DELETE,PATCH
-      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELET'],
       // 设置 Access-Control-Allow-Origin 的值，【默认值】会获取请求头上的 origin
       // 也可以配置为一个回调方法，传入的参数为 request，需要返回 origin 值
       // 例如：http://test.midwayjs.org
       // 如果请求设置了 credentials，则 origin 不能设置为 *
       origin: '*',
+      // 设置 Access-Control-Allow-Credentials，【默认值】false
+      // 也可以配置为一个回调方法，传入的参数为 request，返回值为 true 或 false
+      credentials: true,
+      // 设置 Access-Control-Max-Age
+      maxAge: 31536000,
+      // 允许跨域的方法，【默认值】为 GET,HEAD,PUT,POST,DELETE,PATCH
+      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELET'],
       // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
       allowHeaders: [
         REQUEST_HEADER_CODE,
@@ -124,13 +129,6 @@ export default (): MidwayConfig => {
       ],
       // 设置 Access-Control-Expose-Headers 的值
       exposeHeaders: [RESPONSE_HEADER_REPEATSUBMIT_REST],
-      // 设置 Access-Control-Allow-Credentials，【默认值】false
-      // 也可以配置为一个回调方法，传入的参数为 request，返回值为 true 或 false
-      credentials: true,
-      // 是否在执行报错的时候，把跨域的 header 信息写入到 error 对的 headers 属性中，【默认值】false
-      keepHeadersOnError: false,
-      // 设置 Access-Control-Max-Age
-      maxAge: 31536000,
     },
 
     /**security 安全 http://www.midwayjs.org/docs/extensions/security */
@@ -138,7 +136,7 @@ export default (): MidwayConfig => {
       csrf: {
         enable: true,
         type: 'referer',
-        refererWhiteList: [],
+        refererWhiteList: ['127.0.0.1:6275'],
       },
       xframe: {
         enable: true,
