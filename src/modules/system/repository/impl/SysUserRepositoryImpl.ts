@@ -99,9 +99,11 @@ function convertResultRows(rows: any[]): SysUser[] {
 
     let one = true;
     for (let i = 0; i < arr.length; i++) {
-      arr[i].roles.push(...sysUser.roles);
-      one = false;
-      break;
+      if (arr[i].userId === sysUser.userId) {
+        arr[i].roles.push(...sysUser.roles);
+        one = false;
+        break;
+      }
     }
     if (one) {
       arr.push(sysUser);
