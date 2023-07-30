@@ -220,7 +220,7 @@ export class SysRoleController {
     newSysRole.dataScope = sysRole.dataScope;
     newSysRole.deptCheckStrictly = sysRole.deptCheckStrictly;
     const rows = await this.sysRoleService.authDataScope(newSysRole);
-    return Result[rows >= 0 ? 'ok' : 'err']();
+    return Result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
