@@ -11,14 +11,21 @@
 
 基于 `Node` + `TypeScript` 的 `Midwayjs` 开发框架进行开发，如需进一步了解框架，参见 [Midwayjs](http://www.midwayjs.org) 官方文档。
 
-## 项目拓展
+## 项目文档
 
-- `Apifox` 提供mock服务和程序接口文档 => [接口预览](https://mask-api-midwayjs.apifox.cn/)
-- `Element-Vue3` 前端代码仓库地址 => [mask_element_vue3](https://gitee.com/TsMask/mask_element_vue3)
-- `Antd-Vue3` 前端代码仓库地址 => [mask_antd_vue3](https://gitee.com/TsMask/mask_antd_vue3)
-- `Midwayjs-Node` 后端代码仓库地址 => [mask_api_midwayjs](https://gitee.com/TsMask/mask_api_midwayjs)
+- 项目代码进行服务器部署的网站 => [在线预览](http://124.223.91.248:8102/#/)
+- `Apifox` 提供mock服务和程序接口文档 => [接口文档](https://mask-api-midwayjs.apifox.cn/)
+- `Mask管理系统` 文档专栏，相关使用和开发升级文档。 => [专栏](https://juejin.cn/column/7188761626017792056/)
 
-[Antd在线预览](http://124.223.91.248:8102/mask-antd/#/index) or [Element在线预览](http://124.223.91.248:8102/mask-el/#/index)
+### 前端
+
+- `Vue3-Element` 仓库地址 => [mask_element_vue3](https://gitee.com/TsMask/mask_element_vue3)
+- `Vue3-Antd` 仓库地址 => [mask_antd_vue3](https://gitee.com/TsMask/mask_antd_vue3)
+
+### 后端
+
+- `Node-Midwayjs` 仓库地址 => [mask_api_midwayjs](https://gitee.com/TsMask/mask_api_midwayjs)
+- `Go-Gin` 仓库地址 => [mask_api_gin](https://gitee.com/TsMask/mask_api_gin)
 
 ## 内置功能
 
@@ -92,6 +99,7 @@ mask_api_midwayjs
 # 修改配置参数 /src/connfig/config.local.ts
 npm install                 # 安装项目所需依赖
 npm run dev                 # 开发模式启动项目
+
 open http://localhost:6275  # 启动成功后得到服务访问地址
 ```
 
@@ -101,7 +109,7 @@ open http://localhost:6275  # 启动成功后得到服务访问地址
 # 修改配置参数 /src/connfig/config.prod.ts
 npm install             # 安装项目所需依赖
 npm run build           # 构建生产项目代码
-npm prune --production  # 移除开发依赖
+
 npm run start           # 窗口当前启动项目
 npm run start:pm2       # PM2常驻启动项目
 ```
