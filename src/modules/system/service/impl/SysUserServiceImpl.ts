@@ -243,74 +243,88 @@ export class SysUserServiceImpl implements ISysUserService {
       newSysUser.phonenumber = item['手机号码'];
       newSysUser.email = item['用户邮箱'];
       newSysUser.status = item['帐号状态'] === '启用' ? STATUS_YES : STATUS_NO;
+
+      // 用户性别转值
       const sysUserSex = sysUserSexSDDList.find(
         sdd => sdd.dictLabel === item['用户性别']
       );
       if (sysUserSex && sysUserSex.dictValue) {
-        newSysUser.sex = sysUserSex.dictValue; // 用户性别转值
+        newSysUser.sex = sysUserSex.dictValue;
       } else {
         newSysUser.sex = '0';
       }
 
+      // 检查手机号码格式并判断是否唯一
       if (newSysUser.phonenumber) {
         if (validMobile(newSysUser.phonenumber)) {
           const uniquePhone = await this.checkUniquePhone(
             newSysUser.phonenumber
           );
           if (!uniquePhone) {
+            const msg = `序号：${item['序号']} 手机号码 ${newSysUser.phonenumber} 已存在`;
             failureNum++;
-            failureMsgArr.push(
-              `序号：${item['序号']} 手机号码 ${newSysUser.phonenumber} 已存在`
-            );
+            failureMsgArr.push(msg);
             continue;
           }
         } else {
+          const msg = `序号：${item['序号']} 手机号码 ${newSysUser.phonenumber} 格式错误`;
           failureNum++;
-          failureMsgArr.push(
-            `序号：${item['序号']} 手机号码 ${newSysUser.phonenumber} 格式错误`
-          );
+          failureMsgArr.push(msg);
           continue;
         }
       }
+
+      // 检查邮箱格式并判断是否唯一
       if (newSysUser.email) {
         if (validEmail(newSysUser.email)) {
           const uniqueEmail = await this.checkUniqueEmail(newSysUser.email);
           if (!uniqueEmail) {
+            const msg = `序号：${item['序号']} 用户邮箱 ${newSysUser.email} 已存在`;
             failureNum++;
-            failureMsgArr.push(
-              `序号：${item['序号']} 用户邮箱 ${newSysUser.email} 已存在`
-            );
+            failureMsgArr.push(msg);
             continue;
           }
         } else {
+          const msg = `序号：${item['序号']} 用户邮箱 ${newSysUser.email} 格式错误`;
           failureNum++;
-          failureMsgArr.push(
-            `序号：${item['序号']} 用户邮箱 ${newSysUser.email} 格式错误`
-          );
+          failureMsgArr.push(msg);
           continue;
         }
       }
+
       // 验证是否存在这个用户
       const user = await this.sysUserRepository.selectUserByUserName(
         newSysUser.userName
       );
       if (!user) {
         newSysUser.createBy = operName;
-        await this.insertUser(newSysUser);
-        successNum++;
-        successMsgArr.push(
-          `序号：${item['序号']} 登录名称 ${newSysUser.userName} 导入成功`
-        );
+        const insertId = await this.insertUser(newSysUser);
+        if (insertId) {
+          const msg = `序号：${item['序号']} 登录名称 ${item['登录名称']} 导入成功`;
+          successNum++;
+          successMsgArr.push(msg);
+        } else {
+          const msg = `序号：${item['序号']} 登录名称 ${item['登录名称']} 导入失败`;
+          failureNum++;
+          failureMsgArr.push(msg);
+        }
         continue;
       }
+
       // 如果用户已存在 同时 是否更新支持
       if (user && isUpdateSupport) {
+        newSysUser.userId = user.userId;
         newSysUser.updateBy = operName;
-        await this.updateUser(newSysUser);
-        successNum++;
-        successMsgArr.push(
-          `序号：${item['序号']} 登录名称 ${item['登录名称']} 更新成功`
-        );
+        const rows = await this.updateUser(newSysUser);
+        if (rows > 0) {
+          const msg = `序号：${item['序号']} 登录名称 ${item['登录名称']} 更新成功`;
+          successNum++;
+          successMsgArr.push(msg);
+        } else {
+          const msg = `序号：${item['序号']} 登录名称 ${item['登录名称']} 更新失败`;
+          failureNum++;
+          failureMsgArr.push(msg);
+        }
         continue;
       }
     }
