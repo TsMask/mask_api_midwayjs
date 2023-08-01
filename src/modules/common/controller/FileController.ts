@@ -48,10 +48,13 @@ export class FileController {
     ctx.set('Content-Type', 'application/octet-stream');
 
     // 断点续传
-    const range = ctx.headers.range;
-    const result = await this.fileService.readUploadFileStream(filePath, range);
-    if (!result) return Result.errMsg('找不到文件资源');
-    if (range) {
+    const headerRange = ctx.headers.range;
+    const result = await this.fileService.readUploadFileStream(
+      filePath,
+      headerRange
+    );
+    if (!result.data) return Result.errMsg('找不到文件资源');
+    if (headerRange) {
       ctx.set('Content-Range', result.range);
       ctx.set('Content-Length', `${result.chunkSize}`);
       ctx.status = 206;
@@ -82,7 +85,8 @@ export class FileController {
     const { origin, cleanupRequestFiles } = this.contextService.getContext();
     const upFilePath = await this.fileService.transferUploadFile(
       files[0],
-      subPath
+      subPath,
+      []
     );
     const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
     await cleanupRequestFiles();

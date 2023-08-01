@@ -23,7 +23,7 @@ export async function getFileSize(filePath: string): Promise<number> {
     const { size } = await stat(filePath);
     return size || 0;
   } catch (error) {
-    console.error(`Failed stat "${filePath}": ${error.message}`);
+    console.error(`Failed stat ${filePath} : ${error.message}`);
   }
   return 0;
 }
@@ -146,7 +146,7 @@ export function getMimeTypeExt(mimeType: string): string {
 /**
  * 获取文件目录下所有文件名称，不含目录名称
  * @param filePath 文件路径
- * @return 文件大小，单位B
+ * @return 目录下文件名称
  */
 export async function getDirFileNameList(dirPath: string): Promise<string[]> {
   if (!dirPath) return [];

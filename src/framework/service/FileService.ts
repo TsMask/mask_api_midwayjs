@@ -60,14 +60,14 @@ export class FileService {
 
   /**
    * 检查文件允许写入本地
-   * @param allowExts 允许上传拓展类型，['.png']
    * @param fileName 原始文件名称含后缀，如：midway1_logo_iipc68.png
+   * @param allowExts 允许上传拓展类型，['.png']
    * @param mimeType 原始文件类型，如：image/png
    * @returns 抛出异常
    */
   private isAllowWrite(
-    allowExts: string[],
     fileName: string,
+    allowExts: string[],
     mimeType?: string
   ) {
     // 判断上传文件名称长度
@@ -79,6 +79,9 @@ export class FileService {
     let fileExt = getFileExt(fileName);
     if (!fileExt && mimeType) {
       fileExt = getMimeTypeExt(mimeType);
+    }
+    if (Array.isArray(allowExts) && allowExts.length == 0) {
+      allowExts = this.uploadWhiteList;
     }
     if (!allowExts.includes(fileExt)) {
       throw new Error(
@@ -115,7 +118,7 @@ export class FileService {
     identifier: string,
     originalFileName: string
   ): Promise<string[]> {
-    this.isAllowWrite(this.uploadWhiteList, originalFileName);
+    this.isAllowWrite(originalFileName, []);
     const dirPath = posix.join(
       UploadSubPathEnum.CHUNK,
       parseDatePath(),
@@ -137,7 +140,7 @@ export class FileService {
     originalFileName: string,
     subPath: string = UploadSubPathEnum.DEFAULT
   ): Promise<string> {
-    this.isAllowWrite(this.uploadWhiteList, originalFileName);
+    this.isAllowWrite(originalFileName, []);
     // 切片存放目录
     const dirPath = posix.join(
       UploadSubPathEnum.CHUNK,
@@ -166,7 +169,7 @@ export class FileService {
     identifier: string
   ): Promise<string> {
     const { filename, mimeType, data } = file;
-    this.isAllowWrite(this.uploadWhiteList, filename, mimeType);
+    this.isAllowWrite(filename, [], mimeType);
     const filePath = posix.join(
       UploadSubPathEnum.CHUNK,
       parseDatePath(),
@@ -187,10 +190,10 @@ export class FileService {
   async transferUploadFile(
     file: UploadFileInfo<string>,
     subPath: string = UploadSubPathEnum.DEFAULT,
-    allowExts: string[] = this.uploadWhiteList
+    allowExts: string[] = []
   ): Promise<string> {
     const { filename, mimeType, data } = file;
-    this.isAllowWrite(allowExts, filename, mimeType);
+    this.isAllowWrite(filename, allowExts, mimeType);
     const fileName = this.generateFileName(filename, mimeType);
     const filePath = posix.join(subPath, parseDatePath());
     const writePath = posix.join(this.resourceUpload.dir, filePath);
@@ -218,24 +221,36 @@ export class FileService {
   /**
    * 上传资源文件读取
    * @param filePath 文件存放资源路径，URL相对地址 如：/upload/common/2023/06/xxx.png
-   * @param range 断点续传范围区间，bytes=0-12131
+   * @param headerRange 断点续传范围区间，bytes=0-12131
    * @return object { fileSize, data }
    */
-  async readUploadFileStream(filePath: string, range?: string) {
+  async readUploadFileStream(filePath: string, headerRange?: string) {
     // 检查文件允许访问
     if (!this.isAllowRead(filePath)) {
       throw new Error(`文件 ${filePath} 非法，不允许下载。`);
     }
-    const asbPath = filePath.replace(
+    const fileAsbPath = filePath.replace(
       this.resourceUpload.prefix,
       this.resourceUpload.dir
     );
 
-    const fileSize = await getFileSize(asbPath);
+    // 响应结果
+    let result = {
+      range: '',
+      chunkSize: 0,
+      fileSize: 0,
+      data: null,
+    };
 
-    let data = null;
-    if (range) {
-      const parts = range.replace(/bytes=/, '').split('-');
+    // 文件大小
+    const fileSize = await getFileSize(fileAsbPath);
+    if (fileSize <= 0) {
+      return result;
+    }
+    result.fileSize = fileSize;
+
+    if (headerRange) {
+      const parts = headerRange.replace(/bytes=/, '').split('-');
       let start = parseInt(parts[0], 10) || 0;
       start = Math.min(start, fileSize);
       let end = parseInt(parts[1], 10) || fileSize - 1;
@@ -243,21 +258,15 @@ export class FileService {
       if (start > end) {
         start = end;
       }
-      const chunkSize = end - start + 1;
-      data = await getFileStream(asbPath, [start, end]);
-      return {
-        range: `bytes ${start}-${end}/${fileSize}`,
-        chunkSize,
-        fileSize,
-        data,
-      };
+      // 分片结果
+      result.range = `bytes ${start}-${end}/${fileSize}`;
+      result.chunkSize = end - start + 1;
+      result.data = await getFileStream(fileAsbPath, [start, end]);
+      return result;
     }
 
-    data = await getFileStream(asbPath);
-    return {
-      fileSize,
-      data,
-    };
+    result.data = await getFileStream(fileAsbPath);
+    return result;
   }
 
   /**
@@ -289,7 +298,7 @@ export class FileService {
     indexOrName: string | number = 1
   ): Promise<Record<string, string>[]> {
     const { data, filename, mimeType } = file;
-    this.isAllowWrite(['.xls', '.xlsx'], filename, mimeType);
+    this.isAllowWrite(filename, ['.xls', '.xlsx'], mimeType);
     const savePath = posix.join(
       this.resourceUpload.dir,
       UploadSubPathEnum.IMPORT,
@@ -301,7 +310,7 @@ export class FileService {
 
   /**
    * 表格写入数据并导出
-   * @param filePath — 文件路径
+   * @param data 写入数据
    * @param sheetName 工作表名称
    * @param fileName 文件名 不含后缀
    * @return xlsx文件流

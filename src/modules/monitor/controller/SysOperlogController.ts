@@ -100,6 +100,7 @@ export class SysOperLogController {
           请求参数: cur.operParam,
           操作消息: cur.operMsg,
           状态: ['失败', '成功'][+cur.status],
+          消耗时间: cur.costTime + 'ms',
           操作时间: parseDateToStr(+cur.operTime),
         });
         return pre;

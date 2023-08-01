@@ -61,107 +61,6 @@ export class SysUserController {
   private sysDictDataService: SysDictDataServiceImpl;
 
   /**
-   * 用户信息列表导入模板下载
-   */
-  @Get('/importTemplate')
-  async importTemplate() {
-    const ctx = this.contextService.getContext();
-    const fileName = `user_import_template_${Date.now()}.xlsx`;
-    ctx.set(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    ctx.set(
-      'Content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.fileService.readAssetsFileStream(
-      '/template/excel/user_import_template.xlsx'
-    );
-  }
-
-  /**
-   * 用户信息列表导入
-   */
-  @Post('/importData')
-  @PreAuthorize({ hasPermissions: ['system:user:import'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.IMPORT })
-  async importData(
-    @Files('file') files: UploadFileInfo<string>[],
-    @Fields('updateSupport') updateSupport: string
-  ) {
-    if (files.length <= 0) return Result.err();
-    // 读取表格数据
-    const sheetItemArr = await this.fileService.excelReadRecord(files[0]);
-    if (sheetItemArr.length <= 0) {
-      return Result.errMsg('导入用户数据不能为空！');
-    }
-    // 获取操作人名称
-    const operName = this.contextService.getUseName();
-    const message = await this.sysUserService.importUser(
-      sheetItemArr,
-      parseBoolean(updateSupport),
-      operName
-    );
-    return Result.okMsg(message);
-  }
-
-  /**
-   * 用户信息列表导出
-   */
-  @Post('/export')
-  @PreAuthorize({ hasPermissions: ['system:user:export'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.EXPORT })
-  async export() {
-    const ctx = this.contextService.getContext();
-    // 查询结果，根据查询条件结果，单页最大值限制
-    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
-    const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    const data = await this.sysUserService.selectUserPage(query, dataScopeSQL);
-    if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
-    }
-    // 读取用户性别字典数据
-    const dictSysUserSex = await this.sysDictDataService.selectDictDataByType(
-      'sys_user_sex'
-    );
-    // 导出数据组装
-    const rows = data.rows.reduce(
-      (pre: Record<string, string>[], cur: SysUser) => {
-        const sysUserSex = dictSysUserSex.find(
-          item => item.dictValue === cur.sex
-        );
-        pre.push({
-          用户序号: cur.userId,
-          登录名称: cur.userName,
-          用户名称: cur.nickName,
-          用户邮箱: cur.email,
-          手机号码: cur.phonenumber,
-          用户性别: sysUserSex.dictLabel,
-          帐号状态: ['停用', '正常'][+cur.status],
-          最后登录IP: cur.loginIp,
-          最后登录时间: parseDateToStr(+cur.loginDate),
-          部门名称: cur?.dept?.deptName ?? '',
-          部门负责人: cur?.dept?.leader ?? '',
-        });
-        return pre;
-      },
-      []
-    );
-    // 导出数据表格
-    const fileName = `user_export_${data.total}_${Date.now()}.xlsx`;
-    ctx.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    ctx.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.fileService.excelWriteRecord(rows, '用户信息', fileName);
-  }
-
-  /**
    * 用户信息列表
    */
   @Get('/list')
@@ -433,5 +332,107 @@ export class SysUserController {
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUser(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();
+  }
+
+  /**
+   * 用户信息列表导出
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['system:user:export'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.EXPORT })
+  async export() {
+    const ctx = this.contextService.getContext();
+    // 查询结果，根据查询条件结果，单页最大值限制
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
+    const query: Record<string, any> = Object.assign({}, ctx.request.body);
+    const data = await this.sysUserService.selectUserPage(query, dataScopeSQL);
+    if (data.total === 0) {
+      return Result.errMsg('导出数据记录为空');
+    }
+    // 读取用户性别字典数据
+    const dictSysUserSex = await this.sysDictDataService.selectDictDataByType(
+      'sys_user_sex'
+    );
+    // 导出数据组装
+    const rows = data.rows.reduce(
+      (pre: Record<string, string>[], cur: SysUser) => {
+        const sysUserSex = dictSysUserSex.find(
+          item => item.dictValue === cur.sex
+        );
+        pre.push({
+          用户序号: cur.userId,
+          登录名称: cur.userName,
+          用户名称: cur.nickName,
+          用户邮箱: cur.email,
+          手机号码: cur.phonenumber,
+          用户性别: sysUserSex.dictLabel,
+          帐号状态: ['停用', '正常'][+cur.status],
+          最后登录IP: cur.loginIp,
+          最后登录时间: parseDateToStr(+cur.loginDate),
+          部门名称: cur?.dept?.deptName ?? '',
+          部门负责人: cur?.dept?.leader ?? '',
+        });
+        return pre;
+      },
+      []
+    );
+    // 导出数据表格
+    const fileName = `user_export_${data.total}_${Date.now()}.xlsx`;
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.excelWriteRecord(rows, '用户信息', fileName);
+  }
+
+  /**
+   * 用户信息列表导入模板下载
+   */
+  @Get('/importTemplate')
+  @PreAuthorize({ hasPermissions: ['system:user:import'] })
+  async importTemplate() {
+    const ctx = this.contextService.getContext();
+    const fileName = `user_import_template_${Date.now()}.xlsx`;
+    ctx.set(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'Content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.readAssetsFileStream(
+      '/template/excel/user_import_template.xlsx'
+    );
+  }
+
+  /**
+   * 用户信息列表导入
+   */
+  @Post('/importData')
+  @PreAuthorize({ hasPermissions: ['system:user:import'] })
+  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.IMPORT })
+  async importData(
+    @Files('file') files: UploadFileInfo<string>[],
+    @Fields('updateSupport') updateSupport: string
+  ) {
+    if (files.length <= 0) return Result.err();
+    // 读取表格数据
+    const sheetItemArr = await this.fileService.excelReadRecord(files[0]);
+    if (sheetItemArr.length <= 0) {
+      return Result.errMsg('导入用户数据不能为空！');
+    }
+    // 获取操作人名称
+    const operName = this.contextService.getUseName();
+    const message = await this.sysUserService.importUser(
+      sheetItemArr,
+      parseBoolean(updateSupport),
+      operName
+    );
+    return Result.okMsg(message);
   }
 }

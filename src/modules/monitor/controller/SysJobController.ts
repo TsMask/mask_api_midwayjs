@@ -279,7 +279,7 @@ export class SysJobController {
           调用目标: cur.invokeTarget,
           传入参数: cur.targetParams,
           执行表达式: cur.cronExpression,
-          计划策略: ['立即执行', '执行一次', '放弃执行'][
+          出错策略: ['立即执行', '执行一次', '放弃执行'][
             +cur.misfirePolicy - 1
           ],
           并发执行: ['禁止', '允许'][+cur.concurrent],
