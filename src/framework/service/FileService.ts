@@ -310,7 +310,7 @@ export class FileService {
 
   /**
    * 表格写入数据并导出
-   * @param filePath — 文件路径
+   * @param data 写入数据
    * @param sheetName 工作表名称
    * @param fileName 文件名 不含后缀
    * @return xlsx文件流
