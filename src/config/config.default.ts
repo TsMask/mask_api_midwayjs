@@ -1,5 +1,5 @@
 import { MidwayConfig } from '@midwayjs/core';
-import { resolve, join } from 'path';
+import { resolve } from 'path';
 import { TOKEN_KEY } from '../framework/constants/TokenConstants';
 import {
   REQUEST_HEADER_CODE,
@@ -9,7 +9,7 @@ import {
 
 export default (): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级
-  const filePath = join(resolve(__dirname, '../../..'), 'mask_file');
+  const filePath = resolve(process.cwd(), '../mask_file');
   return {
     // use for cookie sign key, should change to your own and keep security
     keys: '1662290627179_89234',
@@ -191,7 +191,7 @@ export default (): MidwayConfig => {
           /**输出sql日志 */
           logging: false,
           /**配置实体模型以扫描形式 */
-          entities: ['**/model/*.entity{.ts,.js}'],
+          entities: ['modules/*/model/*.entity{.ts,.js}'],
         },
       },
       // 多个数据源时可以用这个指定默认的数据源

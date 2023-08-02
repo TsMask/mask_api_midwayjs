@@ -20,8 +20,9 @@ export default {
     dataSource: {
       // 单数据库实例
       default: {
+        type: 'mysql',
+        host: '<mysql地址>',
         port: 3306,
-        host: 'mysql',
         username: '<账号>',
         password: '<密码>',
         database: '<数据库名称>',

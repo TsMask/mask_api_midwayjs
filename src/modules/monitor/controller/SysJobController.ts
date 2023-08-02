@@ -204,7 +204,7 @@ export class SysJobController {
     if (!sysJob) return Result.err();
     // 与旧值相等不变更
     if (sysJob.status === status) {
-      return Result.errMsg("变更状态与旧值相等！")
+      return Result.errMsg('变更状态与旧值相等！');
     }
     sysJob.status = status;
     sysJob.updateBy = this.contextService.getUseName();
@@ -291,7 +291,7 @@ export class SysJobController {
       []
     );
     // 导出数据表格
-    const fileName = `job_export_${data.total}_${Date.now()}.xlsx`;
+    const fileName = `job_export_${rows.length}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -300,10 +300,6 @@ export class SysJobController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.excelWriteRecord(
-      rows,
-      '调度任务信息',
-      fileName
-    );
+    return await this.fileService.excelWriteRecord(rows, fileName);
   }
 }

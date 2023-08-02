@@ -205,10 +205,6 @@ export class SysConfigController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.excelWriteRecord(
-      rows,
-      '参数配置信息',
-      fileName
-    );
+    return await this.fileService.excelWriteRecord(rows, fileName);
   }
 }
