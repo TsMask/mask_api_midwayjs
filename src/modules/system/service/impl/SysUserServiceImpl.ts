@@ -236,6 +236,7 @@ export class SysUserServiceImpl implements ISysUserService {
 
       // 构建用户实体信息
       const newSysUser = new SysUser();
+      newSysUser.userType = "sys";
       newSysUser.password = initPassword;
       newSysUser.deptId = item['部门编号'];
       newSysUser.userName = item['登录名称'];
