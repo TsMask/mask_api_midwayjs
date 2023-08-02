@@ -1,4 +1,4 @@
-import { Inject, MidwayInformationService, Singleton } from '@midwayjs/core';
+import { Singleton } from '@midwayjs/core';
 import { Config, Provide } from '@midwayjs/decorator';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { posix } from 'path';
@@ -15,6 +15,7 @@ import {
   transferToNewFile,
   mergeToNewFile,
   getFileSize,
+  writeBufferFile,
 } from '../utils/FileUtils';
 import { generateHash } from '../utils/GenIdUtils';
 
@@ -29,9 +30,6 @@ const DEFAULT_FILE_NAME_LENGTH = 100;
 @Provide()
 @Singleton()
 export class FileService {
-  @Inject()
-  private midwayInformationService: MidwayInformationService;
-
   // 文件上传路径
   @Config('staticFile.dirs.upload')
   private resourceUpload: { prefix: string; dir: string };
@@ -270,7 +268,7 @@ export class FileService {
   }
 
   /**
-   * 内部文件读取
+   * 内部文件读取 assets 目录
    * @param asserPath 内部文件相对地址，如：/template/excel/xxx.xlsx
    * @return 文件读取流
    */
@@ -279,11 +277,7 @@ export class FileService {
     if (!this.isAllowRead(asserPath)) {
       throw new Error(`内部文件 ${asserPath} 非法，不允许读取。`);
     }
-    const absPath = posix.join(
-      this.midwayInformationService.getBaseDir(),
-      'assets',
-      asserPath
-    );
+    const absPath = posix.join('assets', asserPath);
     return await getFileStream(absPath);
   }
 
@@ -299,27 +293,34 @@ export class FileService {
   ): Promise<Record<string, string>[]> {
     const { data, filename, mimeType } = file;
     this.isAllowWrite(filename, ['.xls', '.xlsx'], mimeType);
+    // 保存上传文件
     const savePath = posix.join(
       this.resourceUpload.dir,
       UploadSubPathEnum.IMPORT,
       parseDatePath()
     );
     await checkDirPathExists(savePath);
-    return await readSheet(data, indexOrName, posix.join(savePath, filename));
+    const fileName = this.generateFileName(filename, mimeType);
+    await transferToNewFile(data, savePath, fileName);
+    // 读取数据
+    return await readSheet(data, indexOrName);
   }
 
   /**
    * 表格写入数据并导出
    * @param data 写入数据
-   * @param sheetName 工作表名称
-   * @param fileName 文件名 不含后缀
+   * @param fileName 文件名 xxx_export_2424_1690964011598.xlsx
+   * @param sheetName 工作表名称 默认Sheet1
    * @return xlsx文件流
    */
   async excelWriteRecord(
     data: any[],
-    sheetName: string = 'Sheet1',
-    fileName?: string
+    fileName: string,
+    sheetName: string = 'Sheet1'
   ) {
+    const sheetBuffer = await writeSheet(data, sheetName);
+
+    // 保存文件
     if (fileName) {
       const savePath = posix.join(
         this.resourceUpload.dir,
@@ -327,9 +328,9 @@ export class FileService {
         parseDatePath()
       );
       await checkDirPathExists(savePath);
-      const saveFilePath = posix.join(savePath, `${fileName}.xlsx`);
-      return await writeSheet(data, sheetName, saveFilePath);
+      await writeBufferFile(Buffer.from(sheetBuffer), savePath, fileName);
     }
-    return await writeSheet(data, sheetName);
+
+    return sheetBuffer;
   }
 }

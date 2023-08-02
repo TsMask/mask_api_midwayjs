@@ -201,9 +201,8 @@ export async function writeBufferFile(
   writeDirPath: string,
   fileName: string
 ): Promise<string> {
-  const extension = getBufferFileExtendName(buf);
   await checkDirPathExists(writeDirPath);
-  const filePath = posix.join(writeDirPath, `${fileName}.${extension}`);
+  const filePath = posix.join(writeDirPath, fileName);
   // 写入到新路径文件
   try {
     await writeFile(filePath, buf);

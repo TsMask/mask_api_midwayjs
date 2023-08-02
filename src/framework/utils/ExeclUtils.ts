@@ -4,24 +4,17 @@ import * as ExcelJS from 'exceljs';
  * 读取表格数据
  * @param filePath 文件路径
  * @param indexOrName 工作表，默认值：1，读取第一张工作表
- * @param savePath 文件保存路径
  * @return 表格对象列表
  */
 export async function readSheet(
   filePath: string,
-  indexOrName: string | number = 1,
-  savePath?: string
+  indexOrName: string | number = 1
 ): Promise<Record<string, string>[]> {
   // 读取Excel文件
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(filePath);
   // 获取第一个工作表
   const worksheet = workbook.getWorksheet(indexOrName);
-  // 保存文件转存到本地
-  if (savePath) {
-    await workbook.xlsx.writeFile(savePath);
-  }
-
   // 获取表头行
   const headerRow = worksheet.getRow(1);
   // 获取表头列数
@@ -45,7 +38,6 @@ export async function readSheet(
     // 将当前行的数据存储到data数组中
     rowDataArr.push(rowData);
   }
-
   return rowDataArr;
 }
 
@@ -53,14 +45,9 @@ export async function readSheet(
  * 写入表格数据并导出
  * @param filePath 文件路径
  * @param sheetName 工作表名称
- * @param savePath 文件保存绝对路径
  * @return xlsx文件流
  */
-export async function writeSheet(
-  data: any[],
-  sheetName: string,
-  savePath?: string
-): Promise<unknown> {
+export async function writeSheet(data: any[], sheetName: string) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet(sheetName);
 
@@ -71,10 +58,6 @@ export async function writeSheet(
 
   // 写入数据
   worksheet.addRows(data);
-
-  // 保存文件到本地
-  if (savePath) {
-    await workbook.xlsx.writeFile(savePath);
-  }
+  // 得到arrayBuffer数据
   return await workbook.xlsx.writeBuffer();
 }
