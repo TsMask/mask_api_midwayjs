@@ -267,12 +267,12 @@ export class SysRoleController {
     if (!role) {
       return Result.errMsg('没有权限访问角色数据！');
     }
-    let rows = 0
-    if(checked){
+    let rows = 0;
+    if (checked) {
       rows = await this.sysRoleService.insertAuthUsers(roleId, [
         ...new Set(ids),
       ]);
-    }else{
+    } else {
       rows = await this.sysRoleService.deleteAuthUsers(roleId, [
         ...new Set(ids),
       ]);
@@ -320,6 +320,6 @@ export class SysRoleController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.excelWriteRecord(rows, '角色信息', fileName);
+    return await this.fileService.excelWriteRecord(rows, fileName);
   }
 }

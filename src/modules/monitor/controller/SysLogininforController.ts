@@ -133,7 +133,7 @@ export class SysLogininforController {
       []
     );
     // 导出数据表格
-    const fileName = `logininfor_export_${rows.length}_${Date.now()}.xlsx`;
+    const fileName = `logininfor_export_${data.rows.length}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -142,10 +142,6 @@ export class SysLogininforController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.excelWriteRecord(
-      rows,
-      '登录访问信息',
-      fileName
-    );
+    return await this.fileService.excelWriteRecord(rows, fileName);
   }
 }

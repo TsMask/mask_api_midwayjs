@@ -115,7 +115,7 @@ export class SysDictDataController {
   async edit(@Body() sysDictData: SysDictData): Promise<Result> {
     const { dictCode, dictType, dictLabel, dictValue } = sysDictData;
     if (!dictCode || !dictType || !dictLabel || !dictValue) return Result.err();
-   
+
     // 检查字典类型是否存在
     const dict = await this.sysDictTypeService.selectDictTypeByType(dictType);
     if (!dict) {
@@ -153,7 +153,7 @@ export class SysDictDataController {
         `数据修改【${dictValue}】失败，该字典类型下标签值已存在`
       );
     }
-    
+
     sysDictData.updateBy = this.contextService.getUseName();
     const id = await this.sysDictDataServer.updateDictData(sysDictData);
     return Result[id ? 'ok' : 'err']();
@@ -231,10 +231,6 @@ export class SysDictDataController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.excelWriteRecord(
-      rows,
-      '字典数据信息',
-      fileName
-    );
+    return await this.fileService.excelWriteRecord(rows, fileName);
   }
 }

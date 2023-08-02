@@ -377,7 +377,7 @@ export class SysUserController {
       []
     );
     // 导出数据表格
-    const fileName = `user_export_${data.total}_${Date.now()}.xlsx`;
+    const fileName = `user_export_${rows.length}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -386,7 +386,7 @@ export class SysUserController {
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.excelWriteRecord(rows, '用户信息', fileName);
+    return await this.fileService.excelWriteRecord(rows, fileName);
   }
 
   /**
@@ -406,7 +406,7 @@ export class SysUserController {
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
     return await this.fileService.readAssetsFileStream(
-      '/template/excel/user_import_template.xlsx'
+      'template/excel/user_import_template.xlsx'
     );
   }
 
