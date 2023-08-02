@@ -4,8 +4,8 @@ import {
   REQUEST_HEADER_CODE,
   REQUEST_HEADER_VERSION,
   RESPONSE_HEADER_REPEATSUBMIT_REST,
-} from '../src/framework/constants/HerderConstants';
-import { TOKEN_KEY } from '../src/framework/constants/TokenConstants';
+} from '../framework/constants/HerderConstants';
+import { TOKEN_KEY } from '../framework/constants/TokenConstants';
 
 export default (): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级

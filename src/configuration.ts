@@ -27,7 +27,7 @@ import { ErrorCatchFilters } from './framework/error-catch';
     crossDomain, // 跨域
     security, // 安全
   ],
-  importConfigs: [join(__dirname, '../config')],
+  importConfigs: [join(__dirname, './config')],
 })
 export class MainConfiguration {
   @App()
@@ -60,7 +60,7 @@ export class MainConfiguration {
     await checkDirPathExists(staticDir);
     await checkDirPathExists(uploadDir);
     // 记录程序开始运行的时间点
-    this.app.setAttr("runTime", Date.now())
+    this.app.setAttr('runTime', Date.now());
     // 输出当期服务环境运行配置
     this.app.getLogger().warn('当期服务环境运行配置 => %s', this.app.getEnv());
   }
