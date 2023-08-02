@@ -77,7 +77,10 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
       current: parseDateToStr(new Date()),
       uptime: ms(Date.now() - runTime),
       timezone: t.length >= 7 ? t[5] : '',
-      timezoneName: t.length >= 7 ? t[6].slice(1, -1) : '',
+      timezoneName:
+        t.length >= 7
+          ? t.slice(6).join(' ').replace(/\(/g, '').replace(/\)/g, '')
+          : '',
     };
   }
 
