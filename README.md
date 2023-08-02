@@ -48,9 +48,9 @@
 
 ```text
 mask_api_midwayjs
+├── assets                      目录-程序内部静态资源文件
 ├── script                      目录-程序可用脚本
 ├── src                         目录-源代码
-├   ├── assets                  目录-程序内部静态资源文件
 ├   ├── config                  目录-程序相关运行参数配置
 ├   ├── framework               目录-程序核心通用代码
 ├   ├── modules                 目录-业务模块
@@ -62,7 +62,7 @@ mask_api_midwayjs
 ├   ├   └── ...
 ├   ├── typings                 目录-程序通用类型定义
 ├   ├── configuration.ts        文件-程序框架启动入口
-├   └──interface.ts             文件-程序通用接口函数自定义声明
+├   └── interface.ts            文件-程序通用接口函数自定义声明
 ├── test                        目录-测试单元
 ├── .editorconfig
 ├── .eslintrc.json
