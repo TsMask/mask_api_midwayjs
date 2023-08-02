@@ -27,7 +27,7 @@ import { ErrorCatchFilters } from './framework/error-catch';
     crossDomain, // 跨域
     security, // 安全
   ],
-  importConfigs: [join(__dirname, './config')],
+  importConfigs: [join(__dirname, '../config')],
 })
 export class MainConfiguration {
   @App()

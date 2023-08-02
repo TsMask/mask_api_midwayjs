@@ -1,15 +1,15 @@
 import { MidwayConfig } from '@midwayjs/core';
-import { resolve, join } from 'path';
-import { TOKEN_KEY } from '../framework/constants/TokenConstants';
+import { join } from 'path';
 import {
   REQUEST_HEADER_CODE,
   REQUEST_HEADER_VERSION,
   RESPONSE_HEADER_REPEATSUBMIT_REST,
-} from '../framework/constants/HerderConstants';
+} from '../src/framework/constants/HerderConstants';
+import { TOKEN_KEY } from '../src/framework/constants/TokenConstants';
 
 export default (): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级
-  const filePath = join(resolve(__dirname, '../../..'), 'mask_file');
+  const filePath = join(__dirname, '../../mask_file');
   return {
     // use for cookie sign key, should change to your own and keep security
     keys: '1662290627179_89234',

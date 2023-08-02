@@ -1,9 +1,9 @@
 // 依赖来源 https://gitee.com/lionsoul/ip2region
-import { join } from 'path';
+
 // 读取xdb工具包
 import { loadContentFromFile, newWithBuffer } from './binding';
 // 指定ip2region数据文件路径
-const dbPath = join(__dirname, '../../../assets/ip2region.xdb');
+const dbPath = "assets/ip2region.xdb";
 // 读取文件Buffer缓存
 const ip2regionBuffer = loadContentFromFile(dbPath);
 // 检索实例
