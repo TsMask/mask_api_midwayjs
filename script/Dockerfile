@@ -5,9 +5,10 @@ RUN npm config set registry https://registry.npmmirror.com
 ENV TZ="Asia/Shanghai"
 
 ## 工作目录存放程序源码
-WORKDIR /home/mask_api
+WORKDIR /home/mask_api_midwayjs
 
 ## 复制实际需要的文件到工作目录
+COPY ./assets ./assets
 COPY ./src ./src
 COPY ./bootstrap.js ./
 COPY ./package.json ./
