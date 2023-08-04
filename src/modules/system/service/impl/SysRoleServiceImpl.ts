@@ -43,28 +43,8 @@ export class SysRoleServiceImpl implements ISysRoleService {
     return await this.sysRoleRepository.selectRoleList(sysRole, dataScopeSQL);
   }
 
-  async selectRolesByUserId(userId: string): Promise<SysRole[]> {
-    const roles = await this.sysRoleRepository.selectRoleList(new SysRole());
-    const userRoles = await this.sysRoleRepository.selectRoleListByUserId(
-      userId
-    );
-    for (const role of roles) {
-      for (const userRole of userRoles) {
-        if (role.roleId === userRole.roleId) {
-          role.flag = true;
-          break;
-        }
-      }
-    }
-    return roles;
-  }
-
   async selectRoleListByUserId(userId: string): Promise<SysRole[]> {
     return await this.sysRoleRepository.selectRoleListByUserId(userId);
-  }
-
-  async selectRoleIdsByUserId(userId: string): Promise<string[]> {
-    return await this.sysRoleRepository.selectRoleIdsByUserId(userId);
   }
 
   async selectRoleById(roleId: string): Promise<SysRole> {
@@ -147,7 +127,11 @@ export class SysRoleServiceImpl implements ISysRoleService {
     // 删除角色与部门关联
     await this.sysRoleDeptRepository.deleteRoleDept([roleId]);
     // 新增角色和部门信息
-    if (sysRole.dataScope === '2' && sysRole.deptIds && sysRole.deptIds.length > 0) {
+    if (
+      sysRole.dataScope === '2' &&
+      sysRole.deptIds &&
+      sysRole.deptIds.length > 0
+    ) {
       const sysRoleDepts: SysRoleDept[] = sysRole.deptIds.map(deptId => {
         if (deptId) {
           return new SysRoleDept(roleId, deptId);
