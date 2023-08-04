@@ -36,14 +36,6 @@ export interface ISysRoleRepository {
   selectRoleListByUserId(userId: string): Promise<SysRole[]> 
 
   /**
-   * 根据用户ID获取拥有角色ID
-   *
-   * @param userId 用户ID
-   * @return 拥有的角色ID列表
-   */
-  selectRoleIdsByUserId(userId: string): Promise<string[]>;
-
-  /**
    * 通过角色ID查询角色
    *
    * @param roleId 角色ID
