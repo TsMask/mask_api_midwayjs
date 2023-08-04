@@ -48,13 +48,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
 
   async selectMenuPermsByUserId(userId: string): Promise<string[]> {
     const perms = await this.sysMenuRepository.selectMenuPermsByUserId(userId);
-    const permsArr: string[] = [];
-    for (const perm of perms) {
-      if (perm) {
-        permsArr.push(...perm.split(','));
-      }
-    }
-    return [...new Set(permsArr)];
+    return [...new Set(perms)];
   }
 
   async selectMenuTreeByUserId(userId: string): Promise<SysMenu[]> {

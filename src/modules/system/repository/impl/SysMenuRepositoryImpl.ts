@@ -137,7 +137,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     left join sys_role_menu rm on m.menu_id = rm.menu_id 
     left join sys_user_role ur on rm.role_id = ur.role_id 
     left join sys_role r on r.role_id = ur.role_id
-    where m.status = '1' and r.status = '1' and ur.user_id = ?`;
+    where m.status = '1' and m.perms != '' and r.status = '1' and ur.user_id = ?`;
 
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [userId]);
     return rows.map(item => item.str);

@@ -26,6 +26,7 @@ import { SysLogininforServiceImpl } from '../../monitor/service/impl/SysLogininf
 import { TokenService } from '../../../framework/service/TokenService';
 import { SysUser } from '../../system/model/SysUser';
 import { getClientIP } from '../../../framework/utils/ip2region';
+import { SysRoleServiceImpl } from '../../system/service/impl/SysRoleServiceImpl';
 
 /**
  * 账号身份操作服务
@@ -42,6 +43,9 @@ export class AccountService {
 
   @Inject()
   private sysMenuService: SysMenuServiceImpl;
+
+  @Inject()
+  private sysRoleService: SysRoleServiceImpl;
 
   @Inject()
   private sysConfigService: SysConfigServiceImpl;
@@ -288,9 +292,12 @@ export class AccountService {
       data.permissions = await this.sysMenuService.selectMenuPermsByUserId(
         user.userId
       );
-      data.roles = await this.sysMenuService.selectMenuPermsByUserId(
+      const roles = await this.sysRoleService.selectRoleListByUserId(
         user.userId
       );
+      for (const role of roles) {
+        data.roles.push(role.roleKey)
+      }
     }
     return data;
   }
