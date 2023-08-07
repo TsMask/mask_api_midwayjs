@@ -134,7 +134,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
 
   async hasChildByDeptId(deptId: string): Promise<number> {
     const sqlStr = `select count(1) as 'total' from sys_dept
-		where del_flag = '0' and parent_id = ? limit 1`;
+		where status = '1' and parent_id = ? limit 1`;
     const countRow: RowTotalType[] = await this.db.execute(sqlStr, [deptId]);
     return parseNumber(countRow[0].total);
   }
@@ -260,6 +260,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
   }
 
   async updateDeptStatusNormal(deptIds: string[]): Promise<number> {
+    if (deptIds.length === 0) return 0;
+
     const sqlStr = `update sys_dept set status = '1' where dept_id in (${deptIds
       .map(() => '?')
       .join(',')}) `;
@@ -277,19 +279,20 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const setArr: string[] = [];
     const paramArr: string[] = [];
     for (const dept of sysDepts) {
-      setArr.push(`case when ${dept.deptId} then ${dept.ancestors} end`);
+      setArr.push(`WHEN dept_id = '${dept.deptId}' THEN '${dept.ancestors}'`);
       paramArr.push(dept.deptId);
     }
 
-    const sqlStr = `update sys_dept set ancestors = ${setArr.join(
-      ' '
-    )} where dept_id in (${paramArr.map(() => '?').join(',')}) `;
+    const cases = setArr.join(' ');
+    const placeholders = paramArr.map(() => '?').join(',');
+    const sqlStr = `update sys_dept set ancestors = CASE ${cases} END where dept_id in (${placeholders}) `;
     const result: ResultSetHeader = await this.db.execute(sqlStr, paramArr);
     return result.affectedRows;
   }
 
   async deleteDeptById(deptId: string): Promise<number> {
-    const sqlStr = "update sys_dept set del_flag = '1' where dept_id = ?";
+    const sqlStr =
+      "update sys_dept set status = '0', del_flag = '1' where dept_id = ?";
     const result: ResultSetHeader = await this.db.execute(sqlStr, [deptId]);
     return result.affectedRows;
   }

@@ -151,6 +151,7 @@ export class ContextService {
    */
   getDataScopeSQL(deptAlias: string, userAlias?: string): string {
     let dataScopeSQL = '';
+    // 登录用户信息
     const user = this.getSysUser();
     // 如果是管理员，则不过滤数据
     if (this.isAdmin(user.userId)) return dataScopeSQL;
@@ -158,6 +159,7 @@ export class ContextService {
     if (!user.roles || user.roles.length <= 0) return dataScopeSQL;
 
     // 记录角色权限范围定义添加过, 非自定数据权限不需要重复拼接SQL
+    const scopeKeys: string[] = [];
     const conditions: string[] = [];
     for (const role of user.roles) {
       const dataScope = role.dataScope;
@@ -166,35 +168,43 @@ export class ContextService {
 
       if (
         RoleDataScopeEnum.CUSTOM !== dataScope &&
-        conditions.includes(dataScope)
+        scopeKeys.includes(dataScope)
       )
         continue;
 
       if (RoleDataScopeEnum.CUSTOM === dataScope) {
-        dataScopeSQL += ` OR ${deptAlias}.dept_id IN ( SELECT dept_id FROM sys_role_dept WHERE role_id = ${role.roleId} ) `;
+        conditions.push(
+          `${deptAlias}.dept_id IN ( SELECT dept_id FROM sys_role_dept WHERE role_id = '${role.roleId}' )`
+        );
       }
 
       if (RoleDataScopeEnum.DEPT === dataScope) {
-        dataScopeSQL += ` OR ${deptAlias}.dept_id = ${user.deptId} `;
+        conditions.push(`${deptAlias}.dept_id = '${user.deptId}'`);
       }
 
       if (RoleDataScopeEnum.DEPT_AND_CHILD === dataScope) {
-        dataScopeSQL += ` OR ${deptAlias}.dept_id IN ( SELECT dept_id FROM sys_dept WHERE dept_id = ${user.deptId} or find_in_set(${user.deptId} , ancestors ) ) `;
+        conditions.push(
+          `${deptAlias}.dept_id IN ( SELECT dept_id FROM sys_dept WHERE dept_id = '${user.deptId}' or find_in_set('${user.deptId}' , ancestors ) )`
+        );
       }
 
       if (RoleDataScopeEnum.SELF === dataScope) {
+        // 数据权限为仅本人且没有userAlias别名不查询任何数据
         if (userAlias) {
-          dataScopeSQL += ` OR ${userAlias}.user_id = ${user.userId} `;
+          conditions.push(`${userAlias}.user_id = '${user.userId}'`);
         } else {
-          // 数据权限为仅本人且没有userAlias别名不查询任何数据
-          dataScopeSQL += ` OR ${deptAlias}.dept_id = 0 `;
+          conditions.push(`${deptAlias}.dept_id = '0'`);
         }
       }
 
-      // 放入记录
-      conditions.push(dataScope);
+      // 记录角色范围
+      scopeKeys.push(dataScope);
     }
 
-    return dataScopeSQL ? ` AND (${dataScopeSQL.substring(4)})` : dataScopeSQL;
+    // 构建查询条件语句
+    if (conditions.length > 0) {
+      dataScopeSQL = ` AND ( ${conditions.join(' OR ')} ) `;
+    }
+    return dataScopeSQL;
   }
 }

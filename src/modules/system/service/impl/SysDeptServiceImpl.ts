@@ -4,7 +4,10 @@ import { TreeSelect } from '../../../../framework/vo/TreeSelect';
 import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';
 import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
 import { ISysDeptService } from '../ISysDeptService';
-import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../../framework/constants/CommonConstants';
 import { parseDataToTree } from '../../../../framework/utils/ValueParseUtils';
 
 /**
@@ -44,7 +47,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
   async selectDeptListByRoleId(roleId: string): Promise<string[]> {
     const roles = await this.sysRoleRepository.selectRoleByIds([roleId]);
     if (Array.isArray(roles) && roles.length === 0) return [];
-    const role = roles[0]
+    const role = roles[0];
     return this.sysDeptRepository.selectDeptListByRoleId(
       role.roleId,
       role.deptCheckStrictly === '1'
@@ -82,22 +85,26 @@ export class SysDeptServiceImpl implements ISysDeptService {
   }
 
   async updateDept(sysDept: SysDept): Promise<number> {
-    const newParentDept = await this.sysDeptRepository.selectDeptById(
+    const parentDept = await this.sysDeptRepository.selectDeptById(
       sysDept.parentId
     );
-    const oldDept = await this.sysDeptRepository.selectDeptById(sysDept.deptId);
-    if (newParentDept && oldDept) {
-      const newAncestors = `${newParentDept.ancestors},${newParentDept.deptId}`;
-      const oldAncestors = oldDept.ancestors;
-      sysDept.ancestors = newAncestors;
-      await this.updateDeptChildren(sysDept.deptId, newAncestors, oldAncestors);
+    const dept = await this.sysDeptRepository.selectDeptById(sysDept.deptId);
+    // 上级与当前部门祖级列表更新
+    if (parentDept && dept) {
+      const newAncestors = `${parentDept.ancestors},${parentDept.deptId}`;
+      const oldAncestors = dept.ancestors;
+      // 祖级列表不一致时更新
+      if (newAncestors != oldAncestors) {
+        sysDept.ancestors = newAncestors;
+        await this.updateDeptChildren(
+          sysDept.deptId,
+          newAncestors,
+          oldAncestors
+        );
+      }
     }
     // 如果该部门是启用状态，则启用该部门的所有上级部门
-    if (
-      sysDept.status === STATUS_YES &&
-      sysDept.ancestors &&
-      sysDept.ancestors !== '0'
-    ) {
+    if (sysDept.status === STATUS_YES && parentDept.status === STATUS_NO) {
       await this.updateParentDeptStatusNormal(sysDept);
     }
     return await this.sysDeptRepository.updateDept(sysDept);
@@ -139,9 +146,8 @@ export class SysDeptServiceImpl implements ISysDeptService {
   private async updateParentDeptStatusNormal(
     sysDept: SysDept
   ): Promise<number> {
-    if (!sysDept.ancestors) return 0;
+    if (!sysDept.ancestors || sysDept.ancestors === '0') return 0;
     const deptIds: string[] = sysDept.ancestors.split(',');
-    if (deptIds.length) return 0;
     return await this.sysDeptRepository.updateDeptStatusNormal(deptIds);
   }
 }

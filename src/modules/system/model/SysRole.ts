@@ -53,10 +53,4 @@ export class SysRole {
 
   /**部门组（数据权限） */
   deptIds: string[];
-
-  /**角色菜单权限 */
-  permissions: string[];
-
-  /**用户是否存在此角色标识 默认不存在 */
-  flag: boolean;
 }

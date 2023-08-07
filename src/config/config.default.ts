@@ -43,7 +43,7 @@ export default (): MidwayConfig => {
       /**默认为file，即上传到服务器临时目录，可以配置为 stream */
       mode: 'file',
       /**最大上传文件大小，默认为 10mb */
-      fileSize: '50mb',
+      fileSize: '10mb',
       /**文件扩展名白名单 */
       whitelist: [
         // 图片

@@ -190,15 +190,6 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return convertResultRows(rows);
   }
 
-  async selectRoleIdsByUserId(userId: string): Promise<string[]> {
-    const sqlStr = `select r.role_id as 'str' from sys_role r 
-    left join sys_user_role ur on ur.role_id = r.role_id 
-    left join sys_user u on u.user_id = ur.user_id 
-    where u.user_id = ?`;
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, [userId]);
-    return rows.map(item => item.str);
-  }
-
   async selectRoleByIds(roleIds: string[]): Promise<SysRole[]> {
     const sqlStr = `${SELECT_ROLE_SQL} where r.role_id in (${roleIds
       .map(() => '?')
