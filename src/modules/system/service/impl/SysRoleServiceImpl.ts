@@ -93,10 +93,12 @@ export class SysRoleServiceImpl implements ISysRoleService {
   async updateRole(sysRole: SysRole): Promise<number> {
     // 修改角色信息
     const rows = await this.sysRoleRepository.updateRole(sysRole);
-    if (rows > 0 && sysRole.menuIds) {
+    if (rows > 0) {
       // 删除角色与菜单关联
       await this.sysRoleMenuRepository.deleteRoleMenu([sysRole.roleId]);
-      await this.insertRoleMenu(sysRole.roleId, sysRole.menuIds);
+      if (sysRole.menuIds.length > 0){
+        await this.insertRoleMenu(sysRole.roleId, sysRole.menuIds);
+      }
     }
     return rows;
   }
