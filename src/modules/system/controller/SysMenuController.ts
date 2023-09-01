@@ -17,7 +17,10 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDec
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
 import { SysMenu } from '../model/SysMenu';
-import { STATUS_NO } from '../../../framework/constants/CommonConstants';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../framework/constants/CommonConstants';
 import {
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
@@ -129,12 +132,16 @@ export class SysMenuController {
       if (!menuParent) {
         return Result.errMsg('没有权限访问菜单数据');
       }
+      // 禁用菜单时检查父菜单是否使用
+      if (sysMenu.status === STATUS_YES && menuParent.status === STATUS_NO) {
+        return Result.errMsg('上级菜单未启用！');
+      }
     }
     // 目录和菜单检查地址唯一
     if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menuType)) {
       const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
         sysMenu.path,
-        sysMenu.menuId
+        menuId
       );
       if (!uniqueNenuPath) {
         return Result.errMsg(
@@ -144,9 +151,9 @@ export class SysMenuController {
     }
     // 检查名称唯一
     const uniqueNenuName = await this.sysMenuService.checkUniqueNenuName(
-      sysMenu.menuName,
-      sysMenu.parentId,
-      sysMenu.menuId
+      menuName,
+      parentId,
+      menuId
     );
     if (!uniqueNenuName) {
       return Result.errMsg(`菜单修改【${menuName}】失败，菜单名称已存在`);
@@ -156,6 +163,16 @@ export class SysMenuController {
       return Result.errMsg(
         `菜单修改【${menuName}】失败，非内部地址必须以http(s)://开头`
       );
+    }
+    // 禁用菜单时检查子菜单是否使用
+    if (sysMenu.status === STATUS_NO) {
+      const hasStatus = await this.sysMenuService.hasChildByMenuIdAndStatus(
+        menuId,
+        STATUS_YES
+      );
+      if (hasStatus > 0) {
+        return Result.errMsg(`不允许禁用，存在使用子菜单数：${hasStatus}`);
+      }
     }
     sysMenu.updateBy = this.contextService.getUseName();
     const rows = await this.sysMenuService.updateMenu(sysMenu);
@@ -176,7 +193,7 @@ export class SysMenuController {
       return Result.errMsg('没有权限访问菜单数据！');
     }
     // 检查是否存在子菜单
-    const hasChild = await this.sysMenuService.hasChildByMenuId(menuId);
+    const hasChild = await this.sysMenuService.hasChildByMenuIdAndStatus(menuId, "");
     if (hasChild > 0) {
       return Result.errMsg(`不允许删除，存在子菜单数：${hasChild}`);
     }

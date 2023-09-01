@@ -70,12 +70,13 @@ export interface ISysMenuService {
   selectMenuById(menuId: string): Promise<SysMenu>;
 
   /**
-   * 存在菜单子节点数量
+   * 存在菜单子节点数量与状态
    *
    * @param menuId 菜单ID
+   * @param status 菜单状态
    * @return 结果
    */
-  hasChildByMenuId(menuId: string): Promise<number>;
+  hasChildByMenuIdAndStatus(menuId: string, status: string): Promise<number>;
 
   /**
    * 查询菜单分配角色数量

@@ -85,8 +85,11 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return null;
   }
 
-  async hasChildByMenuId(menuId: string): Promise<number> {
-    return await this.sysMenuRepository.hasChildByMenuId(menuId);
+  async hasChildByMenuIdAndStatus(
+    menuId: string,
+    status: string
+  ): Promise<number> {
+    return await this.sysMenuRepository.hasChildByMenuIdAndStatus(menuId, status);
   }
 
   async checkMenuExistRole(menuId: string): Promise<number> {
