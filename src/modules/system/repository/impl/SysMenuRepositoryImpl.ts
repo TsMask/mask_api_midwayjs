@@ -170,10 +170,21 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     return convertResultRows(rows);
   }
 
-  async hasChildByMenuId(menuId: string): Promise<number> {
-    const sqlStr =
-      "select count(1) as 'total' from sys_menu where parent_id = ? ";
-    const countRow: RowTotalType[] = await this.db.execute(sqlStr, [menuId]);
+  async hasChildByMenuIdAndStatus(
+    menuId: string,
+    status: string
+  ): Promise<number> {
+    let sqlStr = "select count(1) as 'total' from sys_menu where parent_id = ?";
+    const params: any[] = [menuId];
+    
+    // 菜单状态
+    if (status) {
+      sqlStr += ' and status = ? and menu_type in (?, ?) ';
+      params.push(status);
+      params.push(MENU_TYPE_DIR, MENU_TYPE_MENU);
+    }
+
+    const countRow: RowTotalType[] = await this.db.execute(sqlStr, params);
     return parseNumber(countRow[0].total);
   }
 
