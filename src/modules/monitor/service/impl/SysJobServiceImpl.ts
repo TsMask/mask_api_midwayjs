@@ -105,22 +105,24 @@ export class SysJobServiceImpl implements ISysJobService {
   }
 
   async changeStatus(sysJob: SysJob): Promise<boolean> {
-    const status = sysJob.status;
-    // 状态正常添加队列任务
-    if (status === STATUS_YES) {
-      await this.insertQueueJob(sysJob, true);
-    }
-    // 状态禁用删除队列任务
-    if (status === STATUS_NO) {
-      await this.deleteQueueJob(sysJob);
-    }
     // 更新状态
     const newSysJob = new SysJob();
     newSysJob.jobId = sysJob.jobId;
-    newSysJob.status = status;
+    newSysJob.status = sysJob.status;
     newSysJob.updateBy = sysJob.updateBy;
     const rows = await this.sysJobRepository.updateJob(newSysJob);
-    return rows > 0;
+    if (rows > 0) {
+      // 状态正常添加队列任务
+      if (sysJob.status === STATUS_YES) {
+        await this.insertQueueJob(sysJob, true);
+      }
+      // 状态禁用删除队列任务
+      if (sysJob.status === STATUS_NO) {
+        await this.deleteQueueJob(sysJob);
+      }
+      return true;
+    }
+    return false;
   }
 
   async resetQueueJob(): Promise<void> {
@@ -173,7 +175,7 @@ export class SysJobServiceImpl implements ISysJobService {
           // 结果信息序列化字符串
           let msgMap = {
             name: 'completed',
-            message: JSON.stringify(result).substring(0, 450),
+            message: result,
           };
           const { sysJob }: ProcessorOptions = job.data;
           // 读取任务信息创建日志对象
@@ -183,7 +185,8 @@ export class SysJobServiceImpl implements ISysJobService {
           sysJobLog.invokeTarget = sysJob.invokeTarget;
           sysJobLog.targetParams = sysJob.targetParams;
           sysJobLog.status = STATUS_YES;
-          sysJobLog.jobMsg = JSON.stringify(msgMap);
+          sysJobLog.jobMsg = JSON.stringify(msgMap).substring(0, 480);
+          sysJobLog.costTime = Date.now()-job.timestamp
           await this.sysJobLogRepository.insertJobLog(sysJobLog);
           await job.remove();
         }
@@ -193,7 +196,7 @@ export class SysJobServiceImpl implements ISysJobService {
         // 结果信息序列化字符串
         let msgMap = {
           name: error.name,
-          message: error.message.substring(0, 450),
+          message: error.message,
         };
         const { sysJob }: ProcessorOptions = job.data;
         // 读取任务信息创建日志对象
@@ -203,7 +206,8 @@ export class SysJobServiceImpl implements ISysJobService {
         sysJobLog.invokeTarget = sysJob.invokeTarget;
         sysJobLog.targetParams = sysJob.targetParams;
         sysJobLog.status = STATUS_NO;
-        sysJobLog.jobMsg = JSON.stringify(msgMap);
+        sysJobLog.jobMsg = JSON.stringify(msgMap).substring(0, 480);
+        sysJobLog.costTime = Date.now()-job.timestamp
         await this.sysJobLogRepository.insertJobLog(sysJobLog);
         await job.remove();
       });
