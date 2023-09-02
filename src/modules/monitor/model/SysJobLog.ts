@@ -27,4 +27,7 @@ export class SysJobLog {
 
   /**创建时间 */
   createTime: number;
+
+  /**消耗时间（毫秒） */
+  costTime: number;
 }
