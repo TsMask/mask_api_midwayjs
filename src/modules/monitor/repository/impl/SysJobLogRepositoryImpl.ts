@@ -10,9 +10,8 @@ import {
 } from '../../../../framework/utils/DateUtils';
 
 /**查询视图对象SQL */
-const SELECT_JOB_LOG_SQL = `select 
-job_log_id, job_name, job_group, invoke_target, target_params, job_msg, status, create_time 
-from sys_job_log`;
+const SELECT_JOB_LOG_SQL = `select job_log_id, job_name, job_group, invoke_target, 
+target_params, job_msg, status, create_time, cost_time from sys_job_log`;
 
 /**操作定时任务调度日志表信息实体映射 */
 const SYS_JOB_LOG_RESULT = new Map<string, string>();
@@ -24,6 +23,7 @@ SYS_JOB_LOG_RESULT.set('target_params', 'targetParams');
 SYS_JOB_LOG_RESULT.set('job_msg', 'jobMsg');
 SYS_JOB_LOG_RESULT.set('status', 'status');
 SYS_JOB_LOG_RESULT.set('create_time', 'createTime');
+SYS_JOB_LOG_RESULT.set('cost_time', 'costTime');
 
 /**
  *将结果记录转实体结果组
@@ -186,6 +186,9 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     }
     if (sysJobLog.status) {
       paramMap.set('status', parseNumber(sysJobLog.status));
+    }
+    if (sysJobLog.costTime) {
+      paramMap.set('cost_time', parseNumber(sysJobLog.costTime));
     }
 
     const sqlStr = `insert into sys_job_log (${[...paramMap.keys()].join(
