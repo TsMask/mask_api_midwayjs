@@ -13,7 +13,7 @@ import { MidwayDecoratorService } from '@midwayjs/core';
 import { checkDirPathExists } from './framework/utils/FileUtils';
 import { Middlewares } from './framework/middleware';
 import { MethodDecorators } from './framework/decorator';
-import { ErrorCatchFilters } from './framework/error-catch';
+import { ErrorCatchFilters } from './framework/errorcatch';
 
 @Configuration({
   imports: [
