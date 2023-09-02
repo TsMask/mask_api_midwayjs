@@ -381,7 +381,7 @@ create table sys_oper_log (
   oper_url          varchar(255)    default ''                 comment '请求URL',
   oper_ip           varchar(128)    default ''                 comment '主机地址',
   oper_location     varchar(255)    default ''                 comment '操作地点',
-  oper_param        varchar(2000)    default ''                 comment '请求参数',
+  oper_param        varchar(2000)   default ''                 comment '请求参数',
   oper_msg          varchar(2000)   default ''                 comment '操作消息',
   status            char(1)         default '0'                comment '操作状态（0异常 1正常）',
   oper_time         bigint          default 0                  comment '操作时间',
@@ -554,6 +554,7 @@ create table sys_job_log (
   job_msg             varchar(500)   default ''                 comment '日志信息',
   status              char(1)        default '0'                comment '执行状态（0失败 1正常）',
   create_time         bigint         default 0                  comment '创建时间',
+  cost_time           bigint         default 0                  comment '消耗时间（毫秒）',
   primary key (job_log_id)
 ) engine=innodb comment = '调度任务调度日志表';
 
