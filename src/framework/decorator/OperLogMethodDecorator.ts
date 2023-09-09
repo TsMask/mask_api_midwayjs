@@ -13,6 +13,7 @@ import {
   STATUS_YES,
 } from '../constants/CommonConstants';
 import { parseSafeContent } from '../utils/ValueParseUtils';
+import { RESULT_CODE_SUCCESS } from '../constants/ResultConstants';
 
 /** 操作日志参数 */
 interface operLogOptions {
@@ -132,7 +133,7 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       const sysOperLogService: SysOperLogServiceImpl =
         await ctx.requestContext.getAsync(SysOperLogServiceImpl);
       if (result instanceof Result) {
-        operLog.status = result.code === 200 ? STATUS_YES : STATUS_NO;
+        operLog.status = result.code === RESULT_CODE_SUCCESS ? STATUS_YES : STATUS_NO;
       } else {
         operLog.status = STATUS_YES;
       }
