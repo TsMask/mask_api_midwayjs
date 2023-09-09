@@ -18,14 +18,14 @@ import { ErrorCatchFilters } from './framework/errorcatch';
 @Configuration({
   imports: [
     koa, // 核心程序服务
+    security, // 安全
+    crossDomain, // 跨域
     staticFile, // 静态文件映射
+    upload, // 文件上传
     typeorm, // 数据库ORM
     redis, // 缓存数据Redis
     jwt, // 鉴权和校验Token
-    upload, // 文件上传
     bull, // 任务队列Bull
-    crossDomain, // 跨域
-    security, // 安全
   ],
   importConfigs: [join(__dirname, './config')],
 })
