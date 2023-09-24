@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysMenuRepository } from '../ISysMenuRepository';
@@ -257,7 +256,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     const sqlStr = `insert into sys_menu (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
     return `${result.insertId}`;
@@ -329,7 +328,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     const sqlStr = `update sys_menu set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(', ')} where menu_id = ?`;
-    const rows: ResultSetHeader = await this.db.execute(sqlStr, [
+    const rows = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysMenu.menuId,
     ]);
@@ -338,7 +337,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
 
   async deleteMenuById(menuId: string): Promise<number> {
     const sqlStr = 'delete from sys_menu where menu_id = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [menuId]);
+    const result = await this.db.execute(sqlStr, [menuId]);
     return result.affectedRows;
   }
 

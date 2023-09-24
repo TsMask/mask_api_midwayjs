@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
@@ -182,7 +181,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     const sqlStr = `insert into sys_logininfor (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...paramMap.values(),
     ]);
     return `${result.insertId}`;
@@ -192,13 +191,13 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     const sqlStr = `delete from sys_logininfor where info_id in (${infoIds
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, infoIds);
+    const result = await this.db.execute(sqlStr, infoIds);
     return result.affectedRows;
   }
 
   async cleanLogininfor(): Promise<number> {
     const sqlStr = 'truncate table sys_logininfor';
-    const result: ResultSetHeader = await this.db.execute(sqlStr);
+    const result = await this.db.execute(sqlStr);
     return result.serverStatus;
   }
 }

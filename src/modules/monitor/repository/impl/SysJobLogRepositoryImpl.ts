@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysJobLog } from '../../model/SysJobLog';
@@ -194,9 +193,7 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     const sqlStr = `insert into sys_job_log (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 
@@ -204,13 +201,13 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     const sqlStr = `delete from sys_job_log where job_log_id in (${jobLogId
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, jobLogId);
+    const result = await this.db.execute(sqlStr, jobLogId);
     return result.affectedRows;
   }
 
   async cleanJobLog(): Promise<number> {
     const sqlStr = 'truncate table sys_job_log';
-    const result: ResultSetHeader = await this.db.execute(sqlStr);
+    const result = await this.db.execute(sqlStr);
     return result.serverStatus;
   }
 }

@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysUserPost } from '../../model/SysUserPost';
@@ -27,7 +26,7 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
     const sqlStr = `insert into sys_user_post(user_id, post_id) values ${sysUserPosts
       .map(item => `(${item.userId},${item.postId})`)
       .join(',')}`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr);
+    const result = await this.db.execute(sqlStr);
     return result.affectedRows;
   }
 
@@ -35,7 +34,7 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
     const sqlStr = `delete from sys_user_post where user_id in (${userIds
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
+    const result = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
 }
