@@ -9,10 +9,10 @@
 export const RESULT_CODE_SUCCESS = 200;
 
 /**响应-msg正常成功 */
-export const RESULT_MSG_SUCCESS = '成功';
+export const RESULT_MSG_SUCCESS = 'success';
 
 /**响应-code错误失败 */
 export const RESULT_CODE_ERROR = 500;
 
 /**响应-msg错误失败 */
-export const RESULT_MSG_ERROR = '失败';
+export const RESULT_MSG_ERROR = 'error';

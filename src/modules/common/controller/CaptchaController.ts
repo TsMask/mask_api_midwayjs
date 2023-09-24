@@ -82,7 +82,7 @@ export class CaptchaController {
       data.img = svgBase64(captcha.data);
       await this.redisCache.setByExpire(
         verifyKey,
-        captcha.text,
+        captcha.text.toLowerCase(),
         CAPTCHA_EXPIRATION
       );
     }

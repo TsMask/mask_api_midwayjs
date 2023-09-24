@@ -134,7 +134,7 @@ function verifyRolePermission(
 
   // 同时判断 含有其中
   if (metadata.hasRoles && metadata.hasPermissions) {
-    return hasRole && hasPermission;
+    return hasRole || hasPermission;
   }
   // 同时判断 匹配其中
   if (metadata.matchRoles && metadata.matchPermissions) {
