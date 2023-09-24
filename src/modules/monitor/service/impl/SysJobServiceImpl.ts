@@ -51,7 +51,7 @@ export class SysJobServiceImpl implements ISysJobService {
   async checkUniqueJobName(
     jobName: string,
     jobGroup: string,
-    jobId: string = ''
+    jobId = ''
   ): Promise<boolean> {
     const sysJob = new SysJob();
     sysJob.jobName = jobName;
@@ -128,7 +128,7 @@ export class SysJobServiceImpl implements ISysJobService {
   async resetQueueJob(): Promise<void> {
     // 获取bull上注册的队列列表
     const queueList = this.bullFramework.getQueueList();
-    if (queueList && queueList.length == 0) {
+    if (queueList && queueList.length === 0) {
       return;
     }
     // 查询系统中定义状态为正常启用的任务
@@ -173,7 +173,7 @@ export class SysJobServiceImpl implements ISysJobService {
         'completed',
         async (job: Job, result: ProcessorData) => {
           // 结果信息序列化字符串
-          let msgMap = {
+          const msgMap = {
             name: 'completed',
             message: result,
           };
@@ -186,7 +186,7 @@ export class SysJobServiceImpl implements ISysJobService {
           sysJobLog.targetParams = sysJob.targetParams;
           sysJobLog.status = STATUS_YES;
           sysJobLog.jobMsg = JSON.stringify(msgMap).substring(0, 480);
-          sysJobLog.costTime = Date.now()-job.timestamp
+          sysJobLog.costTime = Date.now() - job.timestamp;
           await this.sysJobLogRepository.insertJobLog(sysJobLog);
           await job.remove();
         }
@@ -194,7 +194,7 @@ export class SysJobServiceImpl implements ISysJobService {
       // 添加失败监听
       queue.addListener('failed', async (job: Job, error: Error) => {
         // 结果信息序列化字符串
-        let msgMap = {
+        const msgMap = {
           name: error.name,
           message: error.message,
         };
@@ -207,7 +207,7 @@ export class SysJobServiceImpl implements ISysJobService {
         sysJobLog.targetParams = sysJob.targetParams;
         sysJobLog.status = STATUS_NO;
         sysJobLog.jobMsg = JSON.stringify(msgMap).substring(0, 480);
-        sysJobLog.costTime = Date.now()-job.timestamp
+        sysJobLog.costTime = Date.now() - job.timestamp;
         await this.sysJobLogRepository.insertJobLog(sysJobLog);
         await job.remove();
       });

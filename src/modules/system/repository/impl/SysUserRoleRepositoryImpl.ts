@@ -45,10 +45,7 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
     const sqlStr = `delete from sys_user_role where role_id= ? and user_id in (${userIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, [
-      roleId,
-      ...userIds,
-    ]);
+    const result = await this.db.execute(sqlStr, [roleId, ...userIds]);
     return result.affectedRows;
   }
 }

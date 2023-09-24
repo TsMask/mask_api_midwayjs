@@ -385,9 +385,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr = `insert into sys_user (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 

@@ -126,7 +126,7 @@ class Searcher {
       }
     }
     if (fd) {
-      fs.close(fd, function () {});
+      fs.close(fd, () => {});
     }
 
     const diff = process.hrtime(startTime);
@@ -182,7 +182,7 @@ const loadVectorIndexFromFile = dbPath => {
   const fd = fs.openSync(dbPath, 'r');
   const buffer = Buffer.alloc(VectorIndexLength);
   fs.readSync(fd, buffer, 0, VectorIndexLength, 256);
-  fs.close(fd, function () {});
+  fs.close(fd, () => {});
   return buffer;
 };
 
@@ -191,7 +191,7 @@ const loadContentFromFile = dbPath => {
   const buffer = Buffer.alloc(stats.size);
   const fd = fs.openSync(dbPath, 'r');
   fs.readSync(fd, buffer, 0, stats.size, 0);
-  fs.close(fd, function () {});
+  fs.close(fd, () => {});
   return buffer;
 };
 

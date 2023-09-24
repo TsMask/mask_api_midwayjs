@@ -194,7 +194,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
 
   async insertDictData(sysDictData: SysDictData): Promise<string> {
     const paramMap = new Map();
-    sysDictData.dictSort = parseNumber(sysDictData.dictSort)
+    sysDictData.dictSort = parseNumber(sysDictData.dictSort);
     if (sysDictData.dictSort > 0) {
       paramMap.set('dict_sort', sysDictData.dictSort);
     }
@@ -227,15 +227,13 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     const sqlStr = `insert into sys_dict_data (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 
   async updateDictData(sysDictData: SysDictData): Promise<number> {
     const paramMap = new Map();
-    sysDictData.dictSort = parseNumber(sysDictData.dictSort)
+    sysDictData.dictSort = parseNumber(sysDictData.dictSort);
     if (sysDictData.dictSort > 0) {
       paramMap.set('dict_sort', sysDictData.dictSort);
     }
@@ -280,10 +278,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     newDictType: string
   ): Promise<number> {
     const sqlStr = 'update sys_dict_data set dict_type = ? where dict_type = ?';
-    const result = await this.db.execute(sqlStr, [
-      newDictType,
-      oldDictType,
-    ]);
+    const result = await this.db.execute(sqlStr, [newDictType, oldDictType]);
     return result.affectedRows;
   }
 }

@@ -175,7 +175,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   ): Promise<number> {
     let sqlStr = "select count(1) as 'total' from sys_menu where parent_id = ?";
     const params: any[] = [menuId];
-    
+
     // 菜单状态
     if (status) {
       sqlStr += ' and status = ? and menu_type in (?, ?) ';
@@ -256,9 +256,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     const sqlStr = `insert into sys_menu (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 

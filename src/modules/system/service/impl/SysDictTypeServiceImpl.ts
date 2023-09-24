@@ -53,10 +53,7 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     return await this.sysDictTypeRepository.selectDictTypeByType(dictType);
   }
 
-  async checkUniqueDictName(
-    dictName: string,
-    dictId: string = ''
-  ): Promise<boolean> {
+  async checkUniqueDictName(dictName: string, dictId = ''): Promise<boolean> {
     const sysDictType = new SysDictType();
     sysDictType.dictName = dictName;
     const uniqueId = await this.sysDictTypeRepository.checkUniqueDictType(
@@ -68,10 +65,7 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     return !uniqueId;
   }
 
-  async checkUniqueDictType(
-    dictType: string,
-    dictId: string = ''
-  ): Promise<boolean> {
+  async checkUniqueDictType(dictType: string, dictId = ''): Promise<boolean> {
     const sysDictType = new SysDictType();
     sysDictType.dictType = dictType;
     const uniqueId = await this.sysDictTypeRepository.checkUniqueDictType(

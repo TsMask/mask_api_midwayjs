@@ -199,7 +199,7 @@ export class RedisCache {
 
   /**
    * 批量获得缓存数据
-   * 
+   *
    * 如果某个键不存在，则对应的元素为 null
    *
    * @param keys 缓存的键值数组

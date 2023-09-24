@@ -64,7 +64,7 @@ export class SysConfigServiceImpl implements ISysConfigService {
 
   async checkUniqueConfigKey(
     configKey: string,
-    configId: string = ''
+    configId = ''
   ): Promise<boolean> {
     const sysConfig = new SysConfig();
     sysConfig.configKey = configKey;

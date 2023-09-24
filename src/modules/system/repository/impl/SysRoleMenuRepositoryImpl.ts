@@ -29,7 +29,7 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
     const result = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }
-  
+
   async batchRoleMenu(sysRoleMenus: SysRoleMenu[]): Promise<number> {
     const sqlStr = `insert into sys_role_menu(role_id, menu_id) values ${sysRoleMenus
       .map(item => `(${item.roleId},${item.menuId})`)

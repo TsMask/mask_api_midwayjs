@@ -212,9 +212,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const sqlStr = `insert into sys_dict_type (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 

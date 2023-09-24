@@ -89,7 +89,10 @@ export class SysMenuServiceImpl implements ISysMenuService {
     menuId: string,
     status: string
   ): Promise<number> {
-    return await this.sysMenuRepository.hasChildByMenuIdAndStatus(menuId, status);
+    return await this.sysMenuRepository.hasChildByMenuIdAndStatus(
+      menuId,
+      status
+    );
   }
 
   async checkMenuExistRole(menuId: string): Promise<number> {
@@ -111,7 +114,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
   async checkUniqueNenuName(
     menuName: string,
     parentId: string,
-    menuId: string = ''
+    menuId = ''
   ): Promise<boolean> {
     const sysMenu = new SysMenu();
     sysMenu.menuName = menuName;
@@ -123,10 +126,7 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return !uniqueId;
   }
 
-  async checkUniqueNenuPath(
-    path: string,
-    menuId: string = ''
-  ): Promise<boolean> {
+  async checkUniqueNenuPath(path: string, menuId = ''): Promise<boolean> {
     const sysMenu = new SysMenu();
     sysMenu.path = path;
     const uniqueId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);

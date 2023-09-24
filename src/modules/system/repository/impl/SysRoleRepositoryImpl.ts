@@ -234,7 +234,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     if (sysRole.roleKey) {
       paramMap.set('role_key', sysRole.roleKey);
     }
-    sysRole.roleSort = parseNumber(sysRole.roleSort)
+    sysRole.roleSort = parseNumber(sysRole.roleSort);
     if (sysRole.roleSort > 0) {
       paramMap.set('role_sort', sysRole.roleSort);
     }
@@ -318,9 +318,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr = `insert into sys_role (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 

@@ -78,7 +78,7 @@ export class FileService {
     if (!fileExt && mimeType) {
       fileExt = getMimeTypeExt(mimeType);
     }
-    if (Array.isArray(allowExts) && allowExts.length == 0) {
+    if (Array.isArray(allowExts) && allowExts.length === 0) {
       allowExts = this.uploadWhiteList;
     }
     if (!allowExts.includes(fileExt)) {
@@ -233,7 +233,7 @@ export class FileService {
     );
 
     // 响应结果
-    let result = {
+    const result = {
       range: '',
       chunkSize: 0,
       fileSize: 0,
@@ -313,11 +313,7 @@ export class FileService {
    * @param sheetName 工作表名称 默认Sheet1
    * @return xlsx文件流
    */
-  async excelWriteRecord(
-    data: any[],
-    fileName: string,
-    sheetName: string = 'Sheet1'
-  ) {
+  async excelWriteRecord(data: any[], fileName: string, sheetName = 'Sheet1') {
     const sheetBuffer = await writeSheet(data, sheetName);
 
     // 保存文件

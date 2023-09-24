@@ -181,9 +181,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     const sqlStr = `insert into sys_logininfor (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 

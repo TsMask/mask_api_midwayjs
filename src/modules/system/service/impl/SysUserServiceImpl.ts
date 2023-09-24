@@ -76,10 +76,7 @@ export class SysUserServiceImpl implements ISysUserService {
     return null;
   }
 
-  async checkUniqueUserName(
-    userName: string,
-    userId: string = ''
-  ): Promise<boolean> {
+  async checkUniqueUserName(userName: string, userId = ''): Promise<boolean> {
     const sysUser = new SysUser();
     sysUser.userName = userName;
     const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
@@ -89,10 +86,7 @@ export class SysUserServiceImpl implements ISysUserService {
     return !uniqueId;
   }
 
-  async checkUniquePhone(
-    phonenumber: string,
-    userId: string = ''
-  ): Promise<boolean> {
+  async checkUniquePhone(phonenumber: string, userId = ''): Promise<boolean> {
     const sysUser = new SysUser();
     sysUser.phonenumber = phonenumber;
     const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
@@ -102,7 +96,7 @@ export class SysUserServiceImpl implements ISysUserService {
     return !uniqueId;
   }
 
-  async checkUniqueEmail(email: string, userId: string = ''): Promise<boolean> {
+  async checkUniqueEmail(email: string, userId = ''): Promise<boolean> {
     const sysUser = new SysUser();
     sysUser.email = email;
     const uniqueId = await this.sysUserRepository.checkUniqueUser(sysUser);
@@ -236,7 +230,7 @@ export class SysUserServiceImpl implements ISysUserService {
 
       // 构建用户实体信息
       const newSysUser = new SysUser();
-      newSysUser.userType = "sys";
+      newSysUser.userType = 'sys';
       newSysUser.password = initPassword;
       newSysUser.deptId = item['部门编号'];
       newSysUser.userName = item['登录名称'];

@@ -85,8 +85,8 @@ export class SysDeptController {
         );
       }
       sysDept.ancestors = `${deptParent.ancestors},${parentId}`;
-    }else{
-      sysDept.ancestors = `0`;
+    } else {
+      sysDept.ancestors = '0';
     }
 
     // 检查同级下名称唯一
