@@ -2,6 +2,7 @@ import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysRoleDept } from '../../model/SysRoleDept';
 import { ISysRoleDeptRepository } from '../ISysRoleDeptRepository';
+import { ResultSetHeader } from 'mysql2';
 
 /**
  * 角色与部门关联表 数据层处理
@@ -18,7 +19,7 @@ export class SysRoleDeptRepositoryImpl implements ISysRoleDeptRepository {
     const sqlStr = `delete from sys_role_dept where role_id in (${roleIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, roleIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }
 
@@ -26,7 +27,7 @@ export class SysRoleDeptRepositoryImpl implements ISysRoleDeptRepository {
     const sqlStr = `insert into sys_role_dept(role_id, dept_id) values ${sysRoleDepts
       .map(item => `(${item.roleId},${item.deptId})`)
       .join(',')}`;
-    const result = await this.db.execute(sqlStr);
+    const result: ResultSetHeader = await this.db.execute(sqlStr);
     return result.affectedRows;
   }
 }

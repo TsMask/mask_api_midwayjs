@@ -7,6 +7,7 @@ import {
   YYYY_MM_DD,
   parseStrToDate,
 } from '../../../../framework/utils/DateUtils';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_NOTICE_SQL = `select 
@@ -189,7 +190,9 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     const sqlStr = `insert into sys_notice (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -218,7 +221,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     const sqlStr = `update sys_notice set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(',')} where notice_id = ?`;
-    const result = await this.db.execute(sqlStr, [
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysNotice.noticeId,
     ]);
@@ -229,7 +232,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     const sqlStr = `update sys_notice set del_flag = '1' where notice_id in (${noticeIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, noticeIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, noticeIds);
     return result.affectedRows;
   }
 }

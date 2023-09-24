@@ -45,6 +45,7 @@
     "dayjs": "^1.11.8",
     "exceljs": "^4.3.0",
     "mini-svg-data-uri": "^1.4.4",
+    "mysql2": "^3.6.1",
     "nanoid": "^3.3.6",
     "svg-captcha": "^1.4.0",
     "typeorm": "~0.3.0",

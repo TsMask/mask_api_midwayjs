@@ -7,6 +7,7 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysConfig } from '../../model/SysConfig';
 import { ISysConfigRepository } from '../ISysConfigRepository';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_CONFIG_SQL = `select
@@ -217,7 +218,9 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     const sqlStr = `insert into sys_config (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -246,7 +249,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     const sqlStr = `update sys_config set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(',')} where config_id = ?`;
-    const result = await this.db.execute(sqlStr, [
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysConfig.configId,
     ]);
@@ -257,7 +260,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     const sqlStr = `delete from sys_config where config_id in (${configIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, configIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, configIds);
     return result.affectedRows;
   }
 }

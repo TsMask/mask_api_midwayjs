@@ -7,6 +7,7 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysLogininfor } from '../../model/SysLogininfor';
 import { ISysLogininforRepository } from '../ISysLogininforRepository';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_LOGININFOR_SQL = `select info_id, user_name, ipaddr, login_location, 
@@ -181,7 +182,9 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     const sqlStr = `insert into sys_logininfor (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -189,13 +192,13 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     const sqlStr = `delete from sys_logininfor where info_id in (${infoIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, infoIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, infoIds);
     return result.affectedRows;
   }
 
   async cleanLogininfor(): Promise<number> {
     const sqlStr = 'truncate table sys_logininfor';
-    const result = await this.db.execute(sqlStr);
+    const result: ResultSetHeader = await this.db.execute(sqlStr);
     return result.serverStatus;
   }
 }

@@ -7,6 +7,7 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysOperLog } from '../../model/SysOperLog';
 import { ISysOperLogRepository } from '../ISysOperLogRepository';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_OPER_LOG_SQL = `select 
@@ -220,7 +221,9 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     const sqlStr = `insert into sys_oper_log (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -228,13 +231,13 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     const sqlStr = `delete from sys_oper_log where oper_id in (${operIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, operIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, operIds);
     return result.affectedRows;
   }
 
   async cleanOperLog(): Promise<number> {
     const sqlStr = 'truncate table sys_oper_log';
-    const result = await this.db.execute(sqlStr);
+    const result: ResultSetHeader = await this.db.execute(sqlStr);
     return result.serverStatus;
   }
 }

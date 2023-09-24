@@ -7,6 +7,7 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysDictTypeRepository } from '../ISysDictTypeRepository';
 import { SysDictType } from '../../model/SysDictType';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_DICT_TYPE_SQL = `select 
@@ -212,7 +213,9 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const sqlStr = `insert into sys_dict_type (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -238,7 +241,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const sqlStr = `update sys_dict_type set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(',')} where dict_id = ?`;
-    const result = await this.db.execute(sqlStr, [
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysDictType.dictId,
     ]);
@@ -249,7 +252,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const sqlStr = `delete from sys_dict_type where dict_id in (${dictIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, dictIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, dictIds);
     return result.affectedRows;
   }
 }
