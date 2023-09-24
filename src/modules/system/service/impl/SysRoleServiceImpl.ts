@@ -56,10 +56,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
     return null;
   }
 
-  async checkUniqueRoleName(
-    roleName: string,
-    roleId: string = ''
-  ): Promise<boolean> {
+  async checkUniqueRoleName(roleName: string, roleId = ''): Promise<boolean> {
     const sysRole = new SysRole();
     sysRole.roleName = roleName;
     const uniqueId = await this.sysRoleRepository.checkUniqueRole(sysRole);
@@ -69,10 +66,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
     return !uniqueId;
   }
 
-  async checkUniqueRoleKey(
-    roleKey: string,
-    roleId: string = ''
-  ): Promise<boolean> {
+  async checkUniqueRoleKey(roleKey: string, roleId = ''): Promise<boolean> {
     const sysRole = new SysRole();
     sysRole.roleKey = roleKey;
     const uniqueId = await this.sysRoleRepository.checkUniqueRole(sysRole);
@@ -96,7 +90,7 @@ export class SysRoleServiceImpl implements ISysRoleService {
     if (rows > 0) {
       // 删除角色与菜单关联
       await this.sysRoleMenuRepository.deleteRoleMenu([sysRole.roleId]);
-      if (sysRole.menuIds.length > 0){
+      if (sysRole.menuIds.length > 0) {
         await this.insertRoleMenu(sysRole.roleId, sysRole.menuIds);
       }
     }

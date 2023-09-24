@@ -58,8 +58,10 @@ export class SysProfileController {
     delete sysUser.password;
 
     // 查询用户所属角色组
-    let roleGroup: string[] = [];
-    const roles = await this.sysRoleService.selectRoleListByUserId(sysUser.userId);
+    const roleGroup: string[] = [];
+    const roles = await this.sysRoleService.selectRoleListByUserId(
+      sysUser.userId
+    );
     for (const role of roles) {
       roleGroup.push(role.roleName);
     }
@@ -69,7 +71,7 @@ export class SysProfileController {
     }
 
     // 查询用户所属岗位组
-    let postGroup: string[] = [];
+    const postGroup: string[] = [];
     const posts = await this.sysPostService.selectPostListByUserId(
       sysUser.userId
     );
@@ -111,8 +113,8 @@ export class SysProfileController {
       } else {
         return Result.errMsg(`修改用户【${userName}】失败，手机号码格式错误`);
       }
-    }else{
-      sysUser.phonenumber = "null"
+    } else {
+      sysUser.phonenumber = 'null';
     }
 
     // 检查邮箱格式并判断是否唯一
@@ -128,8 +130,8 @@ export class SysProfileController {
       } else {
         return Result.errMsg(`修改用户【${userName}】失败，邮箱格式错误`);
       }
-    }else{
-      sysUser.email = "null"
+    } else {
+      sysUser.email = 'null';
     }
 
     // 用户基本资料

@@ -33,7 +33,7 @@ export interface ISysRoleService {
    * @param userId 用户ID
    * @return 角色列表
    */
-  selectRoleListByUserId(userId: string): Promise<SysRole[]> 
+  selectRoleListByUserId(userId: string): Promise<SysRole[]>;
 
   /**
    * 通过角色ID查询角色

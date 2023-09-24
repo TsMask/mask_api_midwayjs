@@ -193,7 +193,10 @@ export class SysMenuController {
       return Result.errMsg('没有权限访问菜单数据！');
     }
     // 检查是否存在子菜单
-    const hasChild = await this.sysMenuService.hasChildByMenuIdAndStatus(menuId, "");
+    const hasChild = await this.sysMenuService.hasChildByMenuIdAndStatus(
+      menuId,
+      ''
+    );
     if (hasChild > 0) {
       return Result.errMsg(`不允许删除，存在子菜单数：${hasChild}`);
     }

@@ -68,7 +68,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
   async checkUniqueDeptName(
     deptName: string,
     parentId: string,
-    deptId: string = ''
+    deptId = ''
   ): Promise<boolean> {
     const sysDept = new SysDept();
     sysDept.deptName = deptName;
@@ -94,7 +94,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
       const newAncestors = `${parentDept.ancestors},${parentDept.deptId}`;
       const oldAncestors = dept.ancestors;
       // 祖级列表不一致时更新
-      if (newAncestors != oldAncestors) {
+      if (newAncestors !== oldAncestors) {
         sysDept.ancestors = newAncestors;
         await this.updateDeptChildren(
           sysDept.deptId,
@@ -127,7 +127,7 @@ export class SysDeptServiceImpl implements ISysDeptService {
   ): Promise<void> {
     let childrens: SysDept[] =
       await this.sysDeptRepository.selectChildrenDeptById(deptId);
-    if (childrens && childrens.length == 0) {
+    if (childrens && childrens.length === 0) {
       return;
     }
     // 替换父ID

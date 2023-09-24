@@ -65,10 +65,7 @@ export class SysPostServiceImpl implements ISysPostService {
     return await this.sysPostRepository.updatePost(sysPost);
   }
 
-  async checkUniquePostName(
-    postName: string,
-    postId: string = ''
-  ): Promise<boolean> {
+  async checkUniquePostName(postName: string, postId = ''): Promise<boolean> {
     const sysPost = new SysPost();
     sysPost.postName = postName;
     const uniqueId = await this.sysPostRepository.checkUniquePost(sysPost);
@@ -78,10 +75,7 @@ export class SysPostServiceImpl implements ISysPostService {
     return !uniqueId;
   }
 
-  async checkUniquePostCode(
-    postCode: string,
-    postId: string = ''
-  ): Promise<boolean> {
+  async checkUniquePostCode(postCode: string, postId = ''): Promise<boolean> {
     const sysPost = new SysPost();
     sysPost.postCode = postCode;
     const uniqueId = await this.sysPostRepository.checkUniquePost(sysPost);

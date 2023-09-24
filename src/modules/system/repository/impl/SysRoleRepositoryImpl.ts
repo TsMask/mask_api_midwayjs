@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
@@ -235,7 +234,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     if (sysRole.roleKey) {
       paramMap.set('role_key', sysRole.roleKey);
     }
-    sysRole.roleSort = parseNumber(sysRole.roleSort)
+    sysRole.roleSort = parseNumber(sysRole.roleSort);
     if (sysRole.roleSort > 0) {
       paramMap.set('role_sort', sysRole.roleSort);
     }
@@ -268,7 +267,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr = `update sys_role set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(', ')} where role_id = ?`;
-    const rows: ResultSetHeader = await this.db.execute(sqlStr, [
+    const rows = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysRole.roleId,
     ]);
@@ -319,9 +318,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr = `insert into sys_role (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 
@@ -329,7 +326,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr = `update sys_role set del_flag = '1' where role_id in (${roleIds
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
+    const result = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }
 }

@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
@@ -218,9 +217,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     const sqlStr = `insert into sys_config (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 
@@ -249,7 +246,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     const sqlStr = `update sys_config set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(',')} where config_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysConfig.configId,
     ]);
@@ -260,7 +257,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     const sqlStr = `delete from sys_config where config_id in (${configIds
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, configIds);
+    const result = await this.db.execute(sqlStr, configIds);
     return result.affectedRows;
   }
 }

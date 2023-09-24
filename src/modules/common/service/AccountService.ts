@@ -154,7 +154,7 @@ export class AccountService {
 
     // 查询用户登录账号
     const sysUser = await this.sysUserService.selectUserByUserName(username);
-    if (!sysUser || sysUser.userName != username) {
+    if (!sysUser || sysUser.userName !== username) {
       const msg = `登录用户：${username} 不存在`;
       this.contextService.getLogger().info(msg);
       // 解析ip地址和请求用户代理信息
@@ -296,7 +296,7 @@ export class AccountService {
         user.userId
       );
       for (const role of roles) {
-        data.roles.push(role.roleKey)
+        data.roles.push(role.roleKey);
       }
     }
     return data;

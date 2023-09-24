@@ -1,5 +1,4 @@
 import { Inject, Provide, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import { bcryptHash } from '../../../../framework/utils/CryptoUtils';
 import {
   parseStrToDate,
@@ -386,9 +385,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr = `insert into sys_user (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 
@@ -450,7 +447,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr = `update sys_user set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(', ')} where user_id = ?`;
-    const rows: ResultSetHeader = await this.db.execute(sqlStr, [
+    const rows = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysUser.userId,
     ]);
@@ -461,7 +458,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr = `update sys_user set del_flag = '1' where user_id in (${userIds
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
+    const result = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
 

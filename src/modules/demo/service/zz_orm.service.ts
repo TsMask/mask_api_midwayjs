@@ -11,7 +11,6 @@ import { Repository } from 'typeorm';
 @Provide()
 @Singleton()
 export class ZzOrmService {
-
   @InjectEntityModel(ZzOrm)
   private zzOrmModel: Repository<ZzOrm>;
 
@@ -22,7 +21,7 @@ export class ZzOrmService {
    * @return 集合
    */
   async selectPage(query: ListQueryPageOptions): Promise<RowPagesType> {
-    let { pageSize, pageNum, title } = query;
+    let { pageSize, pageNum } = query;
     // 检查分页条件
     if (pageSize < 0 || pageSize > 50) {
       pageSize = 0;
@@ -32,9 +31,9 @@ export class ZzOrmService {
     }
 
     // 条件判断
-    let where: any = {};
-    if (title) {
-      where.title = title;
+    const where: any = {};
+    if (query.title) {
+      where.title = query.title;
     }
 
     // 执行查询
@@ -53,7 +52,7 @@ export class ZzOrmService {
    * @return 列表
    */
   async selectList(ZzOrm: ZzOrm): Promise<ZzOrm[]> {
-    let where: any = {};
+    const where: any = {};
     if (ZzOrm.title) {
       where.title = ZzOrm.title;
     }

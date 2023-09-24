@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
@@ -221,9 +220,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     const sqlStr = `insert into sys_oper_log (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 
@@ -231,13 +228,13 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     const sqlStr = `delete from sys_oper_log where oper_id in (${operIds
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, operIds);
+    const result = await this.db.execute(sqlStr, operIds);
     return result.affectedRows;
   }
 
   async cleanOperLog(): Promise<number> {
     const sqlStr = 'truncate table sys_oper_log';
-    const result: ResultSetHeader = await this.db.execute(sqlStr);
+    const result = await this.db.execute(sqlStr);
     return result.serverStatus;
   }
 }

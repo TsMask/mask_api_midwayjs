@@ -8,10 +8,7 @@ import { SysOperLog } from '../../modules/monitor/model/SysOperLog';
 import { SysOperLogServiceImpl } from '../../modules/monitor/service/impl/SysOperLogServiceImpl';
 import { LoginUser } from '../vo/LoginUser';
 import { Result } from '../vo/Result';
-import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../constants/CommonConstants';
+import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
 import { parseSafeContent } from '../utils/ValueParseUtils';
 import { RESULT_CODE_SUCCESS } from '../constants/ResultConstants';
 
@@ -133,7 +130,8 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       const sysOperLogService: SysOperLogServiceImpl =
         await ctx.requestContext.getAsync(SysOperLogServiceImpl);
       if (result instanceof Result) {
-        operLog.status = result.code === RESULT_CODE_SUCCESS ? STATUS_YES : STATUS_NO;
+        operLog.status =
+          result.code === RESULT_CODE_SUCCESS ? STATUS_YES : STATUS_NO;
       } else {
         operLog.status = STATUS_YES;
       }

@@ -35,7 +35,7 @@ export interface ISysConfigRepository {
    * @param configIds 参数配置ID
    * @return 用户对象信息
    */
-  selectConfigByIds(configIds: string[]): Promise<SysConfig[]>
+  selectConfigByIds(configIds: string[]): Promise<SysConfig[]>;
 
   /**
    * 校验配置参数是否唯一
@@ -43,7 +43,7 @@ export interface ISysConfigRepository {
    *@param sysConfig 参数配置信息
    * @return 结果
    */
-   checkUniqueConfig(sysConfig: SysConfig): Promise<string>;
+  checkUniqueConfig(sysConfig: SysConfig): Promise<string>;
 
   /**
    * 新增参数配置

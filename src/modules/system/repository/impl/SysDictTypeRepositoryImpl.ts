@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
@@ -213,9 +212,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const sqlStr = `insert into sys_dict_type (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 
@@ -241,7 +238,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const sqlStr = `update sys_dict_type set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(',')} where dict_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysDictType.dictId,
     ]);
@@ -252,7 +249,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const sqlStr = `delete from sys_dict_type where dict_id in (${dictIds
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, dictIds);
+    const result = await this.db.execute(sqlStr, dictIds);
     return result.affectedRows;
   }
 }

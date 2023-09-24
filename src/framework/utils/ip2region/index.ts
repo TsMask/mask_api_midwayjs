@@ -3,7 +3,7 @@
 // 读取xdb工具包
 import { loadContentFromFile, newWithBuffer } from './binding';
 // 指定ip2region数据文件路径
-const dbPath = "assets/ip2region.xdb";
+const dbPath = 'assets/ip2region.xdb';
 // 读取文件Buffer缓存
 const ip2regionBuffer = loadContentFromFile(dbPath);
 // 检索实例
@@ -23,7 +23,7 @@ export async function getRegionSearchByIp(ip: string): Promise<{
   took: number;
 }> {
   let data = { region: '0|0|0|0|0', ioCount: 0, took: 0 };
-  ip = getClientIP(ip)
+  ip = getClientIP(ip);
   if (ip === LOCAT_HOST) {
     data.region = '0|0|0|内网IP|内网IP';
   }
@@ -41,7 +41,7 @@ export async function getRegionSearchByIp(ip: string): Promise<{
  * @returns 返回结果 江苏省 苏州市
  */
 export async function getRealAddressByIp(ip: string): Promise<string> {
-  ip = getClientIP(ip)
+  ip = getClientIP(ip);
   if (ip === LOCAT_HOST) {
     return '内网IP';
   }

@@ -143,7 +143,7 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
         return pre;
       }
       // 过滤地址
-      let addrs: string[] = [];
+      const addrs: string[] = [];
       for (const item of netItemList) {
         if (item.family === 'IPv6' && item.address.includes('::')) {
           addrs.push('IPv6 ' + item.address);

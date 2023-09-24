@@ -120,8 +120,8 @@ export class ContextService {
 
   // 解析ip地址
   async ipaddrLocation(): Promise<[string, string]> {
-    let ipaddr = getClientIP(this.ctx.ip);
-    let location = await getRealAddressByIp(ipaddr);
+    const ipaddr = getClientIP(this.ctx.ip);
+    const location = await getRealAddressByIp(ipaddr);
     return [ipaddr, location];
   }
 

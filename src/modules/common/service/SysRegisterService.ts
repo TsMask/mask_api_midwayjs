@@ -36,7 +36,7 @@ export class SysRegisterService {
 
   /**
    * 账号注册
-   * 
+   *
    * @param username 登录用户名
    * @param password 密码
    * @param userType 用户类型

@@ -1,5 +1,4 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { SysDept } from '../../model/SysDept';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
@@ -212,9 +211,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const sqlStr = `insert into sys_dept (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
     return `${result.insertId}`;
   }
 
@@ -252,7 +249,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const sqlStr = `update sys_dept set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(',')} where dept_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysDept.deptId,
     ]);
@@ -265,7 +262,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const sqlStr = `update sys_dept set status = '1' where dept_id in (${deptIds
       .map(() => '?')
       .join(',')}) `;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, deptIds);
+    const result = await this.db.execute(sqlStr, deptIds);
     return result.affectedRows;
   }
 
@@ -286,14 +283,14 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const cases = setArr.join(' ');
     const placeholders = paramArr.map(() => '?').join(',');
     const sqlStr = `update sys_dept set ancestors = CASE ${cases} END where dept_id in (${placeholders}) `;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, paramArr);
+    const result = await this.db.execute(sqlStr, paramArr);
     return result.affectedRows;
   }
 
   async deleteDeptById(deptId: string): Promise<number> {
     const sqlStr =
       "update sys_dept set status = '0', del_flag = '1' where dept_id = ?";
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [deptId]);
+    const result = await this.db.execute(sqlStr, [deptId]);
     return result.affectedRows;
   }
 }
