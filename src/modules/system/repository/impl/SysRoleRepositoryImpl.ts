@@ -7,6 +7,7 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysRoleRepository } from '../ISysRoleRepository';
 import { SysRole } from '../../model/SysRole';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_ROLE_SQL = `select distinct 
@@ -267,11 +268,11 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr = `update sys_role set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(', ')} where role_id = ?`;
-    const rows = await this.db.execute(sqlStr, [
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysRole.roleId,
     ]);
-    return rows.affectedRows;
+    return result.affectedRows;
   }
 
   async insertRole(sysRole: SysRole): Promise<string> {
@@ -318,7 +319,9 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr = `insert into sys_role (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -326,7 +329,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr = `update sys_role set del_flag = '1' where role_id in (${roleIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, roleIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }
 }

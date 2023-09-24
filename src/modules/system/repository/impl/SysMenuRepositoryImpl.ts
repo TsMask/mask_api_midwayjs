@@ -8,6 +8,7 @@ import {
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
 } from '../../../../framework/constants/MenuConstants';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_MENU_SQL = `select 
@@ -256,7 +257,9 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     const sqlStr = `insert into sys_menu (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -326,16 +329,16 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     const sqlStr = `update sys_menu set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(', ')} where menu_id = ?`;
-    const rows = await this.db.execute(sqlStr, [
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysMenu.menuId,
     ]);
-    return rows.affectedRows;
+    return result.affectedRows;
   }
 
   async deleteMenuById(menuId: string): Promise<number> {
     const sqlStr = 'delete from sys_menu where menu_id = ?';
-    const result = await this.db.execute(sqlStr, [menuId]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [menuId]);
     return result.affectedRows;
   }
 

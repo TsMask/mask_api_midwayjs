@@ -7,6 +7,7 @@ import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_JOB_LOG_SQL = `select job_log_id, job_name, job_group, invoke_target, 
@@ -193,7 +194,9 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     const sqlStr = `insert into sys_job_log (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -201,13 +204,13 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     const sqlStr = `delete from sys_job_log where job_log_id in (${jobLogId
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, jobLogId);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, jobLogId);
     return result.affectedRows;
   }
 
   async cleanJobLog(): Promise<number> {
     const sqlStr = 'truncate table sys_job_log';
-    const result = await this.db.execute(sqlStr);
+    const result: ResultSetHeader = await this.db.execute(sqlStr);
     return result.serverStatus;
   }
 }

@@ -3,6 +3,7 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysJob } from '../../model/SysJob';
 import { ISysJobRepository } from '../ISysJobRepository';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_JOB_SQL = `select job_id, job_name, job_group, invoke_target, target_params, cron_expression, 
@@ -220,7 +221,9 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     const sqlStr = `insert into sys_job (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
@@ -261,7 +264,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     const sqlStr = `update sys_job set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(',')} where job_id = ?`;
-    const result = await this.db.execute(sqlStr, [
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysJob.jobId,
     ]);
@@ -272,7 +275,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     const sqlStr = `delete from sys_job where job_id in (${jobIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, jobIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, jobIds);
     return result.affectedRows;
   }
 }

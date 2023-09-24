@@ -3,6 +3,7 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { SysPost } from '../../model/SysPost';
 import { ISysPostRepository } from '../ISysPostRepository';
+import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_POST_SQL = `select 
@@ -158,7 +159,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const sqlStr = `delete from sys_post where post_id in (${postIds
       .map(() => '?')
       .join(',')})`;
-    const result = await this.db.execute(sqlStr, postIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, postIds);
     return result.affectedRows;
   }
 
@@ -187,7 +188,7 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const sqlStr = `update sys_post set ${[...paramMap.keys()]
       .map(k => `${k} = ?`)
       .join(',')} where post_id = ?`;
-    const result = await this.db.execute(sqlStr, [
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
       ...paramMap.values(),
       sysPost.postId,
     ]);
@@ -223,7 +224,9 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     const sqlStr = `insert into sys_post (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result = await this.db.execute(sqlStr, [...paramMap.values()]);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+      ...paramMap.values(),
+    ]);
     return `${result.insertId}`;
   }
 
