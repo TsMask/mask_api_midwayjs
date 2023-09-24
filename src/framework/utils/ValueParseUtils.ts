@@ -56,7 +56,10 @@ export function parseStrHumpToLine(str: string): string {
  * @param obj 对象属性 字符数组orJSON对象
  * @returns 驼峰转下划线
  */
-export function parseObjHumpToLine(obj: object) {
+export function parseObjHumpToLine(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
   if (Array.isArray(obj)) {
     return obj.map(v => parseObjHumpToLine(v));
   }
@@ -79,7 +82,10 @@ export function parseObjHumpToLine(obj: object) {
  * @param obj 对象属性 字符数组orJSON对象
  * @returns 下划线转驼峰
  */
-export function parseObjLineToHump(obj: any) {
+export function parseObjLineToHump(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
   if (Array.isArray(obj)) {
     return obj.map(v => parseObjLineToHump(v));
   }
