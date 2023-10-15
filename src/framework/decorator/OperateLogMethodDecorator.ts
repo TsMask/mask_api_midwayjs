@@ -4,8 +4,8 @@ import { Context } from '@midwayjs/koa';
 import { OperatorBusinessTypeEnum } from '../enums/OperatorBusinessTypeEnum';
 import { OperatorTypeEnum } from '../enums/OperatorTypeEnum';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
-import { SysOperLog } from '../../modules/monitor/model/SysOperLog';
-import { SysOperLogServiceImpl } from '../../modules/monitor/service/impl/SysOperLogServiceImpl';
+import { SysLogOperate } from '../../modules/system/model/SysLogOperate';
+import { SysLogOperateServiceImpl } from '../../modules/system/service/impl/SysLogOperateServiceImpl';
 import { LoginUser } from '../vo/LoginUser';
 import { Result } from '../vo/Result';
 import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
@@ -13,7 +13,7 @@ import { parseSafeContent } from '../utils/ValueParseUtils';
 import { RESULT_CODE_SUCCESS } from '../constants/ResultConstants';
 
 /** 操作日志参数 */
-interface operLogOptions {
+interface Options {
   /**标题 */
   title: string;
   /**类型 */
@@ -27,7 +27,7 @@ interface operLogOptions {
 }
 
 /**装饰器key标识-访问操作日志记录 */
-export const METHOD_KEY_OPER_LOG = 'decorator_method:oper_log';
+export const METHOD_KEY_OPER_LOG = 'decorator_method:operate_log';
 
 /**敏感属性字段进行掩码 */
 const MASK_PROPERTIES = [
@@ -44,7 +44,7 @@ const MASK_PROPERTIES = [
  * @param options 操作日志参数
  * @author TsMask
  */
-export function OperLog(options: operLogOptions): MethodDecorator {
+export function OperateLog(options: Options): MethodDecorator {
   return createCustomMethodDecorator(METHOD_KEY_OPER_LOG, options);
 }
 
@@ -53,7 +53,7 @@ export function OperLog(options: operLogOptions): MethodDecorator {
  * @param options.metadata 方法装饰器参数
  * @returns 返回结果
  */
-export function OperLogSave(options: { metadata: operLogOptions }) {
+export function OpLerateLogSave(options: { metadata: Options }) {
   return {
     around: async (joinPoint: JoinPoint) => {
       // 装饰器所在的实例上下文
@@ -71,7 +71,7 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       }
 
       // 操作日志记录
-      const operLog = new SysOperLog();
+      const operLog = new SysLogOperate();
       operLog.title = metadataObj.title;
       operLog.businessType = metadataObj.businessType;
       operLog.operatorType = metadataObj.operatorType;
@@ -127,8 +127,8 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       }
 
       // 保存操作记录到数据库
-      const sysOperLogService: SysOperLogServiceImpl =
-        await ctx.requestContext.getAsync(SysOperLogServiceImpl);
+      const sysLogOperateService: SysLogOperateServiceImpl =
+        await ctx.requestContext.getAsync(SysLogOperateServiceImpl);
       if (result instanceof Result) {
         operLog.status =
           result.code === RESULT_CODE_SUCCESS ? STATUS_YES : STATUS_NO;
@@ -137,7 +137,7 @@ export function OperLogSave(options: { metadata: operLogOptions }) {
       }
       // 请求耗时
       operLog.costTime = Date.now() - ctx.startTime;
-      await sysOperLogService.insertOperLog(operLog);
+      await sysLogOperateService.insertSysLogOperate(operLog);
 
       // 返回执行结果
       return result;

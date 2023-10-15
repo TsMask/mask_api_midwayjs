@@ -5,15 +5,15 @@ import {
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
-import { SysOperLog } from '../../model/SysOperLog';
-import { ISysOperLogRepository } from '../ISysOperLogRepository';
+import { SysLogOperate } from '../../model/SysLogOperate';
+import { ISysLogOperateRepository } from '../ISysLogOperateRepository';
 import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_OPER_LOG_SQL = `select 
 oper_id, title, business_type, method, request_method, operator_type, oper_name, dept_name, 
 oper_url, oper_ip, oper_location, oper_param, oper_msg, status, oper_time, cost_time
-from sys_oper_log`;
+from sys_log_operate`;
 
 /**操作日志表信息实体映射 */
 const SYS_OPER_LOG_RESULT = new Map<string, string>();
@@ -39,19 +39,19 @@ SYS_OPER_LOG_RESULT.set('cost_time', 'costTime');
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function convertResultRows(rows: any[]): SysOperLog[] {
-  const sysOperLogs: SysOperLog[] = [];
+function convertResultRows(rows: any[]): SysLogOperate[] {
+  const sysLogOperates: SysLogOperate[] = [];
   for (const row of rows) {
-    const sysOperLog = new SysOperLog();
+    const sysLogOperate = new SysLogOperate();
     for (const key in row) {
       if (SYS_OPER_LOG_RESULT.has(key)) {
         const keyMapper = SYS_OPER_LOG_RESULT.get(key);
-        sysOperLog[keyMapper] = row[key];
+        sysLogOperate[keyMapper] = row[key];
       }
     }
-    sysOperLogs.push(sysOperLog);
+    sysLogOperates.push(sysLogOperate);
   }
-  return sysOperLogs;
+  return sysLogOperates;
 }
 
 /**
@@ -61,11 +61,11 @@ function convertResultRows(rows: any[]): SysOperLog[] {
  */
 @Provide()
 @Singleton()
-export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
+export class SysLogOperateRepositoryImpl implements ISysLogOperateRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectOperLogPage(query: ListQueryPageOptions): Promise<RowPagesType> {
+  async selectSysLogOperatePage(query: ListQueryPageOptions): Promise<RowPagesType> {
     // 查询条件拼接
     const conditions: string[] = [];
     const params: any[] = [];
@@ -105,7 +105,7 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     }
 
     // 查询数量 长度为0直接返回
-    const totalSql = "select count(1) as 'total' from sys_oper_log";
+    const totalSql = "select count(1) as 'total' from sys_log_operate";
     const countRow: RowTotalType[] = await this.db.execute(
       totalSql + whereSql,
       params
@@ -133,25 +133,25 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     return { total, rows };
   }
 
-  async selectOperLogList(sysOperLog: SysOperLog): Promise<SysOperLog[]> {
+  async selectSysLogOperateList(SysLogOperate: SysLogOperate): Promise<SysLogOperate[]> {
     // 查询条件拼接
     const conditions: string[] = [];
     const params: any[] = [];
-    if (sysOperLog.title) {
+    if (SysLogOperate.title) {
       conditions.push("title like concat(?, '%')");
-      params.push(sysOperLog.title);
+      params.push(SysLogOperate.title);
     }
-    if (sysOperLog.businessType) {
+    if (SysLogOperate.businessType) {
       conditions.push('business_type = ?');
-      params.push(sysOperLog.businessType);
+      params.push(SysLogOperate.businessType);
     }
-    if (sysOperLog.operName) {
+    if (SysLogOperate.operName) {
       conditions.push("oper_name like concat(?, '%')");
-      params.push(sysOperLog.operName);
+      params.push(SysLogOperate.operName);
     }
-    if (sysOperLog.status) {
+    if (SysLogOperate.status) {
       conditions.push('status = ?');
-      params.push(sysOperLog.status);
+      params.push(SysLogOperate.status);
     }
 
     // 构建查询条件语句
@@ -166,59 +166,59 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     return convertResultRows(results);
   }
 
-  async selectOperLogById(operId: string): Promise<SysOperLog> {
+  async selectSysLogOperateById(operId: string): Promise<SysLogOperate> {
     const sqlStr = `${SELECT_OPER_LOG_SQL} where oper_id = ? `;
     const rows = await this.db.execute(sqlStr, [operId]);
     return convertResultRows(rows)[0] || null;
   }
 
-  async insertOperLog(sysOperLog: SysOperLog): Promise<string> {
+  async insertSysLogOperate(SysLogOperate: SysLogOperate): Promise<string> {
     const paramMap = new Map();
-    if (sysOperLog.title) {
-      paramMap.set('title', sysOperLog.title);
+    if (SysLogOperate.title) {
+      paramMap.set('title', SysLogOperate.title);
     }
-    if (sysOperLog.businessType) {
-      paramMap.set('business_type', parseNumber(sysOperLog.businessType));
+    if (SysLogOperate.businessType) {
+      paramMap.set('business_type', parseNumber(SysLogOperate.businessType));
     }
-    if (sysOperLog.method) {
-      paramMap.set('method', sysOperLog.method);
+    if (SysLogOperate.method) {
+      paramMap.set('method', SysLogOperate.method);
     }
-    if (sysOperLog.requestMethod) {
-      paramMap.set('request_method', sysOperLog.requestMethod);
+    if (SysLogOperate.requestMethod) {
+      paramMap.set('request_method', SysLogOperate.requestMethod);
     }
-    if (sysOperLog.operatorType) {
-      paramMap.set('operator_type', parseNumber(sysOperLog.operatorType));
+    if (SysLogOperate.operatorType) {
+      paramMap.set('operator_type', parseNumber(SysLogOperate.operatorType));
     }
-    if (sysOperLog.deptName) {
-      paramMap.set('dept_name', sysOperLog.deptName);
+    if (SysLogOperate.deptName) {
+      paramMap.set('dept_name', SysLogOperate.deptName);
     }
-    if (sysOperLog.operName) {
-      paramMap.set('oper_name', sysOperLog.operName);
+    if (SysLogOperate.operName) {
+      paramMap.set('oper_name', SysLogOperate.operName);
     }
-    if (sysOperLog.operUrl) {
-      paramMap.set('oper_url', sysOperLog.operUrl);
+    if (SysLogOperate.operUrl) {
+      paramMap.set('oper_url', SysLogOperate.operUrl);
     }
-    if (sysOperLog.operIp) {
-      paramMap.set('oper_ip', sysOperLog.operIp);
+    if (SysLogOperate.operIp) {
+      paramMap.set('oper_ip', SysLogOperate.operIp);
     }
-    if (sysOperLog.operLocation) {
-      paramMap.set('oper_location', sysOperLog.operLocation);
+    if (SysLogOperate.operLocation) {
+      paramMap.set('oper_location', SysLogOperate.operLocation);
     }
-    if (sysOperLog.operParam) {
-      paramMap.set('oper_param', sysOperLog.operParam);
+    if (SysLogOperate.operParam) {
+      paramMap.set('oper_param', SysLogOperate.operParam);
     }
-    if (sysOperLog.operMsg) {
-      paramMap.set('oper_msg', sysOperLog.operMsg);
+    if (SysLogOperate.operMsg) {
+      paramMap.set('oper_msg', SysLogOperate.operMsg);
     }
-    if (sysOperLog.status) {
-      paramMap.set('status', parseNumber(sysOperLog.status));
+    if (SysLogOperate.status) {
+      paramMap.set('status', parseNumber(SysLogOperate.status));
     }
-    if (sysOperLog.costTime) {
-      paramMap.set('cost_time', parseNumber(sysOperLog.costTime));
+    if (SysLogOperate.costTime) {
+      paramMap.set('cost_time', parseNumber(SysLogOperate.costTime));
     }
     paramMap.set('oper_time', Date.now());
 
-    const sqlStr = `insert into sys_oper_log (${[...paramMap.keys()].join(
+    const sqlStr = `insert into sys_log_operate (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
@@ -227,16 +227,16 @@ export class SysOperLogRepositoryImpl implements ISysOperLogRepository {
     return `${result.insertId}`;
   }
 
-  async deleteOperLogByIds(operIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_oper_log where oper_id in (${operIds
+  async deleteSysLogOperateByIds(operIds: string[]): Promise<number> {
+    const sqlStr = `delete from sys_log_operate where oper_id in (${operIds
       .map(() => '?')
       .join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, operIds);
     return result.affectedRows;
   }
 
-  async cleanOperLog(): Promise<number> {
-    const sqlStr = 'truncate table sys_oper_log';
+  async cleanSysLogOperate(): Promise<number> {
+    const sqlStr = 'truncate table sys_log_operate';
     const result: ResultSetHeader = await this.db.execute(sqlStr);
     return result.serverStatus;
   }

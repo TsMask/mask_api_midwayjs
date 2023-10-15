@@ -1,11 +1,11 @@
 /**
- * 系统访问记录表 sys_logininfor
+ * 系统登录日志表 sys_log_login
  *
  * @author TsMask
  */
-export class SysLogininfor {
-  /**访问ID */
-  infoId: string;
+export class SysLogLogin {
+  /**登录ID */
+  loginId: string;
 
   /**用户账号 */
   userName: string;

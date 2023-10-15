@@ -6,20 +6,20 @@ import {
 import { OPERATOR_TYPE } from '../../../framework/enums/OperatorTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
-import { SysOperLog } from '../model/SysOperLog';
-import { SysOperLogServiceImpl } from '../service/impl/SysOperLogServiceImpl';
+import { SysLogOperate } from '../model/SysLogOperate';
+import { SysLogOperateServiceImpl } from '../service/impl/SysLogOperateServiceImpl';
 
 /**
  * 操作日志记录信息
  *
  * @author TsMask
  */
-@Controller('/monitor/operlog')
-export class SysOperLogController {
+@Controller('/system/log/operate')
+export class SysLogOperateController {
   @Inject()
   private contextService: ContextService;
 
@@ -27,16 +27,16 @@ export class SysOperLogController {
   private fileService: FileService;
 
   @Inject()
-  private sysOperLogService: SysOperLogServiceImpl;
+  private sysLogOperateService: SysLogOperateServiceImpl;
 
   /**
    * 操作日志列表
    */
   @Get('/list')
-  @PreAuthorize({ hasPermissions: ['monitor:operlog:list'] })
+  @PreAuthorize({ hasPermissions: ['system:log:operate:list'] })
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
-    const data = await this.sysOperLogService.selectOperLogPage(query);
+    const data = await this.sysLogOperateService.selectSysLogOperatePage(query);
     return Result.ok(data);
   }
 
@@ -44,14 +44,14 @@ export class SysOperLogController {
    * 操作日志删除
    */
   @Del('/:operIds')
-  @PreAuthorize({ hasPermissions: ['monitor:operlog:remove'] })
-  @OperLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.DELETE })
+  @PreAuthorize({ hasPermissions: ['system:log:operate:remove'] })
+  @OperateLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('operIds') operIds: string): Promise<Result> {
     if (!operIds) return Result.err();
     // 处理字符转id数组
     const ids = operIds.split(',');
     if (ids.length <= 0) return Result.err();
-    const rows = await this.sysOperLogService.deleteOperLogByIds([
+    const rows = await this.sysLogOperateService.deleteSysLogOperateByIds([
       ...new Set(ids),
     ]);
     return Result[rows > 0 ? 'ok' : 'err']();
@@ -61,10 +61,10 @@ export class SysOperLogController {
    * 操作日志清空
    */
   @Del('/clean')
-  @PreAuthorize({ hasPermissions: ['monitor:operlog:remove'] })
-  @OperLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.CLEAN })
+  @PreAuthorize({ hasPermissions: ['system:log:operate:remove'] })
+  @OperateLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.CLEAN })
   async clean(): Promise<Result> {
-    const rows = await this.sysOperLogService.cleanOperLog();
+    const rows = await this.sysLogOperateService.cleanSysLogOperate();
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -72,19 +72,19 @@ export class SysOperLogController {
    * 导出操作日志
    */
   @Post('/export')
-  @PreAuthorize({ hasPermissions: ['system:operlog:export'] })
-  @OperLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.EXPORT })
+  @PreAuthorize({ hasPermissions: ['system:log:operate:export'] })
+  @OperateLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.EXPORT })
   async export() {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    const data = await this.sysOperLogService.selectOperLogPage(query);
+    const data = await this.sysLogOperateService.selectSysLogOperatePage(query);
     if (data.total === 0) {
       return Result.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(
-      (pre: Record<string, string>[], cur: SysOperLog) => {
+      (pre: Record<string, string>[], cur: SysLogOperate) => {
         pre.push({
           操作序号: cur.operId,
           操作模块: cur.title,
@@ -108,7 +108,7 @@ export class SysOperLogController {
       []
     );
     // 导出数据表格
-    const fileName = `operlog_export_${rows.length}_${Date.now()}.xlsx`;
+    const fileName = `sys_log_operate_export_${rows.length}_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
