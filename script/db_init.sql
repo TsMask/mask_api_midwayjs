@@ -203,17 +203,17 @@ insert into sys_menu values('106',  '字典管理', '1',   '7',   'dict',       
 insert into sys_menu values('107',  '字典数据', '1',   '8',   'dict/inline/data/:dictId',             'system/dict/data',         '1', '1', 'M', '0', '1', 'system:dict:data',        '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '字典数据内嵌隐藏菜单');
 insert into sys_menu values('108',  '参数设置', '1',   '9',   'config',                               'system/config/index',      '1', '1', 'M', '1', '1', 'system:config:list',      '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '参数设置菜单');
 insert into sys_menu values('109',  '通知公告', '1',   '10',  'notice',                               'system/notice/index',      '1', '1', 'M', '1', '1', 'system:notice:list',      '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '通知公告菜单');
-insert into sys_menu values('111',  '日志管理', '1',   '11',  'log',                                  '',                         '1', '1', 'D', '1', '1', '',                        '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '日志管理菜单');
-insert into sys_menu values('112',  '服务监控', '2',   '1',   'server-info',                          'monitor/server/info',      '1', '1', 'M', '1', '1', 'monitor:server:info',    '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '服务监控菜单');
-insert into sys_menu values('113',  '缓存监控', '2',   '2',   'cache-info',                           'monitor/cache/info',       '1', '1', 'M', '1', '1', 'monitor:cache:info',     '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '缓存监控菜单');
-insert into sys_menu values('114',  '缓存列表', '2',   '3',   'cache',                                'monitor/cache/index',      '1', '1', 'M', '1', '1', 'monitor:cache:list',      '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '缓存列表菜单');
+insert into sys_menu values('111',  '系统日志', '1',   '11',  'log',                                  '',                         '1', '1', 'D', '1', '1', '',                        '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '日志管理菜单');
+insert into sys_menu values('112',  '系统信息', '2',   '1',   'system-info',                          'monitor/system/info',      '1', '1', 'M', '1', '1', 'monitor:system:info',     '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统信息菜单');
+insert into sys_menu values('113',  '缓存信息', '2',   '2',   'cache-info',                           'monitor/cache/info',       '1', '1', 'M', '1', '1', 'monitor:cache:info',      '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '缓存信息菜单');
+insert into sys_menu values('114',  '缓存管理', '2',   '3',   'cache',                                'monitor/cache/index',      '1', '1', 'M', '1', '1', 'monitor:cache:list',      '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '缓存列表菜单');
 insert into sys_menu values('115',  '在线用户', '2',   '4',   'online',                               'monitor/online/index',     '1', '1', 'M', '1', '1', 'monitor:online:list',     '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '在线用户菜单');
 insert into sys_menu values('116',  '调度任务', '2',   '5',   'job',                                  'monitor/job/index',        '1', '1', 'M', '1', '1', 'monitor:job:list',        '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '调度任务菜单');
 insert into sys_menu values('117',  '调度日志', '2',   '6',   'job/inline/log/:jobId',                'monitor/job/log',          '1', '1', 'M', '0', '1', 'monitor:job:log',         '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '调度日志内嵌隐藏菜单');
 insert into sys_menu values('118',  '系统接口', '3',   '1',   'swagger',                              'tool/swagger/index',       '1', '1', 'M', '1', '1', 'monitor:swagger:list',    '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统接口菜单');
 -- 三级菜单
-insert into sys_menu values('500',  '操作日志', '111', '1', 'operlog',    'monitor/operlog/index',    '1', '1', 'M', '1', '1', 'monitor:operlog:list',    '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '操作日志菜单');
-insert into sys_menu values('501',  '登录日志', '111', '2', 'logininfor', 'monitor/logininfor/index', '1', '1', 'M', '1', '1', 'monitor:logininfor:list', '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '登录日志菜单');
+insert into sys_menu values('500',  '操作日志', '111', '1',   'operate',                              'system/log/operate/index',    '1', '1', 'M', '1', '1', 'system:log:operate:list',    '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '操作日志菜单');
+insert into sys_menu values('501',  '登录日志', '111', '2',   'login',                                'system/log/login/index',      '1', '1', 'M', '1', '1', 'system:log:login:list',      '#',    'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '登录日志菜单');
 -- 用户管理按钮
 insert into sys_menu values('1000', '用户查询', '100', '1',  '', '', '1', '1', 'B', '1', '1', 'system:user:query',          '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_menu values('1001', '用户新增', '100', '2',  '', '', '1', '1', 'B', '1', '1', 'system:user:add',            '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
@@ -262,14 +262,14 @@ insert into sys_menu values('1036', '公告新增', '109', '2', '#', '', '1', '1
 insert into sys_menu values('1037', '公告修改', '109', '3', '#', '', '1', '1', 'B', '1', '1', 'system:notice:edit',         '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_menu values('1038', '公告删除', '109', '4', '#', '', '1', '1', 'B', '1', '1', 'system:notice:remove',       '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 -- 操作日志按钮
-insert into sys_menu values('1039', '操作查询', '500', '1', '#', '', '1', '1', 'B', '1', '1', 'monitor:operlog:query',      '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_menu values('1040', '操作删除', '500', '2', '#', '', '1', '1', 'B', '1', '1', 'monitor:operlog:remove',     '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_menu values('1041', '日志导出', '500', '3', '#', '', '1', '1', 'B', '1', '1', 'monitor:operlog:export',     '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_menu values('1039', '操作查询', '500', '1', '#', '', '1', '1', 'B', '1', '1', 'system:log:operate:query',   '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_menu values('1040', '操作删除', '500', '2', '#', '', '1', '1', 'B', '1', '1', 'system:log:operate:remove',  '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_menu values('1041', '日志导出', '500', '3', '#', '', '1', '1', 'B', '1', '1', 'system:log:operate:export',  '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 -- 登录日志按钮
-insert into sys_menu values('1042', '登录查询', '501', '1', '#', '', '1', '1', 'B', '1', '1', 'monitor:logininfor:query',   '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_menu values('1043', '登录删除', '501', '2', '#', '', '1', '1', 'B', '1', '1', 'monitor:logininfor:remove',  '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_menu values('1044', '日志导出', '501', '3', '#', '', '1', '1', 'B', '1', '1', 'monitor:logininfor:export',  '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_menu values('1045', '账户解锁', '501', '4', '#', '', '1', '1', 'B', '1', '1', 'monitor:logininfor:unlock',  '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_menu values('1042', '登录查询', '501', '1', '#', '', '1', '1', 'B', '1', '1', 'system:log:login:query',     '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_menu values('1043', '登录删除', '501', '2', '#', '', '1', '1', 'B', '1', '1', 'system:log:login:remove',    '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_menu values('1044', '日志导出', '501', '3', '#', '', '1', '1', 'B', '1', '1', 'system:log:login:export',    '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_menu values('1045', '账户解锁', '501', '4', '#', '', '1', '1', 'B', '1', '1', 'system:log:login:unlock',    '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 -- 缓存列表按钮
 insert into sys_menu values('1046', '缓存查询', '114', '1', '#', '', '1', '1', 'B', '1', '1', 'monitor:cache:query',        '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_menu values('1047', '缓存删除', '114', '2', '#', '', '1', '1', 'B', '1', '1', 'monitor:cache:remove',       '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
@@ -284,6 +284,7 @@ insert into sys_menu values('1053', '任务修改', '116', '3', '#', '', '1', '1
 insert into sys_menu values('1054', '任务删除', '116', '4', '#', '', '1', '1', 'B', '1', '1', 'monitor:job:remove',         '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_menu values('1055', '状态修改', '116', '5', '#', '', '1', '1', 'B', '1', '1', 'monitor:job:changeStatus',   '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_menu values('1056', '任务导出', '116', '6', '#', '', '1', '1', 'B', '1', '1', 'monitor:job:export',         '#', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+
 
 -- ----------------------------
 -- 6、用户和角色关联表  用户N-1角色
@@ -366,32 +367,7 @@ insert into sys_user_post values ('2', '2');
 
 
 -- ----------------------------
--- 10、操作日志记录
--- ----------------------------
-drop table if exists sys_oper_log;
-create table sys_oper_log (
-  oper_id           bigint          not null auto_increment    comment '日志主键',
-  title             varchar(50)     default ''                 comment '模块标题',
-  business_type     char(1)         default '0'                comment '业务类型（0其它 1新增 2修改 3删除 4授权 5导出 6导入 7强退 8清空数据）',
-  method            varchar(100)    default ''                 comment '方法名称',
-  request_method    varchar(10)     default ''                 comment '请求方式',
-  operator_type     char(1)         default '0'                comment '操作类别（0其它 1后台用户 2手机端用户）',
-  oper_name         varchar(50)     default ''                 comment '操作人员',
-  dept_name         varchar(50)     default ''                 comment '部门名称',
-  oper_url          varchar(255)    default ''                 comment '请求URL',
-  oper_ip           varchar(128)    default ''                 comment '主机地址',
-  oper_location     varchar(255)    default ''                 comment '操作地点',
-  oper_param        varchar(2000)   default ''                 comment '请求参数',
-  oper_msg          varchar(2000)   default ''                 comment '操作消息',
-  status            char(1)         default '0'                comment '操作状态（0异常 1正常）',
-  oper_time         bigint          default 0                  comment '操作时间',
-  cost_time         bigint          default 0                  comment '消耗时间（毫秒）',
-  primary key (oper_id)
-) engine=innodb auto_increment=100 comment = '操作日志记录';
-
-
--- ----------------------------
--- 11、字典类型表
+-- 10、字典类型表
 -- ----------------------------
 drop table if exists sys_dict_type;
 create table sys_dict_type
@@ -422,7 +398,7 @@ insert into sys_dict_type values(10, '系统状态', 'sys_common_status',   '1',
 
 
 -- ----------------------------
--- 12、字典数据表
+-- 11、字典数据表
 -- ----------------------------
 drop table if exists sys_dict_data;
 create table sys_dict_data
@@ -474,7 +450,7 @@ insert into sys_dict_data values(28, 2,  '失败',         '0',         'sys_com
 
 
 -- ----------------------------
--- 13、参数配置表
+-- 12、参数配置表
 -- ----------------------------
 drop table if exists sys_config;
 create table sys_config (
@@ -491,17 +467,46 @@ create table sys_config (
   primary key (config_id)
 ) engine=innodb auto_increment=100 comment = '参数配置表';
 
+-- ----------------------------
+-- 初始化-参数配置表数据
+-- ----------------------------
 insert into sys_config values(1, '用户管理-账号初始密码',         'sys.user.initPassword',         'Abcd@1234..',   'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '导入用户初始化密码 123456' );
 insert into sys_config values(2, '账号自助-验证码开关',           'sys.account.captchaEnabled',    'true',          'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启验证码功能（true开启，false关闭）');
 insert into sys_config values(3, '账号自助-验证码类型',           'sys.account.captchaType',       'math',          'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '使用验证码类型（math数值计算，char字符验证）');
 insert into sys_config values(4, '账号自助-是否开启用户注册功能',  'sys.account.registerUser',      'false',         'Y', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启注册用户功能（true开启，false关闭）');
 
+
 -- ----------------------------
--- 14、系统访问记录
+-- 13、系统操作日志表
 -- ----------------------------
-drop table if exists sys_logininfor;
-create table sys_logininfor (
-  info_id        bigint         not null auto_increment   comment '访问ID',
+drop table if exists sys_log_operate;
+create table sys_log_operate (
+  oper_id           bigint          not null auto_increment    comment '日志主键',
+  title             varchar(50)     default ''                 comment '模块标题',
+  business_type     char(1)         default '0'                comment '业务类型（0其它 1新增 2修改 3删除 4授权 5导出 6导入 7强退 8清空数据）',
+  method            varchar(100)    default ''                 comment '方法名称',
+  request_method    varchar(10)     default ''                 comment '请求方式',
+  operator_type     char(1)         default '0'                comment '操作人员类别（0其它 1后台用户 2手机端用户）',
+  oper_name         varchar(50)     default ''                 comment '操作人员',
+  dept_name         varchar(50)     default ''                 comment '部门名称',
+  oper_url          varchar(255)    default ''                 comment '请求URL',
+  oper_ip           varchar(128)    default ''                 comment '主机地址',
+  oper_location     varchar(255)    default ''                 comment '操作地点',
+  oper_param        varchar(2000)   default ''                 comment '请求参数',
+  oper_msg          varchar(2000)   default ''                 comment '操作消息',
+  status            char(1)         default '0'                comment '操作状态（0异常 1正常）',
+  oper_time         bigint          default 0                  comment '操作时间',
+  cost_time         bigint          default 0                  comment '消耗时间（毫秒）',
+  primary key (oper_id)
+) engine=innodb auto_increment=100 comment = '系统操作日志表';
+
+
+-- ----------------------------
+-- 14、系统登录日志表
+-- ----------------------------
+drop table if exists sys_log_login;
+create table sys_log_login (
+  login_id        bigint        not null auto_increment   comment '登录ID',
   user_name      varchar(50)    default ''                comment '用户账号',
   ipaddr         varchar(128)   default ''                comment '登录IP地址',
   login_location varchar(50)    default ''                comment '登录地点',
@@ -509,9 +514,9 @@ create table sys_logininfor (
   os             varchar(50)    default ''                comment '操作系统',
   status         char(1)        default '0'               comment '登录状态（0失败 1成功）',
   msg            varchar(255)   default ''                comment '提示消息',
-  login_time     bigint         default 0                 comment '访问时间',
-  primary key (info_id)
-) engine=innodb auto_increment=100 comment = '系统访问记录';
+  login_time     bigint         default 0                 comment '登录时间',
+  primary key (login_id)
+) engine=innodb auto_increment=100 comment = '系统登录日志表';
 
 
 -- ----------------------------
@@ -536,6 +541,9 @@ create table sys_job (
   primary key (job_id, job_name, job_group)
 ) engine=innodb auto_increment=100 comment = '调度任务调度表';
 
+-- ----------------------------
+-- 初始化-调度任务调度表数据
+-- ----------------------------
 insert into sys_job values(1, '触发执行', 'SYSTEM', 'simple', '{"t":10}', '0/10 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_job values(2, '缓慢执行', 'SYSTEM', 'foo',    '{"t":15}', '0/15 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_job values(3, '异常执行', 'SYSTEM', 'bar',    '{"t":20}', '0/20 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
