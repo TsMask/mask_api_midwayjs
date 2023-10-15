@@ -137,6 +137,7 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
       let newType = type;
       if (type[type.length - 1] === '0') {
         newType = type.slice(0, -1);
+        newType = newType.trim()
       }
       // ignore localhost
       if (newType === 'lo') {
