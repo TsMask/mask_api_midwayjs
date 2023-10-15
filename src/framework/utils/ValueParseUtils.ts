@@ -21,14 +21,24 @@ export function parseBoolean(str: string | number): boolean {
 }
 
 /**
- * 解析首字母转大写
- * @param str 字符串 ab
- * @returns 结果 Ab
+ * 字符串转换驼峰形式
+ * @param str 字符串 dict/inline/data/:dictId
+ * @returns 结果 DictInlineDataDictId
  */
-export function parseFirstUpper(str: string): string {
+export function ConvertToCamelCase(str: string): string {
   if (!str) return str;
-  str = str.replace(/[^_\w]+/g, '');
-  return str.substring(0, 1).toUpperCase() + str.substring(1);
+  const reg = /[-_:/]\w/g;
+  const result = str.replace(reg, (match: string) => match[1].toUpperCase());
+
+  const words = result.split(/\b/).filter(w => /\w/.test(w));
+  for (let i = 0; i < words.length; i++) {
+    let word = words[i];
+    const firstChar = word.substring(0, 1);
+    word = word.substring(1).replace(/\//g, '');
+    words[i] = firstChar.toUpperCase() + word;
+  }
+
+  return words.join('');
 }
 
 /**
