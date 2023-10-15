@@ -22,7 +22,7 @@ import {
 } from '../../../framework/constants/AdminConstants';
 import { RouterVo } from '../../../framework/vo/RouterVo';
 import { ContextService } from '../../../framework/service/ContextService';
-import { SysLogininforServiceImpl } from '../../monitor/service/impl/SysLogininforServiceImpl';
+import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
 import { TokenService } from '../../../framework/service/TokenService';
 import { SysUser } from '../../system/model/SysUser';
 import { getClientIP } from '../../../framework/utils/ip2region';
@@ -54,7 +54,7 @@ export class AccountService {
   private sysUserService: SysUserServiceImpl;
 
   @Inject()
-  private sysLogininforService: SysLogininforServiceImpl;
+  private sysLogLoginService: SysLogLoginServiceImpl;
 
   @Inject()
   private redisCache: RedisCache;
@@ -89,7 +89,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         `验证码失效 ${code}`,
@@ -104,7 +104,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         `验证码错误 ${code}`,
@@ -142,7 +142,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         msg,
@@ -160,7 +160,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         msg,
@@ -175,7 +175,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         msg,
@@ -190,7 +190,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         msg,
@@ -214,7 +214,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         `密码输入错误 ${errCount} 次`,
@@ -236,7 +236,7 @@ export class AccountService {
     const tokenStr = await this.tokenService.createToken(loginUser, ilobArgs);
     // 记录登录信息
     await this.recordLoginInfo(loginUser.userId);
-    await this.sysLogininforService.newLogininfor(
+    await this.sysLogLoginService.newSysLogLogin(
       username,
       STATUS_YES,
       '登录成功',
@@ -336,7 +336,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         userName,
         STATUS_YES,
         '退出成功',

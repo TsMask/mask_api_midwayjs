@@ -8,7 +8,7 @@ import {
   Post,
   Put,
 } from '@midwayjs/decorator';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
@@ -69,7 +69,7 @@ export class SysJobController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['monitor:job:add'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.INSERT,
   })
@@ -120,7 +120,7 @@ export class SysJobController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['monitor:job:edit'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
@@ -172,7 +172,7 @@ export class SysJobController {
    */
   @Del('/:jobIds')
   @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.DELETE,
   })
@@ -191,7 +191,7 @@ export class SysJobController {
   @Put('/changeStatus')
   @RepeatSubmit(5)
   @PreAuthorize({ hasPermissions: ['monitor:job:changeStatus'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
@@ -218,7 +218,7 @@ export class SysJobController {
   @Put('/run/:jobId')
   @RepeatSubmit(10)
   @PreAuthorize({ hasPermissions: ['monitor:job:changeStatus'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
@@ -236,7 +236,7 @@ export class SysJobController {
   @Put('/resetQueueJob')
   @RepeatSubmit(5)
   @PreAuthorize({ hasPermissions: ['monitor:job:changeStatus'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.CLEAN,
   })
@@ -250,7 +250,7 @@ export class SysJobController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务信息',
     businessType: OperatorBusinessTypeEnum.EXPORT,
   })

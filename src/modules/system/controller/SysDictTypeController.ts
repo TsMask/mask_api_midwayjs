@@ -10,7 +10,7 @@ import {
 } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
@@ -60,7 +60,7 @@ export class SysDictTypeController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dict:add'] })
-  @OperLog({
+  @OperateLog({
     title: '字典类型信息',
     businessType: OperatorBusinessTypeEnum.INSERT,
   })
@@ -94,7 +94,7 @@ export class SysDictTypeController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
-  @OperLog({
+  @OperateLog({
     title: '字典类型信息',
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
@@ -136,7 +136,7 @@ export class SysDictTypeController {
    */
   @Del('/:dictIds')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
-  @OperLog({
+  @OperateLog({
     title: '字典类型信息',
     businessType: OperatorBusinessTypeEnum.DELETE,
   })
@@ -156,7 +156,7 @@ export class SysDictTypeController {
    */
   @Put('/refreshCache')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
-  @OperLog({
+  @OperateLog({
     title: '字典类型信息',
     businessType: OperatorBusinessTypeEnum.CLEAN,
   })
@@ -190,7 +190,7 @@ export class SysDictTypeController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:dict:export'] })
-  @OperLog({
+  @OperateLog({
     title: '字典类型信息',
     businessType: OperatorBusinessTypeEnum.EXPORT,
   })

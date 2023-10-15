@@ -2,7 +2,7 @@ import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
@@ -56,7 +56,7 @@ export class SysJobLogController {
    */
   @Del('/:jobLogIds')
   @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务日志信息',
     businessType: OperatorBusinessTypeEnum.DELETE,
   })
@@ -76,7 +76,7 @@ export class SysJobLogController {
    */
   @Del('/clean')
   @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务日志信息',
     businessType: OperatorBusinessTypeEnum.CLEAN,
   })
@@ -90,7 +90,7 @@ export class SysJobLogController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
-  @OperLog({
+  @OperateLog({
     title: '调度任务日志信息',
     businessType: OperatorBusinessTypeEnum.EXPORT,
   })

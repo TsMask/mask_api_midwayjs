@@ -4,7 +4,7 @@ import { RedisCache } from '../../../framework/cache/RedisCache';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
-import { SysLogininforServiceImpl } from '../../monitor/service/impl/SysLogininforServiceImpl';
+import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import {
   STATUS_NO,
@@ -32,7 +32,7 @@ export class SysRegisterService {
   private sysUserService: SysUserServiceImpl;
 
   @Inject()
-  private sysLogininforService: SysLogininforServiceImpl;
+  private sysLogLoginService: SysLogLoginServiceImpl;
 
   /**
    * 账号注册
@@ -78,7 +78,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         sysUser.userName,
         STATUS_YES,
         '注册成功',
@@ -120,7 +120,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         `验证码失效 ${code}`,
@@ -135,7 +135,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.newSysLogLogin(
         username,
         STATUS_NO,
         `验证码错误 ${code}`,

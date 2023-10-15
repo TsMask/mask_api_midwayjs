@@ -12,7 +12,7 @@ import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { TokenService } from '../../../framework/service/TokenService';
 import { bcryptCompare } from '../../../framework/utils/CryptoUtils';
 import { FileService } from '../../../framework/service/FileService';
@@ -91,7 +91,7 @@ export class SysProfileController {
    */
   @Put()
   @PreAuthorize()
-  @OperLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async updateProfile(@Body() sysUser: SysUser): Promise<Result> {
     if (!sysUser.nickName || !sysUser.sex) {
       return Result.err();
@@ -161,7 +161,7 @@ export class SysProfileController {
    */
   @Put('/updatePwd')
   @PreAuthorize()
-  @OperLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async updatePwd(
     @Body('oldPassword') oldPassword: string,
     @Body('newPassword') newPassword: string
@@ -195,7 +195,7 @@ export class SysProfileController {
    */
   @Post('/avatar')
   @PreAuthorize()
-  @OperLog({ title: '用户头像', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({ title: '用户头像', businessType: OperatorBusinessTypeEnum.UPDATE })
   async avatar(
     @Files('file') files: UploadFileInfo<string>[]
   ): Promise<Result> {

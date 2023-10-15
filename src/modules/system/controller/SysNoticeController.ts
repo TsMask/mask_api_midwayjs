@@ -10,7 +10,7 @@ import {
 } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysNotice } from '../model/SysNotice';
@@ -56,7 +56,7 @@ export class SysNoticeController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:notice:add'] })
-  @OperLog({
+  @OperateLog({
     title: '通知公告信息',
     businessType: OperatorBusinessTypeEnum.INSERT,
   })
@@ -72,7 +72,7 @@ export class SysNoticeController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:notice:edit'] })
-  @OperLog({
+  @OperateLog({
     title: '通知公告信息',
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
@@ -88,7 +88,7 @@ export class SysNoticeController {
    */
   @Del('/:noticeIds')
   @PreAuthorize({ hasPermissions: ['system:notice:remove'] })
-  @OperLog({
+  @OperateLog({
     title: '通知公告信息',
     businessType: OperatorBusinessTypeEnum.DELETE,
   })

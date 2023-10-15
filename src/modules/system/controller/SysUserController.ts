@@ -18,7 +18,7 @@ import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 import { SysPost } from '../model/SysPost';
 import { ContextService } from '../../../framework/service/ContextService';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { FileService } from '../../../framework/service/FileService';
 import { UploadFileInfo } from '@midwayjs/upload';
@@ -133,7 +133,7 @@ export class SysUserController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:user:add'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.INSERT })
+  @OperateLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysUser: SysUser): Promise<Result> {
     const { userId, userName, password, nickName } = sysUser;
     if (userId || !nickName || !userName || !password) return Result.err();
@@ -192,7 +192,7 @@ export class SysUserController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysUser: SysUser): Promise<Result> {
     const { userId, userName, password, nickName } = sysUser;
     if (!userId || !nickName || !userName || password) return Result.err();
@@ -256,7 +256,7 @@ export class SysUserController {
    */
   @Del('/:userIds')
   @PreAuthorize({ hasPermissions: ['system:user:remove'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.DELETE })
+  @OperateLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('userIds') userIds: string): Promise<Result> {
     if (!userIds) return Result.err();
     // 处理字符转id数组
@@ -274,7 +274,7 @@ export class SysUserController {
    */
   @Put('/resetPwd')
   @PreAuthorize({ hasPermissions: ['system:user:resetPwd'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async resetPwd(
     @Body('userId') userId: string,
     @Body('password') password: string
@@ -308,7 +308,7 @@ export class SysUserController {
   @Put('/changeStatus')
   @RepeatSubmit()
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async changeStatus(
     @Body('userId') userId: string,
     @Body('status') status: string
@@ -339,7 +339,7 @@ export class SysUserController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:user:export'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.EXPORT })
+  @OperateLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.EXPORT })
   async export() {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
@@ -415,7 +415,7 @@ export class SysUserController {
    */
   @Post('/importData')
   @PreAuthorize({ hasPermissions: ['system:user:import'] })
-  @OperLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.IMPORT })
+  @OperateLog({ title: '用户信息', businessType: OperatorBusinessTypeEnum.IMPORT })
   async importData(
     @Files('file') files: UploadFileInfo<string>[],
     @Fields('updateSupport') updateSupport: string
