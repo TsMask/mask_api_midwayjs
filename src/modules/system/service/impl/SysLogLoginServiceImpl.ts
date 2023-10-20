@@ -38,7 +38,7 @@ export class SysLogLoginServiceImpl implements ISysLogLoginService {
     return await this.sysLogLoginRepository.cleanSysLogLogin();
   }
 
-  async newSysLogLogin(
+  async createSysLogLogin(
     userName: string,
     status: string,
     msg: string,

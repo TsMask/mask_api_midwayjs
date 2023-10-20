@@ -45,11 +45,11 @@ export interface ISysLogLoginService {
   cleanSysLogLogin(): Promise<number>;
 
   /**
-   * 生成系统登录日志
+   * 创建系统登录日志
    *
    * @return 结果
    */
-  newSysLogLogin(
+  createSysLogLogin(
     userName: string,
     status: string,
     msg: string,

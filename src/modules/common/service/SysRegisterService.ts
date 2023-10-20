@@ -78,7 +78,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.newSysLogLogin(
+      await this.sysLogLoginService.createSysLogLogin(
         sysUser.userName,
         STATUS_YES,
         '注册成功',
@@ -120,7 +120,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.newSysLogLogin(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         `验证码失效 ${code}`,
@@ -135,7 +135,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.newSysLogLogin(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         `验证码错误 ${code}`,
