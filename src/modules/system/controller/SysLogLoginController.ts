@@ -51,7 +51,7 @@ export class SysLogLoginController {
   /**
    * 登录访问删除
    */
-  @Del('/:infoIds')
+  @Del('/:loginIds')
   @PreAuthorize({ hasPermissions: ['system:log:login:remove'] })
   @OperateLog({
     title: '系统登录信息',
