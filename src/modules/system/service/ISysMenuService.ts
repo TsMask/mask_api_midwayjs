@@ -131,5 +131,9 @@ export interface ISysMenuService {
    * @param menuId 菜单ID，更新时传入
    * @return 结果
    */
-  checkUniqueNenuPath(path: string, menuId?: string): Promise<boolean>;
+  checkUniqueNenuPath(
+    path: string,
+    parentId: string,
+    menuId?: string
+  ): Promise<boolean>;
 }

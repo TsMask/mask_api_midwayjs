@@ -126,9 +126,14 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return !uniqueId;
   }
 
-  async checkUniqueNenuPath(path: string, menuId = ''): Promise<boolean> {
+  async checkUniqueNenuPath(
+    path: string,
+    parentId: string,
+    menuId = ''
+  ): Promise<boolean> {
     const sysMenu = new SysMenu();
     sysMenu.path = path;
+    sysMenu.parentId = parentId;
     const uniqueId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);
     if (uniqueId === menuId) {
       return true;
