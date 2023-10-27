@@ -47,17 +47,24 @@ export class SysRegisterService {
     password: string,
     userType: string
   ): Promise<string> {
-    const sysUser = new SysUser();
-    sysUser.userName = username;
+    // 是否开启用户注册功能 true开启，false关闭
+    const registerUserStr = await this.sysConfigService.selectConfigValueByKey(
+      'sys.account.registerUser'
+    );
+    if (!parseBoolean(registerUserStr)) {
+      return `注册用户【${username}】失败，很抱歉，系统已关闭外部用户注册通道`;
+    }
 
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
       username
     );
     if (!uniqueUserName) {
-      return `注册用户【${sysUser.userName}】失败，注册账号已存在`;
+      return `注册用户【${username}】失败，注册账号已存在`;
     }
 
+    const sysUser = new SysUser();
+    sysUser.userName = username;
     sysUser.nickName = username; // 昵称使用名称账号
     sysUser.status = STATUS_YES; // 账号状态激活
     sysUser.password = password;
@@ -87,7 +94,7 @@ export class SysRegisterService {
       );
       return 'ok';
     }
-    return '注册失败，请联系系统管理人员';
+    return `注册用户【${username}】失败，请联系系统管理人员`;
   }
 
   /**
