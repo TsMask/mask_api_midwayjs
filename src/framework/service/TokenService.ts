@@ -96,6 +96,9 @@ export class TokenService {
     loginUser.browser = ilobArgs[3];
     // 设置用户令牌有效期并存入缓存
     await this.setUserToken(loginUser);
+    // 设置新登录IP和登录时间
+    loginUser.user.loginIp = loginUser.ipaddr;
+    loginUser.user.loginDate = loginUser.loginTime;
     // 生成令牌负荷uuid标识
     return this.jwtService.sign({
       [TOKEN_JWT_UUID]: uuid,

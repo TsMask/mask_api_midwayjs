@@ -246,6 +246,8 @@ export class SysUserController {
 
     sysUser.userName = ''; // 忽略修改登录用户名称
     sysUser.password = ''; // 忽略修改密码
+    sysUser.loginIp = ""  // 忽略登录IP
+    sysUser.loginDate = 0 // 忽略登录时间
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUserAndRolePost(sysUser);
     return Result[rows > 0 ? 'ok' : 'err']();

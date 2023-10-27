@@ -25,8 +25,8 @@ import { ContextService } from '../../../framework/service/ContextService';
 import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
 import { TokenService } from '../../../framework/service/TokenService';
 import { SysUser } from '../../system/model/SysUser';
-import { getClientIP } from '../../../framework/utils/ip2region';
 import { SysRoleServiceImpl } from '../../system/service/impl/SysRoleServiceImpl';
+import { LoginUser } from '../../../framework/vo/LoginUser';
 
 /**
  * 账号身份操作服务
@@ -235,7 +235,7 @@ export class AccountService {
     const ilobArgs = il.concat(ob);
     const tokenStr = await this.tokenService.createToken(loginUser, ilobArgs);
     // 记录登录信息
-    await this.recordLoginInfo(loginUser.userId);
+    await this.updateLoginDateAndIP(loginUser);
     await this.sysLogLoginService.createSysLogLogin(
       username,
       STATUS_YES,
@@ -246,17 +246,18 @@ export class AccountService {
   }
 
   /**
-   * 记录登录信息
+   * 更新登录时间和IP
    * @param userId 用户ID
    * @returns 是否登记完成
    */
-  private async recordLoginInfo(userId: string) {
-    const sysUser = new SysUser();
-    sysUser.userId = userId;
-    const ip = this.contextService.getContext().ip;
-    sysUser.loginIp = getClientIP(ip);
-    sysUser.loginDate = Date.now();
-    return await this.sysUserService.updateUser(sysUser);
+  private async updateLoginDateAndIP(loginUser: LoginUser) {
+    const sysUser = loginUser.user;
+    const userInfo = new SysUser();
+    userInfo.userId = sysUser.userId;
+    userInfo.loginIp = sysUser.loginIp;
+    userInfo.loginDate = sysUser.loginDate;
+    userInfo.updateBy = sysUser.userName;
+    return await this.sysUserService.updateUser(userInfo);
   }
 
   /**
