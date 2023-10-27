@@ -385,16 +385,17 @@ create table sys_dict_type
   unique (dict_type)
 ) engine=innodb auto_increment=100 comment = '字典类型表';
 
-insert into sys_dict_type values(1,  '用户性别', 'sys_user_sex',        '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '用户性别列表');
-insert into sys_dict_type values(2,  '菜单状态', 'sys_show_hide',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '菜单状态列表');
-insert into sys_dict_type values(3,  '系统开关', 'sys_normal_disable',  '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统开关列表');
-insert into sys_dict_type values(4,  '任务状态', 'sys_job_status',      '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '任务状态列表');
-insert into sys_dict_type values(5,  '任务分组', 'sys_job_group',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '任务分组列表');
-insert into sys_dict_type values(6,  '系统是否', 'sys_yes_no',          '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统是否列表');
-insert into sys_dict_type values(7,  '通知类型', 'sys_notice_type',     '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '通知类型列表');
-insert into sys_dict_type values(8,  '通知状态', 'sys_notice_status',   '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '通知状态列表');
-insert into sys_dict_type values(9,  '操作类型', 'sys_oper_type',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '操作类型列表');
-insert into sys_dict_type values(10, '系统状态', 'sys_common_status',   '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '登录状态列表');
+insert into sys_dict_type values(1,  '用户性别',     'sys_user_sex',        '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '用户性别列表');
+insert into sys_dict_type values(2,  '菜单状态',     'sys_show_hide',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '菜单状态列表');
+insert into sys_dict_type values(3,  '系统开关',     'sys_normal_disable',  '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统开关列表');
+insert into sys_dict_type values(4,  '任务状态',     'sys_job_status',      '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '任务状态列表');
+insert into sys_dict_type values(5,  '任务分组',     'sys_job_group',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '任务分组列表');
+insert into sys_dict_type values(6,  '系统是否',     'sys_yes_no',          '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统是否列表');
+insert into sys_dict_type values(7,  '通知类型',     'sys_notice_type',     '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '通知类型列表');
+insert into sys_dict_type values(8,  '通知状态',     'sys_notice_status',   '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '通知状态列表');
+insert into sys_dict_type values(9,  '操作类型',     'sys_oper_type',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '操作类型列表');
+insert into sys_dict_type values(10, '系统状态',     'sys_common_status',   '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '登录状态列表');
+insert into sys_dict_type values(11, '任务日志记录', 'sys_job_save_log',    '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '任务日志记录列表');
 
 
 -- ----------------------------
@@ -447,6 +448,8 @@ insert into sys_dict_data values(25, 7,  '强退',         '7',         'sys_ope
 insert into sys_dict_data values(26, 8,  '清空',         '8',         'sys_oper_type',       '',   'error',         '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '清空操作');
 insert into sys_dict_data values(27, 1,  '成功',         '1',         'sys_common_status',   '',   'success',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '正常状态');
 insert into sys_dict_data values(28, 2,  '失败',         '0',         'sys_common_status',   '',   'error',         '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '停用状态');
+insert into sys_dict_data values(29, 1,  '不记录',        '0',         'sys_job_save_log',   '',   'warning',               '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '不记录日志');
+insert into sys_dict_data values(30, 2,  '记录',          '1',         'sys_job_save_log',   '',   'processing',               '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '记录日志');
 
 
 -- ----------------------------
@@ -533,6 +536,7 @@ create table sys_job (
   misfire_policy      char(1)       default '3'                comment '计划执行错误策略（1立即执行 2执行一次 3放弃执行）',
   concurrent          char(1)       default '0'                comment '是否并发执行（0禁止 1允许）',
   status              char(1)       default '0'                comment '任务状态（0暂停 1正常）',
+  save_log            char(1)       default '0'                comment '是否记录任务日志（0不记录 1记录）',
   create_by           varchar(50)   default ''                 comment '创建者',
   create_time         bigint        default 0                  comment '创建时间',
   update_by           varchar(50)   default ''                 comment '更新者',
@@ -544,9 +548,9 @@ create table sys_job (
 -- ----------------------------
 -- 初始化-调度任务调度表数据
 -- ----------------------------
-insert into sys_job values(1, '触发执行', 'SYSTEM', 'simple', '{"t":10}', '0/10 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_job values(2, '缓慢执行', 'SYSTEM', 'foo',    '{"t":15}', '0/15 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_job values(3, '异常执行', 'SYSTEM', 'bar',    '{"t":20}', '0/20 * * * * ?', '3', '0', '0', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_job values(1, '触发执行', 'SYSTEM', 'simple', '{"t":10}', '0/10 * * * * ?', '3', '0', '0', '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_job values(2, '缓慢执行', 'SYSTEM', 'foo',    '{"t":15}', '0/15 * * * * ?', '3', '0', '0', '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_job values(3, '异常执行', 'SYSTEM', 'bar',    '{"t":20}', '0/20 * * * * ?', '3', '0', '0', '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 
 
 -- ----------------------------

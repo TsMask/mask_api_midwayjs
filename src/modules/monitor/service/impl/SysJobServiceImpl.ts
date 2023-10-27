@@ -172,43 +172,25 @@ export class SysJobServiceImpl implements ISysJobService {
       queue.addListener(
         'completed',
         async (job: Job, result: ProcessorData) => {
-          // 结果信息序列化字符串
-          const msgMap = {
-            name: 'completed',
-            message: result,
+          // 读取任务信息进行保存日志
+          const jobLog = {
+            timestamp: job.timestamp,
+            data: job.data,
+            result: result,
           };
-          const { sysJob }: ProcessorOptions = job.data;
-          // 读取任务信息创建日志对象
-          const sysJobLog = new SysJobLog();
-          sysJobLog.jobName = sysJob.jobName;
-          sysJobLog.jobGroup = sysJob.jobGroup;
-          sysJobLog.invokeTarget = sysJob.invokeTarget;
-          sysJobLog.targetParams = sysJob.targetParams;
-          sysJobLog.status = STATUS_YES;
-          sysJobLog.jobMsg = JSON.stringify(msgMap).substring(0, 480);
-          sysJobLog.costTime = Date.now() - job.timestamp;
-          await this.sysJobLogRepository.insertJobLog(sysJobLog);
+          this.saveJobLog(jobLog, STATUS_YES);
           await job.remove();
         }
       );
       // 添加失败监听
       queue.addListener('failed', async (job: Job, error: Error) => {
-        // 结果信息序列化字符串
-        const msgMap = {
-          name: error.name,
-          message: error.message,
+        // 读取任务信息进行保存日志
+        const jobLog = {
+          timestamp: job.timestamp,
+          data: job.data,
+          result: error,
         };
-        const { sysJob }: ProcessorOptions = job.data;
-        // 读取任务信息创建日志对象
-        const sysJobLog = new SysJobLog();
-        sysJobLog.jobName = sysJob.jobName;
-        sysJobLog.jobGroup = sysJob.jobGroup;
-        sysJobLog.invokeTarget = sysJob.invokeTarget;
-        sysJobLog.targetParams = sysJob.targetParams;
-        sysJobLog.status = STATUS_NO;
-        sysJobLog.jobMsg = JSON.stringify(msgMap).substring(0, 480);
-        sysJobLog.costTime = Date.now() - job.timestamp;
-        await this.sysJobLogRepository.insertJobLog(sysJobLog);
+        this.saveJobLog(jobLog, STATUS_NO);
         await job.remove();
       });
     }
@@ -283,5 +265,56 @@ export class SysJobServiceImpl implements ISysJobService {
     // 清除任务记录
     await queue.clean(5000, 'active');
     await queue.clean(5000, 'wait');
+  }
+
+  /**
+   * 日志记录保存
+   * @param jld 日志记录数据
+   * @param status 日志状态
+   * @returns
+   */
+  private async saveJobLog(
+    jld: {
+      timestamp: number;
+      data: ProcessorOptions;
+      result: any;
+    },
+    status: string
+  ) {
+    // 读取任务信息
+    const sysJob = jld.data.sysJob;
+
+    // 任务日志不需要记录
+    if (sysJob.saveLog == '' || sysJob.saveLog == STATUS_NO) {
+      return;
+    }
+
+    // 结果信息key的Name
+    let resultNmae = 'failed';
+    if (status == STATUS_YES) {
+      resultNmae = 'completed';
+    }
+
+    // 结果信息序列化字符串
+    let jobMsg = JSON.stringify({
+      cron: jld.data.repeat,
+      name: resultNmae,
+      message: jld.result,
+    });
+    if (jobMsg.length >= 500) {
+      jobMsg = jobMsg.substring(0, 500);
+    }
+
+    // 创建日志对象
+    const sysJobLog = new SysJobLog();
+    sysJobLog.jobName = sysJob.jobName;
+    sysJobLog.jobGroup = sysJob.jobGroup;
+    sysJobLog.invokeTarget = sysJob.invokeTarget;
+    sysJobLog.targetParams = sysJob.targetParams;
+    sysJobLog.status = status;
+    sysJobLog.jobMsg = jobMsg;
+    sysJobLog.costTime = Date.now() - jld.timestamp;
+    // 插入数据
+    await this.sysJobLogRepository.insertJobLog(sysJobLog);
   }
 }
