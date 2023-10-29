@@ -256,13 +256,13 @@ export class SysUserServiceImpl implements ISysUserService {
             newSysUser.phonenumber
           );
           if (!uniquePhone) {
-            const msg = `序号：${item['序号']} 手机号码 ${newSysUser.phonenumber} 已存在`;
+            const msg = `用户编号：${item['用户编号']} 手机号码 ${newSysUser.phonenumber} 已存在`;
             failureNum++;
             failureMsgArr.push(msg);
             continue;
           }
         } else {
-          const msg = `序号：${item['序号']} 手机号码 ${newSysUser.phonenumber} 格式错误`;
+          const msg = `用户编号：${item['用户编号']} 手机号码 ${newSysUser.phonenumber} 格式错误`;
           failureNum++;
           failureMsgArr.push(msg);
           continue;
@@ -274,13 +274,13 @@ export class SysUserServiceImpl implements ISysUserService {
         if (validEmail(newSysUser.email)) {
           const uniqueEmail = await this.checkUniqueEmail(newSysUser.email);
           if (!uniqueEmail) {
-            const msg = `序号：${item['序号']} 用户邮箱 ${newSysUser.email} 已存在`;
+            const msg = `用户编号：${item['用户编号']} 用户邮箱 ${newSysUser.email} 已存在`;
             failureNum++;
             failureMsgArr.push(msg);
             continue;
           }
         } else {
-          const msg = `序号：${item['序号']} 用户邮箱 ${newSysUser.email} 格式错误`;
+          const msg = `用户编号：${item['用户编号']} 用户邮箱 ${newSysUser.email} 格式错误`;
           failureNum++;
           failureMsgArr.push(msg);
           continue;
@@ -295,11 +295,11 @@ export class SysUserServiceImpl implements ISysUserService {
         newSysUser.createBy = operName;
         const insertId = await this.insertUser(newSysUser);
         if (insertId) {
-          const msg = `序号：${item['序号']} 登录名称 ${item['登录名称']} 导入成功`;
+          const msg = `用户编号：${item['用户编号']} 登录名称 ${item['登录名称']} 导入成功`;
           successNum++;
           successMsgArr.push(msg);
         } else {
-          const msg = `序号：${item['序号']} 登录名称 ${item['登录名称']} 导入失败`;
+          const msg = `用户编号：${item['用户编号']} 登录名称 ${item['登录名称']} 导入失败`;
           failureNum++;
           failureMsgArr.push(msg);
         }
@@ -312,11 +312,11 @@ export class SysUserServiceImpl implements ISysUserService {
         newSysUser.updateBy = operName;
         const rows = await this.updateUser(newSysUser);
         if (rows > 0) {
-          const msg = `序号：${item['序号']} 登录名称 ${item['登录名称']} 更新成功`;
+          const msg = `用户编号：${item['用户编号']} 登录名称 ${item['登录名称']} 更新成功`;
           successNum++;
           successMsgArr.push(msg);
         } else {
-          const msg = `序号：${item['序号']} 登录名称 ${item['登录名称']} 更新失败`;
+          const msg = `用户编号：${item['用户编号']} 登录名称 ${item['登录名称']} 更新失败`;
           failureNum++;
           failureMsgArr.push(msg);
         }
