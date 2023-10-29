@@ -5,44 +5,44 @@ import {
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
-import { SysLogininfor } from '../../model/SysLogininfor';
-import { ISysLogininforRepository } from '../ISysLogininforRepository';
+import { SysLogLogin } from '../../model/SysLogLogin';
+import { ISysLogLoginRepository } from '../ISysLogLoginRepository';
 import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
-const SELECT_LOGININFOR_SQL = `select info_id, user_name, ipaddr, login_location, 
-browser, os, status, msg, login_time from sys_logininfor`;
+const SELECT_SysLogLogin_SQL = `select login_id, user_name, ipaddr, login_location, 
+browser, os, status, msg, login_time from sys_log_login`;
 
 /**系统访问记录表信息实体映射 */
-const SYS_LOGININFOR_RESULT = new Map<string, string>();
-SYS_LOGININFOR_RESULT.set('info_id', 'infoId');
-SYS_LOGININFOR_RESULT.set('user_name', 'userName');
-SYS_LOGININFOR_RESULT.set('status', 'status');
-SYS_LOGININFOR_RESULT.set('ipaddr', 'ipaddr');
-SYS_LOGININFOR_RESULT.set('login_location', 'loginLocation');
-SYS_LOGININFOR_RESULT.set('browser', 'browser');
-SYS_LOGININFOR_RESULT.set('os', 'os');
-SYS_LOGININFOR_RESULT.set('msg', 'msg');
-SYS_LOGININFOR_RESULT.set('login_time', 'loginTime');
+const SYS_SysLogLogin_RESULT = new Map<string, string>();
+SYS_SysLogLogin_RESULT.set('login_id', 'loginId');
+SYS_SysLogLogin_RESULT.set('user_name', 'userName');
+SYS_SysLogLogin_RESULT.set('status', 'status');
+SYS_SysLogLogin_RESULT.set('ipaddr', 'ipaddr');
+SYS_SysLogLogin_RESULT.set('login_location', 'loginLocation');
+SYS_SysLogLogin_RESULT.set('browser', 'browser');
+SYS_SysLogLogin_RESULT.set('os', 'os');
+SYS_SysLogLogin_RESULT.set('msg', 'msg');
+SYS_SysLogLogin_RESULT.set('login_time', 'loginTime');
 
 /**
  *将结果记录转实体结果组
  * @param rows 查询结果记录
  * @returns 实体组
  */
-function convertResultRows(rows: any[]): SysLogininfor[] {
-  const sysLogininfors: SysLogininfor[] = [];
+function convertResultRows(rows: any[]): SysLogLogin[] {
+  const sysLogLogins: SysLogLogin[] = [];
   for (const row of rows) {
-    const sysLogininfor = new SysLogininfor();
+    const sysLogLogin = new SysLogLogin();
     for (const key in row) {
-      if (SYS_LOGININFOR_RESULT.has(key)) {
-        const keyMapper = SYS_LOGININFOR_RESULT.get(key);
-        sysLogininfor[keyMapper] = row[key];
+      if (SYS_SysLogLogin_RESULT.has(key)) {
+        const keyMapper = SYS_SysLogLogin_RESULT.get(key);
+        sysLogLogin[keyMapper] = row[key];
       }
     }
-    sysLogininfors.push(sysLogininfor);
+    sysLogLogins.push(sysLogLogin);
   }
-  return sysLogininfors;
+  return sysLogLogins;
 }
 
 /**
@@ -52,11 +52,11 @@ function convertResultRows(rows: any[]): SysLogininfor[] {
  */
 @Provide()
 @Singleton()
-export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
+export class SysLogLoginRepositoryImpl implements ISysLogLoginRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  async selectLogininforPage(
+  async selectSysLogLoginPage(
     query: ListQueryPageOptions
   ): Promise<RowPagesType> {
     // 查询条件拼接
@@ -94,7 +94,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     }
 
     // 查询数量 长度为0直接返回
-    const totalSql = "select count(1) as 'total' from sys_logininfor";
+    const totalSql = "select count(1) as 'total' from sys_log_login";
     const countRow: RowTotalType[] = await this.db.execute(
       totalSql + whereSql,
       params
@@ -105,7 +105,7 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     }
 
     // 分页
-    const pageSql = ' order by info_id desc limit ?,? ';
+    const pageSql = ' order by login_id desc limit ?,? ';
     let pageNum = parseNumber(query.pageNum);
     pageNum = pageNum <= 5000 ? pageNum : 5000;
     pageNum = pageNum > 0 ? pageNum - 1 : 0;
@@ -116,29 +116,29 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     params.push(pageSize);
 
     // 查询数据
-    const querySql = SELECT_LOGININFOR_SQL + whereSql + pageSql;
+    const querySql = SELECT_SysLogLogin_SQL + whereSql + pageSql;
     const results = await this.db.execute(querySql, params);
     const rows = convertResultRows(results);
     return { total, rows };
   }
 
-  async selectLogininforList(
-    sysLogininfor: SysLogininfor
-  ): Promise<SysLogininfor[]> {
+  async selectSysLogLoginList(
+    SysLogLogin: SysLogLogin
+  ): Promise<SysLogLogin[]> {
     // 查询条件拼接
     const conditions: string[] = [];
     const params: any[] = [];
-    if (sysLogininfor.ipaddr) {
+    if (SysLogLogin.ipaddr) {
       conditions.push("ipaddr like concat(?, '%')");
-      params.push(sysLogininfor.ipaddr);
+      params.push(SysLogLogin.ipaddr);
     }
-    if (sysLogininfor.userName) {
+    if (SysLogLogin.userName) {
       conditions.push("user_name like concat(?, '%')");
-      params.push(sysLogininfor.userName);
+      params.push(SysLogLogin.userName);
     }
-    if (sysLogininfor.status) {
+    if (SysLogLogin.status) {
       conditions.push('status = ?');
-      params.push(sysLogininfor.status);
+      params.push(SysLogLogin.status);
     }
 
     // 构建查询条件语句
@@ -148,38 +148,38 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     }
 
     // 查询数据
-    const querySql = SELECT_LOGININFOR_SQL + whereSql;
+    const querySql = SELECT_SysLogLogin_SQL + whereSql;
     const results = await this.db.execute(querySql, params);
     return convertResultRows(results);
   }
 
-  async insertLogininfor(sysLogininfor: SysLogininfor): Promise<string> {
+  async insertSysLogLogin(SysLogLogin: SysLogLogin): Promise<string> {
     const paramMap = new Map();
     paramMap.set('login_time', Date.now());
-    if (sysLogininfor.userName) {
-      paramMap.set('user_name', sysLogininfor.userName);
+    if (SysLogLogin.userName) {
+      paramMap.set('user_name', SysLogLogin.userName);
     }
-    if (sysLogininfor.status) {
-      paramMap.set('status', parseNumber(sysLogininfor.status));
+    if (SysLogLogin.status) {
+      paramMap.set('status', parseNumber(SysLogLogin.status));
     }
-    if (sysLogininfor.ipaddr) {
-      paramMap.set('ipaddr', sysLogininfor.ipaddr);
+    if (SysLogLogin.ipaddr) {
+      paramMap.set('ipaddr', SysLogLogin.ipaddr);
     }
-    if (sysLogininfor.loginLocation) {
-      paramMap.set('login_location', sysLogininfor.loginLocation);
+    if (SysLogLogin.loginLocation) {
+      paramMap.set('login_location', SysLogLogin.loginLocation);
     }
-    if (sysLogininfor.browser) {
-      paramMap.set('browser', sysLogininfor.browser);
-    }
-
-    if (sysLogininfor.os) {
-      paramMap.set('os', sysLogininfor.os);
-    }
-    if (sysLogininfor.msg) {
-      paramMap.set('msg', sysLogininfor.msg);
+    if (SysLogLogin.browser) {
+      paramMap.set('browser', SysLogLogin.browser);
     }
 
-    const sqlStr = `insert into sys_logininfor (${[...paramMap.keys()].join(
+    if (SysLogLogin.os) {
+      paramMap.set('os', SysLogLogin.os);
+    }
+    if (SysLogLogin.msg) {
+      paramMap.set('msg', SysLogLogin.msg);
+    }
+
+    const sqlStr = `insert into sys_log_login (${[...paramMap.keys()].join(
       ','
     )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
@@ -188,16 +188,16 @@ export class SysLogininforRepositoryImpl implements ISysLogininforRepository {
     return `${result.insertId}`;
   }
 
-  async deleteLogininforByIds(infoIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_logininfor where info_id in (${infoIds
+  async deleteSysLogLoginByIds(loginIds: string[]): Promise<number> {
+    const sqlStr = `delete from sys_log_login where login_id in (${loginIds
       .map(() => '?')
       .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, infoIds);
+    const result: ResultSetHeader = await this.db.execute(sqlStr, loginIds);
     return result.affectedRows;
   }
 
-  async cleanLogininfor(): Promise<number> {
-    const sqlStr = 'truncate table sys_logininfor';
+  async cleanSysLogLogin(): Promise<number> {
+    const sqlStr = 'truncate table sys_log_login';
     const result: ResultSetHeader = await this.db.execute(sqlStr);
     return result.serverStatus;
   }

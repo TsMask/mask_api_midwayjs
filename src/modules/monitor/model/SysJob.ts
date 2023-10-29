@@ -31,6 +31,9 @@ export class SysJob {
   /**任务状态（0暂停 1正常） */
   status: string;
 
+  /**是否记录任务日志（0不记录 1记录） */
+  saveLog: string;
+
   /**创建者 */
   createBy: string;
 

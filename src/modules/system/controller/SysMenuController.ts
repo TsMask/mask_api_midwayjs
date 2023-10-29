@@ -12,7 +12,7 @@ import {
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { validHttp } from '../../../framework/utils/RegularUtils';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
@@ -70,13 +70,17 @@ export class SysMenuController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:menu:add'] })
-  @OperLog({ title: '菜单信息', businessType: OperatorBusinessTypeEnum.INSERT })
+  @OperateLog({
+    title: '菜单信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
   async add(@Body() sysMenu: SysMenu): Promise<Result> {
     if (!sysMenu.menuName || !sysMenu.menuType) return Result.err();
     // 目录和菜单检查地址唯一
     if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(sysMenu.menuType)) {
       const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
-        sysMenu.path
+        sysMenu.path,
+        sysMenu.parentId
       );
       if (!uniqueNenuPath) {
         return Result.errMsg(
@@ -113,7 +117,10 @@ export class SysMenuController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:menu:edit'] })
-  @OperLog({ title: '菜单信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '菜单信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async edit(@Body() sysMenu: SysMenu): Promise<Result> {
     const { menuId, parentId, menuName, menuType } = sysMenu;
     if (!menuId || !parentId || !menuName || !menuType) return Result.err();
@@ -141,6 +148,7 @@ export class SysMenuController {
     if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(menuType)) {
       const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
         sysMenu.path,
+        sysMenu.parentId,
         menuId
       );
       if (!uniqueNenuPath) {
@@ -184,7 +192,10 @@ export class SysMenuController {
    */
   @Del('/:menuId')
   @PreAuthorize({ hasPermissions: ['system:menu:remove'] })
-  @OperLog({ title: '菜单信息', businessType: OperatorBusinessTypeEnum.DELETE })
+  @OperateLog({
+    title: '菜单信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
   async remove(@Param('menuId') menuId: string): Promise<Result> {
     if (!menuId) return Result.err();
     // 检查数据是否存在

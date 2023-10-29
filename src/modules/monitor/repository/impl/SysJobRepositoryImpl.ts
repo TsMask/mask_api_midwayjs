@@ -7,7 +7,7 @@ import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_JOB_SQL = `select job_id, job_name, job_group, invoke_target, target_params, cron_expression, 
-misfire_policy, concurrent, status, create_by, create_time, remark from sys_job`;
+misfire_policy, concurrent, status, save_log, create_by, create_time, remark from sys_job`;
 
 /**操作定时任务调度表信息实体映射 */
 const SYS_JOB_RESULT = new Map<string, string>();
@@ -20,6 +20,7 @@ SYS_JOB_RESULT.set('cron_expression', 'cronExpression');
 SYS_JOB_RESULT.set('misfire_policy', 'misfirePolicy');
 SYS_JOB_RESULT.set('concurrent', 'concurrent');
 SYS_JOB_RESULT.set('status', 'status');
+SYS_JOB_RESULT.set('save_log', 'saveLog');
 SYS_JOB_RESULT.set('create_by', 'createBy');
 SYS_JOB_RESULT.set('create_time', 'createTime');
 SYS_JOB_RESULT.set('update_by', 'updateBy');
@@ -34,14 +35,14 @@ SYS_JOB_RESULT.set('remark', 'remark');
 function convertResultRows(rows: any[]): SysJob[] {
   const sysJobs: SysJob[] = [];
   for (const row of rows) {
-    const sysJob = new SysJob();
+    const item = new SysJob();
     for (const key in row) {
       if (SYS_JOB_RESULT.has(key)) {
         const keyMapper = SYS_JOB_RESULT.get(key);
-        sysJob[keyMapper] = row[key];
+        item[keyMapper] = row[key];
       }
     }
-    sysJobs.push(sysJob);
+    sysJobs.push(item);
   }
   return sysJobs;
 }
@@ -210,6 +211,9 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     if (sysJob.status) {
       paramMap.set('status', parseNumber(sysJob.status));
     }
+    if (sysJob.saveLog) {
+      paramMap.set('save_log', parseNumber(sysJob.saveLog));
+    }
     if (sysJob.remark) {
       paramMap.set('remark', sysJob.remark);
     }
@@ -252,6 +256,9 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     }
     if (sysJob.status) {
       paramMap.set('status', parseNumber(sysJob.status));
+    }
+    if (sysJob.saveLog) {
+      paramMap.set('save_log', parseNumber(sysJob.saveLog));
     }
     if (sysJob.remark) {
       paramMap.set('remark', sysJob.remark);

@@ -16,7 +16,7 @@ import {
 } from '../../../framework/constants/CommonConstants';
 import { SysDept } from '../model/SysDept';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
@@ -63,7 +63,7 @@ export class SysDeptController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dept:add'] })
-  @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.INSERT })
+  @OperateLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysDept: SysDept): Promise<Result> {
     const { parentId, deptName } = sysDept;
     if (!parentId || !deptName) return Result.err();
@@ -108,7 +108,7 @@ export class SysDeptController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
-  @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysDept: SysDept): Promise<Result> {
     const { deptId, parentId, deptName } = sysDept;
     if (!deptId || !parentId || !deptName) return Result.err();
@@ -158,7 +158,7 @@ export class SysDeptController {
    */
   @Del('/:deptId')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
-  @OperLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.DELETE })
+  @OperateLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('deptId') deptId: string): Promise<Result> {
     if (!deptId) return Result.err();
     const dept = await this.sysDeptService.selectDeptById(deptId);

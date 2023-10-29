@@ -2,13 +2,11 @@ import { Controller, Body, Post, Inject } from '@midwayjs/decorator';
 import { Result } from '../../../framework/vo/Result';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
-import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { SysRegisterService } from '../service/SysRegisterService';
 import {
   validPassword,
   validUsername,
 } from '../../../framework/utils/RegularUtils';
-import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { RegisterBodyVo } from '../model/RegisterBodyVo';
 
 /**
@@ -19,9 +17,6 @@ import { RegisterBodyVo } from '../model/RegisterBodyVo';
 @Controller()
 export class RegisterController {
   @Inject()
-  private sysConfigService: SysConfigServiceImpl;
-
-  @Inject()
   private sysRegisterService: SysRegisterService;
 
   /**
@@ -29,16 +24,7 @@ export class RegisterController {
    */
   @Post('/register')
   @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
-  async login(@Body() registerBodyVo: RegisterBodyVo): Promise<Result> {
-    // 从数据库配置获取是否开启用户注册功能 true开启，false关闭
-    const registerUserStr = await this.sysConfigService.selectConfigValueByKey(
-      'sys.account.registerUser'
-    );
-    const registerUser = parseBoolean(registerUserStr);
-    if (!registerUser) {
-      return Result.errMsg('当前系统没有开启注册功能！');
-    }
-
+  async register(@Body() registerBodyVo: RegisterBodyVo): Promise<Result> {
     const { username, password, confirmPassword } = registerBodyVo;
     // 判断必传参数
     if (!validUsername(username)) {

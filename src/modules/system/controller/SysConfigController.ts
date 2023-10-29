@@ -10,7 +10,7 @@ import {
 } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
@@ -62,7 +62,7 @@ export class SysConfigController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:config:add'] })
-  @OperLog({
+  @OperateLog({
     title: '参数配置信息',
     businessType: OperatorBusinessTypeEnum.INSERT,
   })
@@ -90,7 +90,7 @@ export class SysConfigController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:config:edit'] })
-  @OperLog({
+  @OperateLog({
     title: '参数配置信息',
     businessType: OperatorBusinessTypeEnum.UPDATE,
   })
@@ -125,7 +125,7 @@ export class SysConfigController {
    */
   @Del('/:configIds')
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
-  @OperLog({
+  @OperateLog({
     title: '参数配置信息',
     businessType: OperatorBusinessTypeEnum.DELETE,
   })
@@ -146,7 +146,7 @@ export class SysConfigController {
   @Put('/refreshCache')
   @RepeatSubmit()
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
-  @OperLog({
+  @OperateLog({
     title: '参数配置信息',
     businessType: OperatorBusinessTypeEnum.CLEAN,
   })
@@ -169,7 +169,7 @@ export class SysConfigController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:config:export'] })
-  @OperLog({
+  @OperateLog({
     title: '参数配置信息',
     businessType: OperatorBusinessTypeEnum.EXPORT,
   })

@@ -10,21 +10,21 @@ import {
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
-import { SysLogininfor } from '../model/SysLogininfor';
-import { SysLogininforServiceImpl } from '../service/impl/SysLogininforServiceImpl';
+import { SysLogLogin } from '../model/SysLogLogin';
+import { SysLogLoginServiceImpl } from '../service/impl/SysLogLoginServiceImpl';
 import { AccountService } from '../../common/service/AccountService';
 
 /**
- * 登录访问信息
+ * 系统登录日志信息
  *
  * @author TsMask
  */
-@Controller('/monitor/logininfor')
-export class SysLogininforController {
+@Controller('/system/log/login')
+export class SysLogLoginController {
   @Inject()
   private contextService: ContextService;
 
@@ -32,7 +32,7 @@ export class SysLogininforController {
   private fileService: FileService;
 
   @Inject()
-  private sysLogininforService: SysLogininforServiceImpl;
+  private sysLogLoginService: SysLogLoginServiceImpl;
 
   @Inject()
   private accountService: AccountService;
@@ -41,28 +41,28 @@ export class SysLogininforController {
    * 登录访问列表
    */
   @Get('/list')
-  @PreAuthorize({ hasPermissions: ['monitor:logininfor:list'] })
+  @PreAuthorize({ hasPermissions: ['system:log:login:list'] })
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
-    const data = await this.sysLogininforService.selectLogininforPage(query);
+    const data = await this.sysLogLoginService.selectSysLogLoginPage(query);
     return Result.ok(data);
   }
 
   /**
    * 登录访问删除
    */
-  @Del('/:infoIds')
-  @PreAuthorize({ hasPermissions: ['monitor:logininfor:remove'] })
-  @OperLog({
-    title: '登录访问信息',
+  @Del('/:loginIds')
+  @PreAuthorize({ hasPermissions: ['system:log:login:remove'] })
+  @OperateLog({
+    title: '系统登录信息',
     businessType: OperatorBusinessTypeEnum.DELETE,
   })
-  async remove(@Param('infoIds') infoIds: string): Promise<Result> {
-    if (!infoIds) return Result.err();
+  async remove(@Param('loginIds') loginIds: string): Promise<Result> {
+    if (!loginIds) return Result.err();
     // 处理字符转id数组
-    const ids = infoIds.split(',');
+    const ids = loginIds.split(',');
     if (ids.length <= 0) return Result.err();
-    const rows = await this.sysLogininforService.deleteLogininforByIds([
+    const rows = await this.sysLogLoginService.deleteSysLogLoginByIds([
       ...new Set(ids),
     ]);
     return Result[rows > 0 ? 'ok' : 'err']();
@@ -72,13 +72,13 @@ export class SysLogininforController {
    * 登录访问清空
    */
   @Del('/clean')
-  @PreAuthorize({ hasPermissions: ['monitor:logininfor:remove'] })
-  @OperLog({
-    title: '登录访问信息',
+  @PreAuthorize({ hasPermissions: ['system:log:login:remove'] })
+  @OperateLog({
+    title: '系统登录信息',
     businessType: OperatorBusinessTypeEnum.CLEAN,
   })
   async clean(): Promise<Result> {
-    const rows = await this.sysLogininforService.cleanLogininfor();
+    const rows = await this.sysLogLoginService.cleanSysLogLogin();
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -86,9 +86,9 @@ export class SysLogininforController {
    * 登录访问账户解锁
    */
   @Put('/unlock/:userName')
-  @PreAuthorize({ hasPermissions: ['monitor:logininfor:unlock'] })
-  @OperLog({
-    title: '登录访问信息',
+  @PreAuthorize({ hasPermissions: ['system:log:login:unlock'] })
+  @OperateLog({
+    title: '系统登录信息',
     businessType: OperatorBusinessTypeEnum.CLEAN,
   })
   async unlock(@Param('userName') userName: string): Promise<Result> {
@@ -98,27 +98,27 @@ export class SysLogininforController {
   }
 
   /**
-   * 导出登录访问信息
+   * 导出系统登录信息
    */
   @Post('/export')
-  @PreAuthorize({ hasPermissions: ['system:logininfor:export'] })
-  @OperLog({
-    title: '登录访问信息',
+  @PreAuthorize({ hasPermissions: ['system:log:login:export'] })
+  @OperateLog({
+    title: '系统登录信息',
     businessType: OperatorBusinessTypeEnum.EXPORT,
   })
   async export() {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
-    const data = await this.sysLogininforService.selectLogininforPage(query);
+    const data = await this.sysLogLoginService.selectSysLogLoginPage(query);
     if (data.total === 0) {
       return Result.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(
-      (pre: Record<string, string>[], cur: SysLogininfor) => {
+      (pre: Record<string, string>[], cur: SysLogLogin) => {
         pre.push({
-          序号: cur.infoId,
+          序号: cur.loginId,
           用户账号: cur.userName,
           登录状态: ['失败', '成功'][+cur.status],
           登录地址: cur.ipaddr,
@@ -133,7 +133,9 @@ export class SysLogininforController {
       []
     );
     // 导出数据表格
-    const fileName = `logininfor_export_${data.rows.length}_${Date.now()}.xlsx`;
+    const fileName = `sys_log_login_export_${
+      data.rows.length
+    }_${Date.now()}.xlsx`;
     ctx.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

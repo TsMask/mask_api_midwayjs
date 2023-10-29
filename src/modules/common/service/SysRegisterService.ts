@@ -4,7 +4,7 @@ import { RedisCache } from '../../../framework/cache/RedisCache';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
-import { SysLogininforServiceImpl } from '../../monitor/service/impl/SysLogininforServiceImpl';
+import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import {
   STATUS_NO,
@@ -32,7 +32,7 @@ export class SysRegisterService {
   private sysUserService: SysUserServiceImpl;
 
   @Inject()
-  private sysLogininforService: SysLogininforServiceImpl;
+  private sysLogLoginService: SysLogLoginServiceImpl;
 
   /**
    * 账号注册
@@ -47,17 +47,24 @@ export class SysRegisterService {
     password: string,
     userType: string
   ): Promise<string> {
-    const sysUser = new SysUser();
-    sysUser.userName = username;
+    // 是否开启用户注册功能 true开启，false关闭
+    const registerUserStr = await this.sysConfigService.selectConfigValueByKey(
+      'sys.account.registerUser'
+    );
+    if (!parseBoolean(registerUserStr)) {
+      return `注册用户【${username}】失败，很抱歉，系统已关闭外部用户注册通道`;
+    }
 
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
       username
     );
     if (!uniqueUserName) {
-      return `注册用户【${sysUser.userName}】失败，注册账号已存在`;
+      return `注册用户【${username}】失败，注册账号已存在`;
     }
 
+    const sysUser = new SysUser();
+    sysUser.userName = username;
     sysUser.nickName = username; // 昵称使用名称账号
     sysUser.status = STATUS_YES; // 账号状态激活
     sysUser.password = password;
@@ -78,7 +85,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         sysUser.userName,
         STATUS_YES,
         '注册成功',
@@ -87,7 +94,7 @@ export class SysRegisterService {
       );
       return 'ok';
     }
-    return '注册失败，请联系系统管理人员';
+    return `注册用户【${username}】失败，请联系系统管理人员`;
   }
 
   /**
@@ -120,7 +127,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         `验证码失效 ${code}`,
@@ -135,7 +142,7 @@ export class SysRegisterService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         `验证码错误 ${code}`,

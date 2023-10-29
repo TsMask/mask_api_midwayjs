@@ -2,7 +2,7 @@
 
 [![star](https://gitee.com/TsMask/mask_api_midwayjs/badge/star.svg?theme=dark)](https://gitee.com/TsMask/mask_api_midwayjs/stargazers)
 ![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
-![Release V0.3.5](https://img.shields.io/badge/Release-V0.3.5-orange.svg)
+![Release V0.3.6](https://img.shields.io/badge/Release-V0.3.6-orange.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
@@ -19,8 +19,8 @@
 
 ### 前端
 
-- `Vue3-Element` 仓库地址 => [mask_element_vue3](https://gitee.com/TsMask/mask_element_vue3)
-- `Vue3-Antd` 仓库地址 => [mask_antd_vue3](https://gitee.com/TsMask/mask_antd_vue3)
+- `Vue3-Element` 仓库地址 => [mask_vue3_element](https://gitee.com/TsMask/mask_vue3_element)
+- `Vue3-Antd` 仓库地址 => [mask_vue3_antd](https://gitee.com/TsMask/mask_vue3_antd)
 
 ### 后端
 
@@ -37,7 +37,7 @@
 6. 字典管理：对系统中经常使用的一些较为固定的数据进行维护。
 7. 参数管理：对系统动态配置常用参数。
 8. 通知公告：系统通知公告信息发布维护。
-9. 操作日志：系统正常操作日志记录和查询；系统异常信息日志记录和查询。
+9. 系统日志：系统正常操作日志记录和查询；系统异常信息日志记录和查询。
 10. 登录日志：系统登录日志记录查询包含登录异常。
 11. 在线用户：当前系统中活跃用户状态监控。
 12. 调度任务：在线（添加、修改、删除）任务调度包含执行结果日志。

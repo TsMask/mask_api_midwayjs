@@ -10,7 +10,7 @@ import {
 } from '@midwayjs/decorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/vo/Result';
-import { OperLog } from '../../../framework/decorator/OperLogMethodDecorator';
+import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
@@ -60,7 +60,7 @@ export class SysPostController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:post:add'] })
-  @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.INSERT })
+  @OperateLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.INSERT })
   async add(@Body() sysPost: SysPost): Promise<Result> {
     const { postId, postName, postCode } = sysPost;
     if (postId || !postName || !postCode) return Result.err();
@@ -89,7 +89,7 @@ export class SysPostController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:post:edit'] })
-  @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.UPDATE })
   async edit(@Body() sysPost: SysPost): Promise<Result> {
     const { postId, postName, postCode } = sysPost;
     if (!postId || !postName || !postCode) return Result.err();
@@ -127,7 +127,7 @@ export class SysPostController {
    */
   @Del('/:postIds')
   @PreAuthorize({ hasPermissions: ['system:post:remove'] })
-  @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.DELETE })
+  @OperateLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.DELETE })
   async remove(@Param('postIds') postIds: string): Promise<Result> {
     if (!postIds) return Result.err();
     // 处理字符转id数组
@@ -142,7 +142,7 @@ export class SysPostController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:post:export'] })
-  @OperLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.EXPORT })
+  @OperateLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.EXPORT })
   async export() {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制

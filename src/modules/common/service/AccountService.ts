@@ -22,11 +22,11 @@ import {
 } from '../../../framework/constants/AdminConstants';
 import { RouterVo } from '../../../framework/vo/RouterVo';
 import { ContextService } from '../../../framework/service/ContextService';
-import { SysLogininforServiceImpl } from '../../monitor/service/impl/SysLogininforServiceImpl';
+import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
 import { TokenService } from '../../../framework/service/TokenService';
 import { SysUser } from '../../system/model/SysUser';
-import { getClientIP } from '../../../framework/utils/ip2region';
 import { SysRoleServiceImpl } from '../../system/service/impl/SysRoleServiceImpl';
+import { LoginUser } from '../../../framework/vo/LoginUser';
 
 /**
  * 账号身份操作服务
@@ -54,7 +54,7 @@ export class AccountService {
   private sysUserService: SysUserServiceImpl;
 
   @Inject()
-  private sysLogininforService: SysLogininforServiceImpl;
+  private sysLogLoginService: SysLogLoginServiceImpl;
 
   @Inject()
   private redisCache: RedisCache;
@@ -89,7 +89,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         `验证码失效 ${code}`,
@@ -104,7 +104,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         `验证码错误 ${code}`,
@@ -142,7 +142,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         msg,
@@ -160,7 +160,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         msg,
@@ -175,7 +175,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         msg,
@@ -190,7 +190,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         msg,
@@ -214,7 +214,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         username,
         STATUS_NO,
         `密码输入错误 ${errCount} 次`,
@@ -235,8 +235,8 @@ export class AccountService {
     const ilobArgs = il.concat(ob);
     const tokenStr = await this.tokenService.createToken(loginUser, ilobArgs);
     // 记录登录信息
-    await this.recordLoginInfo(loginUser.userId);
-    await this.sysLogininforService.newLogininfor(
+    await this.updateLoginDateAndIP(loginUser);
+    await this.sysLogLoginService.createSysLogLogin(
       username,
       STATUS_YES,
       '登录成功',
@@ -246,17 +246,18 @@ export class AccountService {
   }
 
   /**
-   * 记录登录信息
+   * 更新登录时间和IP
    * @param userId 用户ID
    * @returns 是否登记完成
    */
-  private async recordLoginInfo(userId: string) {
-    const sysUser = new SysUser();
-    sysUser.userId = userId;
-    const ip = this.contextService.getContext().ip;
-    sysUser.loginIp = getClientIP(ip);
-    sysUser.loginDate = Date.now();
-    return await this.sysUserService.updateUser(sysUser);
+  private async updateLoginDateAndIP(loginUser: LoginUser) {
+    const sysUser = loginUser.user;
+    const userInfo = new SysUser();
+    userInfo.userId = sysUser.userId;
+    userInfo.loginIp = sysUser.loginIp;
+    userInfo.loginDate = sysUser.loginDate;
+    userInfo.updateBy = sysUser.userName;
+    return await this.sysUserService.updateUser(userInfo);
   }
 
   /**
@@ -336,7 +337,7 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogininforService.newLogininfor(
+      await this.sysLogLoginService.createSysLogLogin(
         userName,
         STATUS_YES,
         '退出成功',

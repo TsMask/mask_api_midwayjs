@@ -3,6 +3,10 @@ import { diskinfo } from '@dropb/diskinfo';
 import { MidwayInformationService, App } from '@midwayjs/core';
 import { Application } from '@midwayjs/koa';
 import {
+  uptime,
+  platform,
+  version,
+  arch,
   type,
   release,
   hostname,
@@ -15,7 +19,6 @@ import {
 import { parseDateToStr } from '../../../../framework/utils/DateUtils';
 import { parseBit } from '../../../../framework/utils/ValueParseUtils';
 import { ISystemInfoService } from '../ISystemInfoService';
-import ms = require('ms');
 
 /**
  * 服务器系统相关信息 服务层实现
@@ -51,15 +54,19 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
    * @returns 系统信息对象
    */
   getSystemInfo(): SystemInfoType {
+    const runTime: number = this.app.getAttr('runTime');
     return {
-      platform: process.platform,
-      node: process.versions.node,
-      v8: process.versions.v8,
-      processId: process.pid,
-      arch: process.arch,
-      uname: type(),
-      release: release(),
+      platform: platform(),
+      platformVersion: type(),
+      arch: arch(),
+      archVersion: release(),
+      os: version(),
       hostname: hostname(),
+      bootTime: Math.ceil(uptime()),
+      processId: process.pid,
+      runArch: process.arch,
+      runVersion: process.version,
+      runTime: Math.ceil((Date.now() - runTime) / 1000),
       homeDir: homedir(),
       cmd: process.cwd(),
       execCommand: [].concat(process.argv, process.execArgv).join(' '),
@@ -71,11 +78,10 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
    * @returns 系统时间信息对象
    */
   getTimeInfo(): TimeInfoType {
-    const t = Date().toString().split(' ');
-    const runTime: number = this.app.getAttr('runTime');
+    const now = new Date();
+    const t = now.toString().split(' ');
     return {
-      current: parseDateToStr(new Date()),
-      uptime: ms(Date.now() - runTime),
+      current: parseDateToStr(now),
       timezone: t.length >= 7 ? t[5] : '',
       timezoneName:
         t.length >= 7
@@ -137,6 +143,7 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
       let newType = type;
       if (type[type.length - 1] === '0') {
         newType = type.slice(0, -1);
+        newType = newType.trim();
       }
       // ignore localhost
       if (newType === 'lo') {

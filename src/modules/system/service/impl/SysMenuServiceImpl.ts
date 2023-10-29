@@ -1,7 +1,7 @@
 import { Provide, Inject, Singleton } from '@midwayjs/decorator';
 import {
   parseDataToTree,
-  parseFirstUpper,
+  ConvertToCamelCase,
 } from '../../../../framework/utils/ValueParseUtils';
 import { validHttp } from '../../../../framework/utils/RegularUtils';
 import { TreeSelect } from '../../../../framework/vo/TreeSelect';
@@ -126,9 +126,14 @@ export class SysMenuServiceImpl implements ISysMenuService {
     return !uniqueId;
   }
 
-  async checkUniqueNenuPath(path: string, menuId = ''): Promise<boolean> {
+  async checkUniqueNenuPath(
+    path: string,
+    parentId: string,
+    menuId = ''
+  ): Promise<boolean> {
     const sysMenu = new SysMenu();
     sysMenu.path = path;
+    sysMenu.parentId = parentId;
     const uniqueId = await this.sysMenuRepository.checkUniqueMenu(sysMenu);
     if (uniqueId === menuId) {
       return true;
@@ -216,12 +221,13 @@ export class SysMenuServiceImpl implements ISysMenuService {
    * @return 路由名称
    */
   private getRouteName(sysMenu: SysMenu): string {
-    const routerName = parseFirstUpper(sysMenu.path);
+    const routerName = ConvertToCamelCase(sysMenu.path);
     // 路径链接
     if (validHttp(sysMenu.path)) {
       return `${routerName.substring(0, 5)}Link${sysMenu.menuId}`;
     }
-    return routerName;
+    // 拼上菜单ID防止name重名
+    return routerName + '_' + sysMenu.menuId;
   }
 
   /**

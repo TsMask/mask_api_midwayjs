@@ -1,9 +1,9 @@
 /**
- * 操作日志记录表 sys_oper_log
+ * 系统操作日志表 sys_log_operate
  *
  * @author TsMask
  */
-export class SysOperLog {
+export class SysLogOperate {
   /**日志主键 */
   operId: string;
 
@@ -19,7 +19,7 @@ export class SysOperLog {
   /**请求方式 */
   requestMethod: string;
 
-  /**操作类别（0其它 1后台用户 2手机端用户） */
+  /**操作人员类别（0其它 1后台用户 2手机端用户） */
   operatorType: string;
 
   /**操作人员 */
