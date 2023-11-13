@@ -159,7 +159,8 @@ export class TokenService {
    */
   private async getLoginUserCache(token: string): Promise<LoginUser> {
     const tokenKey = this.getTokenKey(token);
-    if (this.redisCache.hasKey(tokenKey)) {
+    const hasTokenkey = await this.redisCache.hasKey(tokenKey);
+    if (hasTokenkey) {
       const userStr = await this.redisCache.get(tokenKey);
       return JSON.parse(userStr);
     }
@@ -172,7 +173,8 @@ export class TokenService {
    */
   private async delLoginUserCache(token: string): Promise<void> {
     const tokenKey = this.getTokenKey(token);
-    if (await this.redisCache.hasKey(tokenKey)) {
+    const hasTokenkey = await this.redisCache.hasKey(tokenKey);
+    if (hasTokenkey) {
       await this.redisCache.del(tokenKey);
     }
   }

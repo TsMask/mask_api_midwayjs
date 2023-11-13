@@ -99,7 +99,7 @@ export class AccountService {
       // 验证码失效
       throw new Error('验证码已失效');
     }
-    this.redisCache.del(verifyKey);
+    await this.redisCache.del(verifyKey);
     if (captcha !== code) {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
