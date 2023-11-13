@@ -317,7 +317,7 @@ create table sys_role_menu (
 -- 初始化-角色和菜单关联表数据
 -- ----------------------------
 insert into sys_role_menu values ('2', '1');
-insert into sys_role_menu values ('2', '4'); ;
+insert into sys_role_menu values ('2', '4');
 insert into sys_role_menu values ('2', '100');
 insert into sys_role_menu values ('2', '104');
 insert into sys_role_menu values ('2', '105');
