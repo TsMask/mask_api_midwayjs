@@ -273,9 +273,19 @@ export class SysUserController {
     // 处理字符转id数组
     const ids = userIds.split(',');
     if (ids.length <= 0) return Result.err();
-    if (ids.includes(this.contextService.getUserId())) {
-      return Result.errMsg('当前用户不能删除');
+
+    // 检查是否管理员用户
+    const loginUserId = this.contextService.getUserId();
+    if (ids.length <= 0) return Result.err();
+    for (const id of ids) {
+      if (id === loginUserId) {
+        return Result.errMsg('当前用户不能删除');
+      }
+      if (this.contextService.isAdmin(id)) {
+        return Result.errMsg('不允许操作管理员用户');
+      }
     }
+
     const rows = await this.sysUserService.deleteUserByIds([...new Set(ids)]);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
