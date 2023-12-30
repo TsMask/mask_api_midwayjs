@@ -7,6 +7,13 @@ export default {
     proxy: false, // 是否开启代理，部署在反向代理之后需要开启此配置
   },
 
+  // Logger 程序日志
+  midwayLogger: {
+    default: {
+      level: 'info',
+    },
+  },
+
   // 安全
   security: {
     csrf: {

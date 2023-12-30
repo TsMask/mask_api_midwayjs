@@ -34,7 +34,15 @@ export default (): MidwayConfig => {
     /**Logger 程序日志 http://www.midwayjs.org/docs/logger#配置日志根目录 */
     midwayLogger: {
       default: {
-        dir: `${filePath}/logs`,
+        level: 'warn',
+        transports: {
+          file: {
+            dir: `${filePath}/logs`,
+          },
+          error: {
+            dir: `${filePath}/logs`,
+          },
+        },
       },
     },
 
