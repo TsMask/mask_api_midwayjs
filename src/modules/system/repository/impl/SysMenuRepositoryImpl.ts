@@ -1,4 +1,5 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysMenuRepository } from '../ISysMenuRepository';
@@ -8,7 +9,6 @@ import {
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
 } from '../../../../framework/constants/MenuConstants';
-import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_MENU_SQL = `select 

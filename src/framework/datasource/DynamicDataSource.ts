@@ -1,4 +1,4 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { DataSource, QueryRunner } from 'typeorm';
 

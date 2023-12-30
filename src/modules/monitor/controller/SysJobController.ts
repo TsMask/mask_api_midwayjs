@@ -7,7 +7,7 @@ import {
   Param,
   Post,
   Put,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
@@ -20,8 +20,8 @@ import {
   parseStringToObject,
 } from '../../../framework/utils/ValueParseUtils';
 import { SysDictDataServiceImpl } from '../../system/service/impl/SysDictDataServiceImpl';
-import { SysJob } from '../model/SysJob';
 import { SysJobServiceImpl } from '../service/impl/SysJobServiceImpl';
+import { SysJob } from '../model/SysJob';
 
 /**
  * 调度任务信息

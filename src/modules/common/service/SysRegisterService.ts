@@ -1,15 +1,15 @@
-import { Provide, Inject } from '@midwayjs/decorator';
+import { Provide, Inject } from '@midwayjs/core';
 import { CAPTCHA_CODE_KEY } from '../../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../../../framework/cache/RedisCache';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
-import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
-import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
-import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import {
   STATUS_NO,
   STATUS_YES,
 } from '../../../framework/constants/CommonConstants';
+import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
+import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
+import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
 import { SysUser } from '../../system/model/SysUser';
 
 /**

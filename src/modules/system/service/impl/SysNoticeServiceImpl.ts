@@ -1,4 +1,4 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { SysNotice } from '../../model/SysNotice';
 import { SysNoticeRepositoryImpl } from '../../repository/impl/SysNoticeRepositoryImpl';
 import { ISysNoticeService } from '../ISysNoticeService';

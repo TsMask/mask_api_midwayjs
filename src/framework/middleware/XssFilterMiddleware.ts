@@ -1,5 +1,4 @@
-import { IMiddleware } from '@midwayjs/core';
-import { Middleware } from '@midwayjs/decorator';
+import { IMiddleware, Middleware } from '@midwayjs/core';
 import { NextFunction, Context } from '@midwayjs/koa';
 import { filterXSS } from 'xss';
 

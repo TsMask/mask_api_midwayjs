@@ -1,9 +1,9 @@
-import { Provide, Inject, Init, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
 import { SYS_CONFIG_KEY } from '../../../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../../../../framework/cache/RedisCache';
-import { SysConfig } from '../../model/SysConfig';
 import { SysConfigRepositoryImpl } from '../../repository/impl/SysConfigRepositoryImpl';
 import { ISysConfigService } from '../ISysConfigService';
+import { SysConfig } from '../../model/SysConfig';
 
 /**
  * 参数配置 服务层实现

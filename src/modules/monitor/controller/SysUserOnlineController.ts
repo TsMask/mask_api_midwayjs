@@ -5,14 +5,14 @@ import {
   Inject,
   Param,
   Query,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/cache/RedisCache';
-import { LOGIN_TOKEN_KEY } from '../../../framework/constants/CacheKeysConstants';
-import { SysUserOnline } from '../model/SysUserOnline';
 import { LoginUser } from '../../../framework/vo/LoginUser';
+import { LOGIN_TOKEN_KEY } from '../../../framework/constants/CacheKeysConstants';
 import { SysUserOnlineServiceImpl } from '../service/impl/SysUserOnlineServiceImpl';
+import { SysUserOnline } from '../model/SysUserOnline';
 
 /**
  * 在线用户监控

@@ -1,5 +1,8 @@
-import { JoinPoint, REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
-import { createCustomMethodDecorator } from '@midwayjs/decorator';
+import {
+  JoinPoint,
+  REQUEST_OBJ_CTX_KEY,
+  createCustomMethodDecorator,
+} from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { LoginUser } from '../vo/LoginUser';
 import { Result } from '../vo/Result';

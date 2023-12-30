@@ -1,4 +1,4 @@
-import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/decorator';
+import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/core';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import { Result } from '../../../framework/vo/Result';
@@ -7,8 +7,8 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDec
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysJobLogServiceImpl } from '../service/impl/SysJobLogServiceImpl';
-import { SysJobLog } from '../model/SysJobLog';
 import { SysDictDataServiceImpl } from '../../system/service/impl/SysDictDataServiceImpl';
+import { SysJobLog } from '../model/SysJobLog';
 
 /**
  * 调度任务日志信息

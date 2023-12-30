@@ -1,4 +1,5 @@
-import { Inject, Provide, Singleton } from '@midwayjs/decorator';
+import { Inject, Provide, Singleton } from '@midwayjs/core';
+import { ResultSetHeader } from 'mysql2';
 import { bcryptHash } from '../../../../framework/utils/CryptoUtils';
 import {
   parseStrToDate,
@@ -8,12 +9,11 @@ import {
   parseBoolean,
   parseNumber,
 } from '../../../../framework/utils/ValueParseUtils';
-import { SysDept } from '../../model/SysDept';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysUserRepository } from '../ISysUserRepository';
+import { SysDept } from '../../model/SysDept';
 import { SysUser } from '../../model/SysUser';
 import { SysRole } from '../../model/SysRole';
-import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_USER_SQL = `select 

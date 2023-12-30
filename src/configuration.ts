@@ -1,4 +1,4 @@
-import { Configuration, App, Inject } from '@midwayjs/decorator';
+import { Configuration, App, Inject } from '@midwayjs/core';
 import * as koa from '@midwayjs/koa';
 import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';

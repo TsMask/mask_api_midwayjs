@@ -7,7 +7,7 @@ import {
   Inject,
   Param,
   Post,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { Result } from '../../../framework/vo/Result';
 import { ContextService } from '../../../framework/service/ContextService';

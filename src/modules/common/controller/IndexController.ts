@@ -1,5 +1,9 @@
-import { MidwayInformationService } from '@midwayjs/core';
-import { Controller, Get, Inject } from '@midwayjs/decorator';
+import {
+  Controller,
+  Get,
+  Inject,
+  MidwayInformationService,
+} from '@midwayjs/core';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { Result } from '../../../framework/vo/Result';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';

@@ -7,17 +7,17 @@ import {
   Param,
   Post,
   Put,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { Result } from '../../../framework/vo/Result';
-import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { ROLE_DATA_SCOPE } from '../../../framework/enums/RoleDataScopeEnum';
 import { FileService } from '../../../framework/service/FileService';
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
+import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
+import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { SysRole } from '../model/SysRole';
 
 /**
@@ -68,7 +68,10 @@ export class SysRoleController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:role:add'] })
-  @OperateLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.INSERT })
+  @OperateLog({
+    title: '角色信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
   async add(@Body() sysRole: SysRole): Promise<Result> {
     const { roleName, roleKey } = sysRole;
     if (!roleName || !roleKey) return Result.err();
@@ -97,7 +100,10 @@ export class SysRoleController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperateLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '角色信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async edit(@Body() sysRole: SysRole): Promise<Result> {
     const { roleId, roleName, roleKey } = sysRole;
     if (!roleId || !roleName || !roleKey) return Result.err();
@@ -143,7 +149,10 @@ export class SysRoleController {
    */
   @Del('/:roleIds')
   @PreAuthorize({ hasPermissions: ['system:role:remove'] })
-  @OperateLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.DELETE })
+  @OperateLog({
+    title: '角色信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
   async remove(@Param('roleIds') roleIds: string): Promise<Result> {
     if (!roleIds) return Result.err();
     // 处理字符转id数组
@@ -165,7 +174,10 @@ export class SysRoleController {
    */
   @Put('/changeStatus')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperateLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '角色信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async changeStatus(
     @Body('roleId') roleId: string,
     @Body('status') status: string
@@ -202,7 +214,10 @@ export class SysRoleController {
    */
   @Put('/dataScope')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperateLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '角色信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async dataScope(@Body() sysRole: SysRole): Promise<Result> {
     const roleId = sysRole.roleId;
     if (!roleId) return Result.err();
@@ -253,7 +268,10 @@ export class SysRoleController {
    */
   @Put('/authUser/checked')
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperateLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.GRANT })
+  @OperateLog({
+    title: '角色信息',
+    businessType: OperatorBusinessTypeEnum.GRANT,
+  })
   async authUserChecked(
     @Body('roleId') roleId: string,
     @Body('userIds') userIds: string,
@@ -285,7 +303,10 @@ export class SysRoleController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:role:export'] })
-  @OperateLog({ title: '角色信息', businessType: OperatorBusinessTypeEnum.EXPORT })
+  @OperateLog({
+    title: '角色信息',
+    businessType: OperatorBusinessTypeEnum.EXPORT,
+  })
   async export() {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制

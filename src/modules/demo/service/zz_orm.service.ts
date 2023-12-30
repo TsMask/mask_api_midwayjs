@@ -1,7 +1,7 @@
-import { Provide, Singleton } from '@midwayjs/decorator';
-import { ZzOrm } from '../model/zz_orm.entity';
+import { Provide, Singleton } from '@midwayjs/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Repository } from 'typeorm';
+import { ZzOrm } from '../model/zz_orm.entity';
 
 /**
  * 测试ORM信息

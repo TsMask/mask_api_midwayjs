@@ -7,7 +7,7 @@ import {
   Param,
   Post,
   Put,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/vo/Result';
 import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
@@ -15,8 +15,8 @@ import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDec
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
-import { SysDictData } from '../model/SysDictData';
 import { SysDictTypeServiceImpl } from '../service/impl/SysDictTypeServiceImpl';
+import { SysDictData } from '../model/SysDictData';
 
 /**
  * 字典类型对应的字典数据信息

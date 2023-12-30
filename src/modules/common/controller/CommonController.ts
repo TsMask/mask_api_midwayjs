@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@midwayjs/decorator';
+import { Body, Controller, Post } from '@midwayjs/core';
 import {
   cryptoHmac,
   decryptWxData,

@@ -8,7 +8,7 @@ import {
   Post,
   Put,
   Query,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { Result } from '../../../framework/vo/Result';
 import { ContextService } from '../../../framework/service/ContextService';
 import { ZzOrmService } from '../service/zz_orm.service';

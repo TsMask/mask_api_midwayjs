@@ -1,12 +1,12 @@
-import { Provide, Inject, Init, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
 import { SYS_DICT_KEY } from '../../../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../../../../framework/cache/RedisCache';
+import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
 import { SysDictTypeRepositoryImpl } from '../../repository/impl/SysDictTypeRepositoryImpl';
 import { ISysDictTypeService } from '../ISysDictTypeService';
 import { SysDictData } from '../../model/SysDictData';
 import { SysDictType } from '../../model/SysDictType';
-import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
 
 /**
  * 字典类型 业务层处理

@@ -1,4 +1,4 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
 import {
   STATUS_NO,
   STATUS_YES,
@@ -7,6 +7,7 @@ import {
   validEmail,
   validMobile,
 } from '../../../../framework/utils/RegularUtils';
+import { ADMIN_ROLE_ID } from '../../../../framework/constants/AdminConstants';
 import { SysUser } from '../../model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
@@ -16,7 +17,6 @@ import { SysUserRoleRepositoryImpl } from '../../repository/impl/SysUserRoleRepo
 import { ISysUserService } from '../ISysUserService';
 import { SysConfigServiceImpl } from './SysConfigServiceImpl';
 import { SysDictDataServiceImpl } from './SysDictDataServiceImpl';
-import { ADMIN_ROLE_ID } from '../../../../framework/constants/AdminConstants';
 
 /**
  * 用户 业务层处理

@@ -1,15 +1,13 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { SysMenuRepositoryImpl } from '../../repository/impl/SysMenuRepositoryImpl';
+import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
+import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
+import { SysMenu } from '../../model/SysMenu';
+import { ISysMenuService } from '../ISysMenuService';
 import {
   parseDataToTree,
   ConvertToCamelCase,
 } from '../../../../framework/utils/ValueParseUtils';
-import { validHttp } from '../../../../framework/utils/RegularUtils';
-import { TreeSelect } from '../../../../framework/vo/TreeSelect';
-import { SysMenuRepositoryImpl } from '../../repository/impl/SysMenuRepositoryImpl';
-import { ISysMenuService } from '../ISysMenuService';
-import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
-import { SysRoleMenuRepositoryImpl } from '../../repository/impl/SysRoleMenuRepositoryImpl';
-import { SysMenu } from '../../model/SysMenu';
 import {
   STATUS_NO,
   STATUS_YES,
@@ -24,6 +22,8 @@ import {
 } from '../../../../framework/constants/MenuConstants';
 import { RouterVo } from '../../../../framework/vo/RouterVo';
 import { RouterMateVo } from '../../../../framework/vo/RouterMateVo';
+import { validHttp } from '../../../../framework/utils/RegularUtils';
+import { TreeSelect } from '../../../../framework/vo/TreeSelect';
 
 /**
  * 菜单 服务层实现

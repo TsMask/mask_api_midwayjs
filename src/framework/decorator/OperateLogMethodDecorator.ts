@@ -1,16 +1,19 @@
-import { JoinPoint, REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
-import { createCustomMethodDecorator } from '@midwayjs/decorator';
+import {
+  JoinPoint,
+  REQUEST_OBJ_CTX_KEY,
+  createCustomMethodDecorator,
+} from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { OperatorBusinessTypeEnum } from '../enums/OperatorBusinessTypeEnum';
 import { OperatorTypeEnum } from '../enums/OperatorTypeEnum';
-import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { SysLogOperate } from '../../modules/system/model/SysLogOperate';
 import { SysLogOperateServiceImpl } from '../../modules/system/service/impl/SysLogOperateServiceImpl';
 import { LoginUser } from '../vo/LoginUser';
 import { Result } from '../vo/Result';
 import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
-import { parseSafeContent } from '../utils/ValueParseUtils';
 import { RESULT_CODE_SUCCESS } from '../constants/ResultConstants';
+import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
+import { parseSafeContent } from '../utils/ValueParseUtils';
 
 /** 操作日志参数 */
 interface Options {

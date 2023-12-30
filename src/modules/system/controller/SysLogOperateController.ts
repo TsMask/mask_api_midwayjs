@@ -1,4 +1,4 @@
-import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/decorator';
+import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/core';
 import {
   OperatorBusinessTypeEnum,
   OPERATOR_BUSINESS_TYPE,
@@ -10,8 +10,8 @@ import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorat
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
-import { SysLogOperate } from '../model/SysLogOperate';
 import { SysLogOperateServiceImpl } from '../service/impl/SysLogOperateServiceImpl';
+import { SysLogOperate } from '../model/SysLogOperate';
 
 /**
  * 操作日志记录信息

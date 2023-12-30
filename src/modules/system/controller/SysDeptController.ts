@@ -8,18 +8,18 @@ import {
   Param,
   Post,
   Query,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import {
   STATUS_NO,
   STATUS_YES,
 } from '../../../framework/constants/CommonConstants';
-import { SysDept } from '../model/SysDept';
 import { Result } from '../../../framework/vo/Result';
 import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
+import { SysDept } from '../model/SysDept';
 
 /**
  * 部门信息

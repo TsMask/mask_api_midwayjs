@@ -1,12 +1,10 @@
-import { ILogger } from '@midwayjs/core';
-import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
-import { Inject, Provide } from '@midwayjs/decorator';
+import { ILogger, Inject, Provide, httpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { RoleDataScopeEnum } from '../enums/RoleDataScopeEnum';
-import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
-import { getUaInfo } from '../utils/UAParserUtils';
 import { SysUser } from '../../modules/system/model/SysUser';
 import { LoginUser } from '../vo/LoginUser';
+import { getUaInfo } from '../utils/UAParserUtils';
+import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { TOKEN_KEY, TOKEN_KEY_PREFIX } from '../constants/TokenConstants';
 
 /**
@@ -74,7 +72,7 @@ export class ContextService {
   getLoginUser(): LoginUser {
     const loginUser = this.ctx.loginUser;
     if (loginUser) return loginUser;
-    throw new UnauthorizedError('获取登录用户信息异常');
+    throw new httpError.UnauthorizedError('获取登录用户信息异常');
   }
 
   /**

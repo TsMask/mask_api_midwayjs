@@ -1,11 +1,10 @@
-import { Controller, Get, Inject } from '@midwayjs/decorator';
+import { Controller, Get, Inject } from '@midwayjs/core';
 import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 import { CAPTCHA_CODE_KEY } from '../../../framework/constants/CacheKeysConstants';
 import { generateHash } from '../../../framework/utils/GenIdUtils';
 import { Result } from '../../../framework/vo/Result';
 import { RedisCache } from '../../../framework/cache/RedisCache';
-import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
@@ -15,6 +14,7 @@ import {
   CAPTCHA_EXPIRATION,
 } from '../../../framework/constants/CaptchaConstants';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
+import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 
 /**
  * 验证码操作处理

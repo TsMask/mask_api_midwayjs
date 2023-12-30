@@ -9,31 +9,31 @@ import {
   Param,
   Post,
   Put,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
+import { UploadFileInfo } from '@midwayjs/upload';
 import { Result } from '../../../framework/vo/Result';
-import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
-import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
-import { SysPost } from '../model/SysPost';
 import { ContextService } from '../../../framework/service/ContextService';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { FileService } from '../../../framework/service/FileService';
-import { UploadFileInfo } from '@midwayjs/upload';
-import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
+import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
+import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
+import { validPassword } from '../../../framework/utils/RegularUtils';
 import {
   validEmail,
   validMobile,
   validUsername,
 } from '../../../framework/utils/RegularUtils';
-import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
-import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
+import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
+import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
+import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
+import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 import { SysRole } from '../model/SysRole';
 import { SysUser } from '../model/SysUser';
-import { validPassword } from '../../../framework/utils/RegularUtils';
+import { SysPost } from '../model/SysPost';
 
 /**
  * 用户信息

@@ -7,7 +7,7 @@ import {
   Param,
   Post,
   Put,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/vo/Result';
 import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';

@@ -1,4 +1,4 @@
-import { Provide, Inject, Singleton, Init } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton, Init } from '@midwayjs/core';
 import { RedisService } from '@midwayjs/redis';
 
 /**

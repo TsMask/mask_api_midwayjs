@@ -1,6 +1,5 @@
-import { Catch } from '@midwayjs/decorator';
+import { Catch, HttpStatus } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { HttpStatus } from '@midwayjs/core';
 import { Result } from '../vo/Result';
 
 /**

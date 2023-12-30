@@ -1,4 +1,4 @@
-import { Provide, Inject } from '@midwayjs/decorator';
+import { Provide, Inject } from '@midwayjs/core';
 import { SysPost } from '../../model/SysPost';
 import { SysPostRepositoryImpl } from '../../repository/impl/SysPostRepositoryImpl';
 import { SysUserPostRepositoryImpl } from '../../repository/impl/SysUserPostRepositoryImpl';

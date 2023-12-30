@@ -1,14 +1,14 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { SysDept } from '../../model/SysDept';
-import { TreeSelect } from '../../../../framework/vo/TreeSelect';
-import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';
-import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
-import { ISysDeptService } from '../ISysDeptService';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
 import {
   STATUS_NO,
   STATUS_YES,
 } from '../../../../framework/constants/CommonConstants';
+import { TreeSelect } from '../../../../framework/vo/TreeSelect';
 import { parseDataToTree } from '../../../../framework/utils/ValueParseUtils';
+import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';
+import { SysRoleRepositoryImpl } from '../../repository/impl/SysRoleRepositoryImpl';
+import { ISysDeptService } from '../ISysDeptService';
+import { SysDept } from '../../model/SysDept';
 
 /**
  * 参数配置 服务层实现

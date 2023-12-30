@@ -1,12 +1,12 @@
-import { Controller, Body, Post, Inject } from '@midwayjs/decorator';
+import { Controller, Body, Post, Inject } from '@midwayjs/core';
 import { Result } from '../../../framework/vo/Result';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
-import { SysRegisterService } from '../service/SysRegisterService';
 import {
   validPassword,
   validUsername,
 } from '../../../framework/utils/RegularUtils';
+import { SysRegisterService } from '../service/SysRegisterService';
 import { RegisterBodyVo } from '../model/RegisterBodyVo';
 
 /**

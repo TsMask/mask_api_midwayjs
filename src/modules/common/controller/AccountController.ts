@@ -1,4 +1,4 @@
-import { Controller, Body, Post, Get, Inject } from '@midwayjs/decorator';
+import { Controller, Body, Post, Get, Inject } from '@midwayjs/core';
 import { TOKEN_RESPONSE_FIELD } from '../../../framework/constants/TokenConstants';
 import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';

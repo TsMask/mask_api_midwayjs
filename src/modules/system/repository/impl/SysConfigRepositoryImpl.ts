@@ -1,13 +1,13 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
-import { SysConfig } from '../../model/SysConfig';
 import { ISysConfigRepository } from '../ISysConfigRepository';
-import { ResultSetHeader } from 'mysql2';
+import { SysConfig } from '../../model/SysConfig';
 
 /**查询视图对象SQL */
 const SELECT_CONFIG_SQL = `select

@@ -1,4 +1,4 @@
-import { Controller, Inject, Get, Param, Del } from '@midwayjs/decorator';
+import { Controller, Inject, Get, Param, Del } from '@midwayjs/core';
 import {
   CAPTCHA_CODE_KEY,
   LOGIN_TOKEN_KEY,

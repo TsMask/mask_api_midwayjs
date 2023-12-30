@@ -8,7 +8,7 @@ import {
   Del,
   Put,
   Query,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { validHttp } from '../../../framework/utils/RegularUtils';
 import { Result } from '../../../framework/vo/Result';
@@ -16,7 +16,6 @@ import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorat
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
-import { SysMenu } from '../model/SysMenu';
 import {
   STATUS_NO,
   STATUS_YES,
@@ -25,6 +24,7 @@ import {
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
 } from '../../../framework/constants/MenuConstants';
+import { SysMenu } from '../model/SysMenu';
 
 /**
  * 菜单信息

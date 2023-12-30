@@ -1,4 +1,4 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { SysRole } from '../../model/SysRole';
 import { SysRoleDept } from '../../model/SysRoleDept';
 import { SysRoleMenu } from '../../model/SysRoleMenu';
@@ -87,12 +87,10 @@ export class SysRoleServiceImpl implements ISysRoleService {
   async updateRole(sysRole: SysRole): Promise<number> {
     // 修改角色信息
     const rows = await this.sysRoleRepository.updateRole(sysRole);
-    if (rows > 0) {
+    if (rows > 0 && sysRole.menuIds.length > 0) {
       // 删除角色与菜单关联
       await this.sysRoleMenuRepository.deleteRoleMenu([sysRole.roleId]);
-      if (sysRole.menuIds.length > 0) {
-        await this.insertRoleMenu(sysRole.roleId, sysRole.menuIds);
-      }
+      await this.insertRoleMenu(sysRole.roleId, sysRole.menuIds);
     }
     return rows;
   }

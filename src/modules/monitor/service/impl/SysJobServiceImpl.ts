@@ -1,6 +1,5 @@
-import { Job } from '@midwayjs/bull';
-import { BullFramework } from '@midwayjs/bull/dist/framework';
-import { Provide, Inject, Singleton, Init } from '@midwayjs/decorator';
+import { Job, Framework } from '@midwayjs/bull';
+import { Provide, Inject, Singleton, Init } from '@midwayjs/core';
 import {
   STATUS_NO,
   STATUS_YES,
@@ -20,7 +19,7 @@ import { ISysJobService } from '../ISysJobService';
 @Singleton()
 export class SysJobServiceImpl implements ISysJobService {
   @Inject()
-  private bullFramework: BullFramework;
+  private bullFramework: Framework;
 
   @Inject()
   private sysJobRepository: SysJobRepositoryImpl;

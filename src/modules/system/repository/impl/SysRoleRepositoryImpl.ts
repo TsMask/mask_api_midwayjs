@@ -1,4 +1,5 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { ResultSetHeader } from 'mysql2';
 import {
   parseStrToDate,
   YYYY_MM_DD,
@@ -7,7 +8,6 @@ import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysRoleRepository } from '../ISysRoleRepository';
 import { SysRole } from '../../model/SysRole';
-import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_ROLE_SQL = `select distinct 

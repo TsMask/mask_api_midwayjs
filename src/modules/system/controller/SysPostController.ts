@@ -7,15 +7,15 @@ import {
   Body,
   Del,
   Put,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/vo/Result';
 import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
-import { SysPost } from '../model/SysPost';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
+import { SysPost } from '../model/SysPost';
 
 /**
  * 岗位信息

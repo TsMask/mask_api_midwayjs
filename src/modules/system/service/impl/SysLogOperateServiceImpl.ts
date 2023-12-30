@@ -1,4 +1,4 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { SysLogOperate } from '../../model/SysLogOperate';
 import { SysLogOperateRepositoryImpl } from '../../repository/impl/SysLogOperateRepositoryImpl';
 import { ISysLogOperateService } from '../ISysLogOperateService';

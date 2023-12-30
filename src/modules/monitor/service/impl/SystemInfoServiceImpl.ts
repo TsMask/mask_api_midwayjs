@@ -1,7 +1,12 @@
-import { Inject, Provide, Singleton } from '@midwayjs/decorator';
-import { diskinfo } from '@dropb/diskinfo';
-import { MidwayInformationService, App } from '@midwayjs/core';
+import {
+  Inject,
+  Provide,
+  Singleton,
+  MidwayInformationService,
+  App,
+} from '@midwayjs/core';
 import { Application } from '@midwayjs/koa';
+import { diskinfo } from '@dropb/diskinfo';
 import {
   uptime,
   platform,

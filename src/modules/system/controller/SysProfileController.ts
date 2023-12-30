@@ -6,7 +6,8 @@ import {
   Inject,
   Post,
   Put,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
+import { UploadFileInfo } from '@midwayjs/upload';
 import { Result } from '../../../framework/vo/Result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
@@ -16,12 +17,11 @@ import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorat
 import { TokenService } from '../../../framework/service/TokenService';
 import { bcryptCompare } from '../../../framework/utils/CryptoUtils';
 import { FileService } from '../../../framework/service/FileService';
-import { UploadFileInfo } from '@midwayjs/upload';
 import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
-import { SysUser } from '../model/SysUser';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
+import { SysUser } from '../model/SysUser';
 
 /**
  * 个人信息

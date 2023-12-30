@@ -1,5 +1,5 @@
 import { Processor, IProcessor, Context } from '@midwayjs/bull';
-import { Inject } from '@midwayjs/decorator';
+import { Inject } from '@midwayjs/core';
 
 /**
  * Foo 队列任务处理

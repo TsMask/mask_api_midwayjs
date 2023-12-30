@@ -1,9 +1,9 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { SysDept } from '../../model/SysDept';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysDeptRepository } from '../ISysDeptRepository';
-import { ResultSetHeader } from 'mysql2';
+import { SysDept } from '../../model/SysDept';
 
 /**查询视图对象SQL */
 const SELECT_DEPT_SQL = `select 

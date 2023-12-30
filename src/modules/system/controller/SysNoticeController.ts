@@ -7,14 +7,14 @@ import {
   Body,
   Del,
   Put,
-} from '@midwayjs/decorator';
+} from '@midwayjs/core';
 import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { Result } from '../../../framework/vo/Result';
 import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
-import { SysNotice } from '../model/SysNotice';
 import { SysNoticeServiceImpl } from '../service/impl/SysNoticeServiceImpl';
+import { SysNotice } from '../model/SysNotice';
 
 /**
  * 通知公告信息

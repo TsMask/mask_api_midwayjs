@@ -1,8 +1,8 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
-import { SysRoleDept } from '../../model/SysRoleDept';
-import { ISysRoleDeptRepository } from '../ISysRoleDeptRepository';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { ResultSetHeader } from 'mysql2';
+import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { ISysRoleDeptRepository } from '../ISysRoleDeptRepository';
+import { SysRoleDept } from '../../model/SysRoleDept';
 
 /**
  * 角色与部门关联表 数据层处理

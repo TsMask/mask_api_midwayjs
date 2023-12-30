@@ -1,16 +1,13 @@
-import { Provide, Inject } from '@midwayjs/decorator';
+import { Provide, Inject } from '@midwayjs/core';
 import {
   CAPTCHA_CODE_KEY,
   PWD_ERR_CNT_KEY,
 } from '../../../framework/constants/CacheKeysConstants';
 import { RedisCache } from '../../../framework/cache/RedisCache';
-import { SysMenuServiceImpl } from '../../system/service/impl/SysMenuServiceImpl';
-import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import {
   parseBoolean,
   parseNumber,
 } from '../../../framework/utils/ValueParseUtils';
-import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
 import {
   STATUS_NO,
   STATUS_YES,
@@ -22,11 +19,14 @@ import {
 } from '../../../framework/constants/AdminConstants';
 import { RouterVo } from '../../../framework/vo/RouterVo';
 import { ContextService } from '../../../framework/service/ContextService';
-import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
 import { TokenService } from '../../../framework/service/TokenService';
-import { SysUser } from '../../system/model/SysUser';
-import { SysRoleServiceImpl } from '../../system/service/impl/SysRoleServiceImpl';
 import { LoginUser } from '../../../framework/vo/LoginUser';
+import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
+import { SysMenuServiceImpl } from '../../system/service/impl/SysMenuServiceImpl';
+import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
+import { SysRoleServiceImpl } from '../../system/service/impl/SysRoleServiceImpl';
+import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
+import { SysUser } from '../../system/model/SysUser';
 
 /**
  * 账号身份操作服务

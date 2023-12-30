@@ -1,8 +1,8 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
-import { SysDictData } from '../../model/SysDictData';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
 import { ISysDictDataService } from '../ISysDictDataService';
 import { SysDictTypeServiceImpl } from './SysDictTypeServiceImpl';
+import { SysDictData } from '../../model/SysDictData';
 
 /**
  * 字典类型数据 业务层处理

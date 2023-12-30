@@ -1,5 +1,6 @@
-import { Config, Inject, Provide, Singleton } from '@midwayjs/decorator';
+import { Config, Inject, Provide, Singleton, httpError } from '@midwayjs/core';
 import { JwtService } from '@midwayjs/jwt';
+import ms = require('ms');
 import {
   TOKEN_JWT_UUID,
   TOKEN_JWT_KEY,
@@ -10,8 +11,6 @@ import { LoginUser } from '../vo/LoginUser';
 import { RedisCache } from '../cache/RedisCache';
 import { LOGIN_TOKEN_KEY } from '../constants/CacheKeysConstants';
 import { generateHash } from '../utils/GenIdUtils';
-import ms = require('ms');
-import { UnauthorizedError } from '@midwayjs/core/dist/error/http';
 import { SysUser } from '../../modules/system/model/SysUser';
 import { SysMenuServiceImpl } from '../../modules/system/service/impl/SysMenuServiceImpl';
 import { ADMIN_PERMISSION } from '../constants/AdminConstants';
@@ -205,14 +204,14 @@ export class TokenService {
       }
     } catch (e) {
       if ('TokenExpiredError' === e.name) {
-        throw new UnauthorizedError(
+        throw new httpError.UnauthorizedError(
           `用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`
         );
       }
       if ('JsonWebTokenError' === e.name) {
-        throw new UnauthorizedError('用户授权无效认证');
+        throw new httpError.UnauthorizedError('用户授权无效认证');
       }
-      throw new UnauthorizedError(`用户授权信息异常, ${e.message}`);
+      throw new httpError.UnauthorizedError(`用户授权信息异常, ${e.message}`);
     }
   }
 

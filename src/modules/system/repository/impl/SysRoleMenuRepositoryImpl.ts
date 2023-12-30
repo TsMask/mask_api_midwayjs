@@ -1,9 +1,9 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
-import { SysRoleMenu } from '../../model/SysRoleMenu';
 import { ISysRoleMenuRepository } from '../ISysRoleMenuRepository';
-import { ResultSetHeader } from 'mysql2';
+import { SysRoleMenu } from '../../model/SysRoleMenu';
 
 /**
  * 角色与菜单关联表 数据层处理

@@ -1,9 +1,9 @@
-import { JoinPoint, REQUEST_OBJ_CTX_KEY } from '@midwayjs/core';
 import {
-  ForbiddenError,
-  UnauthorizedError,
-} from '@midwayjs/core/dist/error/http';
-import { createCustomMethodDecorator } from '@midwayjs/decorator';
+  JoinPoint,
+  REQUEST_OBJ_CTX_KEY,
+  createCustomMethodDecorator,
+  httpError,
+} from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
 import { TOKEN_KEY } from '../constants/TokenConstants';
@@ -54,7 +54,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       // 获取token在请求头标识信息
       const token = await tokenService.getHeaderToken(ctx.get(TOKEN_KEY));
       if (!token) {
-        throw new UnauthorizedError('无效身份授权');
+        throw new httpError.UnauthorizedError('无效身份授权');
       }
 
       // 获取用户信息
@@ -63,7 +63,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
         loginUser = await tokenService.verifyToken(loginUser);
         ctx.loginUser = loginUser;
       } else {
-        throw new UnauthorizedError('无效身份授权');
+        throw new httpError.UnauthorizedError('无效身份授权');
       }
 
       // 登录用户角色权限校验
@@ -77,7 +77,9 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
           metadataObj
         );
         if (!verifyOk) {
-          throw new ForbiddenError(`无权访问 ${ctx.method} ${ctx.path}`);
+          throw new httpError.ForbiddenError(
+            `无权访问 ${ctx.method} ${ctx.path}`
+          );
         }
       }
 

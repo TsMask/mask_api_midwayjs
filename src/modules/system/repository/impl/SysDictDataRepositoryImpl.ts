@@ -1,9 +1,9 @@
-import { Provide, Inject, Singleton } from '@midwayjs/decorator';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { ResultSetHeader } from 'mysql2';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
-import { ISysDictDataRepository } from '../ISysDictDataRepository';
 import { SysDictData } from '../../model/SysDictData';
-import { ResultSetHeader } from 'mysql2';
+import { ISysDictDataRepository } from '../ISysDictDataRepository';
 
 /**查询视图对象SQL */
 const SELECT_DICT_DATA_SQL = `select 

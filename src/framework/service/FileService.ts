@@ -1,10 +1,10 @@
-import { Singleton } from '@midwayjs/core';
-import { Config, Provide } from '@midwayjs/decorator';
+import { Config, Provide, Singleton } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { posix } from 'path';
 import { UploadSubPathEnum } from '../enums/UploadSubPathEnum';
 import { parseDatePath } from '../utils/DateUtils';
 import { readSheet, writeSheet } from '../utils/ExeclUtils';
+import { generateHash } from '../utils/GenIdUtils';
 import {
   getDirFileNameList,
   checkDirPathExists,
@@ -17,7 +17,6 @@ import {
   getFileSize,
   writeBufferFile,
 } from '../utils/FileUtils';
-import { generateHash } from '../utils/GenIdUtils';
 
 /**最大文件名长度 */
 const DEFAULT_FILE_NAME_LENGTH = 100;
