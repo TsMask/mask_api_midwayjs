@@ -39,9 +39,9 @@ create table sys_dept (
   dept_id           bigint          not null auto_increment    comment '部门id',
   parent_id         bigint          default 0                  comment '父部门id 默认0',
   ancestors         varchar(50)     default ''                 comment '祖级列表',
-  dept_name         varchar(30)     default ''                 comment '部门名称',
+  dept_name         varchar(50)     default ''                 comment '部门名称',
   order_num         int             default 0                  comment '显示顺序',
-  leader            varchar(20)     default null               comment '负责人',
+  leader            varchar(50)     default null               comment '负责人',
   phone             varchar(11)     default null               comment '联系电话',
   email             varchar(50)     default null               comment '邮箱',
   status            char(1)         default '0'                comment '部门状态（0停用 1正常）',
@@ -427,8 +427,8 @@ insert into sys_dict_data values(4,  1,  '显示',         '1',         'sys_sho
 insert into sys_dict_data values(5,  2,  '隐藏',         '0',         'sys_show_hide',       '',   'error',         '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '隐藏菜单');
 insert into sys_dict_data values(6,  1,  '正常',         '1',         'sys_normal_disable',  '',   'success',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '正常状态');
 insert into sys_dict_data values(7,  2,  '停用',         '0',         'sys_normal_disable',  '',   'error',         '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '停用状态');
-insert into sys_dict_data values(8,  1,  '正常',         '1',         'sys_job_status',      '',   'success',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '正常状态');
-insert into sys_dict_data values(9,  2,  '暂停',         '0',         'sys_job_status',      '',   'error',         '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '停用状态');
+insert into sys_dict_data values(8,  1,  '开启',         '1',         'sys_job_status',      '',   'success',       '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '正常状态');
+insert into sys_dict_data values(9,  2,  '关闭',         '0',         'sys_job_status',      '',   'error',         '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '停用状态');
 insert into sys_dict_data values(10, 1,  '默认',         'DEFAULT',   'sys_job_group',       '',   '',              '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '默认分组');
 insert into sys_dict_data values(11, 2,  '系统',         'SYSTEM',    'sys_job_group',       '',   '',              '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统分组');
 insert into sys_dict_data values(12, 1,  '是',           'Y',         'sys_yes_no',          '',   'processing',    '1', 'maskAdmin', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统默认是');
@@ -542,7 +542,8 @@ create table sys_job (
   update_by           varchar(50)   default ''                 comment '更新者',
   update_time         bigint        default 0                  comment '更新时间',
   remark              varchar(500)  default ''                 comment '备注',
-  primary key (job_id, job_name, job_group)
+  primary key (job_id, job_name, job_group),
+  unique key uk_name_group (job_name, job_group)
 ) engine=innodb auto_increment=100 comment = '调度任务调度表';
 
 -- ----------------------------
