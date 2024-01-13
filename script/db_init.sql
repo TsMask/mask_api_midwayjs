@@ -568,7 +568,8 @@ create table sys_job_log (
   status              char(1)        default '0'                comment '执行状态（0失败 1正常）',
   create_time         bigint         default 0                  comment '创建时间',
   cost_time           bigint         default 0                  comment '消耗时间（毫秒）',
-  primary key (job_log_id)
+  primary key (job_log_id),
+  key idx_name_group (job_name, job_group) USING BTREE COMMENT '名称_组名'
 ) engine=innodb comment = '调度任务调度日志表';
 
 
