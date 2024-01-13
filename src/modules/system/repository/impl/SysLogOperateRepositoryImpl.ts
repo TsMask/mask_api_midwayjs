@@ -176,6 +176,7 @@ export class SysLogOperateRepositoryImpl implements ISysLogOperateRepository {
 
   async insertSysLogOperate(SysLogOperate: SysLogOperate): Promise<string> {
     const paramMap = new Map();
+    paramMap.set('oper_time', Date.now());
     if (SysLogOperate.title) {
       paramMap.set('title', SysLogOperate.title);
     }
@@ -215,10 +216,9 @@ export class SysLogOperateRepositoryImpl implements ISysLogOperateRepository {
     if (SysLogOperate.status) {
       paramMap.set('status', parseNumber(SysLogOperate.status));
     }
-    if (SysLogOperate.costTime) {
-      paramMap.set('cost_time', parseNumber(SysLogOperate.costTime));
+    if (SysLogOperate.costTime >= 0) {
+      paramMap.set('cost_time', SysLogOperate.costTime);
     }
-    paramMap.set('oper_time', Date.now());
 
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);

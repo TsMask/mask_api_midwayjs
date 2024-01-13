@@ -169,7 +169,6 @@ export class SysLogLoginRepositoryImpl implements ISysLogLoginRepository {
     if (SysLogLogin.browser) {
       paramMap.set('browser', SysLogLogin.browser);
     }
-
     if (SysLogLogin.os) {
       paramMap.set('os', SysLogLogin.os);
     }
