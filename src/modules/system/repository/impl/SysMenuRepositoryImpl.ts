@@ -198,8 +198,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.menuName) {
       paramMap.set('menu_name', sysMenu.menuName);
     }
-    sysMenu.menuSort = parseNumber(sysMenu.menuSort);
-    if (sysMenu.menuSort > 0) {
+    if (sysMenu.menuSort >= 0) {
       paramMap.set('menu_sort', sysMenu.menuSort);
     }
     if (sysMenu.path) {
@@ -244,10 +243,10 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       paramMap.set('component', '');
       paramMap.set('path', '');
       paramMap.set('icon', '#');
-      paramMap.set('is_cache', 1);
-      paramMap.set('is_frame', 1);
-      paramMap.set('visible', 1);
-      paramMap.set('status', 1);
+      paramMap.set('is_cache', '1');
+      paramMap.set('is_frame', '1');
+      paramMap.set('visible', '1');
+      paramMap.set('status', '1');
     } else if (sysMenu.menuType === MENU_TYPE_DIR) {
       paramMap.set('component', '');
       paramMap.set('perms', '');
@@ -268,8 +267,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     if (sysMenu.menuName) {
       paramMap.set('menu_name', sysMenu.menuName);
     }
-    sysMenu.menuSort = parseNumber(sysMenu.menuSort);
-    if (sysMenu.menuSort > 0) {
+    if (sysMenu.menuSort >= 0) {
       paramMap.set('menu_sort', sysMenu.menuSort);
     }
     if (sysMenu.path) {
@@ -301,9 +299,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     } else {
       paramMap.set('icon', '#');
     }
-    if (sysMenu.remark) {
-      paramMap.set('remark', sysMenu.remark);
-    }
+    paramMap.set('remark', sysMenu.remark || "");
     if (sysMenu.updateBy) {
       paramMap.set('update_by', sysMenu.updateBy);
       paramMap.set('update_time', Date.now());
@@ -314,10 +310,10 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       paramMap.set('component', '');
       paramMap.set('path', '');
       paramMap.set('icon', '#');
-      paramMap.set('is_cache', 1);
-      paramMap.set('is_frame', 1);
-      paramMap.set('visible', 1);
-      paramMap.set('status', 1);
+      paramMap.set('is_cache', '1');
+      paramMap.set('is_frame', '1');
+      paramMap.set('visible', '1');
+      paramMap.set('status', '1');
     } else if (sysMenu.menuType === MENU_TYPE_DIR) {
       paramMap.set('component', '');
       paramMap.set('perms', '');
