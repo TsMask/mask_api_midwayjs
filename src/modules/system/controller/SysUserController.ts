@@ -23,11 +23,16 @@ import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDec
 import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
 import { validPassword } from '../../../framework/utils/RegularUtils';
 import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../framework/constants/CommonConstants';
+import {
   validEmail,
   validMobile,
   validUsername,
 } from '../../../framework/utils/RegularUtils';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
+import { SysConfigServiceImpl } from '../service/impl/SysConfigServiceImpl';
 import { SysDictDataServiceImpl } from '../service/impl/SysDictDataServiceImpl';
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { SysPostServiceImpl } from '../service/impl/SysPostServiceImpl';
@@ -56,6 +61,9 @@ export class SysUserController {
 
   @Inject()
   private sysPostService: SysPostServiceImpl;
+
+  @Inject()
+  private sysConfigService: SysConfigServiceImpl;
 
   @Inject()
   private sysDictDataService: SysDictDataServiceImpl;
@@ -305,24 +313,27 @@ export class SysUserController {
   ): Promise<Result> {
     // 修改的用户ID和密码是否可用
     if (!userId || !password) return Result.err();
+
     // 检查是否管理员用户
     if (this.contextService.isAdmin(userId)) {
       return Result.errMsg('不允许操作管理员用户');
     }
+
+    // 检查是否存在
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
+
     if (!validPassword(password)) {
       return Result.errMsg(
         '登录密码至少包含大小写字母、数字、特殊符号，且不少于6位'
       );
     }
-    const sysUser = new SysUser();
-    sysUser.userId = userId;
-    sysUser.password = password;
-    sysUser.updateBy = this.contextService.getUseName();
-    const rows = await this.sysUserService.updateUser(sysUser);
+
+    user.password = password;
+    user.updateBy = this.contextService.getUseName();
+    const rows = await this.sysUserService.updateUser(user);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -341,23 +352,25 @@ export class SysUserController {
     @Body('status') status: string
   ): Promise<Result> {
     if (!userId || !status || status.length > 1) return Result.err();
+
     // 检查是否管理员用户
     if (this.contextService.isAdmin(userId)) {
       return Result.errMsg('不允许操作管理员用户');
     }
+
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
+
     // 与旧值相等不变更
     if (user.status === status) {
       return Result.errMsg('变更状态与旧值相等！');
     }
-    const sysUser = new SysUser();
-    sysUser.userId = userId;
-    sysUser.status = status;
-    sysUser.updateBy = this.contextService.getUseName();
-    const rows = await this.sysUserService.updateUser(sysUser);
+
+    user.status = status;
+    user.updateBy = this.contextService.getUseName();
+    const rows = await this.sysUserService.updateUser(user);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -456,17 +469,155 @@ export class SysUserController {
   ) {
     if (files.length <= 0) return Result.err();
     // 读取表格数据
-    const sheetItemArr = await this.fileService.excelReadRecord(files[0]);
-    if (sheetItemArr.length <= 0) {
+    const rows = await this.fileService.excelReadRecord(files[0]);
+    if (rows.length <= 0) {
       return Result.errMsg('导入用户数据不能为空！');
     }
+
     // 获取操作人名称
     const operName = this.contextService.getUseName();
-    const message = await this.sysUserService.importUser(
-      sheetItemArr,
-      parseBoolean(updateSupport),
-      operName
+    const isUpdateSupport = parseBoolean(updateSupport);
+
+    // 读取默认初始密码
+    const initPassword = await this.sysConfigService.selectConfigValueByKey(
+      'sys.user.initPassword'
     );
+    // 读取用户性别字典数据
+    const dictSysUserSex = await this.sysDictDataService.selectDictDataByType(
+      'sys_user_sex'
+    );
+
+    // 导入记录
+    let successNum = 0;
+    let failureNum = 0;
+    const successMsgArr: string[] = [];
+    const failureMsgArr: string[] = [];
+    const mustItemArr = ['登录名称', '用户名称'];
+    for (const item of rows) {
+      // 检查必填列
+      const ownItem = mustItemArr.every(m => Object.keys(item).includes(m));
+      if (!ownItem) {
+        failureNum++;
+        failureMsgArr.push(`表格中必填列表项，${mustItemArr.join('、')}`);
+        continue;
+      }
+
+      // 用户性别转值
+      let sysUserSex = '0';
+      for (const v of dictSysUserSex) {
+        if (v.dictLabel === item['用户性别']) {
+          sysUserSex = v.dictValue;
+          break;
+        }
+      }
+
+      let sysUserStatus = STATUS_NO;
+      if (item['帐号状态'] === '正常') {
+        sysUserStatus = STATUS_YES;
+      }
+
+      // 验证是否存在这个用户
+      const newSysUser = await this.sysUserService.selectUserByUserName(
+        item['登录名称']
+      );
+      newSysUser.userType = 'sys';
+      newSysUser.password = initPassword;
+      newSysUser.deptId = item['部门编号'];
+      newSysUser.userName = item['登录名称'];
+      newSysUser.nickName = item['用户名称'];
+      newSysUser.phonenumber = item['手机号码'];
+      newSysUser.email = item['用户邮箱'];
+      newSysUser.status = sysUserStatus;
+      newSysUser.sex = sysUserSex;
+
+      // 行用户编号
+      const rowNo = item['用户编号'];
+
+      // 检查手机号码格式并判断是否唯一
+      if (newSysUser.phonenumber) {
+        if (validMobile(newSysUser.phonenumber)) {
+          const uniquePhone = await this.sysUserService.checkUniquePhone(
+            newSysUser.phonenumber,
+            ''
+          );
+          if (!uniquePhone) {
+            const msg = `用户编号：${rowNo} 手机号码：${newSysUser.phonenumber} 已存在`;
+            failureNum++;
+            failureMsgArr.push(msg);
+            continue;
+          }
+        } else {
+          const msg = `用户编号：${rowNo} 手机号码：${newSysUser.phonenumber} 格式错误`;
+          failureNum++;
+          failureMsgArr.push(msg);
+          continue;
+        }
+      }
+
+      // 检查邮箱格式并判断是否唯一
+      if (newSysUser.email) {
+        if (validEmail(newSysUser.email)) {
+          const uniqueEmail = await this.sysUserService.checkUniqueEmail(
+            newSysUser.email,
+            ''
+          );
+          if (!uniqueEmail) {
+            const msg = `用户编号：${rowNo} 用户邮箱：${newSysUser.email} 已存在`;
+            failureNum++;
+            failureMsgArr.push(msg);
+            continue;
+          }
+        } else {
+          const msg = `用户编号：${rowNo} 用户邮箱：${newSysUser.email} 格式错误`;
+          failureNum++;
+          failureMsgArr.push(msg);
+          continue;
+        }
+      }
+
+      if (!newSysUser.userId) {
+        newSysUser.createBy = operName;
+        const insertId = await this.sysUserService.insertUser(newSysUser);
+        if (insertId) {
+          const msg = `用户编号：${rowNo} 登录名称：${newSysUser.userName} 导入成功`;
+          successNum++;
+          successMsgArr.push(msg);
+        } else {
+          const msg = `用户编号：${rowNo} 登录名称：${newSysUser.userName} 导入失败`;
+          failureNum++;
+          failureMsgArr.push(msg);
+        }
+        continue;
+      }
+
+      // 如果用户已存在 同时 是否更新支持
+      if (newSysUser.userId && isUpdateSupport) {
+        newSysUser.updateBy = operName;
+        const rows = await this.sysUserService.updateUser(newSysUser);
+        if (rows > 0) {
+          const msg = `用户编号：${rowNo} 登录名称：${newSysUser.userName} 更新成功`;
+          successNum++;
+          successMsgArr.push(msg);
+        } else {
+          const msg = `用户编号：${rowNo} 登录名称：${newSysUser.userName} 更新失败`;
+          failureNum++;
+          failureMsgArr.push(msg);
+        }
+        continue;
+      }
+    }
+
+    let message = '';
+    if (failureNum > 0) {
+      const msg = `很抱歉，导入失败！共 ${failureNum} 条数据格式不正确，错误如下：`;
+      failureMsgArr.unshift(msg);
+      message = failureMsgArr.join('<br/>');
+    } else {
+      const msg = `恭喜您，数据已全部导入成功！共 ${successNum} 条，数据如下：`;
+      successMsgArr.unshift(msg);
+      message = successMsgArr.join('<br/>');
+    }
+
     return Result.okMsg(message);
   }
 }

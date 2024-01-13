@@ -321,7 +321,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_name = ?`;
     const rows = await this.db.execute(sqlStr, [userName]);
     if (rows.length === 0) {
-      return null;
+      return new SysUser;
     }
     const sysUsers = convertResultRows(rows);
     return sysUsers[0];
@@ -436,9 +436,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramMap.set('update_by', sysUser.updateBy);
       paramMap.set('update_time', Date.now());
     }
-    if (sysUser.remark) {
-      paramMap.set('remark', sysUser.remark);
-    }
+    paramMap.set('remark', sysUser.remark || '');
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_user set ${keys} where user_id = ?`;
@@ -478,12 +476,12 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (conditions.length > 0) {
       whereSql = ' where ' + conditions.join(' and ');
     } else {
-      return null;
+      return '';
     }
 
     const sqlStr =
       "select user_id as 'str' from sys_user " + whereSql + ' limit 1';
     const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
-    return rows.length > 0 ? rows[0].str : null;
+    return rows.length > 0 ? rows[0].str : '';
   }
 }
