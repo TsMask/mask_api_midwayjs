@@ -9,6 +9,7 @@ import { FileService } from '../../../framework/service/FileService';
 import { SysJobLogServiceImpl } from '../service/impl/SysJobLogServiceImpl';
 import { SysDictDataServiceImpl } from '../../system/service/impl/SysDictDataServiceImpl';
 import { SysJobLog } from '../model/SysJobLog';
+import { SysJobServiceImpl } from '../service/impl/SysJobServiceImpl';
 
 /**
  * 调度任务日志信息
@@ -24,6 +25,9 @@ export class SysJobLogController {
   private fileService: FileService;
 
   @Inject()
+  private sysJobService: SysJobServiceImpl;
+
+  @Inject()
   private sysJobLogService: SysJobLogServiceImpl;
 
   @Inject()
@@ -35,8 +39,14 @@ export class SysJobLogController {
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['monitor:job:list'] })
   async list(): Promise<Result> {
-    const query = this.contextService.getContext().query;
-    const data = await this.sysJobLogService.selectJobLogPage(query);
+    const querys = this.contextService.getContext().query;
+    const jobId = querys.jobId as string;
+    if (jobId && jobId != '' && jobId != '0') {
+      const job = await this.sysJobService.selectJobById(jobId);
+      querys.jobName = job.jobName;
+      querys.jobGroup = job.jobGroup;
+    }
+    const data = await this.sysJobLogService.selectJobLogPage(querys);
     return Result.ok(data);
   }
 

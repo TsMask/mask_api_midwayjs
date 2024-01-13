@@ -61,7 +61,7 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
     const conditions: string[] = [];
     const params: any[] = [];
     if (query.jobName) {
-      conditions.push("job_name like concat(?, '%')");
+      conditions.push("job_name = ?");
       params.push(query.jobName);
     }
     if (query.jobGroup) {
@@ -108,12 +108,10 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
 
     // 分页
     const pageSql = ' order by job_log_id desc limit ?,? ';
-    let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 5000 ? pageNum : 5000;
-    pageNum = pageNum > 0 ? pageNum - 1 : 0;
-    let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 50000 ? pageSize : 50000;
-    pageSize = pageSize > 0 ? pageSize : 10;
+    const [pageNum, pageSize] = this.db.pageNumSize(
+      query.pageNum,
+      query.pageSize
+    );
     params.push(pageNum * pageSize);
     params.push(pageSize);
 
@@ -191,20 +189,17 @@ export class SysJobLogRepositoryImpl implements ISysJobLogRepository {
       paramMap.set('cost_time', parseNumber(sysJobLog.costTime));
     }
 
-    const sqlStr = `insert into sys_job_log (${[...paramMap.keys()].join(
-      ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const [keys, values, placeholder] =
+      this.db.keyValuePlaceholderByInsert(paramMap);
+    const sqlStr = `insert into sys_job_log (${keys})values(${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
-  async deleteJobLogByIds(jobLogId: string[]): Promise<number> {
-    const sqlStr = `delete from sys_job_log where job_log_id in (${jobLogId
-      .map(() => '?')
-      .join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, jobLogId);
+  async deleteJobLogByIds(jobLogIds: string[]): Promise<number> {
+    const placeholder = this.db.keyPlaceholderByQuery(jobLogIds.length);
+    const sqlStr = `delete from sys_job_log where job_log_id in (${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, jobLogIds);
     return result.affectedRows;
   }
 
