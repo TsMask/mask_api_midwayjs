@@ -225,9 +225,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     if (sysDictType.status) {
       paramMap.set('status', parseNumber(sysDictType.status));
     }
-    if (sysDictType.remark) {
-      paramMap.set('remark', sysDictType.remark);
-    }
+    paramMap.set('remark', sysDictType.remark);
     if (sysDictType.updateBy) {
       paramMap.set('update_by', sysDictType.updateBy);
       paramMap.set('update_time', Date.now());
