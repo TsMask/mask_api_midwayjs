@@ -209,12 +209,10 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       paramMap.set('create_time', Date.now());
     }
 
-    const sqlStr = `insert into sys_dept (${[...paramMap.keys()].join(
-      ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const [keys, values, placeholder] =
+      this.db.keyValuePlaceholderByInsert(paramMap);
+    const sqlStr = `insert into sys_dept (${keys})values(${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -249,11 +247,11 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
       paramMap.set('update_by', sysDept.updateBy);
       paramMap.set('update_time', Date.now());
     }
-    const sqlStr = `update sys_dept set ${[...paramMap.keys()]
-      .map(k => `${k} = ?`)
-      .join(',')} where dept_id = ?`;
+
+    const [keys, values] = this.db.keyValueByUpdate(paramMap);
+    const sqlStr = `update sys_dept set ${keys} where dept_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
+      ...values,
       sysDept.deptId,
     ]);
     return result.affectedRows;
@@ -261,10 +259,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
 
   async updateDeptStatusNormal(deptIds: string[]): Promise<number> {
     if (deptIds.length === 0) return 0;
-
-    const sqlStr = `update sys_dept set status = '1' where dept_id in (${deptIds
-      .map(() => '?')
-      .join(',')}) `;
+    const placeholder = this.db.keyPlaceholderByQuery(deptIds.length);
+    const sqlStr = `update sys_dept set status = '1' where dept_id in (${placeholder}) `;
     const result: ResultSetHeader = await this.db.execute(sqlStr, deptIds);
     return result.affectedRows;
   }
@@ -284,8 +280,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     }
 
     const cases = setArr.join(' ');
-    const placeholders = paramArr.map(() => '?').join(',');
-    const sqlStr = `update sys_dept set ancestors = CASE ${cases} END where dept_id in (${placeholders}) `;
+    const placeholder = this.db.keyPlaceholderByQuery(paramArr.length);
+    const sqlStr = `update sys_dept set ancestors = CASE ${cases} END where dept_id in (${placeholder}) `;
     const result: ResultSetHeader = await this.db.execute(sqlStr, paramArr);
     return result.affectedRows;
   }

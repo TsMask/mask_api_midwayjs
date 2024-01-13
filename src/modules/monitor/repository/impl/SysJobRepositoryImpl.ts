@@ -98,12 +98,10 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
 
     // 分页
     const pageSql = ' limit ?,? ';
-    let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 5000 ? pageNum : 5000;
-    pageNum = pageNum > 0 ? pageNum - 1 : 0;
-    let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 50000 ? pageSize : 50000;
-    pageSize = pageSize > 0 ? pageSize : 10;
+    const [pageNum, pageSize] = this.db.pageNumSize(
+      query.pageNum,
+      query.pageSize
+    );
     params.push(pageNum * pageSize);
     params.push(pageSize);
 
@@ -148,9 +146,8 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
   }
 
   async selectJobByIds(jobIds: string[]): Promise<SysJob[]> {
-    const sqlStr = `${SELECT_JOB_SQL} where job_id in (${jobIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(jobIds.length);
+    const sqlStr = `${SELECT_JOB_SQL} where job_id in (${placeholder})`;
     const rows = await this.db.execute(sqlStr, jobIds);
     return convertResultRows(rows);
   }
@@ -222,12 +219,10 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramMap.set('create_time', Date.now());
     }
 
-    const sqlStr = `insert into sys_job (${[...paramMap.keys()].join(
-      ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const [keys, values, placeholder] =
+      this.db.keyValuePlaceholderByInsert(paramMap);
+    const sqlStr = `insert into sys_job (${keys})values(${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -268,20 +263,18 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
       paramMap.set('update_time', Date.now());
     }
 
-    const sqlStr = `update sys_job set ${[...paramMap.keys()]
-      .map(k => `${k} = ?`)
-      .join(',')} where job_id = ?`;
+    const [keys, values] = this.db.keyValueByUpdate(paramMap);
+    const sqlStr = `update sys_job set ${keys} where job_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
+      ...values,
       sysJob.jobId,
     ]);
     return result.affectedRows;
   }
 
   async deleteJobByIds(jobIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_job where job_id in (${jobIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(jobIds.length);
+    const sqlStr = `delete from sys_job where job_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, jobIds);
     return result.affectedRows;
   }

@@ -163,9 +163,8 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
   }
 
   async selectMenuByIds(menuIds: string[]): Promise<SysMenu[]> {
-    const sqlStr = `${SELECT_MENU_SQL} where m.menu_id in (${menuIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(menuIds.length);
+    const sqlStr = `${SELECT_MENU_SQL} where m.menu_id in (${placeholder})`;
     const rows = await this.db.execute(sqlStr, menuIds);
     return convertResultRows(rows);
   }
@@ -254,12 +253,10 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       paramMap.set('perms', '');
     }
 
-    const sqlStr = `insert into sys_menu (${[...paramMap.keys()].join(
-      ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const [keys, values, placeholder] =
+      this.db.keyValuePlaceholderByInsert(paramMap);
+    const sqlStr = `insert into sys_menu (${keys})values(${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -326,11 +323,10 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
       paramMap.set('perms', '');
     }
 
-    const sqlStr = `update sys_menu set ${[...paramMap.keys()]
-      .map(k => `${k} = ?`)
-      .join(', ')} where menu_id = ?`;
+    const [keys, values] = this.db.keyValueByUpdate(paramMap);
+    const sqlStr = `update sys_menu set ${keys} where menu_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
+      ...values,
       sysMenu.menuId,
     ]);
     return result.affectedRows;

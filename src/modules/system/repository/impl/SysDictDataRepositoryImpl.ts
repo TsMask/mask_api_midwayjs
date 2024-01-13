@@ -93,12 +93,10 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
 
     // 分页
     const pageSql = ' order by dict_sort asc limit ?,? ';
-    let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 5000 ? pageNum : 5000;
-    pageNum = pageNum > 0 ? pageNum - 1 : 0;
-    let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 50000 ? pageSize : 50000;
-    pageSize = pageSize > 0 ? pageSize : 10;
+    const [pageNum, pageSize] = this.db.pageNumSize(
+      query.pageNum,
+      query.pageSize
+    );
     params.push(pageNum * pageSize);
     params.push(pageSize);
 
@@ -140,9 +138,8 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   }
 
   async selectDictDataByCodes(dictCodes: string[]): Promise<SysDictData[]> {
-    const sqlStr = `${SELECT_DICT_DATA_SQL} where dict_code in (${dictCodes
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(dictCodes.length);
+    const sqlStr = `${SELECT_DICT_DATA_SQL} where dict_code in (${placeholder})`;
     const rows = await this.db.execute(sqlStr, dictCodes);
     return convertResultRows(rows);
   }
@@ -186,9 +183,8 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   }
 
   async deleteDictDataByCodes(dictCodes: string[]): Promise<number> {
-    const sqlStr = `delete from sys_dict_data where dict_code in (${dictCodes
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(dictCodes.length);
+    const sqlStr = `delete from sys_dict_data where dict_code in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, dictCodes);
     return result.affectedRows;
   }
@@ -225,12 +221,10 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramMap.set('create_time', Date.now());
     }
 
-    const sqlStr = `insert into sys_dict_data (${[...paramMap.keys()].join(
-      ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const [keys, values, placeholder] =
+      this.db.keyValuePlaceholderByInsert(paramMap);
+    const sqlStr = `insert into sys_dict_data (${keys})values(${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -266,11 +260,10 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
       paramMap.set('update_time', Date.now());
     }
 
-    const sqlStr = `update sys_dict_data set ${[...paramMap.keys()]
-      .map(k => `${k} = ?`)
-      .join(',')} where dict_code = ?`;
+    const [keys, values] = this.db.keyValueByUpdate(paramMap);
+    const sqlStr = `update sys_dict_data set ${keys} where dict_code = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
+      ...values,
       sysDictData.dictCode,
     ]);
     return result.affectedRows;

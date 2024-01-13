@@ -189,12 +189,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
     // 分页
     const pageSql = ' limit ?,? ';
-    let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 5000 ? pageNum : 5000;
-    pageNum = pageNum > 0 ? pageNum - 1 : 0;
-    let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 50000 ? pageSize : 50000;
-    pageSize = pageSize > 0 ? pageSize : 10;
+    const [pageNum, pageSize] = this.db.pageNumSize(
+      query.pageNum,
+      query.pageSize
+    );
     params.push(pageNum * pageSize);
     params.push(pageSize);
 
@@ -305,12 +303,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
     // 分页
     const pageSql = ' limit ?,? ';
-    let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 5000 ? pageNum : 5000;
-    pageNum = pageNum > 0 ? pageNum - 1 : 0;
-    let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 50000 ? pageSize : 50000;
-    pageSize = pageSize > 0 ? pageSize : 10;
+    const [pageNum, pageSize] = this.db.pageNumSize(
+      query.pageNum,
+      query.pageSize
+    );
     params.push(pageNum * pageSize);
     params.push(pageSize);
 
@@ -332,9 +328,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
   }
 
   async selectUserById(userIds: string[]): Promise<SysUser[]> {
-    const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id in (${userIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(userIds.length);
+    const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_id in (${placeholder})`;
     const rows = await this.db.execute(sqlStr, userIds);
     return convertResultRows(rows);
   }
@@ -383,12 +378,10 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramMap.set('create_time', Date.now());
     }
 
-    const sqlStr = `insert into sys_user (${[...paramMap.keys()].join(
-      ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const [keys, values, placeholder] =
+      this.db.keyValuePlaceholderByInsert(paramMap);
+    const sqlStr = `insert into sys_user (${keys})values(${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -447,20 +440,18 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
       paramMap.set('remark', sysUser.remark);
     }
 
-    const sqlStr = `update sys_user set ${[...paramMap.keys()]
-      .map(k => `${k} = ?`)
-      .join(', ')} where user_id = ?`;
+    const [keys, values] = this.db.keyValueByUpdate(paramMap);
+    const sqlStr = `update sys_user set ${keys} where user_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
+      ...values,
       sysUser.userId,
     ]);
     return result.affectedRows;
   }
 
   async deleteUserByIds(userIds: string[]): Promise<number> {
-    const sqlStr = `update sys_user set del_flag = '1' where user_id in (${userIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(userIds.length);
+    const sqlStr = `update sys_user set del_flag = '1' where user_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }

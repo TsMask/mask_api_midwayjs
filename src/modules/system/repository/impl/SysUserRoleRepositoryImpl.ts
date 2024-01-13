@@ -32,9 +32,8 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
   }
 
   async deleteUserRole(userIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_user_role where user_id in (${userIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(userIds.length);
+    const sqlStr = `delete from sys_user_role where user_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
@@ -43,9 +42,8 @@ export class SysUserRoleRepositoryImpl implements ISysUserRoleRepository {
     roleId: string,
     userIds: string[]
   ): Promise<number> {
-    const sqlStr = `delete from sys_user_role where role_id= ? and user_id in (${userIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(userIds.length);
+    const sqlStr = `delete from sys_user_role where role_id= ? and user_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
       roleId,
       ...userIds,

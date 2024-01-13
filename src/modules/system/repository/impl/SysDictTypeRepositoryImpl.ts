@@ -105,12 +105,10 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
 
     // 分页
     const pageSql = ' limit ?,? ';
-    let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 5000 ? pageNum : 5000;
-    pageNum = pageNum > 0 ? pageNum - 1 : 0;
-    let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 50000 ? pageSize : 50000;
-    pageSize = pageSize > 0 ? pageSize : 10;
+    const [pageNum, pageSize] = this.db.pageNumSize(
+      query.pageNum,
+      query.pageSize
+    );
     params.push(pageNum * pageSize);
     params.push(pageSize);
 
@@ -151,9 +149,8 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   }
 
   async selectDictTypeByIds(dictIds: string[]): Promise<SysDictType[]> {
-    const sqlStr = `${SELECT_DICT_TYPE_SQL} where dict_id in (${dictIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(dictIds.length);
+    const sqlStr = `${SELECT_DICT_TYPE_SQL} where dict_id in (${placeholder})`;
     const rows = await this.db.execute(sqlStr, dictIds);
     return convertResultRows(rows);
   }
@@ -210,12 +207,10 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       paramMap.set('create_time', Date.now());
     }
 
-    const sqlStr = `insert into sys_dict_type (${[...paramMap.keys()].join(
-      ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const [keys, values, placeholder] =
+      this.db.keyValuePlaceholderByInsert(paramMap);
+    const sqlStr = `insert into sys_dict_type (${keys})values(${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -238,20 +233,18 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
       paramMap.set('update_time', Date.now());
     }
 
-    const sqlStr = `update sys_dict_type set ${[...paramMap.keys()]
-      .map(k => `${k} = ?`)
-      .join(',')} where dict_id = ?`;
+    const [keys, values] = this.db.keyValueByUpdate(paramMap);
+    const sqlStr = `update sys_dict_type set ${keys} where dict_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
+      ...values,
       sysDictType.dictId,
     ]);
     return result.affectedRows;
   }
 
   async deleteDictTypeByIds(dictIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_dict_type where dict_id in (${dictIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(dictIds.length);
+    const sqlStr = `delete from sys_dict_type where dict_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, dictIds);
     return result.affectedRows;
   }

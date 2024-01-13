@@ -16,9 +16,8 @@ export class SysRoleDeptRepositoryImpl implements ISysRoleDeptRepository {
   public db: DynamicDataSource;
 
   async deleteRoleDept(roleIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_role_dept where role_id in (${roleIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(roleIds.length);
+    const sqlStr = `delete from sys_role_dept where role_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }

@@ -1,6 +1,7 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { DataSource, QueryRunner } from 'typeorm';
+import { parseNumber } from '../utils/ValueParseUtils';
 
 /**
  * 动态数据源
@@ -67,5 +68,71 @@ export class DynamicDataSource {
    */
   public executeRunner(source = 'default'): QueryRunner {
     return this.dataSource(source).createQueryRunner();
+  }
+
+  /**
+   * 分页页码记录数
+   * @param pageNum 页码
+   * @param pageSize 单页记录数
+   * @returns [起始页码,单页记录数]
+   */
+  public pageNumSize(
+    pageNum: string | number,
+    pageSize: string | number
+  ): [number, number] {
+    // 记录起始索引
+    let num = parseNumber(pageNum);
+    if (num < 1) {
+      num = 1;
+    }
+
+    // 显示记录数
+    let size = parseNumber(pageSize);
+    if (size < 0) {
+      size = 10;
+    }
+    return [num - 1, size];
+  }
+
+  /**
+   * 查询-参数值的占位符
+   * @param sum 数量
+   * @returns 占位符字符串 "?,?"
+   */
+  public keyPlaceholderByQuery(sum: number): string {
+    const placeholders = Array.from({ length: sum }, () => '?');
+    return placeholders.join(',');
+  }
+
+  /**
+   * 插入-键值数据与参数映射键值占位符
+   * @param params 键值参数
+   * @returns [keys, placeholder, values]
+   */
+  public keyValuePlaceholderByInsert(
+    params: Map<string, any>
+  ): [string, any[], string] {
+    // 参数映射的键
+    const keys = [...params.keys()].join(',');
+    // 参数映射的值
+    const values = [...params.values()];
+    // 参数值的占位符
+    const placeholders = Array.from({ length: params.size }, () => '?');
+
+    return [keys, values, placeholders.join(',')];
+  }
+
+  /**
+   * 更新-键值数据
+   * @param params 键值参数
+   * @returns [keys, values]
+   */
+  public keyValueByUpdate(params: Map<string, any>): [string, any[]] {
+    // 参数映射的键
+    const keys = [...params.keys()].map(k => k + '=?').join(',');
+    // 参数映射的值
+    const values = [...params.values()];
+
+    return [keys, values];
   }
 }

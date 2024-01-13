@@ -7,7 +7,7 @@ import {
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
 import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysNoticeRepository } from '../ISysNoticeRepository';
-import { SysNotice } from '../../model/SysNotice'; 
+import { SysNotice } from '../../model/SysNotice';
 
 /**查询视图对象SQL */
 const SELECT_NOTICE_SQL = `select 
@@ -111,12 +111,10 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
 
     // 分页
     const pageSql = ' limit ?,? ';
-    let pageNum = parseNumber(query.pageNum);
-    pageNum = pageNum <= 5000 ? pageNum : 5000;
-    pageNum = pageNum > 0 ? pageNum - 1 : 0;
-    let pageSize = parseNumber(query.pageSize);
-    pageSize = pageSize <= 50000 ? pageSize : 50000;
-    pageSize = pageSize > 0 ? pageSize : 10;
+    const [pageNum, pageSize] = this.db.pageNumSize(
+      query.pageNum,
+      query.pageSize
+    );
     params.push(pageNum * pageSize);
     params.push(pageSize);
 
@@ -158,9 +156,8 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
   }
 
   async selectNoticeByIds(noticeIds: string[]): Promise<SysNotice[]> {
-    const sqlStr = `${SELECT_NOTICE_SQL} where notice_id in (${noticeIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(noticeIds.length);
+    const sqlStr = `${SELECT_NOTICE_SQL} where notice_id in (${placeholder})`;
     const rows = await this.db.execute(sqlStr, noticeIds);
     return convertResultRows(rows);
   }
@@ -187,12 +184,10 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramMap.set('create_time', Date.now());
     }
 
-    const sqlStr = `insert into sys_notice (${[...paramMap.keys()].join(
-      ','
-    )})values(${Array.from({ length: paramMap.size }, () => '?').join(',')})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
-    ]);
+    const [keys, values, placeholder] =
+      this.db.keyValuePlaceholderByInsert(paramMap);
+    const sqlStr = `insert into sys_notice (${keys})values(${placeholder})`;
+    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -218,20 +213,18 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
       paramMap.set('update_time', Date.now());
     }
 
-    const sqlStr = `update sys_notice set ${[...paramMap.keys()]
-      .map(k => `${k} = ?`)
-      .join(',')} where notice_id = ?`;
+    const [keys, values] = this.db.keyValueByUpdate(paramMap);
+    const sqlStr = `update sys_notice set ${keys} where notice_id = ?`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...paramMap.values(),
+      ...values,
       sysNotice.noticeId,
     ]);
     return result.affectedRows;
   }
 
   async deleteNoticeByIds(noticeIds: string[]): Promise<number> {
-    const sqlStr = `update sys_notice set del_flag = '1' where notice_id in (${noticeIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(noticeIds.length);
+    const sqlStr = `update sys_notice set del_flag = '1' where notice_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, noticeIds);
     return result.affectedRows;
   }

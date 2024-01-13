@@ -32,9 +32,8 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
   }
 
   async deleteUserPost(userIds: string[]): Promise<number> {
-    const sqlStr = `delete from sys_user_post where user_id in (${userIds
-      .map(() => '?')
-      .join(',')})`;
+    const placeholder = this.db.keyPlaceholderByQuery(userIds.length);
+    const sqlStr = `delete from sys_user_post where user_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
