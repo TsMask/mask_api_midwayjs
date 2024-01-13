@@ -63,7 +63,10 @@ export class SysDeptController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dept:add'] })
-  @OperateLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.INSERT })
+  @OperateLog({
+    title: '部门信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
   async add(@Body() sysDept: SysDept): Promise<Result> {
     const { parentId, deptName } = sysDept;
     if (!parentId || !deptName) return Result.err();
@@ -108,21 +111,27 @@ export class SysDeptController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
-  @OperateLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '部门信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async edit(@Body() sysDept: SysDept): Promise<Result> {
     const { deptId, parentId, deptName } = sysDept;
     if (!deptId || !parentId || !deptName) return Result.err();
+
     // 上级部门不能选自己
     if (deptId === parentId) {
       return Result.errMsg(
         `部门修改【${sysDept.deptName}】失败，上级部门不能是自己`
       );
     }
+
     // 检查数据是否存在
     const dept = await this.sysDeptService.selectDeptById(deptId);
     if (!dept) {
       return Result.errMsg('没有权限访问部门数据！');
     }
+
     // 父级ID不为0是要检查
     if (parentId !== '0') {
       const deptParent = await this.sysDeptService.selectDeptById(parentId);
@@ -130,6 +139,7 @@ export class SysDeptController {
         return Result.errMsg('没有权限访问部门数据！');
       }
     }
+
     // 检查同级下名称唯一
     const uniqueDeptName = await this.sysDeptService.checkUniqueDeptName(
       deptName,
@@ -141,13 +151,15 @@ export class SysDeptController {
         `部门修改【${sysDept.deptName}】失败，部门名称已存在`
       );
     }
+
     // 上级停用需要检查下级是否有在使用
     if (sysDept.status === STATUS_NO) {
       const hasChild = await this.sysDeptService.hasChildByDeptId(deptId);
-      if (hasChild) {
-        return Result.errMsg('该部门包含未停用的子部门！');
+      if (hasChild > 0) {
+        return Result.errMsg(`该部门包含未停用的子部门数量：${hasChild}`);
       }
     }
+
     sysDept.updateBy = this.contextService.getUseName();
     const rows = await this.sysDeptService.updateDept(sysDept);
     return Result[rows > 0 ? 'ok' : 'err']();
@@ -158,7 +170,10 @@ export class SysDeptController {
    */
   @Del('/:deptId')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
-  @OperateLog({ title: '部门信息', businessType: OperatorBusinessTypeEnum.DELETE })
+  @OperateLog({
+    title: '部门信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
   async remove(@Param('deptId') deptId: string): Promise<Result> {
     if (!deptId) return Result.err();
     const dept = await this.sysDeptService.selectDeptById(deptId);

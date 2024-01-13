@@ -227,19 +227,12 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     if (sysDept.ancestors) {
       paramMap.set('ancestors', sysDept.ancestors);
     }
-    sysDept.orderNum = parseNumber(sysDept.orderNum);
-    if (sysDept.orderNum > 0) {
+    if (sysDept.orderNum >= 0) {
       paramMap.set('order_num', sysDept.orderNum);
     }
-    if (sysDept.leader) {
-      paramMap.set('leader', sysDept.leader);
-    }
-    if (sysDept.phone) {
-      paramMap.set('phone', sysDept.phone);
-    }
-    if (sysDept.email) {
-      paramMap.set('email', sysDept.email);
-    }
+    paramMap.set('leader', sysDept.leader);
+    paramMap.set('phone', sysDept.phone);
+    paramMap.set('email', sysDept.email);
     if (sysDept.status) {
       paramMap.set('status', parseNumber(sysDept.status));
     }
