@@ -103,27 +103,6 @@ export class SysJobServiceImpl implements ISysJobService {
     return 0;
   }
 
-  async changeStatus(sysJob: SysJob): Promise<boolean> {
-    // 更新状态
-    const newSysJob = new SysJob();
-    newSysJob.jobId = sysJob.jobId;
-    newSysJob.status = sysJob.status;
-    newSysJob.updateBy = sysJob.updateBy;
-    const rows = await this.sysJobRepository.updateJob(newSysJob);
-    if (rows > 0) {
-      // 状态正常添加队列任务
-      if (sysJob.status === STATUS_YES) {
-        await this.insertQueueJob(sysJob, true);
-      }
-      // 状态禁用删除队列任务
-      if (sysJob.status === STATUS_NO) {
-        await this.deleteQueueJob(sysJob);
-      }
-      return true;
-    }
-    return false;
-  }
-
   async resetQueueJob(): Promise<void> {
     // 获取bull上注册的队列列表
     const queueList = this.bullFramework.getQueueList();

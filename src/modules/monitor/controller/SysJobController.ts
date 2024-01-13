@@ -208,7 +208,7 @@ export class SysJobController {
     }
     sysJob.status = status;
     sysJob.updateBy = this.contextService.getUseName();
-    const ok = await this.sysJobService.changeStatus(sysJob);
+    const ok = await this.sysJobService.updateJob(sysJob);
     return Result[ok ? 'ok' : 'err']();
   }
 

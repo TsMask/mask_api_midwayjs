@@ -68,14 +68,6 @@ export interface ISysJobService {
   deleteJobByIds(jobIds: string[]): Promise<number>;
 
   /**
-   * 任务调度状态修改
-   *
-   * @param sysJob 调度任务信息
-   * @return 结果
-   */
-  changeStatus(sysJob: SysJob): Promise<boolean>;
-
-  /**
    * 立即运行一次调度任务
    *
    * @param sysJob 调度任务信息

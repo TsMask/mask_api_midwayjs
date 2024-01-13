@@ -237,9 +237,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     if (sysJob.invokeTarget) {
       paramMap.set('invoke_target', sysJob.invokeTarget);
     }
-    if (sysJob.targetParams) {
-      paramMap.set('target_params', sysJob.targetParams);
-    }
+    paramMap.set('target_params', sysJob.targetParams || '');
     if (sysJob.cronExpression) {
       paramMap.set('cron_expression', sysJob.cronExpression);
     }
@@ -255,9 +253,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     if (sysJob.saveLog) {
       paramMap.set('save_log', parseNumber(sysJob.saveLog));
     }
-    if (sysJob.remark) {
-      paramMap.set('remark', sysJob.remark);
-    }
+    paramMap.set('remark', sysJob.remark || '');
     if (sysJob.updateBy) {
       paramMap.set('update_by', sysJob.updateBy);
       paramMap.set('update_time', Date.now());
