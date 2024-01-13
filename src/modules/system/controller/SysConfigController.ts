@@ -100,6 +100,12 @@ export class SysConfigController {
       return Result.err();
     }
 
+    // 检查是否存在
+    const config = await this.sysConfigService.selectConfigById(configId);
+    if (!config) {
+      return Result.errMsg('没有权限访问参数配置数据！');
+    }
+
     // 检查属性值唯一
     const uniqueConfigKey = await this.sysConfigService.checkUniqueConfigKey(
       configKey,
@@ -107,12 +113,6 @@ export class SysConfigController {
     );
     if (!uniqueConfigKey) {
       return Result.errMsg(`参数配置修改【${configKey}】失败，参数键名已存在`);
-    }
-
-    // 检查是否存在
-    const config = await this.sysConfigService.selectConfigById(configId);
-    if (!config) {
-      return Result.errMsg('没有权限访问参数配置数据！');
     }
 
     sysConfig.updateBy = this.contextService.getUseName();
