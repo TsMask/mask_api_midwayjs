@@ -91,14 +91,25 @@ export class SysProfileController {
    */
   @Put()
   @PreAuthorize()
-  @OperateLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '个人信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async updateProfile(@Body() sysUser: SysUser): Promise<Result> {
     if (!sysUser.nickName || !sysUser.sex) {
       return Result.err();
     }
+
+    // 登录用户信息
     const loginUser = this.contextService.getLoginUser();
-    const userName = loginUser.user.userName;
     const userId = loginUser.userId;
+    const userName = loginUser.user.userName;
+
+    // 查询当前登录用户信息
+    const user = await this.sysUserService.selectUserById(userId);
+    if (!user) {
+      return Result.errMsg('没有权限访问用户数据！');
+    }
 
     // 检查手机号码格式并判断是否唯一
     if (sysUser.phonenumber) {
@@ -135,21 +146,17 @@ export class SysProfileController {
     }
 
     // 用户基本资料
-    const newSysUser = new SysUser();
-    newSysUser.userId = userId;
-    newSysUser.updateBy = userName;
-    newSysUser.nickName = sysUser.nickName;
-    newSysUser.phonenumber = sysUser.phonenumber;
-    newSysUser.email = sysUser.email;
-    newSysUser.sex = sysUser.sex;
-    const rows = await this.sysUserService.updateUser(newSysUser);
+    user.userId = userId;
+    user.updateBy = userName;
+    user.nickName = sysUser.nickName;
+    user.phonenumber = sysUser.phonenumber;
+    user.email = sysUser.email;
+    user.sex = sysUser.sex;
+    const rows = await this.sysUserService.updateUser(user);
     if (rows > 0) {
-      const isAdmin = this.contextService.isAdmin(loginUser.userId);
       // 更新缓存用户信息
-      const user = await this.sysUserService.selectUserByUserName(
-        loginUser.user.userName
-      );
-      loginUser.user = user;
+      loginUser.user = await this.sysUserService.selectUserByUserName(userName);
+      const isAdmin = this.contextService.isAdmin(userId);
       await this.tokenService.setLoginUser(loginUser, isAdmin);
       return Result.ok();
     }
@@ -161,17 +168,27 @@ export class SysProfileController {
    */
   @Put('/updatePwd')
   @PreAuthorize()
-  @OperateLog({ title: '个人信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '个人信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async updatePwd(
     @Body('oldPassword') oldPassword: string,
     @Body('newPassword') newPassword: string
   ): Promise<Result> {
     if (!oldPassword || !newPassword) return Result.err();
+
+    // 登录用户信息
     const loginUser = this.contextService.getLoginUser();
-    const user = await this.sysUserService.selectUserById(loginUser.userId);
+    const userId = loginUser.userId;
+    const userName = loginUser.user.userName;
+
+    // 查询当前登录用户信息
+    const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
       return Result.errMsg('没有权限访问用户数据！');
     }
+
     // 检查匹配用户密码
     const oldCompare = await bcryptCompare(oldPassword, user.password);
     if (!oldCompare) {
@@ -181,12 +198,11 @@ export class SysProfileController {
     if (newCompare) {
       return Result.errMsg('新密码不能与旧密码相同');
     }
+
     // 用户修改新密码
-    const newSysUser = new SysUser();
-    newSysUser.userId = loginUser.userId;
-    newSysUser.updateBy = loginUser.user.userName;
-    newSysUser.password = newPassword;
-    const rows = await this.sysUserService.updateUser(newSysUser);
+    user.updateBy = userName;
+    user.password = newPassword;
+    const rows = await this.sysUserService.updateUser(user);
     return Result[rows > 0 ? 'ok' : 'err']();
   }
 
@@ -195,7 +211,10 @@ export class SysProfileController {
    */
   @Post('/avatar')
   @PreAuthorize()
-  @OperateLog({ title: '用户头像', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '用户头像',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async avatar(
     @Files('file') files: UploadFileInfo<string>[]
   ): Promise<Result> {
@@ -207,20 +226,26 @@ export class SysProfileController {
       ['.jpg', '.jpeg', '.png']
     );
     await this.contextService.getContext().cleanupRequestFiles();
-    // 更新用户头像
+
+    // 登录用户信息
     const loginUser = this.contextService.getLoginUser();
-    const newSysUser = new SysUser();
-    newSysUser.userId = loginUser.userId;
-    newSysUser.updateBy = loginUser.user.userName;
-    newSysUser.avatar = filePath;
-    const rows = await this.sysUserService.updateUser(newSysUser);
+    const userId = loginUser.userId;
+    const userName = loginUser.user.userName;
+
+    // 查询当前登录用户信息
+    const user = await this.sysUserService.selectUserById(userId);
+    if (!user) {
+      return Result.errMsg('没有权限访问用户数据！');
+    }
+
+    // 更新用户头像
+    user.updateBy = userName;
+    user.avatar = filePath;
+    const rows = await this.sysUserService.updateUser(user);
     if (rows > 0) {
-      const isAdmin = this.contextService.isAdmin(loginUser.userId);
       // 更新缓存用户信息
-      const user = await this.sysUserService.selectUserByUserName(
-        loginUser.user.userName
-      );
-      loginUser.user = user;
+      loginUser.user = await this.sysUserService.selectUserByUserName(userName);
+      const isAdmin = this.contextService.isAdmin(loginUser.userId);
       await this.tokenService.setLoginUser(loginUser, isAdmin);
       return Result.okData(filePath);
     }
