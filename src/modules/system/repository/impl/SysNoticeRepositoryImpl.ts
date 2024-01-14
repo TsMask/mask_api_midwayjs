@@ -205,9 +205,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     if (sysNotice.status) {
       paramMap.set('status', parseNumber(sysNotice.status));
     }
-    if (sysNotice.remark) {
-      paramMap.set('remark', sysNotice.remark);
-    }
+    paramMap.set('remark', sysNotice.remark || "");
     if (sysNotice.updateBy) {
       paramMap.set('update_by', sysNotice.updateBy);
       paramMap.set('update_time', Date.now());
