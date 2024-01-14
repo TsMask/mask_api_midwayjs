@@ -243,12 +243,12 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     if (sysDictData.dictType) {
       paramMap.set('dict_type', sysDictData.dictType);
     }
-    paramMap.set('tag_class', sysDictData.tagClass);
-    paramMap.set('tag_type', sysDictData.tagType);
+    paramMap.set('tag_class', sysDictData.tagClass || '');
+    paramMap.set('tag_type', sysDictData.tagType || '');
     if (sysDictData.status) {
       paramMap.set('status', parseNumber(sysDictData.status));
     }
-    paramMap.set('remark', sysDictData.remark);
+    paramMap.set('remark', sysDictData.remark || '');
     if (sysDictData.updateBy) {
       paramMap.set('update_by', sysDictData.updateBy);
       paramMap.set('update_time', Date.now());

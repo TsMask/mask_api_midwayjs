@@ -233,7 +233,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     if (sysConfig.configType) {
       paramMap.set('config_type', sysConfig.configType);
     }
-    paramMap.set('remark', sysConfig.remark);
+    paramMap.set('remark', sysConfig.remark || '');
     if (sysConfig.updateBy) {
       paramMap.set('update_by', sysConfig.updateBy);
       paramMap.set('update_time', Date.now());
