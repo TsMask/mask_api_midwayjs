@@ -257,6 +257,7 @@ export class AccountService {
     userInfo.loginIp = sysUser.loginIp;
     userInfo.loginDate = sysUser.loginDate;
     userInfo.updateBy = sysUser.userName;
+    userInfo.remark = sysUser.remark;
     return await this.sysUserService.updateUser(userInfo);
   }
 
