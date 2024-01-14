@@ -195,35 +195,6 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     return convertResultRows(rows);
   }
 
-  async checkUniqueRole(sysRole: SysRole): Promise<string> {
-    // 查询条件拼接
-    const conditions: string[] = [];
-    const params: any[] = [];
-    if (sysRole.roleName) {
-      conditions.push('r.role_name = ?');
-      params.push(sysRole.roleName);
-    }
-    if (sysRole.roleKey) {
-      conditions.push('r.role_key = ?');
-      params.push(sysRole.roleKey);
-    }
-
-    // 构建查询条件语句
-    let whereSql = '';
-    if (conditions.length > 0) {
-      whereSql = ' where ' + conditions.join(' and ');
-    } else {
-      return null;
-    }
-
-    const sqlStr =
-      "select role_id as 'str' from sys_role r " +
-      whereSql +
-      " and r.del_flag = '0' limit 1";
-    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
-    return rows.length > 0 ? rows[0].str : null;
-  }
-
   async updateRole(sysRole: SysRole): Promise<number> {
     const paramMap = new Map();
     if (sysRole.roleName) {
@@ -232,8 +203,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     if (sysRole.roleKey) {
       paramMap.set('role_key', sysRole.roleKey);
     }
-    sysRole.roleSort = parseNumber(sysRole.roleSort);
-    if (sysRole.roleSort > 0) {
+    if (sysRole.roleSort >= 0) {
       paramMap.set('role_sort', sysRole.roleSort);
     }
     if (sysRole.dataScope) {
@@ -254,9 +224,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     if (sysRole.status) {
       paramMap.set('status', parseNumber(sysRole.status));
     }
-    if (sysRole.remark) {
-      paramMap.set('remark', sysRole.remark);
-    }
+    paramMap.set('remark', sysRole.remark || '');
     if (sysRole.updateBy) {
       paramMap.set('update_by', sysRole.updateBy);
       paramMap.set('update_time', Date.now());
@@ -324,5 +292,34 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const sqlStr = `update sys_role set del_flag = '1' where role_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
+  }
+
+  async checkUniqueRole(sysRole: SysRole): Promise<string> {
+    // 查询条件拼接
+    const conditions: string[] = [];
+    const params: any[] = [];
+    if (sysRole.roleName) {
+      conditions.push('r.role_name = ?');
+      params.push(sysRole.roleName);
+    }
+    if (sysRole.roleKey) {
+      conditions.push('r.role_key = ?');
+      params.push(sysRole.roleKey);
+    }
+
+    // 构建查询条件语句
+    let whereSql = '';
+    if (conditions.length > 0) {
+      whereSql = ' where ' + conditions.join(' and ');
+    } else {
+      return null;
+    }
+
+    const sqlStr =
+      "select role_id as 'str' from sys_role r " +
+      whereSql +
+      " and r.del_flag = '0' limit 1";
+    const rows: RowOneColumnType[] = await this.db.execute(sqlStr, params);
+    return rows.length > 0 ? rows[0].str : null;
   }
 }

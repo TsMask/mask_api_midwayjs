@@ -201,11 +201,9 @@ export class SysRoleController {
     }
 
     // 更新状态不刷新缓存
-    const sysRole = new SysRole();
-    sysRole.roleId = roleId;
-    sysRole.status = status;
-    sysRole.updateBy = this.contextService.getUseName();
-    const rowNum = await this.sysRoleService.updateRole(sysRole);
+    role.status = status;
+    role.updateBy = this.contextService.getUseName();
+    const rowNum = await this.sysRoleService.updateRole(role);
     return Result[rowNum ? 'ok' : 'err']();
   }
 
