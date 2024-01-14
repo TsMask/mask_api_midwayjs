@@ -449,7 +449,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
   async deleteUserByIds(userIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(userIds.length);
-    const sqlStr = `update sys_user set del_flag = '1' where user_id in (${placeholder})`;
+    const sqlStr = `update sys_user set user_name = concat(user_name, '_del'), del_flag = '1' where user_id in (${placeholder})`;
     const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
