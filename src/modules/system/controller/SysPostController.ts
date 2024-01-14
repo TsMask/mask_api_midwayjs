@@ -60,7 +60,10 @@ export class SysPostController {
    */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:post:add'] })
-  @OperateLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.INSERT })
+  @OperateLog({
+    title: '岗位信息',
+    businessType: OperatorBusinessTypeEnum.INSERT,
+  })
   async add(@Body() sysPost: SysPost): Promise<Result> {
     const { postId, postName, postCode } = sysPost;
     if (postId || !postName || !postCode) return Result.err();
@@ -89,10 +92,14 @@ export class SysPostController {
    */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:post:edit'] })
-  @OperateLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.UPDATE })
+  @OperateLog({
+    title: '岗位信息',
+    businessType: OperatorBusinessTypeEnum.UPDATE,
+  })
   async edit(@Body() sysPost: SysPost): Promise<Result> {
     const { postId, postName, postCode } = sysPost;
     if (!postId || !postName || !postCode) return Result.err();
+
     // 检查是否存在
     const post = await this.sysPostService.selectPostById(postId);
     if (!post) {
@@ -127,7 +134,10 @@ export class SysPostController {
    */
   @Del('/:postIds')
   @PreAuthorize({ hasPermissions: ['system:post:remove'] })
-  @OperateLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.DELETE })
+  @OperateLog({
+    title: '岗位信息',
+    businessType: OperatorBusinessTypeEnum.DELETE,
+  })
   async remove(@Param('postIds') postIds: string): Promise<Result> {
     if (!postIds) return Result.err();
     // 处理字符转id数组
@@ -142,7 +152,10 @@ export class SysPostController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:post:export'] })
-  @OperateLog({ title: '岗位信息', businessType: OperatorBusinessTypeEnum.EXPORT })
+  @OperateLog({
+    title: '岗位信息',
+    businessType: OperatorBusinessTypeEnum.EXPORT,
+  })
   async export() {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制

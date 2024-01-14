@@ -167,16 +167,13 @@ export class SysPostRepositoryImpl implements ISysPostRepository {
     if (sysPost.postName) {
       paramMap.set('post_name', sysPost.postName);
     }
-    sysPost.postSort = parseNumber(sysPost.postSort);
-    if (sysPost.postSort > 0) {
+    if (sysPost.postSort >= 0) {
       paramMap.set('post_sort', sysPost.postSort);
     }
     if (sysPost.status) {
       paramMap.set('status', parseNumber(sysPost.status));
     }
-    if (sysPost.remark) {
-      paramMap.set('remark', sysPost.remark);
-    }
+    paramMap.set('remark', sysPost.remark || '');
     if (sysPost.updateBy) {
       paramMap.set('update_by', sysPost.updateBy);
       paramMap.set('update_time', Date.now());
