@@ -223,15 +223,21 @@ export class RedisCache {
     const keys: string[] = [];
     let cursor = '0';
 
-    do {
+    for (;;) {
       const [nextCursor, batchKeys] = await this.redisService.scan(
         cursor,
         'MATCH',
-        pattern
+        pattern,
+        'COUNT',
+        100
       );
       cursor = nextCursor;
       keys.push(...batchKeys);
-    } while (cursor !== '0');
+      // 当 cursor 为 0，表示遍历完成
+      if (cursor === '0') {
+        break;
+      }
+    }
 
     return keys;
   }
