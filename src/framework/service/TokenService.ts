@@ -88,16 +88,20 @@ export class TokenService {
     // 生成用户唯一tokne32位
     const uuid = generateHash(32);
     loginUser.uuid = uuid;
+    
     // 设置请求用户登录客户端
     loginUser.ipaddr = ilobArgs[0];
     loginUser.loginLocation = ilobArgs[1];
     loginUser.os = ilobArgs[2];
     loginUser.browser = ilobArgs[3];
-    // 设置用户令牌有效期并存入缓存
-    await this.setUserToken(loginUser);
+
     // 设置新登录IP和登录时间
     loginUser.user.loginIp = loginUser.ipaddr;
     loginUser.user.loginDate = loginUser.loginTime;
+
+    // 设置用户令牌有效期并存入缓存
+    await this.setUserToken(loginUser);
+
     // 生成令牌负荷uuid标识
     return this.jwtService.sign({
       [TOKEN_JWT_UUID]: uuid,
@@ -136,6 +140,7 @@ export class TokenService {
     const expSecond = Math.ceil(Number(expTimestamp / 1000));
     // 根据登录标识将loginUser缓存
     const tokenKey = this.getTokenKey(loginUser.uuid);
+    delete loginUser.user.password;
     await this.redisCache.setByExpire(
       tokenKey,
       JSON.stringify(loginUser),
