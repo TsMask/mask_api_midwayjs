@@ -88,7 +88,7 @@ export class SysUserController {
   async getInfo(@Param('userId') userId: string): Promise<Result> {
     if (!userId) return Result.err();
     // 查询系统角色列表
-    const dataScopeSQL = this.contextService.getDataScopeSQL('d');
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     let roles = await this.sysRoleService.selectRoleList(
       new SysRole(),
       dataScopeSQL
