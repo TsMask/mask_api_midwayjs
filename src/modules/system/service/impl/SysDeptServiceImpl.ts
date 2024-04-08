@@ -104,7 +104,11 @@ export class SysDeptServiceImpl implements ISysDeptService {
       }
     }
     // 如果该部门是启用状态，则启用该部门的所有上级部门
-    if (sysDept.status === STATUS_YES && parentDept.status === STATUS_NO) {
+    if (
+      sysDept.status === STATUS_YES &&
+      parentDept != null &&
+      parentDept.status === STATUS_NO
+    ) {
       await this.updateParentDeptStatusNormal(sysDept);
     }
     return await this.sysDeptRepository.updateDept(sysDept);
