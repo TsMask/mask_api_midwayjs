@@ -75,11 +75,16 @@ export class FileController {
     @Files('file') files: UploadFileInfo<string>[],
     @Fields('subPath') subPath: UploadSubPathEnum
   ) {
-    if (
-      files.length <= 0 ||
-      !Object.values(UploadSubPathEnum).includes(subPath)
-    ) {
+    if (files.length <= 0) {
       return Result.err();
+    }
+
+    // 子路径需要在指定范围内
+    if (subPath && !Object.values(UploadSubPathEnum).includes(subPath)) {
+      return Result.errMsg('subPath不在指定范围内');
+    }
+    if (!subPath) {
+      subPath = UploadSubPathEnum.COMMON;
     }
 
     const { origin, cleanupRequestFiles } = this.contextService.getContext();
@@ -126,12 +131,16 @@ export class FileController {
     @Body('fileName') fileName: string,
     @Body('subPath') subPath: UploadSubPathEnum
   ) {
-    if (
-      !identifier ||
-      !fileName ||
-      !Object.values(UploadSubPathEnum).includes(subPath)
-    ) {
+    if (!identifier || !fileName) {
       return Result.err();
+    }
+
+    // 子路径需要在指定范围内
+    if (subPath && !Object.values(UploadSubPathEnum).includes(subPath)) {
+      return Result.errMsg('subPath不在指定范围内');
+    }
+    if (!subPath) {
+      subPath = UploadSubPathEnum.COMMON;
     }
 
     const upFilePath = await this.fileService.chunkMergeFile(
