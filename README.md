@@ -2,7 +2,7 @@
 
 [![star](https://gitee.com/TsMask/mask_api_midwayjs/badge/star.svg?theme=dark)](https://gitee.com/TsMask/mask_api_midwayjs/stargazers)
 ![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
-![Release V0.3.9](https://img.shields.io/badge/Release-V0.3.9-orange.svg)
+![Release V0.4.0](https://img.shields.io/badge/Release-V0.4.0-orange.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
