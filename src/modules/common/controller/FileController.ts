@@ -38,6 +38,14 @@ export class FileController {
     filePath = Buffer.from(filePath, 'base64').toString('utf-8');
     const ctx = this.contextService.getContext();
 
+    // 断点续传
+    const headerRange = ctx.headers.range;
+    const result = await this.fileService.readUploadFileStream(
+      filePath,
+      headerRange
+    );
+    if (!result.data) return Result.errMsg('找不到文件资源');
+
     // 设置资源文件名称
     const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
     ctx.set(
@@ -47,13 +55,6 @@ export class FileController {
     ctx.set('Accept-Ranges', 'bytes');
     ctx.set('Content-Type', 'application/octet-stream');
 
-    // 断点续传
-    const headerRange = ctx.headers.range;
-    const result = await this.fileService.readUploadFileStream(
-      filePath,
-      headerRange
-    );
-    if (!result.data) return Result.errMsg('找不到文件资源');
     if (headerRange) {
       ctx.set('Content-Range', result.range);
       ctx.set('Content-Length', `${result.chunkSize}`);
