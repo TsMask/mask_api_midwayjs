@@ -83,6 +83,10 @@ export class SysLogOperateRepositoryImpl implements ISysLogOperateRepository {
       conditions.push("oper_name like concat(?, '%')");
       params.push(query.operName);
     }
+    if (query.operIp) {
+      conditions.push("oper_ip like concat(?, '%')");
+      params.push(query.operIp);
+    }
     if (query.status) {
       conditions.push('status = ?');
       params.push(query.status);

@@ -31,7 +31,7 @@ export class SysLogOperate {
   /**请求URL */
   operUrl: string;
 
-  /**主机地址 */
+  /**操作地址 */
   operIp: string;
 
   /**操作地点 */
