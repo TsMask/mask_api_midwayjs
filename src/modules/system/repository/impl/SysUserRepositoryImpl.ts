@@ -321,7 +321,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const sqlStr = `${SELECT_USER_SQL} where u.del_flag = '0' and u.user_name = ?`;
     const rows = await this.db.execute(sqlStr, [userName]);
     if (rows.length === 0) {
-      return new SysUser;
+      return new SysUser();
     }
     const sysUsers = convertResultRows(rows);
     return sysUsers[0];
@@ -399,20 +399,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     if (sysUser.userType) {
       paramMap.set('user_type', sysUser.userType);
     }
-    if (sysUser.email) {
-      if (sysUser.email === 'null') {
-        paramMap.set('email', '');
-      } else {
-        paramMap.set('email', sysUser.email);
-      }
-    }
-    if (sysUser.phonenumber) {
-      if (sysUser.phonenumber === 'null') {
-        paramMap.set('phonenumber', '');
-      } else {
-        paramMap.set('phonenumber', sysUser.phonenumber);
-      }
-    }
+    paramMap.set('email', sysUser.email);
+    paramMap.set('phonenumber', sysUser.phonenumber);
     if (sysUser.sex) {
       paramMap.set('sex', parseNumber(sysUser.sex));
     }

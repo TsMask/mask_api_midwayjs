@@ -124,10 +124,7 @@ export class SysProfileController {
       } else {
         return Result.errMsg(`修改用户【${userName}】失败，手机号码格式错误`);
       }
-    } else {
-      sysUser.phonenumber = 'null';
     }
-
     // 检查邮箱格式并判断是否唯一
     if (sysUser.email) {
       if (validEmail(sysUser.email)) {
@@ -141,12 +138,9 @@ export class SysProfileController {
       } else {
         return Result.errMsg(`修改用户【${userName}】失败，邮箱格式错误`);
       }
-    } else {
-      sysUser.email = 'null';
     }
 
-    // 用户基本资料
-    user.userId = userId;
+    // 用户基本资料 
     user.updateBy = userName;
     user.nickName = sysUser.nickName;
     user.phonenumber = sysUser.phonenumber;
@@ -155,9 +149,8 @@ export class SysProfileController {
     const rows = await this.sysUserService.updateUser(user);
     if (rows > 0) {
       // 更新缓存用户信息
-      loginUser.user = await this.sysUserService.selectUserByUserName(userName);
-      const isAdmin = this.contextService.isAdmin(userId);
-      await this.tokenService.setLoginUser(loginUser, isAdmin);
+      loginUser.user = user;
+      await this.tokenService.cacheLoginUser(loginUser);
       return Result.ok();
     }
     return Result.errMsg('修改个人信息异常');
@@ -244,9 +237,8 @@ export class SysProfileController {
     const rows = await this.sysUserService.updateUser(user);
     if (rows > 0) {
       // 更新缓存用户信息
-      loginUser.user = await this.sysUserService.selectUserByUserName(userName);
-      const isAdmin = this.contextService.isAdmin(loginUser.userId);
-      await this.tokenService.setLoginUser(loginUser, isAdmin);
+      loginUser.user = user;
+      await this.tokenService.cacheLoginUser(loginUser);
       return Result.okData(filePath);
     }
     return Result.errMsg('上传图片异常');
