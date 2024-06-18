@@ -26,7 +26,6 @@ import { SysMenuServiceImpl } from '../../system/service/impl/SysMenuServiceImpl
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { SysRoleServiceImpl } from '../../system/service/impl/SysRoleServiceImpl';
 import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
-import { SysUser } from '../../system/model/SysUser';
 
 /**
  * 账号身份操作服务
@@ -123,126 +122,102 @@ export class AccountService {
    * @return 结果
    */
   async loginByUsername(username: string, password: string): Promise<string> {
-    // 验证登录次数
-    const maxRetryCount = this.contextService.getConfig(
-      'user.password.maxRetryCount'
-    );
-    // 错误锁定时间
-    const lockTime = this.contextService.getConfig('user.password.lockTime');
-    // 验证缓存记录次数
-    const cacheKey = PWD_ERR_CNT_KEY + username;
-    let retryCount = await this.redisCache.get(cacheKey);
-    if (!retryCount) {
-      retryCount = '0';
-    }
-    // 是否超过错误值
-    if (parseNumber(retryCount) >= parseNumber(maxRetryCount)) {
-      const msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;
-      this.contextService.getLogger().info(msg);
-      // 解析ip地址和请求用户代理信息
-      const il = await this.contextService.ipaddrLocation();
-      const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.createSysLogLogin(
-        username,
-        STATUS_NO,
-        msg,
-        ...il,
-        ...ob
-      );
-      throw new Error(msg);
-    }
+    // 解析ip地址和请求用户代理信息
+    const il = await this.contextService.ipaddrLocation();
+    const ob = await this.contextService.uaOsBrowser();
+    const ilobArgs = [...il, ...ob];
+
+    // 检查密码重试次数
+    const retryPwdObj = await this.passwordRetryCount(username, ilobArgs);
 
     // 查询用户登录账号
     const sysUser = await this.sysUserService.selectUserByUserName(username);
     if (!sysUser || sysUser.userName !== username) {
       const msg = `登录用户：${username} 不存在`;
-      this.contextService.getLogger().info(msg);
-      // 解析ip地址和请求用户代理信息
-      const il = await this.contextService.ipaddrLocation();
-      const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.createSysLogLogin(
-        username,
-        STATUS_NO,
-        msg,
-        ...il,
-        ...ob
-      );
-      throw new Error('用户不存在或密码错误');
+      const throwMsg = '用户不存在或密码错误';
+      this.createLogLogin(username, STATUS_NO, msg, ilobArgs, throwMsg);
+      return;
     }
     if (sysUser.delFlag === STATUS_YES) {
       const msg = `登录用户：${username} 已被删除`;
-      this.contextService.getLogger().info(msg);
-      // 解析ip地址和请求用户代理信息
-      const il = await this.contextService.ipaddrLocation();
-      const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.createSysLogLogin(
-        username,
-        STATUS_NO,
-        msg,
-        ...il,
-        ...ob
-      );
-      throw new Error('对不起，您的账号已被删除');
+      const throwMsg = '对不起，您的账号已被删除';
+      this.createLogLogin(username, STATUS_NO, msg, ilobArgs, throwMsg);
+      return;
     }
     if (sysUser.status === STATUS_NO) {
       const msg = `登录用户：${username} 已被停用`;
-      this.contextService.getLogger().info(msg);
-      // 解析ip地址和请求用户代理信息
-      const il = await this.contextService.ipaddrLocation();
-      const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.createSysLogLogin(
-        username,
-        STATUS_NO,
-        msg,
-        ...il,
-        ...ob
-      );
-      throw new Error('对不起，您的账号已禁用');
+      const throwMsg = '对不起，您的账号已禁用';
+      this.createLogLogin(username, STATUS_NO, msg, ilobArgs, throwMsg);
+      return;
     }
 
-    // 匹配用户密码，清除错误记录次数
+    // 检验用户密码
     const compareBool = await bcryptCompare(password, sysUser.password);
     if (compareBool) {
+      // 清除错误记录次数
       await this.clearLoginRecordCache(username);
     } else {
-      const errCount = parseNumber(retryCount) + 1;
+      // 尝试登录错误计数累加
+      const errCount = parseNumber(retryPwdObj.retryCount) + 1;
       await this.redisCache.setByExpire(
-        cacheKey,
+        retryPwdObj.cacheKey,
         errCount,
-        parseNumber(lockTime) * 60
+        parseNumber(retryPwdObj.lockTime) * 60
       );
-      // 解析ip地址和请求用户代理信息
-      const il = await this.contextService.ipaddrLocation();
-      const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.createSysLogLogin(
-        username,
-        STATUS_NO,
-        `密码输入错误 ${errCount} 次`,
-        ...il,
-        ...ob
-      );
-      throw new Error('用户不存在/密码错误');
+      const msg = `密码输入错误 ${errCount} 次`;
+      const throwMsg = '用户不存在/密码错误';
+      this.createLogLogin(username, STATUS_NO, msg, ilobArgs, throwMsg);
+      return;
     }
 
     // 登录用户信息
-    // 检查是否管理员，给予拥有所有权限
+    const loginUser = new LoginUser();
+    loginUser.userId = sysUser.userId;
+    loginUser.deptId = sysUser.deptId;
+    loginUser.user = sysUser;
+    // 用户权限组标识
     const isAdmin = this.contextService.isAdmin(sysUser.userId);
-    const loginUser = await this.tokenService.createLoginUser(sysUser, isAdmin);
+    if (isAdmin) {
+      loginUser.permissions = [ADMIN_PERMISSION];
+    } else {
+      loginUser.permissions = await this.sysMenuService.selectMenuPermsByUserId(
+        sysUser.userId
+      );
+    }
 
-    // 解析ip地址和请求用户代理信息
-    const il = await this.contextService.ipaddrLocation();
-    const ob = await this.contextService.uaOsBrowser();
-    const ilobArgs = il.concat(ob);
+    // 生成令牌，创建系统访问记录
     const tokenStr = await this.tokenService.createToken(loginUser, ilobArgs);
-    // 记录登录信息
-    await this.updateLoginDateAndIP(loginUser);
+    if (tokenStr) {
+      const msg = '登录成功';
+      const throwMsg = '用户不存在/密码错误';
+      this.createLogLogin(username, STATUS_YES, msg, ilobArgs, throwMsg);
+      return;
+    }
+    return tokenStr;
+  }
+
+  /**
+   * 根据错误信息，创建系统访问记录
+   * @param username 用户名
+   * @param msg 记录消息
+   * @param ilobArgs 客户端IP UA标识
+   * @param throwMsg 抛出错误消息
+   */
+  async createLogLogin(
+    username: string,
+    status: string,
+    msg: string,
+    ilobArgs: string[],
+    throwMsg: string
+  ) {
+    this.contextService.getLogger().info(msg);
     await this.sysLogLoginService.createSysLogLogin(
       username,
-      STATUS_YES,
-      '登录成功',
+      status,
+      msg,
       ...ilobArgs
     );
-    return tokenStr;
+    throw new Error(throwMsg);
   }
 
   /**
@@ -250,15 +225,13 @@ export class AccountService {
    * @param userId 用户ID
    * @returns 是否登记完成
    */
-  private async updateLoginDateAndIP(loginUser: LoginUser) {
+  async updateLoginDateAndIP(loginUser: LoginUser): Promise<boolean> {
     const sysUser = loginUser.user;
-    const userInfo = new SysUser();
-    userInfo.userId = sysUser.userId;
-    userInfo.loginIp = sysUser.loginIp;
-    userInfo.loginDate = sysUser.loginDate;
-    userInfo.updateBy = sysUser.userName;
-    userInfo.remark = sysUser.remark;
-    return await this.sysUserService.updateUser(userInfo);
+    const user = await this.sysUserService.selectUserById(sysUser.userId);
+    user.loginIp = sysUser.loginIp;
+    user.loginDate = sysUser.loginDate;
+    const rows = await this.sysUserService.updateUser(user);
+    return rows > 0;
   }
 
   /**
@@ -275,44 +248,85 @@ export class AccountService {
   }
 
   /**
+   * 密码重试次数
+   * @param username 登录用户名
+   * @param ilobArgs 客户端IP UA标识
+   */
+  async passwordRetryCount(
+    username: string,
+    ilobArgs: string[]
+  ): Promise<{
+    cacheKey: string;
+    retryCount: string;
+    lockTime: number;
+  }> {
+    // 验证登录次数
+    const maxRetryCount: number = this.contextService.getConfig(
+      'user.password.maxRetryCount'
+    );
+    // 错误锁定时间
+    const lockTime: number = this.contextService.getConfig(
+      'user.password.lockTime'
+    );
+    // 验证缓存记录次数
+    const cacheKey = PWD_ERR_CNT_KEY + username;
+    let retryCount = await this.redisCache.get(cacheKey);
+    if (!retryCount) {
+      retryCount = '0';
+    }
+    // 是否超过错误值
+    const retryCountInt = parseNumber(retryCount);
+    if (retryCountInt >= maxRetryCount) {
+      const msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;
+      this.createLogLogin(username, STATUS_YES, msg, ilobArgs, msg);
+      return;
+    }
+    return {
+      cacheKey,
+      retryCount,
+      lockTime,
+    };
+  }
+
+  /**
    * 角色和菜单权限
    * @returns
    */
-  async roleAndMenuPerms(): Promise<Record<string, any>> {
-    const user = this.contextService.getSysUser();
-    const data = {
-      permissions: [],
-      roles: [],
-      user: user,
-    };
+  async roleAndMenuPerms(): Promise<{
+    permissions: string[];
+    roles: string[];
+  }> {
+    const userId = this.contextService.getUserId();
+    const isAdmin = this.contextService.isAdmin(userId);
+
     // 管理员拥有所有权限
-    const isAdmin = this.contextService.isAdmin(user.userId);
     if (isAdmin) {
-      data.permissions = [ADMIN_PERMISSION];
-      data.roles = [ADMIN_ROLE_KEY];
-    } else {
-      data.permissions = await this.sysMenuService.selectMenuPermsByUserId(
-        user.userId
-      );
-      const roles = await this.sysRoleService.selectRoleListByUserId(
-        user.userId
-      );
-      for (const role of roles) {
-        data.roles.push(role.roleKey);
-      }
+      return {
+        permissions: [ADMIN_PERMISSION],
+        roles: [ADMIN_ROLE_KEY],
+      };
     }
-    return data;
+    const perms = await this.sysMenuService.selectMenuPermsByUserId(userId);
+    // 角色key
+    const roleGroup: string[] = [];
+    const roles = await this.sysRoleService.selectRoleListByUserId(userId);
+    for (const role of roles) {
+      roleGroup.push(role.roleKey);
+    }
+    return {
+      permissions: perms,
+      roles: roleGroup,
+    };
   }
 
   /**
    * 前端路由菜单
-   * @param userId 用户ID
-   * @param isAdmin 是否管理员
    * @returns
    */
   async routeMenus(): Promise<RouterVo[]> {
     const userId = this.contextService.getUserId();
     const isAdmin = this.contextService.isAdmin(userId);
+
     let buildMenus: RouterVo[] = [];
     if (isAdmin) {
       const menus = await this.sysMenuService.selectMenuTreeByUserId('*');

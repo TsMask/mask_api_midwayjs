@@ -6,8 +6,7 @@ import {
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
-import { TOKEN_KEY } from '../constants/TokenConstants';
-import { LoginUser } from '../vo/LoginUser';
+import { TOKEN_KEY, TOKEN_KEY_PREFIX } from '../constants/TokenConstants';
 import { TokenService } from '../service/TokenService';
 
 /** 授权限制参数 */
@@ -52,19 +51,23 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       );
 
       // 获取token在请求头标识信息
-      const token = await tokenService.getHeaderToken(ctx.get(TOKEN_KEY));
-      if (!token) {
+      let headerToken = ctx.get(TOKEN_KEY);
+      if (headerToken && headerToken.startsWith(TOKEN_KEY_PREFIX)) {
+        headerToken = headerToken.replace(TOKEN_KEY_PREFIX, '');
+      }
+      if (!headerToken) {
         throw new httpError.UnauthorizedError('无效身份授权');
       }
 
-      // 获取用户信息
-      let loginUser: LoginUser = await tokenService.getLoginUser(token);
-      if (loginUser && loginUser.userId) {
-        loginUser = await tokenService.verifyToken(loginUser);
-        ctx.loginUser = loginUser;
-      } else {
+      // 验证令牌
+      const claims = await tokenService.verifyToken(headerToken);
+      // 获取缓存的用户信息
+      let loginUser = await tokenService.getLoginUser(claims);
+      if (!loginUser.userId) {
         throw new httpError.UnauthorizedError('无效身份授权');
       }
+      loginUser = await tokenService.refreshInToken(loginUser);
+      ctx.loginUser = loginUser;
 
       // 登录用户角色权限校验
       const metadataObj = options.metadata;
