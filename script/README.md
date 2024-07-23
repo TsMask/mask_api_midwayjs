@@ -15,9 +15,10 @@ npm install --registry https://registry.npmmirror.com
 ## 初始化数据库
 
 - `db_init.sql` 初始化MySQL数据库数据
+- `db_init_demo.sql` 初始化demo模块数据表，不需要可不导入
 
 > **账号/密码**  
-> **管理员**：maskAdmin/Admin@1234  
+> **管理员**：systemAdmin/Admin@1234  
 > **普通人员**：maskUser/User@1234  
 
 ## Docker 部署
