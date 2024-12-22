@@ -35,7 +35,7 @@ export class CaptchaController {
   /**
    * 获取验证码
    */
-  @Get('/captchaImage')
+  @Get('/captcha-image')
   @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
   async captchaImage(): Promise<Result> {
     // 从数据库配置获取验证码开关 true开启，false关闭
@@ -54,7 +54,7 @@ export class CaptchaController {
     const uuid = generateHash(16);
     const verifyKey = CAPTCHA_CODE_KEY + uuid;
     const data = {
-      captchaEnabled: captchaEnabled,
+      enabled: captchaEnabled,
       uuid: uuid,
       img: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
     };
@@ -90,8 +90,8 @@ export class CaptchaController {
     // 本地开发下返回验证码结果，方便接口调试
     if (this.contextService.getEnv() === 'local') {
       const text = await this.redisCache.get(verifyKey);
-      return Result.ok({ text, ...data });
-    }
-    return Result.ok(data);
+      return Result.okData({ text, ...data });
+    } 
+    return Result.okData(data);
   }
 }

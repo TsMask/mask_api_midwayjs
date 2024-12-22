@@ -35,7 +35,7 @@ export class AccountController {
   /**
    * 登录用户信息
    */
-  @Get('/getInfo')
+  @Get('/me')
   @PreAuthorize()
   async getInfo(): Promise<Result> {
     const data = await this.accountService.roleAndMenuPerms();
@@ -45,7 +45,7 @@ export class AccountController {
   /**
    * 登录用户路由信息
    */
-  @Get('/getRouters')
+  @Get('/router')
   @PreAuthorize()
   async getRouters(): Promise<Result> {
     const buildMenus = await this.accountService.routeMenus();

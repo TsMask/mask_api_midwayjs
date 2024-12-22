@@ -9,8 +9,8 @@ import {
   unlink,
   mkdir,
   rmdir,
-} from 'fs/promises';
-import { posix } from 'path';
+} from 'node:fs/promises';
+import { posix } from 'node:path';
 
 /**
  * 读取文件大小
@@ -116,8 +116,8 @@ export async function getFileStream(
     const end = range ? range[1] : size - 1;
     const chunkSize = end - start + 1;
     const buffer = Buffer.alloc(chunkSize);
-
-    await fd.read(buffer, 0, chunkSize, start);
+    const uint8Array = new Uint8Array(buffer);
+    await fd.read(uint8Array, 0, chunkSize, start);
     return buffer;
   } catch (error) {
     console.error(`Failed open "${filePath}": ${error.message}`);
@@ -205,7 +205,7 @@ export async function writeBufferFile(
   const filePath = posix.join(writeDirPath, fileName);
   // 写入到新路径文件
   try {
-    await writeFile(filePath, buf);
+    await writeFile(filePath, buf.toString());
   } catch (error) {
     console.error(`Failed write file "${filePath}": ${error.message}`);
   }
@@ -235,7 +235,7 @@ export async function transferToNewFile(
   try {
     // 读取文件转移到新路径文件
     const data = await readFile(readFilePath);
-    await writeFile(newFilePath, data);
+    await writeFile(newFilePath, data.toString());
   } catch (error) {
     console.error(`Failed transfer file "${newFilePath}": ${error.message}`);
   }
@@ -275,7 +275,7 @@ export async function mergeToNewFile(
       await deleteFile(chunkPath);
     }
     // 写入新文件
-    await writeFile(newFilePath, Buffer.concat(fileBuffers));
+    await writeFile(newFilePath, Buffer.concat(fileBuffers).toString());
   } catch (error) {
     console.error(`Failed merge file "${newFilePath}": ${error.message}`);
   } finally {
