@@ -1,6 +1,6 @@
 import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
-import { SYS_CONFIG_KEY } from '../../../../framework/constants/CacheKeysConstants';
-import { RedisCache } from '../../../../framework/cache/RedisCache';
+import { CACHE_SYS_CONFIG } from '../../../../framework/constants/cache-key';
+import { RedisCache } from '../../../../framework/datasource/redis/redis';
 import { SysConfigRepositoryImpl } from '../../repository/impl/SysConfigRepositoryImpl';
 import { ISysConfigService } from '../ISysConfigService';
 import { SysConfig } from '../../model/SysConfig';
@@ -123,7 +123,7 @@ export class SysConfigServiceImpl implements ISysConfigService {
    * @return 缓存键key
    */
   private cacheKey(configKey: string): string {
-    return SYS_CONFIG_KEY + configKey;
+    return CACHE_SYS_CONFIG + configKey;
   }
 
   /**

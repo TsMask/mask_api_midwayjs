@@ -9,7 +9,7 @@ import {
   Post,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
-import { Result } from '../../../framework/vo/Result';
+import result from '../../../framework/result/result';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
@@ -34,17 +34,17 @@ export class FileController {
   @Get('/download/:filePath')
   @PreAuthorize()
   async download(@Param('filePath') filePath: string) {
-    if (!filePath) return Result.errMsg('未知文件资源路径');
+    if (!filePath) return result.errMsg('未知文件资源路径');
     filePath = Buffer.from(filePath, 'base64').toString('utf-8');
     const ctx = this.contextService.getContext();
 
     // 断点续传
     const headerRange = ctx.headers.range;
-    const result = await this.fileService.readUploadFileStream(
+    const res = await this.fileService.readUploadFileStream(
       filePath,
       headerRange
     );
-    if (!result.data) return Result.errMsg('找不到文件资源');
+    if (!res.data) return result.errMsg('找不到文件资源');
 
     // 设置资源文件名称
     const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
@@ -56,15 +56,15 @@ export class FileController {
     ctx.set('Content-Type', 'application/octet-stream');
 
     if (headerRange) {
-      ctx.set('Content-Range', result.range);
-      ctx.set('Content-Length', `${result.chunkSize}`);
+      ctx.set('Content-Range', res.range);
+      ctx.set('Content-Length', `${res.chunkSize}`);
       ctx.status = 206;
     } else {
-      ctx.set('Content-Length', `${result.fileSize}`);
+      ctx.set('Content-Length', `${res.fileSize}`);
       ctx.status = 200;
     }
 
-    ctx.body = result.data;
+    ctx.body = res.data;
   }
 
   /**
@@ -77,12 +77,12 @@ export class FileController {
     @Fields('subPath') subPath: UploadSubPathEnum
   ) {
     if (files.length <= 0) {
-      return Result.err();
+      return result.err();
     }
 
     // 子路径需要在指定范围内
     if (subPath && !Object.values(UploadSubPathEnum).includes(subPath)) {
-      return Result.errMsg('subPath不在指定范围内');
+      return result.errMsg('subPath不在指定范围内');
     }
     if (!subPath) {
       subPath = UploadSubPathEnum.COMMON;
@@ -96,7 +96,7 @@ export class FileController {
     );
     const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
     await cleanupRequestFiles();
-    return Result.okData({
+    return result.okData({
       url: `${origin}${upFilePath}`,
       fileName: upFilePath,
       newFileName: upFileName,
@@ -113,13 +113,13 @@ export class FileController {
     @Body('identifier') identifier: string,
     @Body('fileName') fileName: string
   ) {
-    if (!identifier || !fileName) return Result.err();
+    if (!identifier || !fileName) return result.err();
 
     const uploadedChunks = await this.fileService.chunkCheckFile(
       identifier,
       fileName
     );
-    return Result.okData(uploadedChunks);
+    return result.okData(uploadedChunks);
   }
 
   /**
@@ -133,12 +133,12 @@ export class FileController {
     @Body('subPath') subPath: UploadSubPathEnum
   ) {
     if (!identifier || !fileName) {
-      return Result.err();
+      return result.err();
     }
 
     // 子路径需要在指定范围内
     if (subPath && !Object.values(UploadSubPathEnum).includes(subPath)) {
-      return Result.errMsg('subPath不在指定范围内');
+      return result.errMsg('subPath不在指定范围内');
     }
     if (!subPath) {
       subPath = UploadSubPathEnum.COMMON;
@@ -151,7 +151,7 @@ export class FileController {
     );
     const { origin } = this.contextService.getContext();
     const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
-    return Result.okData({
+    return result.okData({
       url: `${origin}${upFilePath}`,
       fileName: upFilePath,
       newFileName: upFileName,
@@ -169,7 +169,7 @@ export class FileController {
     @Fields('index') index: string,
     @Fields('identifier') identifier: string
   ) {
-    if (files.length <= 0 || !identifier) return Result.err();
+    if (files.length <= 0 || !identifier) return result.err();
 
     const upFilePath = await this.fileService.transferChunkUploadFile(
       files[0],
@@ -179,6 +179,6 @@ export class FileController {
     const ctx = this.contextService.getContext();
     await ctx.cleanupRequestFiles();
     ctx.status = 206;
-    return Result.okData(upFilePath);
+    return result.okData(upFilePath);
   }
 }

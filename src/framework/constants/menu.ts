@@ -1,11 +1,4 @@
-/**
- * 系统菜单常量信息
- *
- * src\modules\system\controller\SysMenuController.ts
- * src\modules\system\service\impl\SysMenuServiceImpl.ts
- * src\modules\system\repository\impl\SysMenuRepositoryImpl.ts
- * @author TsMask
- */
+// 系统菜单常量信息
 
 /**组件布局类型-基础布局组件标识 */
 export const MENU_COMPONENT_LAYOUT_BASIC = 'BasicLayout';

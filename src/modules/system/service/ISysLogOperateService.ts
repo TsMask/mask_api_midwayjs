@@ -20,7 +20,9 @@ export interface ISysLogOperateService {
    * @param sysLogOperate 操作日志对象
    * @return 操作日志集合
    */
-  selectSysLogOperateList(sysLogOperate: SysLogOperate): Promise<SysLogOperate[]>;
+  selectSysLogOperateList(
+    sysLogOperate: SysLogOperate
+  ): Promise<SysLogOperate[]>;
 
   /**
    * 查询操作日志详细

@@ -1,7 +1,8 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { SysDictData } from '../../model/SysDictData';
 import { ISysDictDataRepository } from '../ISysDictDataRepository';
 
@@ -11,20 +12,20 @@ dict_code, dict_sort, dict_label, dict_value, dict_type, tag_class, tag_type, st
 from sys_dict_data`;
 
 /**字典表信息实体映射 */
-const SYS_DICT_DATA_RESULT = new Map<string, string>();
-SYS_DICT_DATA_RESULT.set('dict_code', 'dictCode');
-SYS_DICT_DATA_RESULT.set('dict_sort', 'dictSort');
-SYS_DICT_DATA_RESULT.set('dict_label', 'dictLabel');
-SYS_DICT_DATA_RESULT.set('dict_value', 'dictValue');
-SYS_DICT_DATA_RESULT.set('dict_type', 'dictType');
-SYS_DICT_DATA_RESULT.set('tag_class', 'tagClass');
-SYS_DICT_DATA_RESULT.set('tag_type', 'tagType');
-SYS_DICT_DATA_RESULT.set('status', 'status');
-SYS_DICT_DATA_RESULT.set('remark', 'remark');
-SYS_DICT_DATA_RESULT.set('create_by', 'createBy');
-SYS_DICT_DATA_RESULT.set('create_time', 'createTime');
-SYS_DICT_DATA_RESULT.set('update_by', 'updateBy');
-SYS_DICT_DATA_RESULT.set('update_time', 'updateTime');
+const SYS_DICT_DATA_Result = new Map<string, string>();
+SYS_DICT_DATA_Result.set('dict_code', 'dictCode');
+SYS_DICT_DATA_Result.set('dict_sort', 'dictSort');
+SYS_DICT_DATA_Result.set('dict_label', 'dictLabel');
+SYS_DICT_DATA_Result.set('dict_value', 'dictValue');
+SYS_DICT_DATA_Result.set('dict_type', 'dictType');
+SYS_DICT_DATA_Result.set('tag_class', 'tagClass');
+SYS_DICT_DATA_Result.set('tag_type', 'tagType');
+SYS_DICT_DATA_Result.set('status', 'status');
+SYS_DICT_DATA_Result.set('remark', 'remark');
+SYS_DICT_DATA_Result.set('create_by', 'createBy');
+SYS_DICT_DATA_Result.set('create_time', 'createTime');
+SYS_DICT_DATA_Result.set('update_by', 'updateBy');
+SYS_DICT_DATA_Result.set('update_time', 'updateTime');
 
 /**
  * 将结果记录转实体结果组
@@ -36,8 +37,8 @@ function convertResultRows(rows: any[]): SysDictData[] {
   for (const row of rows) {
     const sysDictData = new SysDictData();
     for (const key in row) {
-      if (SYS_DICT_DATA_RESULT.has(key)) {
-        const keyMapper = SYS_DICT_DATA_RESULT.get(key);
+      if (SYS_DICT_DATA_Result.has(key)) {
+        const keyMapper = SYS_DICT_DATA_Result.get(key);
         sysDictData[keyMapper] = row[key];
       }
     }
@@ -102,8 +103,8 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
 
     // 查询数据
     const querySql = SELECT_DICT_DATA_SQL + whereSql + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -133,8 +134,8 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     // 查询数据
     const orderSql = ' order by dict_sort asc';
     const querySql = SELECT_DICT_DATA_SQL + whereSql + orderSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectDictDataByCodes(dictCodes: string[]): Promise<SysDictData[]> {
@@ -185,7 +186,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
   async deleteDictDataByCodes(dictCodes: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(dictCodes.length);
     const sqlStr = `delete from sys_dict_data where dict_code in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, dictCodes);
+    const result = await this.db.execute(sqlStr, dictCodes);
     return result.affectedRows;
   }
 
@@ -224,7 +225,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_dict_data (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -256,7 +257,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_dict_data set ${keys} where dict_code = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...values,
       sysDictData.dictCode,
     ]);
@@ -268,10 +269,7 @@ export class SysDictDataRepositoryImpl implements ISysDictDataRepository {
     newDictType: string
   ): Promise<number> {
     const sqlStr = 'update sys_dict_data set dict_type = ? where dict_type = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      newDictType,
-      oldDictType,
-    ]);
+    const result = await this.db.execute(sqlStr, [newDictType, oldDictType]);
     return result.affectedRows;
   }
 }

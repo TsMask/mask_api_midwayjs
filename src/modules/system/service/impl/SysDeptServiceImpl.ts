@@ -1,8 +1,5 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../../../../framework/constants/CommonConstants';
+import { STATUS_NO, STATUS_YES } from '../../../../framework/constants/common';
 import { TreeSelect } from '../../../../framework/vo/TreeSelect';
 import { parseDataToTree } from '../../../../framework/utils/ValueParseUtils';
 import { SysDeptRepositoryImpl } from '../../repository/impl/SysDeptRepositoryImpl';

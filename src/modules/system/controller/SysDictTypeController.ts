@@ -8,14 +8,17 @@ import {
   Post,
   Put,
 } from '@midwayjs/core';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { Result } from '../../../framework/vo/Result';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+
+import result from '../../../framework/result/result';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictTypeServiceImpl } from '../service/impl/SysDictTypeServiceImpl';
-import { STATUS_YES } from '../../../framework/constants/CommonConstants';
+import { STATUS_YES } from '../../../framework/constants/common';
 import { SysDictType } from '../model/SysDictType';
 
 /**
@@ -42,7 +45,7 @@ export class SysDictTypeController {
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
     const data = await this.sysDictTypeService.selectDictTypePage(query);
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -52,7 +55,7 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async getInfo(@Param('dictId') dictId: string) {
     const data = await this.sysDictTypeService.selectDictTypeById(dictId);
-    return Result.okData(data);
+    return result.okData(data);
   }
 
   /**
@@ -62,18 +65,18 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:add'] })
   @OperateLog({
     title: '字典类型信息',
-    businessType: OperatorBusinessTypeEnum.INSERT,
+    businessType: BUSINESS_TYPE.INSERT,
   })
   async add(@Body() sysDictType: SysDictType): Promise<Result> {
     const { dictId, dictName, dictType } = sysDictType;
-    if (dictId || !dictName || !dictType) return Result.err();
+    if (dictId || !dictName || !dictType) return result.err();
 
     // 检查字典名称唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
       dictName
     );
     if (!uniqueDictName) {
-      return Result.errMsg(`字典新增【${dictName}】失败，字典名称已存在`);
+      return result.errMsg(`字典新增【${dictName}】失败，字典名称已存在`);
     }
 
     // 检查字典类型唯一
@@ -81,12 +84,12 @@ export class SysDictTypeController {
       dictType
     );
     if (!uniqueDictType) {
-      return Result.errMsg(`字典新增【${dictType}】失败，字典类型已存在`);
+      return result.errMsg(`字典新增【${dictType}】失败，字典类型已存在`);
     }
 
     sysDictType.createBy = this.contextService.getUseName();
     const insertId = await this.sysDictTypeService.insertDictType(sysDictType);
-    return Result[insertId ? 'ok' : 'err']();
+    return result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -96,11 +99,11 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
   @OperateLog({
     title: '字典类型信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async edit(@Body() sysDictType: SysDictType): Promise<Result> {
     const { dictId, dictName, dictType } = sysDictType;
-    if (!dictId || !dictName || !dictType) return Result.err();
+    if (!dictId || !dictName || !dictType) return result.err();
 
     // 检查是否存在
     const dictInfo = await this.sysDictTypeService.selectDictTypeById(dictId);
@@ -114,7 +117,7 @@ export class SysDictTypeController {
       dictId
     );
     if (!uniqueDictName) {
-      return Result.errMsg(`字典修改【${dictName}】失败，字典名称已存在`);
+      return result.errMsg(`字典修改【${dictName}】失败，字典名称已存在`);
     }
 
     // 检查字典类型唯一
@@ -123,12 +126,12 @@ export class SysDictTypeController {
       dictId
     );
     if (!uniqueDictType) {
-      return Result.errMsg(`字典修改【${dictType}】失败，字典类型已存在`);
+      return result.errMsg(`字典修改【${dictType}】失败，字典类型已存在`);
     }
 
     sysDictType.updateBy = this.contextService.getUseName();
     const rows = await this.sysDictTypeService.updateDictType(sysDictType);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -138,17 +141,17 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperateLog({
     title: '字典类型信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('dictIds') dictIds: string): Promise<Result> {
-    if (!dictIds) return Result.err();
+    if (!dictIds) return result.err();
     // 处理字符转id数组
     const ids = dictIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const rows = await this.sysDictTypeService.deleteDictTypeByIds([
       ...new Set(ids),
     ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -158,11 +161,11 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperateLog({
     title: '字典类型信息',
-    businessType: OperatorBusinessTypeEnum.CLEAN,
+    businessType: BUSINESS_TYPE.CLEAN,
   })
   async refreshCache(): Promise<Result> {
     await this.sysDictTypeService.resetDictCache();
-    return Result.ok();
+    return result.ok();
   }
 
   /**
@@ -182,7 +185,7 @@ export class SysDictTypeController {
         value: item.dictType,
       }));
     }
-    return Result.okData(arr);
+    return result.okData(arr);
   }
 
   /**
@@ -192,7 +195,7 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:export'] })
   @OperateLog({
     title: '字典类型信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
+    businessType: BUSINESS_TYPE.EXPORT,
   })
   async export() {
     const ctx = this.contextService.getContext();
@@ -200,7 +203,7 @@ export class SysDictTypeController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysDictTypeService.selectDictTypePage(query);
     if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
+      return result.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

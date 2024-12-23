@@ -1,5 +1,5 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ADMIN_ROLE_ID } from '../../../../framework/constants/AdminConstants';
+import { SYS_ROLE_SYSTEM_ID } from '../../../../framework/constants/system';
 import { SysUser } from '../../model/SysUser';
 import { SysUserPost } from '../../model/SysUserPost';
 import { SysUserRole } from '../../model/SysUserRole';
@@ -132,7 +132,7 @@ export class SysUserServiceImpl implements ISysUserService {
     const sysUserRoles: SysUserRole[] = [];
     for (const roleId of roleIds) {
       // 管理员角色禁止操作，只能通过配置指定用户ID分配
-      if (!roleId || roleId === ADMIN_ROLE_ID) {
+      if (!roleId || roleId === SYS_ROLE_SYSTEM_ID) {
         continue;
       }
       sysUserRoles.push(new SysUserRole(userId, roleId));

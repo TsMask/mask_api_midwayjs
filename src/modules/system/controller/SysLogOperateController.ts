@@ -1,17 +1,17 @@
 import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/core';
-import {
-  OperatorBusinessTypeEnum,
-  OPERATOR_BUSINESS_TYPE,
-} from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { OPERATOR_TYPE } from '../../../framework/enums/OperatorTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import { Result } from '../../../framework/vo/Result';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+import result from '../../../framework/result/result';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { SysLogOperateServiceImpl } from '../service/impl/SysLogOperateServiceImpl';
 import { SysLogOperate } from '../model/SysLogOperate';
+import { OPERATOR_BUSINESS_TYPE } from '../../../framework/enums/OperatorBusinessTypeEnum';
 
 /**
  * 操作日志记录信息
@@ -37,7 +37,7 @@ export class SysLogOperateController {
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
     const data = await this.sysLogOperateService.selectSysLogOperatePage(query);
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -45,16 +45,16 @@ export class SysLogOperateController {
    */
   @Del('/:operIds')
   @PreAuthorize({ hasPermissions: ['system:log:operate:remove'] })
-  @OperateLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.DELETE })
+  @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.DELETE })
   async remove(@Param('operIds') operIds: string): Promise<Result> {
-    if (!operIds) return Result.err();
+    if (!operIds) return result.err();
     // 处理字符转id数组
     const ids = operIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const rows = await this.sysLogOperateService.deleteSysLogOperateByIds([
       ...new Set(ids),
     ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -62,10 +62,10 @@ export class SysLogOperateController {
    */
   @Del('/clean')
   @PreAuthorize({ hasPermissions: ['system:log:operate:remove'] })
-  @OperateLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.CLEAN })
+  @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.CLEAN })
   async clean(): Promise<Result> {
     const rows = await this.sysLogOperateService.cleanSysLogOperate();
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -73,14 +73,14 @@ export class SysLogOperateController {
    */
   @Post('/export')
   @PreAuthorize({ hasPermissions: ['system:log:operate:export'] })
-  @OperateLog({ title: '操作日志', businessType: OperatorBusinessTypeEnum.EXPORT })
+  @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.EXPORT })
   async export() {
     const ctx = this.contextService.getContext();
     // 查询结果，根据查询条件结果，单页最大值限制
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysLogOperateService.selectSysLogOperatePage(query);
     if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
+      return result.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

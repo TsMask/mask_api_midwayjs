@@ -1,11 +1,12 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { SysLogOperate } from '../../model/SysLogOperate';
 import { ISysLogOperateRepository } from '../ISysLogOperateRepository';
 
@@ -16,23 +17,23 @@ oper_url, oper_ip, oper_location, oper_param, oper_msg, status, oper_time, cost_
 from sys_log_operate`;
 
 /**操作日志表信息实体映射 */
-const SYS_OPER_LOG_RESULT = new Map<string, string>();
-SYS_OPER_LOG_RESULT.set('oper_id', 'operId');
-SYS_OPER_LOG_RESULT.set('title', 'title');
-SYS_OPER_LOG_RESULT.set('business_type', 'businessType');
-SYS_OPER_LOG_RESULT.set('method', 'method');
-SYS_OPER_LOG_RESULT.set('request_method', 'requestMethod');
-SYS_OPER_LOG_RESULT.set('operator_type', 'operatorType');
-SYS_OPER_LOG_RESULT.set('oper_name', 'operName');
-SYS_OPER_LOG_RESULT.set('dept_name', 'deptName');
-SYS_OPER_LOG_RESULT.set('oper_url', 'operUrl');
-SYS_OPER_LOG_RESULT.set('oper_ip', 'operIp');
-SYS_OPER_LOG_RESULT.set('oper_location', 'operLocation');
-SYS_OPER_LOG_RESULT.set('oper_param', 'operParam');
-SYS_OPER_LOG_RESULT.set('oper_msg', 'operMsg');
-SYS_OPER_LOG_RESULT.set('status', 'status');
-SYS_OPER_LOG_RESULT.set('oper_time', 'operTime');
-SYS_OPER_LOG_RESULT.set('cost_time', 'costTime');
+const SYS_OPER_LOG_Result = new Map<string, string>();
+SYS_OPER_LOG_Result.set('oper_id', 'operId');
+SYS_OPER_LOG_Result.set('title', 'title');
+SYS_OPER_LOG_Result.set('business_type', 'businessType');
+SYS_OPER_LOG_Result.set('method', 'method');
+SYS_OPER_LOG_Result.set('request_method', 'requestMethod');
+SYS_OPER_LOG_Result.set('operator_type', 'operatorType');
+SYS_OPER_LOG_Result.set('oper_name', 'operName');
+SYS_OPER_LOG_Result.set('dept_name', 'deptName');
+SYS_OPER_LOG_Result.set('oper_url', 'operUrl');
+SYS_OPER_LOG_Result.set('oper_ip', 'operIp');
+SYS_OPER_LOG_Result.set('oper_location', 'operLocation');
+SYS_OPER_LOG_Result.set('oper_param', 'operParam');
+SYS_OPER_LOG_Result.set('oper_msg', 'operMsg');
+SYS_OPER_LOG_Result.set('status', 'status');
+SYS_OPER_LOG_Result.set('oper_time', 'operTime');
+SYS_OPER_LOG_Result.set('cost_time', 'costTime');
 
 /**
  *将结果记录转实体结果组
@@ -44,8 +45,8 @@ function convertResultRows(rows: any[]): SysLogOperate[] {
   for (const row of rows) {
     const sysLogOperate = new SysLogOperate();
     for (const key in row) {
-      if (SYS_OPER_LOG_RESULT.has(key)) {
-        const keyMapper = SYS_OPER_LOG_RESULT.get(key);
+      if (SYS_OPER_LOG_Result.has(key)) {
+        const keyMapper = SYS_OPER_LOG_Result.get(key);
         sysLogOperate[keyMapper] = row[key];
       }
     }
@@ -132,8 +133,8 @@ export class SysLogOperateRepositoryImpl implements ISysLogOperateRepository {
 
     // 查询数据数据
     const querySql = SELECT_OPER_LOG_SQL + whereSql + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -168,8 +169,8 @@ export class SysLogOperateRepositoryImpl implements ISysLogOperateRepository {
 
     // 查询数据
     const querySql = SELECT_OPER_LOG_SQL + whereSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectSysLogOperateById(operId: string): Promise<SysLogOperate> {
@@ -227,20 +228,20 @@ export class SysLogOperateRepositoryImpl implements ISysLogOperateRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_log_operate (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
   async deleteSysLogOperateByIds(operIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(operIds.length);
     const sqlStr = `delete from sys_log_operate where oper_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, operIds);
+    const result = await this.db.execute(sqlStr, operIds);
     return result.affectedRows;
   }
 
   async cleanSysLogOperate(): Promise<number> {
     const sqlStr = 'truncate table sys_log_operate';
-    const result: ResultSetHeader = await this.db.execute(sqlStr);
+    const result = await this.db.execute(sqlStr);
     return result.serverStatus;
   }
 }

@@ -1,5 +1,5 @@
 import { Controller, Body, Post, Inject } from '@midwayjs/core';
-import { Result } from '../../../framework/vo/Result';
+import result from '../../../framework/result/result';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import {
@@ -28,17 +28,17 @@ export class RegisterController {
     const { username, password, confirmPassword } = registerBodyVo;
     // 判断必传参数
     if (!validUsername(username)) {
-      return Result.errMsg(
+      return result.errMsg(
         '账号不能以数字开头，可包含大写小写字母，数字，且不少于5位'
       );
     }
     if (!validPassword(password)) {
-      return Result.errMsg(
+      return result.errMsg(
         '密码至少包含大小写字母、数字、特殊符号，且不少于6位'
       );
     }
     if (password !== confirmPassword) {
-      return Result.errMsg('用户确认输入密码不一致');
+      return result.errMsg('用户确认输入密码不一致');
     }
     // 检查验证码
     await this.sysRegisterService.validateCaptcha(
@@ -54,8 +54,8 @@ export class RegisterController {
       registerBodyVo.userType
     );
     if (msg !== 'ok') {
-      return Result.errMsg(msg);
+      return result.errMsg(msg);
     }
-    return Result.ok();
+    return result.ok();
   }
 }

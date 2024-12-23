@@ -14,7 +14,9 @@ export class SysLogOperateServiceImpl implements ISysLogOperateService {
   @Inject()
   private SysLogOperateRepository: SysLogOperateRepositoryImpl;
 
-  async selectSysLogOperatePage(query: ListQueryPageOptions): Promise<RowPagesType> {
+  async selectSysLogOperatePage(
+    query: ListQueryPageOptions
+  ): Promise<RowPagesType> {
     return await this.SysLogOperateRepository.selectSysLogOperatePage(query);
   }
 
@@ -22,12 +24,18 @@ export class SysLogOperateServiceImpl implements ISysLogOperateService {
     return await this.SysLogOperateRepository.selectSysLogOperateById(operId);
   }
 
-  async selectSysLogOperateList(sysLogOperate: SysLogOperate): Promise<SysLogOperate[]> {
-    return await this.SysLogOperateRepository.selectSysLogOperateList(sysLogOperate);
+  async selectSysLogOperateList(
+    sysLogOperate: SysLogOperate
+  ): Promise<SysLogOperate[]> {
+    return await this.SysLogOperateRepository.selectSysLogOperateList(
+      sysLogOperate
+    );
   }
 
   async insertSysLogOperate(sysLogOperate: SysLogOperate): Promise<string> {
-    return await this.SysLogOperateRepository.insertSysLogOperate(sysLogOperate);
+    return await this.SysLogOperateRepository.insertSysLogOperate(
+      sysLogOperate
+    );
   }
 
   async deleteSysLogOperateByIds(operIds: string[]): Promise<number> {

@@ -8,9 +8,12 @@ import {
   Del,
   Put,
 } from '@midwayjs/core';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { Result } from '../../../framework/vo/Result';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+
+import result from '../../../framework/result/result';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
@@ -41,7 +44,7 @@ export class SysPostController {
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
     const data = await this.sysPostService.selectPostPage(query);
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -50,9 +53,9 @@ export class SysPostController {
   @Get('/:postId')
   @PreAuthorize({ hasPermissions: ['system:post:query'] })
   async getInfo(@Param('postId') postId: string): Promise<Result> {
-    if (!postId) return Result.err();
+    if (!postId) return result.err();
     const data = await this.sysPostService.selectPostById(postId);
-    return Result.okData(data);
+    return result.okData(data);
   }
 
   /**
@@ -62,29 +65,29 @@ export class SysPostController {
   @PreAuthorize({ hasPermissions: ['system:post:add'] })
   @OperateLog({
     title: '岗位信息',
-    businessType: OperatorBusinessTypeEnum.INSERT,
+    businessType: BUSINESS_TYPE.INSERT,
   })
   async add(@Body() sysPost: SysPost): Promise<Result> {
     const { postId, postName, postCode } = sysPost;
-    if (postId || !postName || !postCode) return Result.err();
+    if (postId || !postName || !postCode) return result.err();
 
     // 检查属性值唯一
     const uniqueuPostName = await this.sysPostService.checkUniquePostName(
       postName
     );
     if (!uniqueuPostName) {
-      return Result.errMsg(`岗位新增【${postName}】失败，岗位名称已存在`);
+      return result.errMsg(`岗位新增【${postName}】失败，岗位名称已存在`);
     }
     const uniquePostCode = await this.sysPostService.checkUniquePostCode(
       postCode
     );
     if (!uniquePostCode) {
-      return Result.errMsg(`岗位新增【${postCode}】失败，岗位编码已存在`);
+      return result.errMsg(`岗位新增【${postCode}】失败，岗位编码已存在`);
     }
 
     sysPost.createBy = this.contextService.getUseName();
     const insertId = await this.sysPostService.insertPost(sysPost);
-    return Result[insertId ? 'ok' : 'err']();
+    return result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -94,11 +97,11 @@ export class SysPostController {
   @PreAuthorize({ hasPermissions: ['system:post:edit'] })
   @OperateLog({
     title: '岗位信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async edit(@Body() sysPost: SysPost): Promise<Result> {
     const { postId, postName, postCode } = sysPost;
-    if (!postId || !postName || !postCode) return Result.err();
+    if (!postId || !postName || !postCode) return result.err();
 
     // 检查是否存在
     const post = await this.sysPostService.selectPostById(postId);
@@ -112,7 +115,7 @@ export class SysPostController {
       postId
     );
     if (!uniqueuPostName) {
-      return Result.errMsg(`岗位修改【${postName}】失败，岗位名称已存在`);
+      return result.errMsg(`岗位修改【${postName}】失败，岗位名称已存在`);
     }
 
     // 检查编码属性值唯一
@@ -121,12 +124,12 @@ export class SysPostController {
       postId
     );
     if (!uniquePostCode) {
-      return Result.errMsg(`岗位修改【${postCode}】失败，岗位编码已存在`);
+      return result.errMsg(`岗位修改【${postCode}】失败，岗位编码已存在`);
     }
 
     sysPost.updateBy = this.contextService.getUseName();
     const rows = await this.sysPostService.updatePost(sysPost);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -136,15 +139,15 @@ export class SysPostController {
   @PreAuthorize({ hasPermissions: ['system:post:remove'] })
   @OperateLog({
     title: '岗位信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('postIds') postIds: string): Promise<Result> {
-    if (!postIds) return Result.err();
+    if (!postIds) return result.err();
     // 处理字符转id数组
     const ids = postIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const rows = await this.sysPostService.deletePostByIds([...new Set(ids)]);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -154,7 +157,7 @@ export class SysPostController {
   @PreAuthorize({ hasPermissions: ['system:post:export'] })
   @OperateLog({
     title: '岗位信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
+    businessType: BUSINESS_TYPE.EXPORT,
   })
   async export() {
     const ctx = this.contextService.getContext();
@@ -162,7 +165,7 @@ export class SysPostController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysPostService.selectPostPage(query);
     if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
+      return result.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

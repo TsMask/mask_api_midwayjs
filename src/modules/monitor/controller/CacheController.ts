@@ -1,17 +1,18 @@
 import { Controller, Inject, Get, Param, Del } from '@midwayjs/core';
-import {
-  CAPTCHA_CODE_KEY,
-  LOGIN_TOKEN_KEY,
-  PWD_ERR_CNT_KEY,
-  RATE_LIMIT_KEY,
-  REPEAT_SUBMIT_KEY,
-  SYS_CONFIG_KEY,
-  SYS_DICT_KEY,
-} from '../../../framework/constants/CacheKeysConstants';
-import { Result } from '../../../framework/vo/Result';
+
+import result from '../../../framework/result/result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { RedisCache } from '../../../framework/cache/RedisCache';
+import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { SysCache } from '../model/SysCache';
+import {
+  CACHE_SYS_CONFIG,
+  CACHE_SYS_DICT,
+  CACHE_CAPTCHA_CODE,
+  CACHE_REPEAT_SUBMIT,
+  CACHE_RATE_LIMIT,
+  CACHE_PWD_ERR_COUNT,
+  CACHE_LOGIN_TOKEN,
+} from '../../../framework/constants/cache-key';
 
 /**
  * 缓存监控信息
@@ -31,7 +32,7 @@ export class CacheController {
   @Get()
   @PreAuthorize({ hasPermissions: ['monitor:cache:info'] })
   async getInfo(): Promise<Result> {
-    return Result.okData({
+    return result.okData({
       info: await this.redisCache.getInfo(),
       dbSize: await this.redisCache.getKeySize(),
       commandStats: await this.redisCache.getCommandStats(),
@@ -47,15 +48,15 @@ export class CacheController {
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getNames(): Promise<Result> {
     const caches: SysCache[] = [
-      new SysCache().newNames('用户信息', LOGIN_TOKEN_KEY),
-      new SysCache().newNames('配置信息', SYS_CONFIG_KEY),
-      new SysCache().newNames('数据字典', SYS_DICT_KEY),
-      new SysCache().newNames('验证码', CAPTCHA_CODE_KEY),
-      new SysCache().newNames('防重提交', REPEAT_SUBMIT_KEY),
-      new SysCache().newNames('限流处理', RATE_LIMIT_KEY),
-      new SysCache().newNames('密码错误次数', PWD_ERR_CNT_KEY),
+      new SysCache().newNames('用户信息', CACHE_LOGIN_TOKEN),
+      new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
+      new SysCache().newNames('数据字典', CACHE_SYS_DICT),
+      new SysCache().newNames('验证码', CACHE_CAPTCHA_CODE),
+      new SysCache().newNames('防重提交', CACHE_REPEAT_SUBMIT),
+      new SysCache().newNames('限流处理', CACHE_RATE_LIMIT),
+      new SysCache().newNames('密码错误次数', CACHE_PWD_ERR_COUNT),
     ];
-    return Result.okData(caches);
+    return result.okData(caches);
   }
 
   /**
@@ -66,7 +67,7 @@ export class CacheController {
   @Get('/getKeys/:cacheName')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   async getKeys(@Param('cacheName') cacheName: string): Promise<Result> {
-    if (!cacheName) return Result.err();
+    if (!cacheName) return result.err();
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}:*`);
     const rows = [];
     if (cacheKeys && cacheKeys.length > 0) {
@@ -74,7 +75,7 @@ export class CacheController {
         rows.push(new SysCache().newKeys(cacheName, key));
       }
     }
-    return Result.okData(rows);
+    return result.okData(rows);
   }
 
   /**
@@ -89,10 +90,10 @@ export class CacheController {
     @Param('cacheName') cacheName: string,
     @Param('cacheKey') cacheKey: string
   ): Promise<Result> {
-    if (!cacheName || !cacheKey) return Result.err();
+    if (!cacheName || !cacheKey) return result.err();
     const cacheValue = await this.redisCache.get(`${cacheName}:${cacheKey}`);
     const sysCache = new SysCache().newValue(cacheName, cacheKey, cacheValue);
-    return Result.okData(sysCache);
+    return result.okData(sysCache);
   }
 
   /**
@@ -103,10 +104,10 @@ export class CacheController {
   @Del('/clearCacheName/:cacheName')
   @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
   async clearCacheName(@Param('cacheName') cacheName: string): Promise<Result> {
-    if (!cacheName) return Result.err();
+    if (!cacheName) return result.err();
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
     const num = await this.redisCache.delKeys(cacheKeys);
-    return Result[num > 0 ? 'ok' : 'err']();
+    return result[num > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -121,9 +122,9 @@ export class CacheController {
     @Param('cacheName') cacheName: string,
     @Param('cacheKey') cacheKey: string
   ): Promise<Result> {
-    if (!cacheName || !cacheKey) return Result.err();
+    if (!cacheName || !cacheKey) return result.err();
     const num = await this.redisCache.del(cacheName + ':' + cacheKey);
-    return Result[num > 0 ? 'ok' : 'err']();
+    return result[num > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -137,17 +138,17 @@ export class CacheController {
   async clearCacheSafe(): Promise<Result> {
     // 指定清除的缓存列表
     const caches: SysCache[] = [
-      new SysCache().newNames('配置信息', SYS_CONFIG_KEY),
-      new SysCache().newNames('数据字典', SYS_DICT_KEY),
-      new SysCache().newNames('验证码', CAPTCHA_CODE_KEY),
-      new SysCache().newNames('防重提交', REPEAT_SUBMIT_KEY),
-      new SysCache().newNames('限流处理', RATE_LIMIT_KEY),
-      new SysCache().newNames('密码错误次数', PWD_ERR_CNT_KEY),
+      new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
+      new SysCache().newNames('数据字典', CACHE_SYS_DICT),
+      new SysCache().newNames('验证码', CACHE_CAPTCHA_CODE),
+      new SysCache().newNames('防重提交', CACHE_REPEAT_SUBMIT),
+      new SysCache().newNames('限流处理', CACHE_RATE_LIMIT),
+      new SysCache().newNames('密码错误次数', CACHE_PWD_ERR_COUNT),
     ];
     for (const v of caches) {
       const cacheKeys = await this.redisCache.getKeys(`${v.cacheName}:*`);
       await this.redisCache.delKeys(cacheKeys);
     }
-    return Result.ok();
+    return result.ok();
   }
 }

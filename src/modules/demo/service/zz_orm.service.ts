@@ -76,12 +76,12 @@ export class ZzOrmService {
   /**
    * 新增测试ORM信息
    *
-   * @param ZzOrm 测试ORM信息
+   * @param zzOrm 测试ORM信息
    * @return 测试ORM ID
    */
-  async insert(ZzOrm: ZzOrm): Promise<string> {
-    const result = await this.zzOrmModel.save(ZzOrm);
-    return result.id;
+  async insert(zzOrm: ZzOrm): Promise<string> {
+    const item = await this.zzOrmModel.save(zzOrm);
+    return item.id;
   }
 
   /**
@@ -104,8 +104,8 @@ export class ZzOrmService {
     zz.updateBy = zzOrm.updateBy;
     zz.updateTime = zzOrm.updateTime;
     zz.remark = zzOrm.remark;
-    const result = await this.zzOrmModel.save(zzOrm);
-    return result.id;
+    const item = await this.zzOrmModel.save(zzOrm);
+    return item.id;
   }
 
   /**

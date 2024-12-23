@@ -1,14 +1,10 @@
 import { Config, Inject, Provide, Singleton, httpError } from '@midwayjs/core';
 import { JwtService } from '@midwayjs/jwt';
 import ms = require('ms');
-import {
-  TOKEN_JWT_UUID,
-  TOKEN_JWT_KEY,
-  TOKEN_JWT_NAME,
-} from '../constants/TokenConstants';
+import { JWT_UUID, JWT_USER_ID, JWT_USER_NAME } from '../constants/token';
 import { LoginUser } from '../vo/LoginUser';
-import { RedisCache } from '../cache/RedisCache';
-import { LOGIN_TOKEN_KEY } from '../constants/CacheKeysConstants';
+import { RedisCache } from '../datasource/redis/redis';
+import { CACHE_LOGIN_TOKEN } from '../constants/cache-key';
 import { generateHash } from '../utils/GenIdUtils';
 
 /**
@@ -41,14 +37,14 @@ export class TokenService {
     const claims = await this.verifyToken(token);
     if (claims) {
       // 清除缓存KEY
-      const uuid = claims[TOKEN_JWT_UUID];
-      const tokenKey = LOGIN_TOKEN_KEY + uuid;
+      const uuid = claims[JWT_UUID];
+      const tokenKey = CACHE_LOGIN_TOKEN + uuid;
       const hasTokenkey = await this.redisCache.hasKey(tokenKey);
       if (hasTokenkey) {
         await this.redisCache.del(tokenKey);
       }
       // 判断可用登录信息返回用户账号
-      return claims[TOKEN_JWT_NAME];
+      return claims[JWT_USER_NAME];
     }
     return null;
   }
@@ -79,9 +75,9 @@ export class TokenService {
 
     // 生成令牌负荷uuid标识
     return this.jwtService.sign({
-      [TOKEN_JWT_UUID]: uuid,
-      [TOKEN_JWT_KEY]: loginUser.userId,
-      [TOKEN_JWT_NAME]: loginUser.user.userName,
+      [JWT_UUID]: uuid,
+      [JWT_USER_ID]: loginUser.userId,
+      [JWT_USER_NAME]: loginUser.user.userName,
     });
   }
 
@@ -97,7 +93,7 @@ export class TokenService {
     loginUser.expireTime = iatTimestamp + expTimestamp;
     loginUser.user.password = '';
     // 根据登录标识将loginUser缓存
-    const tokenKey = LOGIN_TOKEN_KEY + loginUser.uuid;
+    const tokenKey = CACHE_LOGIN_TOKEN + loginUser.uuid;
     await this.redisCache.setByExpire(
       tokenKey,
       JSON.stringify(loginUser),
@@ -152,8 +148,8 @@ export class TokenService {
   async getLoginUser(
     claims: Record<string, any>
   ): Promise<LoginUser | undefined> {
-    const uuid = claims[TOKEN_JWT_UUID];
-    const tokenKey = LOGIN_TOKEN_KEY + uuid;
+    const uuid = claims[JWT_UUID];
+    const tokenKey = CACHE_LOGIN_TOKEN + uuid;
     const hasTokenkey = await this.redisCache.hasKey(tokenKey);
     if (hasTokenkey) {
       const userStr = await this.redisCache.get(tokenKey);

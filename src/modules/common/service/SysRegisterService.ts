@@ -1,12 +1,9 @@
 import { Provide, Inject } from '@midwayjs/core';
-import { CAPTCHA_CODE_KEY } from '../../../framework/constants/CacheKeysConstants';
-import { RedisCache } from '../../../framework/cache/RedisCache';
+import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache-key';
+import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { ContextService } from '../../../framework/service/ContextService';
-import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../../../framework/constants/CommonConstants';
+import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
 import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
@@ -121,7 +118,7 @@ export class SysRegisterService {
       // 验证码信息错误
       throw new Error('验证码信息错误');
     }
-    const verifyKey = CAPTCHA_CODE_KEY + uuid;
+    const verifyKey = CACHE_CAPTCHA_CODE + uuid;
     const captcha = await this.redisCache.get(verifyKey);
     if (!captcha) {
       // 解析ip地址和请求用户代理信息

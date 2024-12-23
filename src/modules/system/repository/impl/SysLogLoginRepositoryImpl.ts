@@ -1,11 +1,12 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { SysLogLogin } from '../../model/SysLogLogin';
 import { ISysLogLoginRepository } from '../ISysLogLoginRepository';
 
@@ -14,16 +15,16 @@ const SELECT_SysLogLogin_SQL = `select login_id, user_name, ipaddr, login_locati
 browser, os, status, msg, login_time from sys_log_login`;
 
 /**系统访问记录表信息实体映射 */
-const SYS_SysLogLogin_RESULT = new Map<string, string>();
-SYS_SysLogLogin_RESULT.set('login_id', 'loginId');
-SYS_SysLogLogin_RESULT.set('user_name', 'userName');
-SYS_SysLogLogin_RESULT.set('status', 'status');
-SYS_SysLogLogin_RESULT.set('ipaddr', 'ipaddr');
-SYS_SysLogLogin_RESULT.set('login_location', 'loginLocation');
-SYS_SysLogLogin_RESULT.set('browser', 'browser');
-SYS_SysLogLogin_RESULT.set('os', 'os');
-SYS_SysLogLogin_RESULT.set('msg', 'msg');
-SYS_SysLogLogin_RESULT.set('login_time', 'loginTime');
+const SYS_SysLogLogin_Result = new Map<string, string>();
+SYS_SysLogLogin_Result.set('login_id', 'loginId');
+SYS_SysLogLogin_Result.set('user_name', 'userName');
+SYS_SysLogLogin_Result.set('status', 'status');
+SYS_SysLogLogin_Result.set('ipaddr', 'ipaddr');
+SYS_SysLogLogin_Result.set('login_location', 'loginLocation');
+SYS_SysLogLogin_Result.set('browser', 'browser');
+SYS_SysLogLogin_Result.set('os', 'os');
+SYS_SysLogLogin_Result.set('msg', 'msg');
+SYS_SysLogLogin_Result.set('login_time', 'loginTime');
 
 /**
  *将结果记录转实体结果组
@@ -35,8 +36,8 @@ function convertResultRows(rows: any[]): SysLogLogin[] {
   for (const row of rows) {
     const sysLogLogin = new SysLogLogin();
     for (const key in row) {
-      if (SYS_SysLogLogin_RESULT.has(key)) {
-        const keyMapper = SYS_SysLogLogin_RESULT.get(key);
+      if (SYS_SysLogLogin_Result.has(key)) {
+        const keyMapper = SYS_SysLogLogin_Result.get(key);
         sysLogLogin[keyMapper] = row[key];
       }
     }
@@ -115,8 +116,8 @@ export class SysLogLoginRepositoryImpl implements ISysLogLoginRepository {
 
     // 查询数据
     const querySql = SELECT_SysLogLogin_SQL + whereSql + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -147,8 +148,8 @@ export class SysLogLoginRepositoryImpl implements ISysLogLoginRepository {
 
     // 查询数据
     const querySql = SELECT_SysLogLogin_SQL + whereSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async insertSysLogLogin(SysLogLogin: SysLogLogin): Promise<string> {
@@ -179,20 +180,20 @@ export class SysLogLoginRepositoryImpl implements ISysLogLoginRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_log_login (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
   async deleteSysLogLoginByIds(loginIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(loginIds.length);
     const sqlStr = `delete from sys_log_login where login_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, loginIds);
+    const result = await this.db.execute(sqlStr, loginIds);
     return result.affectedRows;
   }
 
   async cleanSysLogLogin(): Promise<number> {
     const sqlStr = 'truncate table sys_log_login';
-    const result: ResultSetHeader = await this.db.execute(sqlStr);
+    const result = await this.db.execute(sqlStr);
     return result.serverStatus;
   }
 }

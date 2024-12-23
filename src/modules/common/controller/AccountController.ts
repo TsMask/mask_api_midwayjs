@@ -1,11 +1,10 @@
 import { Controller, Body, Post, Get, Inject } from '@midwayjs/core';
-import { TOKEN_RESPONSE_FIELD } from '../../../framework/constants/TokenConstants';
-import { Result } from '../../../framework/vo/Result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { LoginBodyVo } from '../model/LoginBodyVo';
 import { AccountService } from '../service/AccountService';
+import result from '../../../framework/result/result';
 
 /**
  * 账号身份操作处理
@@ -24,11 +23,17 @@ export class AccountController {
   @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
   async login(@Body() loginBodyVo: LoginBodyVo): Promise<Result> {
     const { username, password, code, uuid } = loginBodyVo;
-    if (!username || !password) return Result.err();
+    if (!username || !password) return result.err();
     await this.accountService.validateCaptcha(username, code, uuid);
-    const token = await this.accountService.loginByUsername(username, password);
-    return Result.okData({
-      [TOKEN_RESPONSE_FIELD]: token,
+    const tokenStr = await this.accountService.loginByUsername(
+      username,
+      password
+    );
+    return result.okData({
+      accessToken: tokenStr,
+      tokenType: "strings.TrimRight(constants.HEADER_PREFIX, ' ')",
+      expiresIn: '(loginUser.ExpireTime - loginUser.LoginTime) / 1000',
+      userId: 'loginUser.UserId',
     });
   }
 
@@ -39,7 +44,7 @@ export class AccountController {
   @PreAuthorize()
   async getInfo(): Promise<Result> {
     const data = await this.accountService.roleAndMenuPerms();
-    return Result.okData(data);
+    return result.okData(data);
   }
 
   /**
@@ -49,7 +54,7 @@ export class AccountController {
   @PreAuthorize()
   async getRouters(): Promise<Result> {
     const buildMenus = await this.accountService.routeMenus();
-    return Result.okData(buildMenus);
+    return result.okData(buildMenus);
   }
 
   /**
@@ -59,6 +64,6 @@ export class AccountController {
   @RateLimit({ time: 300, count: 5, limitType: LimitTypeEnum.IP })
   async logout(): Promise<Result> {
     await this.accountService.logout();
-    return Result.okMsg('退出成功');
+    return result.okMsg('退出成功');
   }
 }

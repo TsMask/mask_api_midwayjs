@@ -9,13 +9,13 @@ import {
   Post,
   Query,
 } from '@midwayjs/core';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
+
+import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
+import result from '../../../framework/result/result';
 import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../../../framework/constants/CommonConstants';
-import { Result } from '../../../framework/vo/Result';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysDeptServiceImpl } from '../service/impl/SysDeptServiceImpl';
@@ -45,7 +45,7 @@ export class SysDeptController {
       sysDept,
       dataScopeSQL
     );
-    return Result.okData(list);
+    return result.okData(list);
   }
 
   /**
@@ -55,7 +55,7 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:query'] })
   async getInfo(@Param('deptId') deptId: string): Promise<Result> {
     const data = await this.sysDeptService.selectDeptById(deptId);
-    return Result.okData(data);
+    return result.okData(data);
   }
 
   /**
@@ -65,25 +65,25 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:add'] })
   @OperateLog({
     title: '部门信息',
-    businessType: OperatorBusinessTypeEnum.INSERT,
+    businessType: BUSINESS_TYPE.INSERT,
   })
   async add(@Body() sysDept: SysDept): Promise<Result> {
     const { parentId, deptName } = sysDept;
-    if (!parentId || !deptName) return Result.err();
+    if (!parentId || !deptName) return result.err();
 
     // 父级ID不为0是要检查
     if (parentId !== '0') {
       const deptParent = await this.sysDeptService.selectDeptById(parentId);
       if (!deptParent) {
-        return Result.errMsg('没有权限访问部门数据！');
+        return result.errMsg('没有权限访问部门数据！');
       }
       if (deptParent.status === STATUS_NO) {
-        return Result.errMsg(
+        return result.errMsg(
           `上级部门【${deptParent.deptName}】停用，不允许新增`
         );
       }
       if (deptParent.delFlag === STATUS_YES) {
-        return Result.errMsg(
+        return result.errMsg(
           `上级部门【${deptParent.deptName}】已删除，不允许新增`
         );
       }
@@ -98,12 +98,12 @@ export class SysDeptController {
       parentId
     );
     if (!uniqueDeptName) {
-      return Result.errMsg(`部门新增【${deptName}】失败，部门名称已存在`);
+      return result.errMsg(`部门新增【${deptName}】失败，部门名称已存在`);
     }
 
     sysDept.createBy = this.contextService.getUseName();
     const insertId = await this.sysDeptService.insertDept(sysDept);
-    return Result[insertId ? 'ok' : 'err']();
+    return result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -113,15 +113,15 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
   @OperateLog({
     title: '部门信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async edit(@Body() sysDept: SysDept): Promise<Result> {
     const { deptId, parentId, deptName } = sysDept;
-    if (!deptId || !parentId || !deptName) return Result.err();
+    if (!deptId || !parentId || !deptName) return result.err();
 
     // 上级部门不能选自己
     if (deptId === parentId) {
-      return Result.errMsg(
+      return result.errMsg(
         `部门修改【${sysDept.deptName}】失败，上级部门不能是自己`
       );
     }
@@ -129,14 +129,14 @@ export class SysDeptController {
     // 检查数据是否存在
     const dept = await this.sysDeptService.selectDeptById(deptId);
     if (!dept) {
-      return Result.errMsg('没有权限访问部门数据！');
+      return result.errMsg('没有权限访问部门数据！');
     }
 
     // 父级ID不为0是要检查
     if (parentId !== '0') {
       const deptParent = await this.sysDeptService.selectDeptById(parentId);
       if (!deptParent) {
-        return Result.errMsg('没有权限访问部门数据！');
+        return result.errMsg('没有权限访问部门数据！');
       }
     }
 
@@ -147,7 +147,7 @@ export class SysDeptController {
       deptId
     );
     if (!uniqueDeptName) {
-      return Result.errMsg(
+      return result.errMsg(
         `部门修改【${sysDept.deptName}】失败，部门名称已存在`
       );
     }
@@ -156,13 +156,13 @@ export class SysDeptController {
     if (sysDept.status === STATUS_NO) {
       const hasChild = await this.sysDeptService.hasChildByDeptId(deptId);
       if (hasChild > 0) {
-        return Result.errMsg(`该部门包含未停用的子部门数量：${hasChild}`);
+        return result.errMsg(`该部门包含未停用的子部门数量：${hasChild}`);
       }
     }
 
     sysDept.updateBy = this.contextService.getUseName();
     const rows = await this.sysDeptService.updateDept(sysDept);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -172,26 +172,26 @@ export class SysDeptController {
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperateLog({
     title: '部门信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('deptId') deptId: string): Promise<Result> {
-    if (!deptId) return Result.err();
+    if (!deptId) return result.err();
     const dept = await this.sysDeptService.selectDeptById(deptId);
     if (!dept) {
-      return Result.errMsg('没有权限访问部门数据！');
+      return result.errMsg('没有权限访问部门数据！');
     }
     // 检查数据是否存在
     const hasChild = await this.sysDeptService.hasChildByDeptId(deptId);
     if (hasChild > 0) {
-      return Result.errMsg(`不允许删除，存在子部门数：${hasChild}`);
+      return result.errMsg(`不允许删除，存在子部门数：${hasChild}`);
     }
     // 检查是否存在子部门
     const existUser = await this.sysDeptService.checkDeptExistUser(deptId);
     if (existUser > 0) {
-      return Result.errMsg(`不允许删除，存在子部门数：${hasChild}`);
+      return result.errMsg(`不允许删除，存在子部门数：${hasChild}`);
     }
     const rows = await this.sysDeptService.deleteDeptById(deptId);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -209,7 +209,7 @@ export class SysDeptController {
       dept =>
         !(dept.deptId === deptId || dept.ancestors.split(',').includes(deptId))
     );
-    return Result.okData(data || []);
+    return result.okData(data || []);
   }
 
   /**
@@ -223,7 +223,7 @@ export class SysDeptController {
       sysDept,
       dataScopeSQL
     );
-    return Result.okData(data || []);
+    return result.okData(data || []);
   }
 
   /**
@@ -232,7 +232,7 @@ export class SysDeptController {
   @Get('/roleDeptTreeSelect/:roleId')
   @PreAuthorize({ hasPermissions: ['system:role:query'] })
   async roleDeptTreeSelect(@Param('roleId') roleId: string): Promise<Result> {
-    if (!roleId) return Result.err();
+    if (!roleId) return result.err();
     const dataScopeSQL = this.contextService.getDataScopeSQL('d');
     const deptTreeSelect = await this.sysDeptService.selectDeptTreeSelect(
       new SysDept(),
@@ -241,7 +241,7 @@ export class SysDeptController {
     const checkedKeys = await this.sysDeptService.selectDeptListByRoleId(
       roleId
     );
-    return Result.okData({
+    return result.okData({
       depts: deptTreeSelect,
       checkedKeys,
     });

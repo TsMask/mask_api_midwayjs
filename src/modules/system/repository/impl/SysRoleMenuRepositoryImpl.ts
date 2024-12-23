@@ -1,7 +1,8 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { ISysRoleMenuRepository } from '../ISysRoleMenuRepository';
 import { SysRoleMenu } from '../../model/SysRoleMenu';
 
@@ -26,7 +27,7 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
   async deleteRoleMenu(roleIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(roleIds.length);
     const sqlStr = `delete from sys_role_menu where role_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
+    const result = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }
 
@@ -34,7 +35,7 @@ export class SysRoleMenuRepositoryImpl implements ISysRoleMenuRepository {
     const sqlStr = `insert into sys_role_menu(role_id, menu_id) values ${sysRoleMenus
       .map(item => `(${item.roleId},${item.menuId})`)
       .join(',')}`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr);
+    const result = await this.db.execute(sqlStr);
     return result.affectedRows;
   }
 }

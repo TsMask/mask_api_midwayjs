@@ -8,9 +8,12 @@ import {
   Del,
   Put,
 } from '@midwayjs/core';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { Result } from '../../../framework/vo/Result';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+
+import result from '../../../framework/result/result';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysNoticeServiceImpl } from '../service/impl/SysNoticeServiceImpl';
@@ -37,7 +40,7 @@ export class SysNoticeController {
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
     const data = await this.sysNoticeService.selectNoticePage(query);
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -46,9 +49,9 @@ export class SysNoticeController {
   @Get('/:noticeId')
   @PreAuthorize({ hasPermissions: ['system:notice:query'] })
   async getInfo(@Param('noticeId') noticeId: string): Promise<Result> {
-    if (!noticeId) return Result.err();
+    if (!noticeId) return result.err();
     const data = await this.sysNoticeService.selectNoticeById(noticeId);
-    return Result.okData(data);
+    return result.okData(data);
   }
 
   /**
@@ -58,13 +61,13 @@ export class SysNoticeController {
   @PreAuthorize({ hasPermissions: ['system:notice:add'] })
   @OperateLog({
     title: '通知公告信息',
-    businessType: OperatorBusinessTypeEnum.INSERT,
+    businessType: BUSINESS_TYPE.INSERT,
   })
   async add(@Body() notice: SysNotice): Promise<Result> {
-    if (!notice.noticeContent) return Result.err();
+    if (!notice.noticeContent) return result.err();
     notice.createBy = this.contextService.getUseName();
     const insertId = await this.sysNoticeService.insertNotice(notice);
-    return Result[insertId ? 'ok' : 'err']();
+    return result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -74,13 +77,13 @@ export class SysNoticeController {
   @PreAuthorize({ hasPermissions: ['system:notice:edit'] })
   @OperateLog({
     title: '通知公告信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async edit(@Body() notice: SysNotice): Promise<Result> {
-    if (!notice.noticeId) return Result.err();
+    if (!notice.noticeId) return result.err();
     notice.updateBy = this.contextService.getUseName();
     const rows = await this.sysNoticeService.updateNotice(notice);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -90,16 +93,16 @@ export class SysNoticeController {
   @PreAuthorize({ hasPermissions: ['system:notice:remove'] })
   @OperateLog({
     title: '通知公告信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('noticeIds') noticeIds: string): Promise<Result> {
-    if (!noticeIds) return Result.err();
+    if (!noticeIds) return result.err();
     // 处理字符转id数组
     const ids = noticeIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const rows = await this.sysNoticeService.deleteNoticeByIds([
       ...new Set(ids),
     ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 }

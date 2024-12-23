@@ -1,11 +1,12 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { ISysDictTypeRepository } from '../ISysDictTypeRepository';
 import { SysDictType } from '../../model/SysDictType';
 
@@ -15,16 +16,16 @@ dict_id, dict_name, dict_type, status, create_by, create_time, remark
 from sys_dict_type`;
 
 /**字典表信息实体映射 */
-const SYS_DICT_TYPE_RESULT = new Map<string, string>();
-SYS_DICT_TYPE_RESULT.set('dict_id', 'dictId');
-SYS_DICT_TYPE_RESULT.set('dict_name', 'dictName');
-SYS_DICT_TYPE_RESULT.set('dict_type', 'dictType');
-SYS_DICT_TYPE_RESULT.set('remark', 'remark');
-SYS_DICT_TYPE_RESULT.set('status', 'status');
-SYS_DICT_TYPE_RESULT.set('create_by', 'createBy');
-SYS_DICT_TYPE_RESULT.set('create_time', 'createTime');
-SYS_DICT_TYPE_RESULT.set('update_by', 'updateBy');
-SYS_DICT_TYPE_RESULT.set('update_time', 'updateTime');
+const SYS_DICT_TYPE_Result = new Map<string, string>();
+SYS_DICT_TYPE_Result.set('dict_id', 'dictId');
+SYS_DICT_TYPE_Result.set('dict_name', 'dictName');
+SYS_DICT_TYPE_Result.set('dict_type', 'dictType');
+SYS_DICT_TYPE_Result.set('remark', 'remark');
+SYS_DICT_TYPE_Result.set('status', 'status');
+SYS_DICT_TYPE_Result.set('create_by', 'createBy');
+SYS_DICT_TYPE_Result.set('create_time', 'createTime');
+SYS_DICT_TYPE_Result.set('update_by', 'updateBy');
+SYS_DICT_TYPE_Result.set('update_time', 'updateTime');
 
 /**
  *将结果记录转实体结果组
@@ -36,8 +37,8 @@ function convertResultRows(rows: any[]): SysDictType[] {
   for (const row of rows) {
     const sysDictType = new SysDictType();
     for (const key in row) {
-      if (SYS_DICT_TYPE_RESULT.has(key)) {
-        const keyMapper = SYS_DICT_TYPE_RESULT.get(key);
+      if (SYS_DICT_TYPE_Result.has(key)) {
+        const keyMapper = SYS_DICT_TYPE_Result.get(key);
         sysDictType[keyMapper] = row[key];
       }
     }
@@ -114,8 +115,8 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
 
     // 查询数据
     const querySql = SELECT_DICT_TYPE_SQL + whereSql + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -144,8 +145,8 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
 
     // 查询数据
     const querySql = SELECT_DICT_TYPE_SQL + whereSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectDictTypeByIds(dictIds: string[]): Promise<SysDictType[]> {
@@ -210,7 +211,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_dict_type (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -233,7 +234,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_dict_type set ${keys} where dict_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...values,
       sysDictType.dictId,
     ]);
@@ -243,7 +244,7 @@ export class SysDictTypeRepositoryImpl implements ISysDictTypeRepository {
   async deleteDictTypeByIds(dictIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(dictIds.length);
     const sqlStr = `delete from sys_dict_type where dict_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, dictIds);
+    const result = await this.db.execute(sqlStr, dictIds);
     return result.affectedRows;
   }
 }

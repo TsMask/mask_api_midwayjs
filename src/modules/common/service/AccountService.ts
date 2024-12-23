@@ -1,22 +1,19 @@
 import { Provide, Inject } from '@midwayjs/core';
 import {
-  CAPTCHA_CODE_KEY,
-  PWD_ERR_CNT_KEY,
-} from '../../../framework/constants/CacheKeysConstants';
-import { RedisCache } from '../../../framework/cache/RedisCache';
+  CACHE_CAPTCHA_CODE,
+  CACHE_PWD_ERR_COUNT,
+} from '../../../framework/constants/cache-key';
+import { RedisCache } from '../../../framework/datasource/redis/redis';
 import {
   parseBoolean,
   parseNumber,
 } from '../../../framework/utils/ValueParseUtils';
-import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../../../framework/constants/CommonConstants';
+import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { bcryptCompare } from '../../../framework/utils/CryptoUtils';
 import {
-  ADMIN_PERMISSION,
-  ADMIN_ROLE_KEY,
-} from '../../../framework/constants/AdminConstants';
+  SYS_PERMISSION_SYSTEM,
+  SYS_ROLE_SYSTEM_KEY,
+} from '../../../framework/constants/system';
 import { RouterVo } from '../../../framework/vo/RouterVo';
 import { ContextService } from '../../../framework/service/ContextService';
 import { TokenService } from '../../../framework/service/TokenService';
@@ -82,7 +79,7 @@ export class AccountService {
       // 验证码信息错误
       throw new Error('验证码信息错误');
     }
-    const verifyKey = CAPTCHA_CODE_KEY + uuid;
+    const verifyKey = CACHE_CAPTCHA_CODE + uuid;
     const captcha = await this.redisCache.get(verifyKey);
     if (!captcha) {
       // 解析ip地址和请求用户代理信息
@@ -178,7 +175,7 @@ export class AccountService {
     // 用户权限组标识
     const isAdmin = this.contextService.isAdmin(sysUser.userId);
     if (isAdmin) {
-      loginUser.permissions = [ADMIN_PERMISSION];
+      loginUser.permissions = [SYS_PERMISSION_SYSTEM];
     } else {
       loginUser.permissions = await this.sysMenuService.selectMenuPermsByUserId(
         sysUser.userId
@@ -239,7 +236,7 @@ export class AccountService {
    * @param username 登录用户名
    */
   async clearLoginRecordCache(username: string): Promise<boolean> {
-    const cacheKey = PWD_ERR_CNT_KEY + username;
+    const cacheKey = CACHE_PWD_ERR_COUNT + username;
     if (await this.redisCache.hasKey(cacheKey)) {
       const rows = await this.redisCache.del(cacheKey);
       return rows > 0;
@@ -269,7 +266,7 @@ export class AccountService {
       'user.password.lockTime'
     );
     // 验证缓存记录次数
-    const cacheKey = PWD_ERR_CNT_KEY + username;
+    const cacheKey = CACHE_PWD_ERR_COUNT + username;
     let retryCount = await this.redisCache.get(cacheKey);
     if (!retryCount) {
       retryCount = '0';
@@ -302,8 +299,8 @@ export class AccountService {
     // 管理员拥有所有权限
     if (isAdmin) {
       return {
-        permissions: [ADMIN_PERMISSION],
-        roles: [ADMIN_ROLE_KEY],
+        permissions: [SYS_PERMISSION_SYSTEM],
+        roles: [SYS_ROLE_SYSTEM_KEY],
       };
     }
     const perms = await this.sysMenuService.selectMenuPermsByUserId(userId);

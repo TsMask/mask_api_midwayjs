@@ -28,9 +28,9 @@ export function parseBoolean(str: string | number): boolean {
 export function ConvertToCamelCase(str: string): string {
   if (!str) return str;
   const reg = /[-_:/]\w/g;
-  const result = str.replace(reg, (match: string) => match[1].toUpperCase());
+  const output = str.replace(reg, (match: string) => match[1].toUpperCase());
 
-  const words = result.split(/\b/).filter(w => /\w/.test(w));
+  const words = output.split(/\b/).filter(w => /\w/.test(w));
   for (let i = 0; i < words.length; i++) {
     let word = words[i];
     const firstChar = word.substring(0, 1);

@@ -1,7 +1,8 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { ISysDeptRepository } from '../ISysDeptRepository';
 import { SysDept } from '../../model/SysDept';
 
@@ -11,22 +12,22 @@ d.dept_id, d.parent_id, d.ancestors, d.dept_name, d.order_num, d.leader, d.phone
 from sys_dept d`;
 
 /**部门管理表信息实体映射 */
-const SYS_DEPT_RESULT = new Map<string, string>();
-SYS_DEPT_RESULT.set('dept_id', 'deptId');
-SYS_DEPT_RESULT.set('parent_id', 'parentId');
-SYS_DEPT_RESULT.set('ancestors', 'ancestors');
-SYS_DEPT_RESULT.set('dept_name', 'deptName');
-SYS_DEPT_RESULT.set('order_num', 'orderNum');
-SYS_DEPT_RESULT.set('leader', 'leader');
-SYS_DEPT_RESULT.set('phone', 'phone');
-SYS_DEPT_RESULT.set('email', 'email');
-SYS_DEPT_RESULT.set('status', 'status');
-SYS_DEPT_RESULT.set('del_flag', 'delFlag');
-SYS_DEPT_RESULT.set('create_by', 'createBy');
-SYS_DEPT_RESULT.set('create_time', 'createTime');
-SYS_DEPT_RESULT.set('update_by', 'updateBy');
-SYS_DEPT_RESULT.set('update_time', 'updateTime');
-SYS_DEPT_RESULT.set('parent_name', 'parentName');
+const SYS_DEPT_Result = new Map<string, string>();
+SYS_DEPT_Result.set('dept_id', 'deptId');
+SYS_DEPT_Result.set('parent_id', 'parentId');
+SYS_DEPT_Result.set('ancestors', 'ancestors');
+SYS_DEPT_Result.set('dept_name', 'deptName');
+SYS_DEPT_Result.set('order_num', 'orderNum');
+SYS_DEPT_Result.set('leader', 'leader');
+SYS_DEPT_Result.set('phone', 'phone');
+SYS_DEPT_Result.set('email', 'email');
+SYS_DEPT_Result.set('status', 'status');
+SYS_DEPT_Result.set('del_flag', 'delFlag');
+SYS_DEPT_Result.set('create_by', 'createBy');
+SYS_DEPT_Result.set('create_time', 'createTime');
+SYS_DEPT_Result.set('update_by', 'updateBy');
+SYS_DEPT_Result.set('update_time', 'updateTime');
+SYS_DEPT_Result.set('parent_name', 'parentName');
 
 /**
  *将结果记录转实体结果组
@@ -38,8 +39,8 @@ function convertResultRows(rows: any[]): SysDept[] {
   for (const row of rows) {
     const sysDept = new SysDept();
     for (const key in row) {
-      if (SYS_DEPT_RESULT.has(key)) {
-        const keyMapper = SYS_DEPT_RESULT.get(key);
+      if (SYS_DEPT_Result.has(key)) {
+        const keyMapper = SYS_DEPT_Result.get(key);
         sysDept[keyMapper] = row[key];
       }
     }
@@ -92,8 +93,8 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     // 查询数据
     const orderSql = ' order by d.parent_id, d.order_num asc ';
     const querySql = SELECT_DEPT_SQL + whereSql + dataScopeSQL + orderSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectDeptListByRoleId(
@@ -212,7 +213,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_dept (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -243,10 +244,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_dept set ${keys} where dept_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...values,
-      sysDept.deptId,
-    ]);
+    const result = await this.db.execute(sqlStr, [...values, sysDept.deptId]);
     return result.affectedRows;
   }
 
@@ -254,7 +252,7 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     if (deptIds.length === 0) return 0;
     const placeholder = this.db.keyPlaceholderByQuery(deptIds.length);
     const sqlStr = `update sys_dept set status = '1' where dept_id in (${placeholder}) `;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, deptIds);
+    const result = await this.db.execute(sqlStr, deptIds);
     return result.affectedRows;
   }
 
@@ -275,14 +273,14 @@ export class SysDeptRepositoryImpl implements ISysDeptRepository {
     const cases = setArr.join(' ');
     const placeholder = this.db.keyPlaceholderByQuery(paramArr.length);
     const sqlStr = `update sys_dept set ancestors = CASE ${cases} END where dept_id in (${placeholder}) `;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, paramArr);
+    const result = await this.db.execute(sqlStr, paramArr);
     return result.affectedRows;
   }
 
   async deleteDeptById(deptId: string): Promise<number> {
     const sqlStr =
       "update sys_dept set status = '0', del_flag = '1' where dept_id = ?";
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [deptId]);
+    const result = await this.db.execute(sqlStr, [deptId]);
     return result.affectedRows;
   }
 }

@@ -1,13 +1,12 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
 import {
   YYYY_MM_DD,
   parseStrToDate,
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
 import { ISysNoticeRepository } from '../ISysNoticeRepository';
 import { SysNotice } from '../../model/SysNotice';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
 
 /**查询视图对象SQL */
 const SELECT_NOTICE_SQL = `select 
@@ -15,18 +14,18 @@ notice_id, notice_title, notice_type, notice_content, status, del_flag,
 create_by, create_time, update_by, update_time, remark from sys_notice`;
 
 /**公告表信息实体映射 */
-const SYS_NOTICE_RESULT = new Map<string, string>();
-SYS_NOTICE_RESULT.set('notice_id', 'noticeId');
-SYS_NOTICE_RESULT.set('notice_title', 'noticeTitle');
-SYS_NOTICE_RESULT.set('notice_type', 'noticeType');
-SYS_NOTICE_RESULT.set('notice_content', 'noticeContent');
-SYS_NOTICE_RESULT.set('status', 'status');
-SYS_NOTICE_RESULT.set('del_flag', 'delFlag');
-SYS_NOTICE_RESULT.set('create_by', 'createBy');
-SYS_NOTICE_RESULT.set('create_time', 'createTime');
-SYS_NOTICE_RESULT.set('update_by', 'updateBy');
-SYS_NOTICE_RESULT.set('update_time', 'updateTime');
-SYS_NOTICE_RESULT.set('remark', 'remark');
+const SYS_NOTICE_Result = new Map<string, string>();
+SYS_NOTICE_Result.set('notice_id', 'noticeId');
+SYS_NOTICE_Result.set('notice_title', 'noticeTitle');
+SYS_NOTICE_Result.set('notice_type', 'noticeType');
+SYS_NOTICE_Result.set('notice_content', 'noticeContent');
+SYS_NOTICE_Result.set('status', 'status');
+SYS_NOTICE_Result.set('del_flag', 'delFlag');
+SYS_NOTICE_Result.set('create_by', 'createBy');
+SYS_NOTICE_Result.set('create_time', 'createTime');
+SYS_NOTICE_Result.set('update_by', 'updateBy');
+SYS_NOTICE_Result.set('update_time', 'updateTime');
+SYS_NOTICE_Result.set('remark', 'remark');
 
 /**
  *将结果记录转实体结果组
@@ -38,8 +37,8 @@ function convertResultRows(rows: any[]): SysNotice[] {
   for (const row of rows) {
     const sysNotice = new SysNotice();
     for (const key in row) {
-      if (SYS_NOTICE_RESULT.has(key)) {
-        const keyMapper = SYS_NOTICE_RESULT.get(key);
+      if (SYS_NOTICE_Result.has(key)) {
+        const keyMapper = SYS_NOTICE_Result.get(key);
         sysNotice[keyMapper] = row[key];
       }
     }
@@ -120,8 +119,8 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
 
     // 查询数据
     const querySql = SELECT_NOTICE_SQL + whereSql + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -151,8 +150,8 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
 
     // 查询数据
     const querySql = SELECT_NOTICE_SQL + whereSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectNoticeByIds(noticeIds: string[]): Promise<SysNotice[]> {
@@ -187,7 +186,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_notice (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -205,7 +204,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
     if (sysNotice.status) {
       paramMap.set('status', parseNumber(sysNotice.status));
     }
-    paramMap.set('remark', sysNotice.remark || "");
+    paramMap.set('remark', sysNotice.remark || '');
     if (sysNotice.updateBy) {
       paramMap.set('update_by', sysNotice.updateBy);
       paramMap.set('update_time', Date.now());
@@ -213,7 +212,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_notice set ${keys} where notice_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...values,
       sysNotice.noticeId,
     ]);
@@ -223,7 +222,7 @@ export class SysNoticeRepositoryImpl implements ISysNoticeRepository {
   async deleteNoticeByIds(noticeIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(noticeIds.length);
     const sqlStr = `update sys_notice set del_flag = '1' where notice_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, noticeIds);
+    const result = await this.db.execute(sqlStr, noticeIds);
     return result.affectedRows;
   }
 }

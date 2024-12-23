@@ -8,12 +8,15 @@ import {
   Put,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
-import { Result } from '../../../framework/vo/Result';
+import result from '../../../framework/result/result';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { ContextService } from '../../../framework/service/ContextService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { TokenService } from '../../../framework/service/TokenService';
 import { bcryptCompare } from '../../../framework/utils/CryptoUtils';
 import { FileService } from '../../../framework/service/FileService';
@@ -79,7 +82,7 @@ export class SysProfileController {
       postGroup.push(post.postName);
     }
 
-    return Result.okData({
+    return result.okData({
       user: sysUser,
       roleGroup: [...new Set(roleGroup)],
       postGroup: [...new Set(postGroup)],
@@ -93,11 +96,11 @@ export class SysProfileController {
   @PreAuthorize()
   @OperateLog({
     title: '个人信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async updateProfile(@Body() sysUser: SysUser): Promise<Result> {
     if (!sysUser.nickName || !sysUser.sex) {
-      return Result.err();
+      return result.err();
     }
 
     // 登录用户信息
@@ -108,7 +111,7 @@ export class SysProfileController {
     // 查询当前登录用户信息
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
-      return Result.errMsg('没有权限访问用户数据！');
+      return result.errMsg('没有权限访问用户数据！');
     }
 
     // 检查手机号码格式并判断是否唯一
@@ -119,10 +122,10 @@ export class SysProfileController {
           userId
         );
         if (!uniquePhone) {
-          return Result.errMsg(`修改用户【${userName}】失败，手机号码已存在`);
+          return result.errMsg(`修改用户【${userName}】失败，手机号码已存在`);
         }
       } else {
-        return Result.errMsg(`修改用户【${userName}】失败，手机号码格式错误`);
+        return result.errMsg(`修改用户【${userName}】失败，手机号码格式错误`);
       }
     }
     // 检查邮箱格式并判断是否唯一
@@ -133,14 +136,14 @@ export class SysProfileController {
           userId
         );
         if (!uniqueEmail) {
-          return Result.errMsg(`修改用户【${userName}】失败，邮箱已存在`);
+          return result.errMsg(`修改用户【${userName}】失败，邮箱已存在`);
         }
       } else {
-        return Result.errMsg(`修改用户【${userName}】失败，邮箱格式错误`);
+        return result.errMsg(`修改用户【${userName}】失败，邮箱格式错误`);
       }
     }
 
-    // 用户基本资料 
+    // 用户基本资料
     user.updateBy = userName;
     user.nickName = sysUser.nickName;
     user.phonenumber = sysUser.phonenumber;
@@ -151,9 +154,9 @@ export class SysProfileController {
       // 更新缓存用户信息
       loginUser.user = user;
       await this.tokenService.cacheLoginUser(loginUser);
-      return Result.ok();
+      return result.ok();
     }
-    return Result.errMsg('修改个人信息异常');
+    return result.errMsg('修改个人信息异常');
   }
 
   /**
@@ -163,13 +166,13 @@ export class SysProfileController {
   @PreAuthorize()
   @OperateLog({
     title: '个人信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async updatePwd(
     @Body('oldPassword') oldPassword: string,
     @Body('newPassword') newPassword: string
   ): Promise<Result> {
-    if (!oldPassword || !newPassword) return Result.err();
+    if (!oldPassword || !newPassword) return result.err();
 
     // 登录用户信息
     const loginUser = this.contextService.getLoginUser();
@@ -179,24 +182,24 @@ export class SysProfileController {
     // 查询当前登录用户信息
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
-      return Result.errMsg('没有权限访问用户数据！');
+      return result.errMsg('没有权限访问用户数据！');
     }
 
     // 检查匹配用户密码
     const oldCompare = await bcryptCompare(oldPassword, user.password);
     if (!oldCompare) {
-      return Result.errMsg('修改密码失败，旧密码错误');
+      return result.errMsg('修改密码失败，旧密码错误');
     }
     const newCompare = await bcryptCompare(newPassword, user.password);
     if (newCompare) {
-      return Result.errMsg('新密码不能与旧密码相同');
+      return result.errMsg('新密码不能与旧密码相同');
     }
 
     // 用户修改新密码
     user.updateBy = userName;
     user.password = newPassword;
     const rows = await this.sysUserService.updateUser(user);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -206,12 +209,12 @@ export class SysProfileController {
   @PreAuthorize()
   @OperateLog({
     title: '用户头像',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async avatar(
     @Files('file') files: UploadFileInfo<string>[]
   ): Promise<Result> {
-    if (!files || files.length <= 0) return Result.err();
+    if (!files || files.length <= 0) return result.err();
     // 上传文件得到资源地址后删除临时文件
     const filePath = await this.fileService.transferUploadFile(
       files[0],
@@ -228,7 +231,7 @@ export class SysProfileController {
     // 查询当前登录用户信息
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
-      return Result.errMsg('没有权限访问用户数据！');
+      return result.errMsg('没有权限访问用户数据！');
     }
 
     // 更新用户头像
@@ -239,8 +242,8 @@ export class SysProfileController {
       // 更新缓存用户信息
       loginUser.user = user;
       await this.tokenService.cacheLoginUser(loginUser);
-      return Result.okData(filePath);
+      return result.okData(filePath);
     }
-    return Result.errMsg('上传图片异常');
+    return result.errMsg('上传图片异常');
   }
 }

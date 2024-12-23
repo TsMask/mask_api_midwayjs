@@ -5,7 +5,7 @@ import { SysUser } from '../../modules/system/model/SysUser';
 import { LoginUser } from '../vo/LoginUser';
 import { getUaInfo } from '../utils/UAParserUtils';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
-import { TOKEN_KEY, TOKEN_KEY_PREFIX } from '../constants/TokenConstants';
+import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
 
 /**
  * 上下文对象服务
@@ -109,9 +109,9 @@ export class ContextService {
    * @returns 去除前缀字符串
    */
   async getHeaderToken(): Promise<string> {
-    let headerToken = this.ctx.get(TOKEN_KEY);
-    if (headerToken && headerToken.startsWith(TOKEN_KEY_PREFIX)) {
-      headerToken = headerToken.replace(TOKEN_KEY_PREFIX, '');
+    let headerToken = this.ctx.get(HEADER_KEY);
+    if (headerToken && headerToken.startsWith(HEADER_PREFIX)) {
+      headerToken = headerToken.replace(HEADER_PREFIX, '');
     }
     return headerToken;
   }

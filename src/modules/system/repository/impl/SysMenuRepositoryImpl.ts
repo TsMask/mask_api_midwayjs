@@ -1,14 +1,15 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { ISysMenuRepository } from '../ISysMenuRepository';
 import { SysMenu } from '../../model/SysMenu';
 import {
   MENU_TYPE_BUTTON,
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
-} from '../../../../framework/constants/MenuConstants';
+} from '../../../../framework/constants/menu';
 
 /**查询视图对象SQL */
 const SELECT_MENU_SQL = `select 
@@ -24,26 +25,26 @@ left join sys_user_role ur on rm.role_id = ur.role_id
 left join sys_role ro on ur.role_id = ro.role_id`;
 
 /**菜单权限表信息实体映射 */
-const SYS_MENU_RESULT = new Map<string, string>();
-SYS_MENU_RESULT.set('menu_id', 'menuId');
-SYS_MENU_RESULT.set('menu_name', 'menuName');
-SYS_MENU_RESULT.set('parent_name', 'parentName');
-SYS_MENU_RESULT.set('parent_id', 'parentId');
-SYS_MENU_RESULT.set('path', 'path');
-SYS_MENU_RESULT.set('menu_sort', 'menuSort');
-SYS_MENU_RESULT.set('component', 'component');
-SYS_MENU_RESULT.set('is_frame', 'isFrame');
-SYS_MENU_RESULT.set('is_cache', 'isCache');
-SYS_MENU_RESULT.set('menu_type', 'menuType');
-SYS_MENU_RESULT.set('visible', 'visible');
-SYS_MENU_RESULT.set('status', 'status');
-SYS_MENU_RESULT.set('perms', 'perms');
-SYS_MENU_RESULT.set('icon', 'icon');
-SYS_MENU_RESULT.set('create_by', 'createBy');
-SYS_MENU_RESULT.set('create_time', 'createTime');
-SYS_MENU_RESULT.set('update_by', 'updateBy');
-SYS_MENU_RESULT.set('update_time', 'updateTime');
-SYS_MENU_RESULT.set('remark', 'remark');
+const SYS_MENU_Result = new Map<string, string>();
+SYS_MENU_Result.set('menu_id', 'menuId');
+SYS_MENU_Result.set('menu_name', 'menuName');
+SYS_MENU_Result.set('parent_name', 'parentName');
+SYS_MENU_Result.set('parent_id', 'parentId');
+SYS_MENU_Result.set('path', 'path');
+SYS_MENU_Result.set('menu_sort', 'menuSort');
+SYS_MENU_Result.set('component', 'component');
+SYS_MENU_Result.set('is_frame', 'isFrame');
+SYS_MENU_Result.set('is_cache', 'isCache');
+SYS_MENU_Result.set('menu_type', 'menuType');
+SYS_MENU_Result.set('visible', 'visible');
+SYS_MENU_Result.set('status', 'status');
+SYS_MENU_Result.set('perms', 'perms');
+SYS_MENU_Result.set('icon', 'icon');
+SYS_MENU_Result.set('create_by', 'createBy');
+SYS_MENU_Result.set('create_time', 'createTime');
+SYS_MENU_Result.set('update_by', 'updateBy');
+SYS_MENU_Result.set('update_time', 'updateTime');
+SYS_MENU_Result.set('remark', 'remark');
 
 /**
  *将结果记录转实体结果组
@@ -55,8 +56,8 @@ function convertResultRows(rows: any[]): SysMenu[] {
   for (const row of rows) {
     const sysMenu = new SysMenu();
     for (const key in row) {
-      if (SYS_MENU_RESULT.has(key)) {
-        const keyMapper = SYS_MENU_RESULT.get(key);
+      if (SYS_MENU_Result.has(key)) {
+        const keyMapper = SYS_MENU_Result.get(key);
         sysMenu[keyMapper] = row[key];
       }
     }
@@ -111,8 +112,8 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     // 查询数据
     const orderSql = ' order by m.parent_id, m.menu_sort';
     const querySql = fromSql + whereSql + orderSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectMenuTreeByUserId(userId: string): Promise<SysMenu[]> {
@@ -255,7 +256,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_menu (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -299,7 +300,7 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
     } else {
       paramMap.set('icon', '#');
     }
-    paramMap.set('remark', sysMenu.remark || "");
+    paramMap.set('remark', sysMenu.remark || '');
     if (sysMenu.updateBy) {
       paramMap.set('update_by', sysMenu.updateBy);
       paramMap.set('update_time', Date.now());
@@ -321,16 +322,13 @@ export class SysMenuRepositoryImpl implements ISysMenuRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_menu set ${keys} where menu_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...values,
-      sysMenu.menuId,
-    ]);
+    const result = await this.db.execute(sqlStr, [...values, sysMenu.menuId]);
     return result.affectedRows;
   }
 
   async deleteMenuById(menuId: string): Promise<number> {
     const sqlStr = 'delete from sys_menu where menu_id = ?';
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [menuId]);
+    const result = await this.db.execute(sqlStr, [menuId]);
     return result.affectedRows;
   }
 

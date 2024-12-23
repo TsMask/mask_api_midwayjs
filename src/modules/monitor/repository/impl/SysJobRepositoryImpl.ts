@@ -1,31 +1,31 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { SysJob } from '../../model/SysJob';
 import { ISysJobRepository } from '../ISysJobRepository';
-import { ResultSetHeader } from 'mysql2';
 
 /**查询视图对象SQL */
 const SELECT_JOB_SQL = `select job_id, job_name, job_group, invoke_target, target_params, cron_expression, 
 misfire_policy, concurrent, status, save_log, create_by, create_time, remark from sys_job`;
 
 /**操作定时任务调度表信息实体映射 */
-const SYS_JOB_RESULT = new Map<string, string>();
-SYS_JOB_RESULT.set('job_id', 'jobId');
-SYS_JOB_RESULT.set('job_name', 'jobName');
-SYS_JOB_RESULT.set('job_group', 'jobGroup');
-SYS_JOB_RESULT.set('invoke_target', 'invokeTarget');
-SYS_JOB_RESULT.set('target_params', 'targetParams');
-SYS_JOB_RESULT.set('cron_expression', 'cronExpression');
-SYS_JOB_RESULT.set('misfire_policy', 'misfirePolicy');
-SYS_JOB_RESULT.set('concurrent', 'concurrent');
-SYS_JOB_RESULT.set('status', 'status');
-SYS_JOB_RESULT.set('save_log', 'saveLog');
-SYS_JOB_RESULT.set('create_by', 'createBy');
-SYS_JOB_RESULT.set('create_time', 'createTime');
-SYS_JOB_RESULT.set('update_by', 'updateBy');
-SYS_JOB_RESULT.set('update_time', 'updateTime');
-SYS_JOB_RESULT.set('remark', 'remark');
+const SYS_JOB_Result = new Map<string, string>();
+SYS_JOB_Result.set('job_id', 'jobId');
+SYS_JOB_Result.set('job_name', 'jobName');
+SYS_JOB_Result.set('job_group', 'jobGroup');
+SYS_JOB_Result.set('invoke_target', 'invokeTarget');
+SYS_JOB_Result.set('target_params', 'targetParams');
+SYS_JOB_Result.set('cron_expression', 'cronExpression');
+SYS_JOB_Result.set('misfire_policy', 'misfirePolicy');
+SYS_JOB_Result.set('concurrent', 'concurrent');
+SYS_JOB_Result.set('status', 'status');
+SYS_JOB_Result.set('save_log', 'saveLog');
+SYS_JOB_Result.set('create_by', 'createBy');
+SYS_JOB_Result.set('create_time', 'createTime');
+SYS_JOB_Result.set('update_by', 'updateBy');
+SYS_JOB_Result.set('update_time', 'updateTime');
+SYS_JOB_Result.set('remark', 'remark');
 
 /**
  *将结果记录转实体结果组
@@ -37,8 +37,8 @@ function convertResultRows(rows: any[]): SysJob[] {
   for (const row of rows) {
     const item = new SysJob();
     for (const key in row) {
-      if (SYS_JOB_RESULT.has(key)) {
-        const keyMapper = SYS_JOB_RESULT.get(key);
+      if (SYS_JOB_Result.has(key)) {
+        const keyMapper = SYS_JOB_Result.get(key);
         item[keyMapper] = row[key];
       }
     }
@@ -107,8 +107,8 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
 
     // 查询数据
     const querySql = SELECT_JOB_SQL + whereSql + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -141,8 +141,8 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
 
     // 查询数据
     const querySql = SELECT_JOB_SQL + whereSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectJobByIds(jobIds: string[]): Promise<SysJob[]> {
@@ -222,7 +222,7 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_job (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -261,17 +261,14 @@ export class SysJobRepositoryImpl implements ISysJobRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_job set ${keys} where job_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...values,
-      sysJob.jobId,
-    ]);
+    const result = await this.db.execute(sqlStr, [...values, sysJob.jobId]);
     return result.affectedRows;
   }
 
   async deleteJobByIds(jobIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(jobIds.length);
     const sqlStr = `delete from sys_job where job_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, jobIds);
+    const result = await this.db.execute(sqlStr, jobIds);
     return result.affectedRows;
   }
 }

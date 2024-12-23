@@ -4,25 +4,47 @@ import {
   createCustomMethodDecorator,
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { OperatorBusinessTypeEnum } from '../enums/OperatorBusinessTypeEnum';
 import { OperatorTypeEnum } from '../enums/OperatorTypeEnum';
 import { SysLogOperate } from '../../modules/system/model/SysLogOperate';
 import { SysLogOperateServiceImpl } from '../../modules/system/service/impl/SysLogOperateServiceImpl';
 import { LoginUser } from '../vo/LoginUser';
-import { Result } from '../vo/Result';
-import { STATUS_NO, STATUS_YES } from '../constants/CommonConstants';
-import { RESULT_CODE_SUCCESS } from '../constants/ResultConstants';
+import { STATUS_NO, STATUS_YES } from '../constants/common';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { parseSafeContent } from '../utils/ValueParseUtils';
+import result from '../result/result';
+
+/**
+ * 操作日志-业务操作类型枚举
+ *
+ * @author TsMask
+ */
+export enum BUSINESS_TYPE {
+  /**其它 */
+  OTHER = '0',
+  /**新增 */
+  INSERT = '1',
+  /**修改 */
+  UPDATE = '2',
+  /**删除 */
+  DELETE = '3',
+  /**授权 */
+  GRANT = '4',
+  /**导出 */
+  EXPORT = '5',
+  /**导入 */
+  IMPORT = '6',
+  /**强退 */
+  FORCE = '7',
+  /**清空数据 */
+  CLEAN = '8',
+}
 
 /** 操作日志参数 */
 interface Options {
   /**标题 */
   title: string;
   /**类型 */
-  businessType: OperatorBusinessTypeEnum;
-  /**操作人类别 */
-  operatorType?: OperatorTypeEnum;
+  businessType: BUSINESS_TYPE;
   /**是否保存请求的参数 */
   isSaveRequestData?: boolean;
   /**是否保存响应的参数 */
@@ -63,9 +85,9 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       const ctx: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
       // 初始可选参数数据
       const metadataObj = options.metadata;
-      if (!metadataObj.operatorType) {
-        metadataObj.operatorType = OperatorTypeEnum.MANAGE;
-      }
+      // if (!metadataObj.operatorType) {
+      //   metadataObj.operatorType = OperatorTypeEnum.MANAGE;
+      // }
       if (typeof metadataObj.isSaveRequestData === 'undefined') {
         metadataObj.isSaveRequestData = true;
       }
@@ -77,7 +99,7 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       const operLog = new SysLogOperate();
       operLog.title = metadataObj.title;
       operLog.businessType = metadataObj.businessType;
-      operLog.operatorType = metadataObj.operatorType;
+      // operLog.operatorType = metadataObj.operatorType;
       const className = joinPoint.target.constructor.name;
       operLog.method = `${className}.${joinPoint.methodName}()`;
       operLog.operUrl = ctx.path;
@@ -116,25 +138,25 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       }
 
       // 执行原方法
-      const result = await joinPoint.proceed(...joinPoint.args);
+      const res = await joinPoint.proceed(...joinPoint.args);
 
       // 是否需要保存response，参数和值
       if (metadataObj.isSaveResponseData) {
         // 二进制流文件记录响应文件名
-        if (Buffer.isBuffer(result)) {
+        if (Buffer.isBuffer(res)) {
           operLog.operMsg =
             ctx.response.headers['content-disposition'].toString();
         } else {
-          operLog.operMsg = JSON.stringify(result).substring(0, 2000);
+          operLog.operMsg = JSON.stringify(res).substring(0, 2000);
         }
       }
 
       // 保存操作记录到数据库
       const sysLogOperateService: SysLogOperateServiceImpl =
         await ctx.requestContext.getAsync(SysLogOperateServiceImpl);
-      if (result instanceof Result) {
+      if (typeof res === 'object') {
         operLog.status =
-          result.code === RESULT_CODE_SUCCESS ? STATUS_YES : STATUS_NO;
+          res.code === result.CODE_SUCCESS ? STATUS_YES : STATUS_NO;
       } else {
         operLog.status = STATUS_YES;
       }
@@ -143,7 +165,7 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       await sysLogOperateService.insertSysLogOperate(operLog);
 
       // 返回执行结果
-      return result;
+      return res;
     },
   };
 }

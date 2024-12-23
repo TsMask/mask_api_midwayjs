@@ -13,7 +13,7 @@ import { MidwayDecoratorService } from '@midwayjs/core';
 import { checkDirPathExists } from './framework/utils/FileUtils';
 import { Middlewares } from './framework/middleware';
 import { MethodDecorators } from './framework/decorator';
-import { ErrorCatchFilters } from './framework/errorcatch';
+import { ErrorCatchFilters } from './framework/catch';
 
 @Configuration({
   imports: [
@@ -30,7 +30,7 @@ import { ErrorCatchFilters } from './framework/errorcatch';
   importConfigs: [join(__dirname, './config')],
 })
 export class MainConfiguration {
-  @App()
+  @App('koa')
   app: koa.Application;
 
   @Inject()

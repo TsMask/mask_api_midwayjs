@@ -8,10 +8,7 @@ import {
   parseDataToTree,
   ConvertToCamelCase,
 } from '../../../../framework/utils/ValueParseUtils';
-import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../../../../framework/constants/CommonConstants';
+import { STATUS_NO, STATUS_YES } from '../../../../framework/constants/common';
 import {
   MENU_COMPONENT_LAYOUT_LINK,
   MENU_COMPONENT_LAYOUT_BASIC,
@@ -19,7 +16,7 @@ import {
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
   MENU_PATH_INLINE,
-} from '../../../../framework/constants/MenuConstants';
+} from '../../../../framework/constants/menu';
 import { RouterVo } from '../../../../framework/vo/RouterVo';
 import { RouterMateVo } from '../../../../framework/vo/RouterMateVo';
 import { validHttp } from '../../../../framework/utils/RegularUtils';

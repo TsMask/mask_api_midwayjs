@@ -1,11 +1,12 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { ISysConfigRepository } from '../ISysConfigRepository';
 import { SysConfig } from '../../model/SysConfig';
 
@@ -15,17 +16,17 @@ config_id, config_name, config_key, config_value, config_type, create_by, create
 from sys_config`;
 
 /**系统配置表信息实体映射 */
-const SYS_CONFIG_RESULT = new Map<string, string>();
-SYS_CONFIG_RESULT.set('config_id', 'configId');
-SYS_CONFIG_RESULT.set('config_name', 'configName');
-SYS_CONFIG_RESULT.set('config_key', 'configKey');
-SYS_CONFIG_RESULT.set('config_value', 'configValue');
-SYS_CONFIG_RESULT.set('config_type', 'configType');
-SYS_CONFIG_RESULT.set('remark', 'remark');
-SYS_CONFIG_RESULT.set('create_by', 'createBy');
-SYS_CONFIG_RESULT.set('create_time', 'createTime');
-SYS_CONFIG_RESULT.set('update_by', 'updateBy');
-SYS_CONFIG_RESULT.set('update_time', 'updateTime');
+const SYS_CONFIG_Result = new Map<string, string>();
+SYS_CONFIG_Result.set('config_id', 'configId');
+SYS_CONFIG_Result.set('config_name', 'configName');
+SYS_CONFIG_Result.set('config_key', 'configKey');
+SYS_CONFIG_Result.set('config_value', 'configValue');
+SYS_CONFIG_Result.set('config_type', 'configType');
+SYS_CONFIG_Result.set('remark', 'remark');
+SYS_CONFIG_Result.set('create_by', 'createBy');
+SYS_CONFIG_Result.set('create_time', 'createTime');
+SYS_CONFIG_Result.set('update_by', 'updateBy');
+SYS_CONFIG_Result.set('update_time', 'updateTime');
 
 /**
  *将结果记录转实体结果组
@@ -37,8 +38,8 @@ function convertResultRows(rows: any[]): SysConfig[] {
   for (const row of rows) {
     const sysConfig = new SysConfig();
     for (const key in row) {
-      if (SYS_CONFIG_RESULT.has(key)) {
-        const keyMapper = SYS_CONFIG_RESULT.get(key);
+      if (SYS_CONFIG_Result.has(key)) {
+        const keyMapper = SYS_CONFIG_Result.get(key);
         sysConfig[keyMapper] = row[key];
       }
     }
@@ -115,8 +116,8 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
 
     // 查询数据
     const querySql = SELECT_CONFIG_SQL + whereSql + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -149,8 +150,8 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
 
     // 查询数据
     const querySql = SELECT_CONFIG_SQL + whereSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectconfigValueByKey(configKey: string): Promise<string> {
@@ -215,7 +216,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_config (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -241,7 +242,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_config set ${keys} where config_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
+    const result = await this.db.execute(sqlStr, [
       ...values,
       sysConfig.configId,
     ]);
@@ -251,7 +252,7 @@ export class SysConfigRepositoryImpl implements ISysConfigRepository {
   async deleteConfigByIds(configIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(configIds.length);
     const sqlStr = `delete from sys_config where config_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, configIds);
+    const result = await this.db.execute(sqlStr, configIds);
     return result.affectedRows;
   }
 }

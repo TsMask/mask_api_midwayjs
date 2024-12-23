@@ -5,11 +5,11 @@ import {
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { LoginUser } from '../vo/LoginUser';
-import { Result } from '../vo/Result';
 import { LimitTypeEnum } from '../enums/LimitTypeEnum';
-import { RATE_LIMIT_KEY } from '../constants/CacheKeysConstants';
-import { RedisCache } from '../cache/RedisCache';
+import { CACHE_RATE_LIMIT } from '../constants/cache-key';
+import { RedisCache } from '../datasource/redis/redis';
 import { getClientIP } from '../utils/ip2region';
+import result from '../result/result';
 
 /** 限流参数 */
 interface rateLimitOptions {
@@ -58,7 +58,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
 
       const className = joinPoint.target.constructor.name;
       const classMethod = `${className}.${joinPoint.methodName}()`;
-      let combinedKey = RATE_LIMIT_KEY + classMethod;
+      let combinedKey = CACHE_RATE_LIMIT + classMethod;
 
       // 默认
       if (!limitType) {
@@ -68,14 +68,14 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       // IP
       if (limitType === LimitTypeEnum.IP) {
         const clientIP = getClientIP(ctx.ip);
-        combinedKey = RATE_LIMIT_KEY + `${clientIP}:${classMethod}`;
+        combinedKey = CACHE_RATE_LIMIT + `${clientIP}:${classMethod}`;
       }
 
       // 用户
       if (limitType === LimitTypeEnum.USER) {
         const loginUser: LoginUser = ctx.loginUser;
         if (loginUser && loginUser.userId) {
-          combinedKey = RATE_LIMIT_KEY + `${loginUser.userId}:${classMethod}`;
+          combinedKey = CACHE_RATE_LIMIT + `${loginUser.userId}:${classMethod}`;
         }
       }
 
@@ -96,7 +96,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       ctx.set('X-Ratelimit-Reset', `${Date.now() + rateTime * 1000}`);
 
       if (rateCount >= limitCount) {
-        return Result.errMsg('访问过于频繁，请稍候再试');
+        return result.errMsg('访问过于频繁，请稍候再试');
       }
 
       // 执行原方法

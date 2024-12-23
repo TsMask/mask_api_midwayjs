@@ -1,16 +1,9 @@
-import {
-  Controller,
-  Del,
-  Get,
-  Inject,
-  Param,
-  Query,
-} from '@midwayjs/core';
-import { Result } from '../../../framework/vo/Result';
+import { Controller, Del, Get, Inject, Param, Query } from '@midwayjs/core';
+import result from '../../../framework/result/result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { RedisCache } from '../../../framework/cache/RedisCache';
+import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { LoginUser } from '../../../framework/vo/LoginUser';
-import { LOGIN_TOKEN_KEY } from '../../../framework/constants/CacheKeysConstants';
+import { CACHE_LOGIN_TOKEN } from '../../../framework/constants/cache-key';
 import { SysUserOnlineServiceImpl } from '../service/impl/SysUserOnlineServiceImpl';
 import { SysUserOnline } from '../model/SysUserOnline';
 
@@ -37,10 +30,10 @@ export class SysUserOnlineController {
     @Query('userName') userName: string
   ): Promise<Result> {
     // 获取所有在线用户key
-    const keys = await this.redisCache.getKeys(`${LOGIN_TOKEN_KEY}*`);
+    const keys = await this.redisCache.getKeys(`${CACHE_LOGIN_TOKEN}*`);
 
     // 分批获取
-    const result: string[] = [];
+    const Result: string[] = [];
     for (let i = 0; i < keys.length; i += 20) {
       let end = i + 20;
       if (end > keys.length) {
@@ -48,12 +41,12 @@ export class SysUserOnlineController {
       }
       const chunk = keys.slice(i, end);
       const values = await this.redisCache.getBatch(chunk);
-      result.push(...values);
+      Result.push(...values);
     }
 
     // 遍历字符串信息解析组合可用对象
     let userOnlines: SysUserOnline[] = [];
-    for (const str of result) {
+    for (const str of Result) {
       if (!str) continue;
       const loginUser: LoginUser = JSON.parse(str);
       const onlineUser = await this.sysUserOnlineService.loginUserToUserOnline(
@@ -73,7 +66,7 @@ export class SysUserOnlineController {
       userOnlines = userOnlines.filter(o => o.userName.includes(userName));
     }
 
-    return Result.ok({
+    return result.ok({
       rows: userOnlines.sort((a, b) => b.loginTime - a.loginTime),
       total: keys.length,
     });
@@ -85,8 +78,8 @@ export class SysUserOnlineController {
   @Del('/:tokenId')
   @PreAuthorize({ hasPermissions: ['monitor:online:forceLogout'] })
   async forceLogout(@Param('tokenId') tokenId: string): Promise<Result> {
-    if (!tokenId || tokenId === '*') return Result.err();
-    const num = await this.redisCache.del(`${LOGIN_TOKEN_KEY}${tokenId}`);
-    return Result[num > 0 ? 'ok' : 'err']();
+    if (!tokenId || tokenId === '*') return result.err();
+    const num = await this.redisCache.del(`${CACHE_LOGIN_TOKEN}${tokenId}`);
+    return result[num > 0 ? 'ok' : 'err']();
   }
 }

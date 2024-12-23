@@ -4,12 +4,11 @@ import {
   createCustomMethodDecorator,
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { REPEAT_SUBMIT_KEY } from '../constants/CacheKeysConstants';
-import { RESPONSE_HEADER_REPEATSUBMIT_REST } from '../constants/HerderConstants';
-import { Result } from '../vo/Result';
-import { RedisCache } from '../cache/RedisCache';
+import { CACHE_REPEAT_SUBMIT } from '../constants/cache-key';
+import { RedisCache } from '../datasource/redis/redis';
 import { diffSeconds } from '../utils/DateUtils';
 import { getClientIP } from '../utils/ip2region';
+import result from '../result/result';
 
 /**重复参数Redis格式数据类型 */
 type RepeatParamType = {
@@ -58,7 +57,7 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       const clientIP = getClientIP(ctx.ip);
 
       // 唯一标识（指定key + 客户端IP + 请求地址）
-      const cacheKey = REPEAT_SUBMIT_KEY + `${clientIP}:${ctx.path}`;
+      const cacheKey = CACHE_REPEAT_SUBMIT + `${clientIP}:${ctx.path}`;
 
       // 从Redis读取上一次保存的请求时间和参数
       const redisCacheServer: RedisCache = await ctx.requestContext.getAsync(
@@ -71,13 +70,10 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
         const compareParams =
           JSON.stringify(rpObj.params) === JSON.stringify(params);
         // 设置重复提交声明响应头（毫秒）
-        ctx.set(
-          RESPONSE_HEADER_REPEATSUBMIT_REST,
-          `${Date.now() + compareTime * 1000}`
-        );
+        ctx.set('X-RepeatSubmit-Rest', `${Date.now() + compareTime * 1000}`);
         // 小于间隔时间 且 参数内容一致
         if (compareTime < interval && compareParams) {
-          return Result.errMsg('不允许重复提交，请稍候再试');
+          return result.errMsg('不允许重复提交，请稍候再试');
         }
       }
 

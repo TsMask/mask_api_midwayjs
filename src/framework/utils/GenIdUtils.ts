@@ -35,10 +35,10 @@ export function generateString(size: number, prefix?: string): string {
  * @returns number
  */
 export function generateNumber(size: number): number {
-  let result = '';
+  let str = '';
   for (let i = 0; i < size; i++) {
     const digit = Math.floor(Math.random() * 10);
-    result += digit.toString();
+    str += digit.toString();
   }
-  return parseInt(result);
+  return parseInt(str);
 }

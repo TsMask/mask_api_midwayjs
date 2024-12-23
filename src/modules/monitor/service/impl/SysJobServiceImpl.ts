@@ -1,9 +1,6 @@
 import { Job, Framework } from '@midwayjs/bull';
 import { Provide, Inject, Singleton, Init } from '@midwayjs/core';
-import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../../../../framework/constants/CommonConstants';
+import { STATUS_NO, STATUS_YES } from '../../../../framework/constants/common';
 import { SysJob } from '../../model/SysJob';
 import { SysJobLog } from '../../model/SysJobLog';
 import { SysJobLogRepositoryImpl } from '../../repository/impl/SysJobLogRepositoryImpl';
@@ -149,12 +146,12 @@ export class SysJobServiceImpl implements ISysJobService {
       // 添加完成监听
       queue.addListener(
         'completed',
-        async (job: Job, result: ProcessorData) => {
+        async (job: Job, Result: ProcessorData) => {
           // 读取任务信息进行保存日志
           const jobLog = {
             timestamp: job.timestamp,
             data: job.data,
-            result: result,
+            Result: Result,
           };
           this.saveJobLog(jobLog, STATUS_YES);
           await job.remove();
@@ -166,7 +163,7 @@ export class SysJobServiceImpl implements ISysJobService {
         const jobLog = {
           timestamp: job.timestamp,
           data: job.data,
-          result: error,
+          Result: error,
         };
         this.saveJobLog(jobLog, STATUS_NO);
         await job.remove();
@@ -255,7 +252,7 @@ export class SysJobServiceImpl implements ISysJobService {
     jld: {
       timestamp: number;
       data: ProcessorOptions;
-      result: any;
+      Result: any;
     },
     status: string
   ) {
@@ -263,21 +260,21 @@ export class SysJobServiceImpl implements ISysJobService {
     const sysJob = jld.data.sysJob;
 
     // 任务日志不需要记录
-    if (sysJob.saveLog == '' || sysJob.saveLog == STATUS_NO) {
+    if (sysJob.saveLog === '' || sysJob.saveLog === STATUS_NO) {
       return;
     }
 
     // 结果信息key的Name
-    let resultNmae = 'failed';
-    if (status == STATUS_YES) {
-      resultNmae = 'completed';
+    let ResultNmae = 'failed';
+    if (status === STATUS_YES) {
+      ResultNmae = 'completed';
     }
 
     // 结果信息序列化字符串
     let jobMsg = JSON.stringify({
       cron: jld.data.repeat,
-      name: resultNmae,
-      message: jld.result,
+      name: ResultNmae,
+      message: jld.Result,
     });
     if (jobMsg.length >= 500) {
       jobMsg = jobMsg.substring(0, 500);

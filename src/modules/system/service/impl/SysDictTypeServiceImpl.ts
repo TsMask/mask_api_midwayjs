@@ -1,7 +1,7 @@
 import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
-import { SYS_DICT_KEY } from '../../../../framework/constants/CacheKeysConstants';
-import { RedisCache } from '../../../../framework/cache/RedisCache';
-import { STATUS_YES } from '../../../../framework/constants/CommonConstants';
+import { CACHE_SYS_DICT } from '../../../../framework/constants/cache-key';
+import { RedisCache } from '../../../../framework/datasource/redis/redis';
+import { STATUS_YES } from '../../../../framework/constants/common';
 import { SysDictDataRepositoryImpl } from '../../repository/impl/SysDictDataRepositoryImpl';
 import { SysDictTypeRepositoryImpl } from '../../repository/impl/SysDictTypeRepositoryImpl';
 import { ISysDictTypeService } from '../ISysDictTypeService';
@@ -136,7 +136,7 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
    * @return 缓存键key
    */
   private cacheKey(dictType: string): string {
-    return SYS_DICT_KEY + dictType;
+    return CACHE_SYS_DICT + dictType;
   }
 
   async loadingDictCache(dictType?: string): Promise<void> {
@@ -146,7 +146,7 @@ export class SysDictTypeServiceImpl implements ISysDictTypeService {
     if (dictType) {
       sysDictData.dictType = dictType;
       // 删除缓存
-      await this.redisCache.del(SYS_DICT_KEY + dictType);
+      await this.redisCache.del(CACHE_SYS_DICT + dictType);
     }
     const sysDictDataList = await this.sysDictDataRepository.selectDictDataList(
       sysDictData

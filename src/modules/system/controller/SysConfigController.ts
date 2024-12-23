@@ -8,9 +8,12 @@ import {
   Post,
   Put,
 } from '@midwayjs/core';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { Result } from '../../../framework/vo/Result';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+
+import result from '../../../framework/result/result';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
@@ -43,7 +46,7 @@ export class SysConfigController {
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
     const data = await this.sysConfigService.selectConfigPage(query);
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -52,9 +55,9 @@ export class SysConfigController {
   @Get('/:configId')
   @PreAuthorize({ hasPermissions: ['system:config:query'] })
   async getInfo(@Param('configId') configId: string): Promise<Result> {
-    if (!configId) return Result.err();
+    if (!configId) return result.err();
     const data = await this.sysConfigService.selectConfigById(configId);
-    return Result.okData(data);
+    return result.okData(data);
   }
 
   /**
@@ -64,12 +67,12 @@ export class SysConfigController {
   @PreAuthorize({ hasPermissions: ['system:config:add'] })
   @OperateLog({
     title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.INSERT,
+    businessType: BUSINESS_TYPE.INSERT,
   })
   async add(@Body() sysConfig: SysConfig) {
     const { configId, configName, configKey, configValue } = sysConfig;
     if (configId || !configName || !configKey || !configValue) {
-      return Result.err();
+      return result.err();
     }
 
     // 检查属性值唯一
@@ -77,12 +80,12 @@ export class SysConfigController {
       configKey
     );
     if (!uniqueConfigKey) {
-      return Result.errMsg(`参数配置新增【${configKey}】失败，参数键名已存在`);
+      return result.errMsg(`参数配置新增【${configKey}】失败，参数键名已存在`);
     }
 
     sysConfig.createBy = this.contextService.getUseName();
     const insertId = await this.sysConfigService.insertConfig(sysConfig);
-    return Result[insertId ? 'ok' : 'err']();
+    return result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -92,18 +95,18 @@ export class SysConfigController {
   @PreAuthorize({ hasPermissions: ['system:config:edit'] })
   @OperateLog({
     title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async edit(@Body() sysConfig: SysConfig) {
     const { configId, configName, configKey, configValue } = sysConfig;
     if (!configId || !configName || !configKey || !configValue) {
-      return Result.err();
+      return result.err();
     }
 
     // 检查是否存在
     const config = await this.sysConfigService.selectConfigById(configId);
     if (!config) {
-      return Result.errMsg('没有权限访问参数配置数据！');
+      return result.errMsg('没有权限访问参数配置数据！');
     }
 
     // 检查属性值唯一
@@ -112,12 +115,12 @@ export class SysConfigController {
       configId
     );
     if (!uniqueConfigKey) {
-      return Result.errMsg(`参数配置修改【${configKey}】失败，参数键名已存在`);
+      return result.errMsg(`参数配置修改【${configKey}】失败，参数键名已存在`);
     }
 
     sysConfig.updateBy = this.contextService.getUseName();
     const rows = await this.sysConfigService.updateConfig(sysConfig);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -127,17 +130,17 @@ export class SysConfigController {
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
   @OperateLog({
     title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('configIds') configIds: string) {
-    if (!configIds) return Result.err();
+    if (!configIds) return result.err();
     // 处理字符转有效数字id数组
     const ids = configIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const rows = await this.sysConfigService.deleteConfigByIds([
       ...new Set(ids),
     ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -148,11 +151,11 @@ export class SysConfigController {
   @PreAuthorize({ hasPermissions: ['system:config:remove'] })
   @OperateLog({
     title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.CLEAN,
+    businessType: BUSINESS_TYPE.CLEAN,
   })
   async refreshCache(): Promise<Result> {
     await this.sysConfigService.resetConfigCache();
-    return Result.ok();
+    return result.ok();
   }
 
   /**
@@ -161,7 +164,7 @@ export class SysConfigController {
   @Get('/configKey/:configKey')
   async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
     const data = await this.sysConfigService.selectConfigValueByKey(configKey);
-    return Result.okData(data || '');
+    return result.okData(data || '');
   }
 
   /**
@@ -171,7 +174,7 @@ export class SysConfigController {
   @PreAuthorize({ hasPermissions: ['system:config:export'] })
   @OperateLog({
     title: '参数配置信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
+    businessType: BUSINESS_TYPE.EXPORT,
   })
   async export() {
     const ctx = this.contextService.getContext();
@@ -179,7 +182,7 @@ export class SysConfigController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysConfigService.selectConfigPage(query);
     if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
+      return result.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

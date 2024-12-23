@@ -5,9 +5,9 @@ import {
   httpError,
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { ADMIN_PERMISSION, ADMIN_ROLE_KEY } from '../constants/AdminConstants';
-import { TOKEN_KEY, TOKEN_KEY_PREFIX } from '../constants/TokenConstants';
+import { SYS_PERMISSION_SYSTEM, SYS_ROLE_SYSTEM_KEY } from '../constants/system'; 
 import { TokenService } from '../service/TokenService';
+import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
 
 /** 授权限制参数 */
 interface AuthOptions {
@@ -51,9 +51,9 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       );
 
       // 获取token在请求头标识信息
-      let headerToken = ctx.get(TOKEN_KEY);
-      if (headerToken && headerToken.startsWith(TOKEN_KEY_PREFIX)) {
-        headerToken = headerToken.replace(TOKEN_KEY_PREFIX, '');
+      let headerToken = ctx.get(HEADER_KEY);
+      if (headerToken && headerToken.startsWith(HEADER_PREFIX)) {
+        headerToken = headerToken.replace(HEADER_PREFIX, '');
       }
       if (!headerToken) {
         throw new httpError.UnauthorizedError('无效身份授权');
@@ -106,8 +106,8 @@ function verifyRolePermission(
 ): boolean {
   // 直接放行 管理员角色或任意权限
   if (
-    roles.includes(ADMIN_ROLE_KEY) ||
-    permissions.includes(ADMIN_PERMISSION)
+    roles.includes(SYS_ROLE_SYSTEM_KEY) ||
+    permissions.includes(SYS_PERMISSION_SYSTEM)
   ) {
     return true;
   }

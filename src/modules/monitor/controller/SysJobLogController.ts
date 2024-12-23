@@ -1,8 +1,10 @@
 import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/core';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import { Result } from '../../../framework/vo/Result';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+import result from '../../../framework/result/result';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
@@ -41,13 +43,13 @@ export class SysJobLogController {
   async list(): Promise<Result> {
     const querys = this.contextService.getContext().query;
     const jobId = querys.jobId as string;
-    if (jobId && jobId != '' && jobId != '0') {
+    if (jobId && jobId !== '' && jobId !== '0') {
       const job = await this.sysJobService.selectJobById(jobId);
       querys.jobName = job.jobName;
       querys.jobGroup = job.jobGroup;
     }
     const data = await this.sysJobLogService.selectJobLogPage(querys);
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -56,9 +58,9 @@ export class SysJobLogController {
   @Get('/:jobLogId')
   @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
   async getInfo(@Param('jobLogId') jobLogId: string): Promise<Result> {
-    if (!jobLogId) return Result.err();
+    if (!jobLogId) return result.err();
     const data = await this.sysJobLogService.selectJobLogById(jobLogId);
-    return Result.okData(data);
+    return result.okData(data);
   }
 
   /**
@@ -68,17 +70,17 @@ export class SysJobLogController {
   @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
   @OperateLog({
     title: '调度任务日志信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('jobLogIds') jobLogIds: string): Promise<Result> {
-    if (!jobLogIds) return Result.err();
+    if (!jobLogIds) return result.err();
     // 处理字符转id数组
     const ids = jobLogIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const rows = await this.sysJobLogService.deleteJobLogByIds([
       ...new Set(ids),
     ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -88,11 +90,11 @@ export class SysJobLogController {
   @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
   @OperateLog({
     title: '调度任务日志信息',
-    businessType: OperatorBusinessTypeEnum.CLEAN,
+    businessType: BUSINESS_TYPE.CLEAN,
   })
   async clean(): Promise<Result> {
     const rows = await this.sysJobLogService.cleanJobLog();
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -102,7 +104,7 @@ export class SysJobLogController {
   @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
   @OperateLog({
     title: '调度任务日志信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
+    businessType: BUSINESS_TYPE.EXPORT,
   })
   async export() {
     const ctx = this.contextService.getContext();
@@ -110,7 +112,7 @@ export class SysJobLogController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysJobLogService.selectJobLogPage(query);
     if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
+      return result.errMsg('导出数据记录为空');
     }
     // 读取任务组名字典数据
     const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(

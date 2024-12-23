@@ -1,11 +1,5 @@
 import { MidwayConfig } from '@midwayjs/core';
 import { resolve } from 'path';
-import { TOKEN_KEY } from '../framework/constants/TokenConstants';
-import {
-  REQUEST_HEADER_CODE,
-  REQUEST_HEADER_VERSION,
-  RESPONSE_HEADER_REPEATSUBMIT_REST,
-} from '../framework/constants/HerderConstants';
 
 export default (): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级
@@ -125,9 +119,9 @@ export default (): MidwayConfig => {
       allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELET'],
       // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
       allowHeaders: [
-        REQUEST_HEADER_CODE,
-        REQUEST_HEADER_VERSION,
-        TOKEN_KEY,
+        'X-App-Code',
+        'X-App-Version',
+        'Authorization',
         'Origin',
         'X-Requested-With',
         'Content-Type',
@@ -136,7 +130,7 @@ export default (): MidwayConfig => {
         'Range',
       ],
       // 设置 Access-Control-Expose-Headers 的值
-      exposeHeaders: [RESPONSE_HEADER_REPEATSUBMIT_REST],
+      exposeHeaders: ['"X-RepeatSubmit-Rest'],
     },
 
     /**security 安全 http://www.midwayjs.org/docs/extensions/security */

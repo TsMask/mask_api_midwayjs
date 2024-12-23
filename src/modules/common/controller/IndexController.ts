@@ -5,7 +5,7 @@ import {
   MidwayInformationService,
 } from '@midwayjs/core';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
-import { Result } from '../../../framework/vo/Result';
+import result from '../../../framework/result/result';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 
 /**
@@ -23,7 +23,7 @@ export class IndexController {
   async index(): Promise<Result> {
     // 读取配置项目名版本
     const pkg = this.midwayInformationService.getPkg();
-    return Result.okMsg(
+    return result.okMsg(
       `欢迎使用${pkg.name}后台管理框架，当前版本：${pkg.version}，请通过前端管理地址访问。`
     );
   }

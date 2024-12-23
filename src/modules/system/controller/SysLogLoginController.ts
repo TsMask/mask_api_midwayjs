@@ -1,17 +1,12 @@
-import {
-  Controller,
-  Inject,
-  Get,
-  Param,
-  Del,
-  Post,
-  Put,
-} from '@midwayjs/core';
+import { Controller, Inject, Get, Param, Del, Post, Put } from '@midwayjs/core';
 import { AccountService } from '../../common/service/AccountService';
-import { Result } from '../../../framework/vo/Result';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
+import result from '../../../framework/result/result';
+
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
@@ -45,7 +40,7 @@ export class SysLogLoginController {
   async list(): Promise<Result> {
     const query = this.contextService.getContext().query;
     const data = await this.sysLogLoginService.selectSysLogLoginPage(query);
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -55,17 +50,17 @@ export class SysLogLoginController {
   @PreAuthorize({ hasPermissions: ['system:log:login:remove'] })
   @OperateLog({
     title: '系统登录信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('loginIds') loginIds: string): Promise<Result> {
-    if (!loginIds) return Result.err();
+    if (!loginIds) return result.err();
     // 处理字符转id数组
     const ids = loginIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const rows = await this.sysLogLoginService.deleteSysLogLoginByIds([
       ...new Set(ids),
     ]);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -75,11 +70,11 @@ export class SysLogLoginController {
   @PreAuthorize({ hasPermissions: ['system:log:login:remove'] })
   @OperateLog({
     title: '系统登录信息',
-    businessType: OperatorBusinessTypeEnum.CLEAN,
+    businessType: BUSINESS_TYPE.CLEAN,
   })
   async clean(): Promise<Result> {
     const rows = await this.sysLogLoginService.cleanSysLogLogin();
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -89,12 +84,12 @@ export class SysLogLoginController {
   @PreAuthorize({ hasPermissions: ['system:log:login:unlock'] })
   @OperateLog({
     title: '系统登录信息',
-    businessType: OperatorBusinessTypeEnum.CLEAN,
+    businessType: BUSINESS_TYPE.CLEAN,
   })
   async unlock(@Param('userName') userName: string): Promise<Result> {
-    if (!userName) return Result.err();
+    if (!userName) return result.err();
     const ok = await this.accountService.clearLoginRecordCache(userName);
-    return Result[ok ? 'ok' : 'err']();
+    return result[ok ? 'ok' : 'err']();
   }
 
   /**
@@ -104,7 +99,7 @@ export class SysLogLoginController {
   @PreAuthorize({ hasPermissions: ['system:log:login:export'] })
   @OperateLog({
     title: '系统登录信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
+    businessType: BUSINESS_TYPE.EXPORT,
   })
   async export() {
     const ctx = this.contextService.getContext();
@@ -112,7 +107,7 @@ export class SysLogLoginController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysLogLoginService.selectSysLogLoginPage(query);
     if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
+      return result.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

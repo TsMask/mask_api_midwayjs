@@ -9,22 +9,21 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
 import { validHttp } from '../../../framework/utils/RegularUtils';
-import { Result } from '../../../framework/vo/Result';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { SysMenuServiceImpl } from '../service/impl/SysMenuServiceImpl';
-import {
-  STATUS_NO,
-  STATUS_YES,
-} from '../../../framework/constants/CommonConstants';
+import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import {
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
-} from '../../../framework/constants/MenuConstants';
+} from '../../../framework/constants/menu';
 import { SysMenu } from '../model/SysMenu';
+import result from '../../../framework/result/result';
 
 /**
  * 菜单信息
@@ -51,7 +50,7 @@ export class SysMenuController {
       sysMenu,
       isAdmin ? null : userId
     );
-    return Result.okData(data || []);
+    return result.okData(data || []);
   }
 
   /**
@@ -60,9 +59,9 @@ export class SysMenuController {
   @Get('/:menuId')
   @PreAuthorize({ hasPermissions: ['system:menu:query'] })
   async getInfo(@Param('menuId') menuId: string): Promise<Result> {
-    if (!menuId) return Result.err();
+    if (!menuId) return result.err();
     const data = await this.sysMenuService.selectMenuById(menuId);
-    return Result.okData(data);
+    return result.okData(data);
   }
 
   /**
@@ -72,10 +71,10 @@ export class SysMenuController {
   @PreAuthorize({ hasPermissions: ['system:menu:add'] })
   @OperateLog({
     title: '菜单信息',
-    businessType: OperatorBusinessTypeEnum.INSERT,
+    businessType: BUSINESS_TYPE.INSERT,
   })
   async add(@Body() sysMenu: SysMenu): Promise<Result> {
-    if (!sysMenu.menuName || !sysMenu.menuType) return Result.err();
+    if (!sysMenu.menuName || !sysMenu.menuType) return result.err();
     // 目录和菜单检查地址唯一
     if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(sysMenu.menuType)) {
       const uniqueNenuPath = await this.sysMenuService.checkUniqueNenuPath(
@@ -83,7 +82,7 @@ export class SysMenuController {
         sysMenu.parentId
       );
       if (!uniqueNenuPath) {
-        return Result.errMsg(
+        return result.errMsg(
           `菜单新增【${sysMenu.menuName}】失败，菜单路由地址已存在`
         );
       }
@@ -95,21 +94,21 @@ export class SysMenuController {
       sysMenu.parentId
     );
     if (!uniqueNenuName) {
-      return Result.errMsg(
+      return result.errMsg(
         `菜单新增【${sysMenu.menuName}】失败，菜单名称已存在`
       );
     }
 
     // 外链菜单需要符合网站http(s)开头
     if (sysMenu.isFrame === STATUS_NO && !validHttp(sysMenu.path)) {
-      return Result.errMsg(
+      return result.errMsg(
         `菜单新增【${sysMenu.menuName}】失败，非内部地址必须以http(s)://开头`
       );
     }
 
     sysMenu.createBy = this.contextService.getUseName();
     const insertId = await this.sysMenuService.insertMenu(sysMenu);
-    return Result[insertId ? 'ok' : 'err']();
+    return result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -119,29 +118,29 @@ export class SysMenuController {
   @PreAuthorize({ hasPermissions: ['system:menu:edit'] })
   @OperateLog({
     title: '菜单信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async edit(@Body() sysMenu: SysMenu): Promise<Result> {
     const { menuId, parentId, menuName, menuType } = sysMenu;
-    if (!menuId || !parentId || !menuName || !menuType) return Result.err();
+    if (!menuId || !parentId || !menuName || !menuType) return result.err();
     // 上级菜单不能选自己
     if (menuId === parentId) {
-      return Result.errMsg(`菜单修改【${menuName}】失败，上级菜单不能选择自己`);
+      return result.errMsg(`菜单修改【${menuName}】失败，上级菜单不能选择自己`);
     }
     // 检查数据是否存在
     const menu = await this.sysMenuService.selectMenuById(menuId);
     if (!menu) {
-      return Result.errMsg('没有权限访问菜单数据');
+      return result.errMsg('没有权限访问菜单数据');
     }
     // 父级ID不为0是要检查
     if (parentId !== '0') {
       const menuParent = await this.sysMenuService.selectMenuById(parentId);
       if (!menuParent) {
-        return Result.errMsg('没有权限访问菜单数据');
+        return result.errMsg('没有权限访问菜单数据');
       }
       // 禁用菜单时检查父菜单是否使用
       if (sysMenu.status === STATUS_YES && menuParent.status === STATUS_NO) {
-        return Result.errMsg('上级菜单未启用！');
+        return result.errMsg('上级菜单未启用！');
       }
     }
     // 目录和菜单检查地址唯一
@@ -152,7 +151,7 @@ export class SysMenuController {
         menuId
       );
       if (!uniqueNenuPath) {
-        return Result.errMsg(
+        return result.errMsg(
           `菜单修改【${sysMenu.menuName}】失败，菜单路由地址已存在`
         );
       }
@@ -164,11 +163,11 @@ export class SysMenuController {
       menuId
     );
     if (!uniqueNenuName) {
-      return Result.errMsg(`菜单修改【${menuName}】失败，菜单名称已存在`);
+      return result.errMsg(`菜单修改【${menuName}】失败，菜单名称已存在`);
     }
     // 外链菜单需要符合网站http(s)开头
     if (sysMenu.isFrame === STATUS_NO && !validHttp(sysMenu.path)) {
-      return Result.errMsg(
+      return result.errMsg(
         `菜单修改【${menuName}】失败，非内部地址必须以http(s)://开头`
       );
     }
@@ -179,12 +178,12 @@ export class SysMenuController {
         STATUS_YES
       );
       if (hasStatus > 0) {
-        return Result.errMsg(`不允许禁用，存在使用子菜单数：${hasStatus}`);
+        return result.errMsg(`不允许禁用，存在使用子菜单数：${hasStatus}`);
       }
     }
     sysMenu.updateBy = this.contextService.getUseName();
     const rows = await this.sysMenuService.updateMenu(sysMenu);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -194,14 +193,14 @@ export class SysMenuController {
   @PreAuthorize({ hasPermissions: ['system:menu:remove'] })
   @OperateLog({
     title: '菜单信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('menuId') menuId: string): Promise<Result> {
-    if (!menuId) return Result.err();
+    if (!menuId) return result.err();
     // 检查数据是否存在
     const menu = await this.sysMenuService.selectMenuById(menuId);
     if (!menu) {
-      return Result.errMsg('没有权限访问菜单数据！');
+      return result.errMsg('没有权限访问菜单数据！');
     }
     // 检查是否存在子菜单
     const hasChild = await this.sysMenuService.hasChildByMenuIdAndStatus(
@@ -209,15 +208,15 @@ export class SysMenuController {
       ''
     );
     if (hasChild > 0) {
-      return Result.errMsg(`不允许删除，存在子菜单数：${hasChild}`);
+      return result.errMsg(`不允许删除，存在子菜单数：${hasChild}`);
     }
     // 检查是否分配给角色
     const existRole = await this.sysMenuService.checkMenuExistRole(menuId);
     if (existRole > 0) {
-      return Result.errMsg(`不允许删除，菜单已分配给角色数：${existRole}`);
+      return result.errMsg(`不允许删除，菜单已分配给角色数：${existRole}`);
     }
     const rows = await this.sysMenuService.deleteMenuById(menuId);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -232,7 +231,7 @@ export class SysMenuController {
       sysMenu,
       isAdmin ? null : userId
     );
-    return Result.okData(trees);
+    return result.okData(trees);
   }
 
   /**
@@ -241,7 +240,7 @@ export class SysMenuController {
   @Get('/roleMenuTreeSelect/:roleId')
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
   async roleMenuTreeSelect(@Param('roleId') roleId: string): Promise<Result> {
-    if (!roleId) return Result.err();
+    if (!roleId) return result.err();
     const userId = this.contextService.getUserId();
     const isAdmin = this.contextService.isAdmin(userId);
     const menuTreeSelect =
@@ -252,7 +251,7 @@ export class SysMenuController {
     const checkedKeys = await this.sysMenuService.selectMenuListByRoleId(
       roleId
     );
-    return Result.okData({
+    return result.okData({
       menus: menuTreeSelect,
       checkedKeys,
     });

@@ -1,7 +1,8 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { SysUserPost } from '../../model/SysUserPost';
 import { ISysUserPostRepository } from '../ISysUserPostRepository';
 
@@ -27,14 +28,14 @@ export class SysUserPostRepositoryImpl implements ISysUserPostRepository {
     const sqlStr = `insert into sys_user_post(user_id, post_id) values ${sysUserPosts
       .map(item => `(${item.userId},${item.postId})`)
       .join(',')}`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr);
+    const result = await this.db.execute(sqlStr);
     return result.affectedRows;
   }
 
   async deleteUserPost(userIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(userIds.length);
     const sqlStr = `delete from sys_user_post where user_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
+    const result = await this.db.execute(sqlStr, userIds);
     return result.affectedRows;
   }
 }

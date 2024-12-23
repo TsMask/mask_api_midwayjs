@@ -1,4 +1,7 @@
-import { METHOD_KEY_OPER_LOG, OpLerateLogSave } from './OperateLogMethodDecorator';
+import {
+  METHOD_KEY_OPER_LOG,
+  OpLerateLogSave,
+} from './OperateLogMethodDecorator';
 import {
   METHOD_KEY_PRE_AUTHORIZE,
   PreAuthorizeVerify,

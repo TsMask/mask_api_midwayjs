@@ -1,5 +1,5 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import { bcryptHash } from '../../../../framework/utils/CryptoUtils';
 import {
   parseStrToDate,
@@ -9,7 +9,8 @@ import {
   parseBoolean,
   parseNumber,
 } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { ISysUserRepository } from '../ISysUserRepository';
 import { SysDept } from '../../model/SysDept';
 import { SysUser } from '../../model/SysUser';
@@ -26,45 +27,45 @@ left join sys_user_role ur on u.user_id = ur.user_id
 left join sys_role r on r.role_id = ur.role_id`;
 
 /**用户信息实体映射 */
-const SYS_USER_RESULT = new Map<string, string>();
-SYS_USER_RESULT.set('user_id', 'userId');
-SYS_USER_RESULT.set('dept_id', 'deptId');
-SYS_USER_RESULT.set('user_name', 'userName');
-SYS_USER_RESULT.set('nick_name', 'nickName');
-SYS_USER_RESULT.set('user_type', 'userType');
-SYS_USER_RESULT.set('email', 'email');
-SYS_USER_RESULT.set('phonenumber', 'phonenumber');
-SYS_USER_RESULT.set('sex', 'sex');
-SYS_USER_RESULT.set('avatar', 'avatar');
-SYS_USER_RESULT.set('password', 'password');
-SYS_USER_RESULT.set('status', 'status');
-SYS_USER_RESULT.set('del_flag', 'delFlag');
-SYS_USER_RESULT.set('login_ip', 'loginIp');
-SYS_USER_RESULT.set('login_date', 'loginDate');
-SYS_USER_RESULT.set('create_by', 'createBy');
-SYS_USER_RESULT.set('create_time', 'createTime');
-SYS_USER_RESULT.set('update_by', 'updateBy');
-SYS_USER_RESULT.set('update_time', 'updateTime');
-SYS_USER_RESULT.set('remark', 'remark');
+const SYS_USER_Result = new Map<string, string>();
+SYS_USER_Result.set('user_id', 'userId');
+SYS_USER_Result.set('dept_id', 'deptId');
+SYS_USER_Result.set('user_name', 'userName');
+SYS_USER_Result.set('nick_name', 'nickName');
+SYS_USER_Result.set('user_type', 'userType');
+SYS_USER_Result.set('email', 'email');
+SYS_USER_Result.set('phonenumber', 'phonenumber');
+SYS_USER_Result.set('sex', 'sex');
+SYS_USER_Result.set('avatar', 'avatar');
+SYS_USER_Result.set('password', 'password');
+SYS_USER_Result.set('status', 'status');
+SYS_USER_Result.set('del_flag', 'delFlag');
+SYS_USER_Result.set('login_ip', 'loginIp');
+SYS_USER_Result.set('login_date', 'loginDate');
+SYS_USER_Result.set('create_by', 'createBy');
+SYS_USER_Result.set('create_time', 'createTime');
+SYS_USER_Result.set('update_by', 'updateBy');
+SYS_USER_Result.set('update_time', 'updateTime');
+SYS_USER_Result.set('remark', 'remark');
 
 /**用户部门实体映射 一对一 */
-const SYS_DEPT_RESULT = new Map<string, string>();
-SYS_DEPT_RESULT.set('dept_id', 'deptId');
-SYS_DEPT_RESULT.set('parent_id', 'parentId');
-SYS_DEPT_RESULT.set('dept_name', 'deptName');
-SYS_DEPT_RESULT.set('ancestors', 'ancestors');
-SYS_DEPT_RESULT.set('order_num', 'orderNum');
-SYS_DEPT_RESULT.set('leader', 'leader');
-SYS_DEPT_RESULT.set('dept_status', 'status');
+const SYS_DEPT_Result = new Map<string, string>();
+SYS_DEPT_Result.set('dept_id', 'deptId');
+SYS_DEPT_Result.set('parent_id', 'parentId');
+SYS_DEPT_Result.set('dept_name', 'deptName');
+SYS_DEPT_Result.set('ancestors', 'ancestors');
+SYS_DEPT_Result.set('order_num', 'orderNum');
+SYS_DEPT_Result.set('leader', 'leader');
+SYS_DEPT_Result.set('dept_status', 'status');
 
 /**用户角色实体映射 一对多 */
-const SYS_ROLE_RESULT = new Map<string, string>();
-SYS_ROLE_RESULT.set('role_id', 'roleId');
-SYS_ROLE_RESULT.set('role_name', 'roleName');
-SYS_ROLE_RESULT.set('role_key', 'roleKey');
-SYS_ROLE_RESULT.set('role_sort', 'roleSort');
-SYS_ROLE_RESULT.set('data_scope', 'dataScope');
-SYS_ROLE_RESULT.set('role_status', 'status');
+const SYS_ROLE_Result = new Map<string, string>();
+SYS_ROLE_Result.set('role_id', 'roleId');
+SYS_ROLE_Result.set('role_name', 'roleName');
+SYS_ROLE_Result.set('role_key', 'roleKey');
+SYS_ROLE_Result.set('role_sort', 'roleSort');
+SYS_ROLE_Result.set('data_scope', 'dataScope');
+SYS_ROLE_Result.set('role_status', 'status');
 
 /**
  *将结果记录转实体结果组
@@ -79,16 +80,16 @@ function convertResultRows(rows: any[]): SysUser[] {
     const sysRole = new SysRole();
     sysUser.roles = [];
     for (const key in row) {
-      if (SYS_USER_RESULT.has(key)) {
-        const keyMapper = SYS_USER_RESULT.get(key);
+      if (SYS_USER_Result.has(key)) {
+        const keyMapper = SYS_USER_Result.get(key);
         sysUser[keyMapper] = row[key];
       }
-      if (SYS_DEPT_RESULT.has(key)) {
-        const keyMapper = SYS_DEPT_RESULT.get(key);
+      if (SYS_DEPT_Result.has(key)) {
+        const keyMapper = SYS_DEPT_Result.get(key);
         sysDept[keyMapper] = row[key];
       }
-      if (SYS_ROLE_RESULT.has(key)) {
-        const keyMapper = SYS_ROLE_RESULT.get(key);
+      if (SYS_ROLE_Result.has(key)) {
+        const keyMapper = SYS_ROLE_Result.get(key);
         sysRole[keyMapper] = row[key];
       }
     }
@@ -198,8 +199,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
     // 查询数据
     const querySql = selectUserSql + whereSql + dataScopeSQL + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -240,8 +241,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
     // 查询数据
     const querySql = selectUserSql + whereSql + dataScopeSQL;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectAllocatedPage(
@@ -312,8 +313,8 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
     // 查询数据
     const querySql = selectUserSql + whereSql + dataScopeSQL + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -381,7 +382,7 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_user (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
@@ -428,18 +429,15 @@ export class SysUserRepositoryImpl implements ISysUserRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_user set ${keys} where user_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...values,
-      sysUser.userId,
-    ]);
-    return result.affectedRows;
+    const item = await this.db.execute(sqlStr, [...values, sysUser.userId]);
+    return item.affectedRows;
   }
 
   async deleteUserByIds(userIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(userIds.length);
     const sqlStr = `update sys_user set user_name = concat(user_name, '_del'), del_flag = '1' where user_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, userIds);
-    return result.affectedRows;
+    const item = await this.db.execute(sqlStr, userIds);
+    return item.affectedRows;
   }
 
   async checkUniqueUser(sysUser: SysUser): Promise<string> {

@@ -232,7 +232,7 @@ export class FileService {
     );
 
     // 响应结果
-    const result = {
+    const res = {
       range: '',
       chunkSize: 0,
       fileSize: 0,
@@ -242,9 +242,9 @@ export class FileService {
     // 文件大小
     const fileSize = await getFileSize(fileAsbPath);
     if (fileSize <= 0) {
-      return result;
+      return res;
     }
-    result.fileSize = fileSize;
+    res.fileSize = fileSize;
 
     if (headerRange) {
       const parts = headerRange.replace(/bytes=/, '').split('-');
@@ -256,14 +256,14 @@ export class FileService {
         start = end;
       }
       // 分片结果
-      result.range = `bytes ${start}-${end}/${fileSize}`;
-      result.chunkSize = end - start + 1;
-      result.data = await getFileStream(fileAsbPath, [start, end]);
-      return result;
+      res.range = `bytes ${start}-${end}/${fileSize}`;
+      res.chunkSize = end - start + 1;
+      res.data = await getFileStream(fileAsbPath, [start, end]);
+      return res;
     }
 
-    result.data = await getFileStream(fileAsbPath);
-    return result;
+    res.data = await getFileStream(fileAsbPath);
+    return res;
   }
 
   /**

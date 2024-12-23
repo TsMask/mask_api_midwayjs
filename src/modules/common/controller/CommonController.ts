@@ -4,7 +4,7 @@ import {
   decryptWxData,
   encrypyHash,
 } from '../../../framework/utils/CryptoUtils';
-import { Result } from '../../../framework/vo/Result';
+import result from '../../../framework/result/result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 
 /**
@@ -23,7 +23,7 @@ export class CommonController {
     @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
     @Body('str') str: string
   ): Promise<Result> {
-    return Result.okData(encrypyHash(str, type));
+    return result.okData(encrypyHash(str, type));
   }
 
   /**
@@ -35,7 +35,7 @@ export class CommonController {
     @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
     @Body('str') str: string
   ): Promise<Result> {
-    return Result.okData(cryptoHmac(str, '89486', type));
+    return result.okData(cryptoHmac(str, '89486', type));
   }
 
   /**

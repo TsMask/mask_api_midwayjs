@@ -1,11 +1,12 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
-import { ResultSetHeader } from 'mysql2';
+
 import {
   parseStrToDate,
   YYYY_MM_DD,
 } from '../../../../framework/utils/DateUtils';
 import { parseNumber } from '../../../../framework/utils/ValueParseUtils';
-import { DynamicDataSource } from '../../../../framework/datasource/DynamicDataSource';
+import { DynamicDataSource } from '../../../../framework/datasource/db/db';
+
 import { ISysRoleRepository } from '../ISysRoleRepository';
 import { SysRole } from '../../model/SysRole';
 
@@ -19,21 +20,21 @@ left join sys_user u on u.user_id = ur.user_id
 left join sys_dept d on u.dept_id = d.dept_id`;
 
 /**用户角色信息实体映射 */
-const SYS_ROLE_RESULT = new Map<string, string>();
-SYS_ROLE_RESULT.set('role_id', 'roleId');
-SYS_ROLE_RESULT.set('role_name', 'roleName');
-SYS_ROLE_RESULT.set('role_key', 'roleKey');
-SYS_ROLE_RESULT.set('role_sort', 'roleSort');
-SYS_ROLE_RESULT.set('data_scope', 'dataScope');
-SYS_ROLE_RESULT.set('menu_check_strictly', 'menuCheckStrictly');
-SYS_ROLE_RESULT.set('dept_check_strictly', 'deptCheckStrictly');
-SYS_ROLE_RESULT.set('status', 'status');
-SYS_ROLE_RESULT.set('del_flag', 'delFlag');
-SYS_ROLE_RESULT.set('create_by', 'createBy');
-SYS_ROLE_RESULT.set('create_time', 'createTime');
-SYS_ROLE_RESULT.set('update_by', 'updateBy');
-SYS_ROLE_RESULT.set('update_time', 'updateTime');
-SYS_ROLE_RESULT.set('remark', 'remark');
+const SYS_ROLE_Result = new Map<string, string>();
+SYS_ROLE_Result.set('role_id', 'roleId');
+SYS_ROLE_Result.set('role_name', 'roleName');
+SYS_ROLE_Result.set('role_key', 'roleKey');
+SYS_ROLE_Result.set('role_sort', 'roleSort');
+SYS_ROLE_Result.set('data_scope', 'dataScope');
+SYS_ROLE_Result.set('menu_check_strictly', 'menuCheckStrictly');
+SYS_ROLE_Result.set('dept_check_strictly', 'deptCheckStrictly');
+SYS_ROLE_Result.set('status', 'status');
+SYS_ROLE_Result.set('del_flag', 'delFlag');
+SYS_ROLE_Result.set('create_by', 'createBy');
+SYS_ROLE_Result.set('create_time', 'createTime');
+SYS_ROLE_Result.set('update_by', 'updateBy');
+SYS_ROLE_Result.set('update_time', 'updateTime');
+SYS_ROLE_Result.set('remark', 'remark');
 
 /**
  *将结果记录转实体结果组
@@ -45,8 +46,8 @@ function convertResultRows(rows: any[]): SysRole[] {
   for (const row of rows) {
     const sysRole = new SysRole();
     for (const key in row) {
-      if (SYS_ROLE_RESULT.has(key)) {
-        const keyMapper = SYS_ROLE_RESULT.get(key);
+      if (SYS_ROLE_Result.has(key)) {
+        const keyMapper = SYS_ROLE_Result.get(key);
         sysRole[keyMapper] = row[key];
       }
     }
@@ -139,8 +140,8 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
 
     // 查询数据
     const querySql = SELECT_ROLE_SQL + whereSql + dataScopeSQL + pageSql;
-    const results = await this.db.execute(querySql, params);
-    const rows = convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    const rows = convertResultRows(Results);
     return { total, rows };
   }
 
@@ -177,8 +178,8 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     // 查询数据
     const orderSql = ' order by r.role_sort ';
     const querySql = SELECT_ROLE_SQL + whereSql + dataScopeSQL + orderSql;
-    const results = await this.db.execute(querySql, params);
-    return convertResultRows(results);
+    const Results = await this.db.execute(querySql, params);
+    return convertResultRows(Results);
   }
 
   async selectRoleListByUserId(userId: string): Promise<SysRole[]> {
@@ -232,10 +233,7 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
 
     const [keys, values] = this.db.keyValueByUpdate(paramMap);
     const sqlStr = `update sys_role set ${keys} where role_id = ?`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, [
-      ...values,
-      sysRole.roleId,
-    ]);
+    const result = await this.db.execute(sqlStr, [...values, sysRole.roleId]);
     return result.affectedRows;
   }
 
@@ -283,14 +281,14 @@ export class SysRoleRepositoryImpl implements ISysRoleRepository {
     const [keys, values, placeholder] =
       this.db.keyValuePlaceholderByInsert(paramMap);
     const sqlStr = `insert into sys_role (${keys})values(${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, values);
+    const result = await this.db.execute(sqlStr, values);
     return `${result.insertId}`;
   }
 
   async deleteRoleByIds(roleIds: string[]): Promise<number> {
     const placeholder = this.db.keyPlaceholderByQuery(roleIds.length);
     const sqlStr = `update sys_role set del_flag = '1' where role_id in (${placeholder})`;
-    const result: ResultSetHeader = await this.db.execute(sqlStr, roleIds);
+    const result = await this.db.execute(sqlStr, roleIds);
     return result.affectedRows;
   }
 

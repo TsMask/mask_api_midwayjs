@@ -8,14 +8,18 @@ import {
   Post,
   Put,
 } from '@midwayjs/core';
-import { Result } from '../../../framework/vo/Result';
+import result from '../../../framework/result/result';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
-import { OperatorBusinessTypeEnum } from '../../../framework/enums/OperatorBusinessTypeEnum';
-import { OperateLog } from '../../../framework/decorator/OperateLogMethodDecorator';
+
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
 import { ROLE_DATA_SCOPE } from '../../../framework/enums/RoleDataScopeEnum';
 import { FileService } from '../../../framework/service/FileService';
-import { ADMIN_ROLE_ID } from '../../../framework/constants/AdminConstants';
+import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
+
 import { SysRoleServiceImpl } from '../service/impl/SysRoleServiceImpl';
 import { SysUserServiceImpl } from '../service/impl/SysUserServiceImpl';
 import { SysRole } from '../model/SysRole';
@@ -48,7 +52,7 @@ export class SysRoleController {
     const query = this.contextService.getContext().query;
     const dataScopeSQL = this.contextService.getDataScopeSQL('d');
     const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -57,10 +61,10 @@ export class SysRoleController {
   @Get('/:roleId')
   @PreAuthorize({ hasPermissions: ['system:role:query'] })
   async getInfo(@Param('roleId') roleId: string): Promise<Result> {
-    if (!roleId) return Result.err();
+    if (!roleId) return result.err();
     const role = await this.sysRoleService.selectRoleById(roleId);
-    if (!role) return Result.err();
-    return Result.okData(role);
+    if (!role) return result.err();
+    return result.okData(role);
   }
 
   /**
@@ -70,29 +74,29 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:add'] })
   @OperateLog({
     title: '角色信息',
-    businessType: OperatorBusinessTypeEnum.INSERT,
+    businessType: BUSINESS_TYPE.INSERT,
   })
   async add(@Body() sysRole: SysRole): Promise<Result> {
     const { roleName, roleKey } = sysRole;
-    if (!roleName || !roleKey) return Result.err();
+    if (!roleName || !roleKey) return result.err();
 
     // 判断角色名称是否唯一
     const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
       roleName
     );
     if (!uniqueRoleName) {
-      return Result.errMsg(`角色新增【${roleName}】失败，角色名称已存在`);
+      return result.errMsg(`角色新增【${roleName}】失败，角色名称已存在`);
     }
 
     // 判断角色键值是否唯一
     const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(roleKey);
     if (!uniqueRoleKey) {
-      return Result.errMsg(`角色新增【${roleName}】失败，角色键值已存在`);
+      return result.errMsg(`角色新增【${roleName}】失败，角色键值已存在`);
     }
 
     sysRole.createBy = this.contextService.getUseName();
     const insertId = await this.sysRoleService.insertRole(sysRole);
-    return Result[insertId ? 'ok' : 'err']();
+    return result[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -102,20 +106,20 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperateLog({
     title: '角色信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async edit(@Body() sysRole: SysRole): Promise<Result> {
     const { roleId, roleName, roleKey } = sysRole;
-    if (!roleId || !roleName || !roleKey) return Result.err();
+    if (!roleId || !roleName || !roleKey) return result.err();
 
     // 检查是否管理员角色
-    if (roleId === ADMIN_ROLE_ID) {
-      return Result.errMsg('不允许操作管理员角色');
+    if (roleId === SYS_ROLE_SYSTEM_ID) {
+      return result.errMsg('不允许操作管理员角色');
     }
 
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return Result.errMsg('没有权限访问角色数据！');
+      return result.errMsg('没有权限访问角色数据！');
     }
 
     // 判断角色名称是否唯一
@@ -124,7 +128,7 @@ export class SysRoleController {
       roleId
     );
     if (!uniqueRoleName) {
-      return Result.errMsg(`角色修改【${roleName}】失败，角色名称已存在`);
+      return result.errMsg(`角色修改【${roleName}】失败，角色名称已存在`);
     }
 
     // 判断角色键值是否唯一
@@ -133,15 +137,15 @@ export class SysRoleController {
       roleId
     );
     if (!uniqueRoleKey) {
-      return Result.errMsg(`角色修改【${roleName}】失败，角色键值已存在`);
+      return result.errMsg(`角色修改【${roleName}】失败，角色键值已存在`);
     }
 
     sysRole.updateBy = this.contextService.getUseName();
     const rows = await this.sysRoleService.updateRole(sysRole);
     if (rows > 0) {
-      return Result.ok();
+      return result.ok();
     }
-    return Result.errMsg(`角色修改【${roleName}】失败`);
+    return result.errMsg(`角色修改【${roleName}】失败`);
   }
 
   /**
@@ -151,22 +155,22 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:remove'] })
   @OperateLog({
     title: '角色信息',
-    businessType: OperatorBusinessTypeEnum.DELETE,
+    businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('roleIds') roleIds: string): Promise<Result> {
-    if (!roleIds) return Result.err();
+    if (!roleIds) return result.err();
     // 处理字符转id数组
     const ids = roleIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const uniqueIDs = [...new Set(ids)];
     // 检查是否管理员角色
     for (const id of uniqueIDs) {
-      if (id === ADMIN_ROLE_ID) {
-        return Result.errMsg('不允许操作管理员角色');
+      if (id === SYS_ROLE_SYSTEM_ID) {
+        return result.errMsg('不允许操作管理员角色');
       }
     }
     const rows = await this.sysRoleService.deleteRoleByIds(uniqueIDs);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -176,35 +180,35 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperateLog({
     title: '角色信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async changeStatus(
     @Body('roleId') roleId: string,
     @Body('status') status: string
   ): Promise<Result> {
-    if (!roleId || !status || status.length > 1) return Result.err();
+    if (!roleId || !status || status.length > 1) return result.err();
 
     // 检查是否管理员角色
-    if (roleId === ADMIN_ROLE_ID) {
-      return Result.errMsg('不允许操作管理员角色');
+    if (roleId === SYS_ROLE_SYSTEM_ID) {
+      return result.errMsg('不允许操作管理员角色');
     }
 
     // 检查是否存在
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return Result.errMsg('没有权限访问角色数据！');
+      return result.errMsg('没有权限访问角色数据！');
     }
 
     // 与旧值相等不变更
     if (role.status === status) {
-      return Result.errMsg('变更状态与旧值相等！');
+      return result.errMsg('变更状态与旧值相等！');
     }
 
     // 更新状态不刷新缓存
     role.status = status;
     role.updateBy = this.contextService.getUseName();
     const rowNum = await this.sysRoleService.updateRole(role);
-    return Result[rowNum ? 'ok' : 'err']();
+    return result[rowNum ? 'ok' : 'err']();
   }
 
   /**
@@ -214,18 +218,18 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperateLog({
     title: '角色信息',
-    businessType: OperatorBusinessTypeEnum.UPDATE,
+    businessType: BUSINESS_TYPE.UPDATE,
   })
   async dataScope(@Body() sysRole: SysRole): Promise<Result> {
     const roleId = sysRole.roleId;
-    if (!roleId) return Result.err();
+    if (!roleId) return result.err();
     // 检查是否管理员角色
-    if (roleId === ADMIN_ROLE_ID) {
-      return Result.errMsg('不允许操作管理员角色');
+    if (roleId === SYS_ROLE_SYSTEM_ID) {
+      return result.errMsg('不允许操作管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return Result.errMsg('没有权限访问角色数据！');
+      return result.errMsg('没有权限访问角色数据！');
     }
     const newSysRole = new SysRole();
     newSysRole.roleId = roleId;
@@ -233,7 +237,7 @@ export class SysRoleController {
     newSysRole.dataScope = sysRole.dataScope;
     newSysRole.deptCheckStrictly = sysRole.deptCheckStrictly;
     const rows = await this.sysRoleService.authDataScope(newSysRole);
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -244,17 +248,17 @@ export class SysRoleController {
   async authUserAllocatedList(): Promise<Result> {
     const { query } = this.contextService.getContext();
     const roleId = query.roleId as string;
-    if (!roleId) return Result.err();
+    if (!roleId) return result.err();
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return Result.errMsg('没有权限访问角色数据！');
+      return result.errMsg('没有权限访问角色数据！');
     }
     const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const data = await this.sysUserService.selectAllocatedPage(
       query,
       dataScopeSQL
     );
-    return Result.ok(data);
+    return result.ok(data);
   }
 
   /**
@@ -268,20 +272,20 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:edit'] })
   @OperateLog({
     title: '角色信息',
-    businessType: OperatorBusinessTypeEnum.GRANT,
+    businessType: BUSINESS_TYPE.GRANT,
   })
   async authUserChecked(
     @Body('roleId') roleId: string,
     @Body('userIds') userIds: string,
     @Body('checked') checked: boolean
   ): Promise<Result> {
-    if (!roleId || !userIds) return Result.err();
+    if (!roleId || !userIds) return result.err();
     // 处理字符转id数组
     const ids = userIds.split(',');
-    if (ids.length <= 0) return Result.err();
+    if (ids.length <= 0) return result.err();
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return Result.errMsg('没有权限访问角色数据！');
+      return result.errMsg('没有权限访问角色数据！');
     }
     let rows = 0;
     if (checked) {
@@ -293,7 +297,7 @@ export class SysRoleController {
         ...new Set(ids),
       ]);
     }
-    return Result[rows > 0 ? 'ok' : 'err']();
+    return result[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -303,7 +307,7 @@ export class SysRoleController {
   @PreAuthorize({ hasPermissions: ['system:role:export'] })
   @OperateLog({
     title: '角色信息',
-    businessType: OperatorBusinessTypeEnum.EXPORT,
+    businessType: BUSINESS_TYPE.EXPORT,
   })
   async export() {
     const ctx = this.contextService.getContext();
@@ -312,7 +316,7 @@ export class SysRoleController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
     if (data.total === 0) {
-      return Result.errMsg('导出数据记录为空');
+      return result.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

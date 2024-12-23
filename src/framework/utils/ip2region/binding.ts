@@ -99,7 +99,7 @@ class Searcher {
     const { sPtr, ePtr } = await this[getStartEndPtr](idx, fd, ioStatus);
     let l = 0;
     let h = (ePtr - sPtr) / SegmentIndexSize;
-    let result = null;
+    let region = null;
 
     while (l <= h) {
       const m = (l + h) >> 1;
@@ -120,7 +120,7 @@ class Searcher {
           const dataLen = buff.readUInt16LE(8);
           const dataPtr = buff.readUInt32LE(10);
           const data = await this[getBuffer](dataPtr, dataLen, fd, ioStatus);
-          result = data.toString('utf-8');
+          region = data.toString('utf-8');
           break;
         }
       }
@@ -132,7 +132,7 @@ class Searcher {
     const diff = process.hrtime(startTime);
 
     const took = (diff[0] * 1e9 + diff[1]) / 1e3;
-    return { region: result, ioCount: ioStatus.ioCount, took };
+    return { region, ioCount: ioStatus.ioCount, took };
   }
 }
 

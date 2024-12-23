@@ -9,19 +9,23 @@ describe('test/utils/UAParserUtils.test.ts', () => {
   it('should getUaInfo', () => {
 
     const ua = getUaInfo(user_agent);
-    const uaInfo = ua.getResult();
+
     // use expect by jest
-    expect(uaInfo.browser.name).toBe('Chrome');
-    expect(uaInfo.browser.version).toBe('86.0.4240.198');
-    expect(uaInfo.browser.major).toBe('86');
+    const browser = ua.getBrowser()
+    expect(browser.name).toBe('Chrome');
+    expect(browser.version).toBe('86.0.4240.198');
+    expect(browser.major).toBe('86');
 
-    expect(uaInfo.engine.name).toBe('Blink');
-    expect(uaInfo.engine.version).toBe('86.0.4240.198');
+    const engine = ua.getEngine()
+    expect(engine.name).toBe('Blink');
+    expect(engine.version).toBe('86.0.4240.198');
 
-    expect(uaInfo.os.name).toBe('Windows');
-    expect(uaInfo.os.version).toBe('10');
+    const os = ua.getOS()
+    expect(os.name).toBe('Windows');
+    expect(os.version).toBe('10');
 
-    expect(uaInfo.cpu.architecture).toBe('amd64');
+    const cpu = ua.getCPU()
+    expect(cpu.architecture).toBe('amd64');
   });
 
 });

@@ -1,9 +1,4 @@
-/**
- * 验证码常量信息
- *
- * src\modules\common\controller\CaptchaController.ts
- * @author TsMask
- */
+// 验证码常量信息
 
 /**验证码有效期，单位秒 */
 export const CAPTCHA_EXPIRATION = 2 * 60;
