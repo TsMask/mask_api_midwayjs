@@ -178,7 +178,7 @@ export default (): MidwayConfig => {
     /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
     jwtRefreshIn: '20m', // https://github.com/vercel/ms
 
-    /**TypeORM 数据源 http://www.midwayjs.org/docs/extensions/orm */
+    /**TypeORM 数据源 https://midwayjs.org/docs/extensions/orm */
     typeorm: {
       dataSource: {
         // 默认数据库实例
@@ -187,13 +187,12 @@ export default (): MidwayConfig => {
           type: 'mysql',
           host: '127.0.0.1',
           port: 3306,
-          username: '<用户名>',
-          password: '<密码>',
-          database: '<数据库>',
-          /**输出sql日志 */
-          logging: false,
+          username: '<mysql username>',
+          password: '<mysql password>',
+          database: '<mysql database>',
+          logging: false, // 输出sql日志
           /**配置实体模型以扫描形式 */
-          entities: ['modules/*/model/*.entity{.ts,.js}'],
+          entities: ['modules/*/model/*{.ts,.js}'],
         },
       },
       // 多个数据源时可以用这个指定默认的数据源
@@ -203,10 +202,10 @@ export default (): MidwayConfig => {
     /**Redis 缓存数据 http://www.midwayjs.org/docs/extensions/redis */
     redis: {
       client: {
-        port: 6379, // Redis port
-        host: '127.0.0.1', // Redis host
-        password: '<密码>',
-        db: 0, // Redis db_num
+        port: 6379,
+        host: '127.0.0.1',
+        password: '<redis password>',
+        db: 0,
       },
     },
 
@@ -214,10 +213,10 @@ export default (): MidwayConfig => {
     bull: {
       defaultQueueOptions: {
         redis: {
-          port: 6379, // Redis port
-          host: '127.0.0.1', // Redis host
-          password: '<密码>',
-          db: 0, // Redis db_num
+          port: 6379,
+          host: '127.0.0.1',
+          password: '<redis password>',
+          db: 0,
         },
         prefix: 'bull_queue', // Redis key
         // 默认的任务配置
@@ -232,6 +231,16 @@ export default (): MidwayConfig => {
       clearRepeatJobWhenStart: true,
     },
 
+    /**参数校验 http://www.midwayjs.org/docs/extensions/validate */
+    validate: {
+      validationOptions: {
+        allowUnknown: true, // 允许未定义的字段
+        stripUnknown: false, // 剔除参数中的未定义属性
+        // 临时禁用全局校验
+        // @Body() user: Partial<UserDTO>
+      },
+    },
+
     /**用户配置 */
     user: {
       /**密码 */
@@ -241,8 +250,8 @@ export default (): MidwayConfig => {
         /**密码锁定时间,单位分钟（默认10分钟） */
         lockTime: 10,
       },
-      /**管理员列表 */
-      adminList: ['1'],
+      /**设定为系统管理员的用户ID */
+      system: [1],
     },
 
     /**char 字符验证码配置 */

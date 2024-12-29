@@ -10,8 +10,8 @@ export default {
   // 安全
   security: {
     csrf: {
-      // 允许调用的域名地址的，例如：http://<Referer地址>/mask-api
-      refererWhiteList: ['<Referer地址>'],
+      // 允许调用的域名地址的，例如：http://<Referer>/mask-api
+      refererWhiteList: ['Referer'],
     },
   },
 
@@ -20,12 +20,11 @@ export default {
     dataSource: {
       // 单数据库实例
       default: {
-        type: 'mysql',
-        host: '<mysql地址>',
+        host: '127.0.0.1',
         port: 3306,
-        username: '<账号>',
-        password: '<密码>',
-        database: '<数据库名称>',
+        username: '<mysql username>',
+        password: '<mysql password>',
+        database: '<mysql database>',
       },
     },
   },
@@ -34,9 +33,9 @@ export default {
   redis: {
     client: {
       port: 6379,
-      host: 'redis',
-      password: '<没有留空字符串>',
-      db: 2,
+      host: '127.0.0.1',
+      password: '<redis password>',
+      db: 0,
     },
   },
 
@@ -45,10 +44,12 @@ export default {
     defaultQueueOptions: {
       redis: {
         port: 6379,
-        host: 'redis',
-        password: '<没有留空字符串>',
-        db: 2,
+        host: '127.0.0.1',
+        password: '<redis password>',
+        db: 0,
       },
     },
   },
+
+  //
 } as MidwayConfig;
