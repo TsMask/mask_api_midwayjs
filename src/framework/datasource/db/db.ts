@@ -1,12 +1,10 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
-import { DataSource, QueryRunner } from 'typeorm';
+import { DataSource, SelectQueryBuilder } from 'typeorm';
 import { parseNumber } from '../../utils/ValueParseUtils';
 
 /**
  * 动态数据源
- *
- * @author TsMask
  */
 @Provide()
 @Singleton()
@@ -51,23 +49,15 @@ export class DynamicDataSource {
   }
 
   /**
-   * 事务执行sql语句
+   * 查询构造器
    *
    * 创建和控制单个数据库连接的状态, 允许控制事务但需要使用后手动释放连接
-   *
-   * startTransaction - 在查询运行器实例中启动一个新事务。
-   *
-   * commitTransaction - 提交使用查询运行器实例所做的所有更改。
-   *
-   * rollbackTransaction - 回滚使用查询运行程序实例所做的所有更改。
-   *
-   * release - 释放连接
    *
    * @param source 数据源 默认'default'
    * @returns 查询结果或异常错误
    */
-  public executeRunner(source = 'default'): QueryRunner {
-    return this.dataSource(source).createQueryRunner();
+  public executeQueryBuilder(source = 'default'): SelectQueryBuilder<any> {
+    return this.dataSource(source).createQueryBuilder();
   }
 
   /**
