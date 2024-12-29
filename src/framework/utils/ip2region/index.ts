@@ -2,8 +2,9 @@
 
 // 读取xdb工具包
 import { loadContentFromFile, newWithBuffer } from './binding';
+import { join } from 'path';
 // 指定ip2region数据文件路径
-const dbPath = 'assets/ip2region.xdb';
+const dbPath = join(__dirname, '../../../assets/ip2region.xdb');
 // 读取文件Buffer缓存
 const ip2regionBuffer = loadContentFromFile(dbPath);
 // 检索实例
