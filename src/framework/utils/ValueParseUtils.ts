@@ -2,22 +2,22 @@ import cronParser = require('cron-parser');
 
 /**
  * 解析数值型
- * @param str 字符串
+ * @param value 值
  */
-export function parseNumber(str: string | number): number {
-  if (typeof str === 'number') return str;
-  if (!str) return 0;
-  return Number(str) || 0;
+export function parseNumber(value: any): number {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  return Number(value) || 0;
 }
 
 /**
  * 解析布尔型
- * @param str 字符串
+ * @param value 值
  */
-export function parseBoolean(str: string | number): boolean {
-  if (typeof str === 'number') return Boolean(str);
-  if (!str || str === 'false' || str === '0') return false;
-  return Boolean(str) || false;
+export function parseBoolean(value: any): boolean {
+  if (typeof value === 'number') return Boolean(value);
+  if (!value || value === 'false' || value === '0') return false;
+  return Boolean(value) || false;
 }
 
 /**
@@ -261,4 +261,38 @@ export function parseMaskEmail(email: string): string {
   if (prefix.length < 3) return email;
   const mask = Array.from({ length: prefix.length - 3 }, () => '*').join('');
   return `${prefix.slice(0, 3)}${mask}@${strArr[1]}`;
+}
+
+/**
+ * 解析字符串数组去重
+ * @param arr 字符串数组
+ * @returns 字符串数组
+ */
+export function parseRemoveDuplicates(arr: string[]): string[] {
+  return [...new Set(arr)];
+}
+
+// RemoveDuplicatesToArray 数组内字符串分隔去重转为字符数组
+/**
+ * 解析字符串分隔去重转为字符数组
+ * @param keyStr 字符串，逗号分隔符分隔的字符串
+ * @param sep 分隔符，默认逗号
+ * @returns 字符数组
+ */
+export function parseRemoveDuplicatesToArray(
+  keyStr: string,
+  sep: string = ','
+): string[] {
+  let arr: string[] = [];
+  if (keyStr === '') {
+    return arr;
+  }
+  if (keyStr.includes(',')) {
+    // 处理字符转数组后去重
+    const strArr = keyStr.split(sep);
+    arr = [...new Set(strArr)];
+  } else {
+    arr = [keyStr];
+  }
+  return arr;
 }
