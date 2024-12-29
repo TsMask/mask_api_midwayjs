@@ -1,6 +1,6 @@
 import { Catch, httpError, HttpStatus, MidwayHttpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import result from '../result/result';
+import {Resp} from '../resp/api';
 
 /**
  * 当前操作没有权限-拦截器
@@ -14,7 +14,7 @@ export class Forbidden {
     const userName = ctx.loginUser?.user?.userName || '匿名';
     ctx.logger.error('%s : %s > %s', userName, err.name, err.message);
     // 返回403，提示错误信息
-    ctx.body = result.codeMsg(403, err.message);
+    ctx.body = Resp.codeMsg(403, err.message);
     ctx.status = HttpStatus.FORBIDDEN;
   }
 }

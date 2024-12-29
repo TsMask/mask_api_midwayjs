@@ -1,6 +1,6 @@
 import { Catch, httpError, HttpStatus, MidwayHttpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import result from '../result/result';
+import {Resp} from '../resp/api';
 
 /**
  * 未授权认证用户-拦截器
@@ -14,7 +14,7 @@ export class Unauthorized {
     const userName = ctx.loginUser?.user?.userName || '匿名';
     ctx.logger.error('%s : %s > %s', userName, err.name, err.message);
     // 返回401，提示错误信息
-    ctx.body = result.codeMsg(401, err.message);
+    ctx.body = Resp.codeMsg(401, err.message);
     ctx.status = HttpStatus.UNAUTHORIZED;
   }
 }

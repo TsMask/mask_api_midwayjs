@@ -5,7 +5,10 @@ import {
   httpError,
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { SYS_PERMISSION_SYSTEM, SYS_ROLE_SYSTEM_KEY } from '../constants/system'; 
+import {
+  SYS_PERMISSION_SYSTEM,
+  SYS_ROLE_SYSTEM_KEY,
+} from '../constants/system';
 import { TokenService } from '../service/TokenService';
 import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
 

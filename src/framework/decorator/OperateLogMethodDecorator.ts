@@ -3,15 +3,14 @@ import {
   REQUEST_OBJ_CTX_KEY,
   createCustomMethodDecorator,
 } from '@midwayjs/core';
-import { Context } from '@midwayjs/koa';
-import { OperatorTypeEnum } from '../enums/OperatorTypeEnum';
-import { SysLogOperate } from '../../modules/system/model/SysLogOperate';
-import { SysLogOperateServiceImpl } from '../../modules/system/service/impl/SysLogOperateServiceImpl';
+import { Context } from '@midwayjs/koa'; 
 import { LoginUser } from '../vo/LoginUser';
 import { STATUS_NO, STATUS_YES } from '../constants/common';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { parseSafeContent } from '../utils/ValueParseUtils';
-import result from '../result/result';
+import { Resp } from '../resp/api';
+import { SysLogOperate } from '../../modules/system/model/SysLogOperate';
+import { SysLogOperateServiceImpl } from '../../modules/system/service/impl/SysLogOperateServiceImpl';
 
 /**
  * 操作日志-业务操作类型枚举
@@ -114,9 +113,9 @@ export function OpLerateLogSave(options: { metadata: Options }) {
         operLog.operName = loginUser.user.userName;
         operLog.deptName = loginUser.user.dept?.deptName;
         if (loginUser.user.userType === 'sys') {
-          operLog.operatorType = OperatorTypeEnum.MANAGE;
+          operLog.operatorType = '1';
         } else {
-          operLog.operatorType = OperatorTypeEnum.OTHER;
+          operLog.operatorType = '0';
         }
       }
 
@@ -154,9 +153,9 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       // 保存操作记录到数据库
       const sysLogOperateService: SysLogOperateServiceImpl =
         await ctx.requestContext.getAsync(SysLogOperateServiceImpl);
-      if (typeof res === 'object') {
+      if (res instanceof Resp) {
         operLog.status =
-          res.code === result.CODE_SUCCESS ? STATUS_YES : STATUS_NO;
+          res.code === Resp.CODE_SUCCESS ? STATUS_YES : STATUS_NO;
       } else {
         operLog.status = STATUS_YES;
       }

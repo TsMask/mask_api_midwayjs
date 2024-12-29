@@ -9,7 +9,7 @@ import { LimitTypeEnum } from '../enums/LimitTypeEnum';
 import { CACHE_RATE_LIMIT } from '../constants/cache-key';
 import { RedisCache } from '../datasource/redis/redis';
 import { getClientIP } from '../utils/ip2region';
-import result from '../result/result';
+import { Resp } from '../resp/api';
 
 /** 限流参数 */
 interface rateLimitOptions {
@@ -96,7 +96,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       ctx.set('X-Ratelimit-Reset', `${Date.now() + rateTime * 1000}`);
 
       if (rateCount >= limitCount) {
-        return result.errMsg('访问过于频繁，请稍候再试');
+        return Resp.errMsg('访问过于频繁，请稍候再试');
       }
 
       // 执行原方法

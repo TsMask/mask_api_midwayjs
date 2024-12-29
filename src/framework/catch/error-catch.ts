@@ -1,6 +1,6 @@
 import { Catch, HttpStatus } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import result from '../result/result';
+import {Resp} from '../resp/api';
 
 /**
  * 默认全局错误统一捕获
@@ -28,7 +28,7 @@ export class ErrorCatch {
     }
 
     // 返回200，提示错误信息
-    ctx.body = result.codeMsg(50000, msg);
+    ctx.body = Resp.codeMsg(50000, msg);
     ctx.status = HttpStatus.OK;
   }
 }
