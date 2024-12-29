@@ -110,8 +110,11 @@ open http://localhost:6275  # 启动成功后得到服务访问地址
 npm install             # 安装项目所需依赖
 npm run build           # 构建生产项目代码
 
+npm prune --omit=dev    # 清理开发依赖包，缩减生产环境体积大小（可选）
+npm install --omit=dev  # 重新安装生产依赖包（可选）
+
 npm run start           # 窗口当前启动项目
-npm run start:pm2       # PM2常驻启动项目
+npm run start:pm2       # PM2常驻启动项目（可选）
 ```
 
 更多部署信息请移步 [Midway-启动和部署](http://www.midwayjs.org/docs/deployment)。
