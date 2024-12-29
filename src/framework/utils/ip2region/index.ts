@@ -49,6 +49,9 @@ export async function getRealAddressByIp(ip: string): Promise<string> {
     const { region } = await searcher.search(ip);
     if (region) {
       const [, , province, city] = region.split('|');
+      if (province === '0' && city === '0') {
+        return '未知';
+      }
       if (province === '0' && city !== '0') {
         return city;
       }
