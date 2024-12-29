@@ -1,6 +1,6 @@
 import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/core';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import {
   BUSINESS_TYPE,
   OperateLog,
@@ -40,7 +40,7 @@ export class SysJobLogController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['monitor:job:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const querys = this.contextService.getContext().query;
     const jobId = querys.jobId as string;
     if (jobId && jobId !== '' && jobId !== '0') {
@@ -49,7 +49,7 @@ export class SysJobLogController {
       querys.jobGroup = job.jobGroup;
     }
     const data = await this.sysJobLogService.selectJobLogPage(querys);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -57,10 +57,10 @@ export class SysJobLogController {
    */
   @Get('/:jobLogId')
   @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
-  async getInfo(@Param('jobLogId') jobLogId: string): Promise<Result> {
-    if (!jobLogId) return result.err();
+  async getInfo(@Param('jobLogId') jobLogId: string): Promise<Resp> {
+    if (!jobLogId) return Resp.err();
     const data = await this.sysJobLogService.selectJobLogById(jobLogId);
-    return result.okData(data);
+    return Resp.okData(data);
   }
 
   /**
@@ -72,15 +72,15 @@ export class SysJobLogController {
     title: '调度任务日志信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('jobLogIds') jobLogIds: string): Promise<Result> {
-    if (!jobLogIds) return result.err();
+  async remove(@Param('jobLogIds') jobLogIds: string): Promise<Resp> {
+    if (!jobLogIds) return Resp.err();
     // 处理字符转id数组
     const ids = jobLogIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysJobLogService.deleteJobLogByIds([
       ...new Set(ids),
     ]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -92,9 +92,9 @@ export class SysJobLogController {
     title: '调度任务日志信息',
     businessType: BUSINESS_TYPE.CLEAN,
   })
-  async clean(): Promise<Result> {
+  async clean(): Promise<Resp> {
     const rows = await this.sysJobLogService.cleanJobLog();
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -112,7 +112,7 @@ export class SysJobLogController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysJobLogService.selectJobLogPage(query);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 读取任务组名字典数据
     const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(

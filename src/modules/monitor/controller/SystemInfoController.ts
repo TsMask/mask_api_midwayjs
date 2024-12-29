@@ -1,5 +1,5 @@
 import { Controller, Get, Inject } from '@midwayjs/core';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { SystemInfoServiceImpl } from '../service/impl/SystemInfoServiceImpl';
 
@@ -18,8 +18,8 @@ export class SystemInfoController {
    */
   @Get()
   @PreAuthorize({ hasPermissions: ['monitor:system:info'] })
-  async getInfo(): Promise<Result> {
-    return result.okData({
+  async getInfo(): Promise<Resp> {
+    return Resp.okData({
       project: this.systemInfoService.getProjectInfo(),
       cpu: this.systemInfoService.getCPUInfo(),
       memory: this.systemInfoService.getMemoryInfo(),

@@ -1,7 +1,7 @@
 import { Controller, Get, Inject } from '@midwayjs/core';
 import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
-import { generateHash } from '../../../framework/utils/GenIdUtils';
+
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { ContextService } from '../../../framework/service/ContextService';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
@@ -11,15 +11,14 @@ import {
   CAPTCHA_TYPE_MATH,
   CAPTCHA_EXPIRATION,
 } from '../../../framework/constants/captcha';
-import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
-import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
-import result from '../../../framework/result/result';
 import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache-key';
+import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
+import { generateHash } from '../../../framework/utils/GenIdUtils';
+import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
+import { Resp } from '../../../framework/resp/api';
 
 /**
  * 验证码操作处理
- *
- * @author TsMask
  */
 @Controller()
 export class CaptchaController {
@@ -37,7 +36,7 @@ export class CaptchaController {
    */
   @Get('/captcha-image')
   @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
-  async captchaImage(): Promise<Result> {
+  async image(): Promise<Resp> {
     // 从数据库配置获取验证码开关 true开启，false关闭
     const captchaEnabledStr =
       await this.sysConfigService.selectConfigValueByKey(
@@ -45,17 +44,16 @@ export class CaptchaController {
       );
     const captchaEnabled = parseBoolean(captchaEnabledStr);
     if (!captchaEnabled) {
-      return result.ok({
-        captchaEnabled: captchaEnabled,
+      return Resp.okData({
+        enabled: captchaEnabled,
       });
     }
 
     // 生成唯一标识
-    const uuid = generateHash(16);
-    const verifyKey = CACHE_CAPTCHA_CODE + uuid;
+    let verifyKey = '';
     const data = {
       enabled: captchaEnabled,
-      uuid: uuid,
+      uuid: '',
       img: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
     };
 
@@ -63,26 +61,27 @@ export class CaptchaController {
     const captchaType = await this.sysConfigService.selectConfigValueByKey(
       'sys.account.captchaType'
     );
-
     if (captchaType === CAPTCHA_TYPE_MATH) {
+      const uuid = generateHash(20);
       const options: ConfigObject =
         this.contextService.getConfig('mathCaptcha');
-      const captcha = createMathExpr(options);
-      data.img = svgBase64(captcha.data);
-      await this.redisCache.setByExpire(
-        verifyKey,
-        captcha.text,
-        CAPTCHA_EXPIRATION
-      );
+      const { data: question, text: answer } = createMathExpr(options);
+      data.uuid = uuid;
+      data.img = svgBase64(question);
+      verifyKey = CACHE_CAPTCHA_CODE + uuid;
+      await this.redisCache.setByExpire(verifyKey, answer, CAPTCHA_EXPIRATION);
     }
     if (captchaType === CAPTCHA_TYPE_CHAR) {
+      const uuid = generateHash(20);
       const options: ConfigObject =
         this.contextService.getConfig('charCaptcha');
-      const captcha = create(options);
-      data.img = svgBase64(captcha.data);
+      const { data: question, text: answer } = create(options);
+      data.uuid = uuid;
+      data.img = svgBase64(question);
+      verifyKey = CACHE_CAPTCHA_CODE + uuid;
       await this.redisCache.setByExpire(
         verifyKey,
-        captcha.text.toLowerCase(),
+        answer.toLowerCase(),
         CAPTCHA_EXPIRATION
       );
     }
@@ -90,8 +89,8 @@ export class CaptchaController {
     // 本地开发下返回验证码结果，方便接口调试
     if (this.contextService.getEnv() === 'local') {
       const text = await this.redisCache.get(verifyKey);
-      return result.okData({ text, ...data });
+      return Resp.okData({ text, ...data });
     }
-    return result.okData(data);
+    return Resp.okData(data);
   }
 }

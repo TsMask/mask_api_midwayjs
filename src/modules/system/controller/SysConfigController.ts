@@ -9,7 +9,7 @@ import {
   Put,
 } from '@midwayjs/core';
 
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import {
   BUSINESS_TYPE,
   OperateLog,
@@ -43,10 +43,10 @@ export class SysConfigController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:config:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const data = await this.sysConfigService.selectConfigPage(query);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -54,10 +54,10 @@ export class SysConfigController {
    */
   @Get('/:configId')
   @PreAuthorize({ hasPermissions: ['system:config:query'] })
-  async getInfo(@Param('configId') configId: string): Promise<Result> {
-    if (!configId) return result.err();
+  async getInfo(@Param('configId') configId: string): Promise<Resp> {
+    if (!configId) return Resp.err();
     const data = await this.sysConfigService.selectConfigById(configId);
-    return result.okData(data);
+    return Resp.okData(data);
   }
 
   /**
@@ -72,7 +72,7 @@ export class SysConfigController {
   async add(@Body() sysConfig: SysConfig) {
     const { configId, configName, configKey, configValue } = sysConfig;
     if (configId || !configName || !configKey || !configValue) {
-      return result.err();
+      return Resp.err();
     }
 
     // 检查属性值唯一
@@ -80,12 +80,12 @@ export class SysConfigController {
       configKey
     );
     if (!uniqueConfigKey) {
-      return result.errMsg(`参数配置新增【${configKey}】失败，参数键名已存在`);
+      return Resp.errMsg(`参数配置新增【${configKey}】失败，参数键名已存在`);
     }
 
     sysConfig.createBy = this.contextService.getUseName();
     const insertId = await this.sysConfigService.insertConfig(sysConfig);
-    return result[insertId ? 'ok' : 'err']();
+    return Resp[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -100,13 +100,13 @@ export class SysConfigController {
   async edit(@Body() sysConfig: SysConfig) {
     const { configId, configName, configKey, configValue } = sysConfig;
     if (!configId || !configName || !configKey || !configValue) {
-      return result.err();
+      return Resp.err();
     }
 
     // 检查是否存在
     const config = await this.sysConfigService.selectConfigById(configId);
     if (!config) {
-      return result.errMsg('没有权限访问参数配置数据！');
+      return Resp.errMsg('没有权限访问参数配置数据！');
     }
 
     // 检查属性值唯一
@@ -115,12 +115,12 @@ export class SysConfigController {
       configId
     );
     if (!uniqueConfigKey) {
-      return result.errMsg(`参数配置修改【${configKey}】失败，参数键名已存在`);
+      return Resp.errMsg(`参数配置修改【${configKey}】失败，参数键名已存在`);
     }
 
     sysConfig.updateBy = this.contextService.getUseName();
     const rows = await this.sysConfigService.updateConfig(sysConfig);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -133,14 +133,14 @@ export class SysConfigController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   async remove(@Param('configIds') configIds: string) {
-    if (!configIds) return result.err();
+    if (!configIds) return Resp.err();
     // 处理字符转有效数字id数组
     const ids = configIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysConfigService.deleteConfigByIds([
       ...new Set(ids),
     ]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -153,18 +153,18 @@ export class SysConfigController {
     title: '参数配置信息',
     businessType: BUSINESS_TYPE.CLEAN,
   })
-  async refreshCache(): Promise<Result> {
+  async refreshCache(): Promise<Resp> {
     await this.sysConfigService.resetConfigCache();
-    return result.ok();
+    return Resp.ok();
   }
 
   /**
    * 参数配置根据参数键名
    */
   @Get('/configKey/:configKey')
-  async getConfigKey(@Param('configKey') configKey: string): Promise<Result> {
+  async getConfigKey(@Param('configKey') configKey: string): Promise<Resp> {
     const data = await this.sysConfigService.selectConfigValueByKey(configKey);
-    return result.okData(data || '');
+    return Resp.okData(data || '');
   }
 
   /**
@@ -182,7 +182,7 @@ export class SysConfigController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysConfigService.selectConfigPage(query);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

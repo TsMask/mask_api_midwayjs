@@ -9,7 +9,7 @@ import {
   Put,
 } from '@midwayjs/core';
 
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import {
   BUSINESS_TYPE,
   OperateLog,
@@ -41,10 +41,10 @@ export class SysPostController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:post:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const data = await this.sysPostService.selectPostPage(query);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -52,10 +52,10 @@ export class SysPostController {
    */
   @Get('/:postId')
   @PreAuthorize({ hasPermissions: ['system:post:query'] })
-  async getInfo(@Param('postId') postId: string): Promise<Result> {
-    if (!postId) return result.err();
+  async getInfo(@Param('postId') postId: string): Promise<Resp> {
+    if (!postId) return Resp.err();
     const data = await this.sysPostService.selectPostById(postId);
-    return result.okData(data);
+    return Resp.okData(data);
   }
 
   /**
@@ -67,27 +67,27 @@ export class SysPostController {
     title: '岗位信息',
     businessType: BUSINESS_TYPE.INSERT,
   })
-  async add(@Body() sysPost: SysPost): Promise<Result> {
+  async add(@Body() sysPost: SysPost): Promise<Resp> {
     const { postId, postName, postCode } = sysPost;
-    if (postId || !postName || !postCode) return result.err();
+    if (postId || !postName || !postCode) return Resp.err();
 
     // 检查属性值唯一
     const uniqueuPostName = await this.sysPostService.checkUniquePostName(
       postName
     );
     if (!uniqueuPostName) {
-      return result.errMsg(`岗位新增【${postName}】失败，岗位名称已存在`);
+      return Resp.errMsg(`岗位新增【${postName}】失败，岗位名称已存在`);
     }
     const uniquePostCode = await this.sysPostService.checkUniquePostCode(
       postCode
     );
     if (!uniquePostCode) {
-      return result.errMsg(`岗位新增【${postCode}】失败，岗位编码已存在`);
+      return Resp.errMsg(`岗位新增【${postCode}】失败，岗位编码已存在`);
     }
 
     sysPost.createBy = this.contextService.getUseName();
     const insertId = await this.sysPostService.insertPost(sysPost);
-    return result[insertId ? 'ok' : 'err']();
+    return Resp[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -99,9 +99,9 @@ export class SysPostController {
     title: '岗位信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async edit(@Body() sysPost: SysPost): Promise<Result> {
+  async edit(@Body() sysPost: SysPost): Promise<Resp> {
     const { postId, postName, postCode } = sysPost;
-    if (!postId || !postName || !postCode) return result.err();
+    if (!postId || !postName || !postCode) return Resp.err();
 
     // 检查是否存在
     const post = await this.sysPostService.selectPostById(postId);
@@ -115,7 +115,7 @@ export class SysPostController {
       postId
     );
     if (!uniqueuPostName) {
-      return result.errMsg(`岗位修改【${postName}】失败，岗位名称已存在`);
+      return Resp.errMsg(`岗位修改【${postName}】失败，岗位名称已存在`);
     }
 
     // 检查编码属性值唯一
@@ -124,12 +124,12 @@ export class SysPostController {
       postId
     );
     if (!uniquePostCode) {
-      return result.errMsg(`岗位修改【${postCode}】失败，岗位编码已存在`);
+      return Resp.errMsg(`岗位修改【${postCode}】失败，岗位编码已存在`);
     }
 
     sysPost.updateBy = this.contextService.getUseName();
     const rows = await this.sysPostService.updatePost(sysPost);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -141,13 +141,13 @@ export class SysPostController {
     title: '岗位信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('postIds') postIds: string): Promise<Result> {
-    if (!postIds) return result.err();
+  async remove(@Param('postIds') postIds: string): Promise<Resp> {
+    if (!postIds) return Resp.err();
     // 处理字符转id数组
     const ids = postIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysPostService.deletePostByIds([...new Set(ids)]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -165,7 +165,7 @@ export class SysPostController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysPostService.selectPostPage(query);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

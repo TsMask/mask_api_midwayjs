@@ -8,7 +8,7 @@ import {
   Post,
   Put,
 } from '@midwayjs/core';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 
@@ -48,11 +48,11 @@ export class SysRoleController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:role:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const dataScopeSQL = this.contextService.getDataScopeSQL('d');
     const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -60,11 +60,11 @@ export class SysRoleController {
    */
   @Get('/:roleId')
   @PreAuthorize({ hasPermissions: ['system:role:query'] })
-  async getInfo(@Param('roleId') roleId: string): Promise<Result> {
-    if (!roleId) return result.err();
+  async getInfo(@Param('roleId') roleId: string): Promise<Resp> {
+    if (!roleId) return Resp.err();
     const role = await this.sysRoleService.selectRoleById(roleId);
-    if (!role) return result.err();
-    return result.okData(role);
+    if (!role) return Resp.err();
+    return Resp.okData(role);
   }
 
   /**
@@ -76,27 +76,27 @@ export class SysRoleController {
     title: '角色信息',
     businessType: BUSINESS_TYPE.INSERT,
   })
-  async add(@Body() sysRole: SysRole): Promise<Result> {
+  async add(@Body() sysRole: SysRole): Promise<Resp> {
     const { roleName, roleKey } = sysRole;
-    if (!roleName || !roleKey) return result.err();
+    if (!roleName || !roleKey) return Resp.err();
 
     // 判断角色名称是否唯一
     const uniqueRoleName = await this.sysRoleService.checkUniqueRoleName(
       roleName
     );
     if (!uniqueRoleName) {
-      return result.errMsg(`角色新增【${roleName}】失败，角色名称已存在`);
+      return Resp.errMsg(`角色新增【${roleName}】失败，角色名称已存在`);
     }
 
     // 判断角色键值是否唯一
     const uniqueRoleKey = await this.sysRoleService.checkUniqueRoleKey(roleKey);
     if (!uniqueRoleKey) {
-      return result.errMsg(`角色新增【${roleName}】失败，角色键值已存在`);
+      return Resp.errMsg(`角色新增【${roleName}】失败，角色键值已存在`);
     }
 
     sysRole.createBy = this.contextService.getUseName();
     const insertId = await this.sysRoleService.insertRole(sysRole);
-    return result[insertId ? 'ok' : 'err']();
+    return Resp[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -108,18 +108,18 @@ export class SysRoleController {
     title: '角色信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async edit(@Body() sysRole: SysRole): Promise<Result> {
+  async edit(@Body() sysRole: SysRole): Promise<Resp> {
     const { roleId, roleName, roleKey } = sysRole;
-    if (!roleId || !roleName || !roleKey) return result.err();
+    if (!roleId || !roleName || !roleKey) return Resp.err();
 
     // 检查是否管理员角色
     if (roleId === SYS_ROLE_SYSTEM_ID) {
-      return result.errMsg('不允许操作管理员角色');
+      return Resp.errMsg('不允许操作管理员角色');
     }
 
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return result.errMsg('没有权限访问角色数据！');
+      return Resp.errMsg('没有权限访问角色数据！');
     }
 
     // 判断角色名称是否唯一
@@ -128,7 +128,7 @@ export class SysRoleController {
       roleId
     );
     if (!uniqueRoleName) {
-      return result.errMsg(`角色修改【${roleName}】失败，角色名称已存在`);
+      return Resp.errMsg(`角色修改【${roleName}】失败，角色名称已存在`);
     }
 
     // 判断角色键值是否唯一
@@ -137,15 +137,15 @@ export class SysRoleController {
       roleId
     );
     if (!uniqueRoleKey) {
-      return result.errMsg(`角色修改【${roleName}】失败，角色键值已存在`);
+      return Resp.errMsg(`角色修改【${roleName}】失败，角色键值已存在`);
     }
 
     sysRole.updateBy = this.contextService.getUseName();
     const rows = await this.sysRoleService.updateRole(sysRole);
     if (rows > 0) {
-      return result.ok();
+      return Resp.ok();
     }
-    return result.errMsg(`角色修改【${roleName}】失败`);
+    return Resp.errMsg(`角色修改【${roleName}】失败`);
   }
 
   /**
@@ -157,20 +157,20 @@ export class SysRoleController {
     title: '角色信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('roleIds') roleIds: string): Promise<Result> {
-    if (!roleIds) return result.err();
+  async remove(@Param('roleIds') roleIds: string): Promise<Resp> {
+    if (!roleIds) return Resp.err();
     // 处理字符转id数组
     const ids = roleIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const uniqueIDs = [...new Set(ids)];
     // 检查是否管理员角色
     for (const id of uniqueIDs) {
       if (id === SYS_ROLE_SYSTEM_ID) {
-        return result.errMsg('不允许操作管理员角色');
+        return Resp.errMsg('不允许操作管理员角色');
       }
     }
     const rows = await this.sysRoleService.deleteRoleByIds(uniqueIDs);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -185,30 +185,30 @@ export class SysRoleController {
   async changeStatus(
     @Body('roleId') roleId: string,
     @Body('status') status: string
-  ): Promise<Result> {
-    if (!roleId || !status || status.length > 1) return result.err();
+  ): Promise<Resp> {
+    if (!roleId || !status || status.length > 1) return Resp.err();
 
     // 检查是否管理员角色
     if (roleId === SYS_ROLE_SYSTEM_ID) {
-      return result.errMsg('不允许操作管理员角色');
+      return Resp.errMsg('不允许操作管理员角色');
     }
 
     // 检查是否存在
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return result.errMsg('没有权限访问角色数据！');
+      return Resp.errMsg('没有权限访问角色数据！');
     }
 
     // 与旧值相等不变更
     if (role.status === status) {
-      return result.errMsg('变更状态与旧值相等！');
+      return Resp.errMsg('变更状态与旧值相等！');
     }
 
     // 更新状态不刷新缓存
     role.status = status;
     role.updateBy = this.contextService.getUseName();
     const rowNum = await this.sysRoleService.updateRole(role);
-    return result[rowNum ? 'ok' : 'err']();
+    return Resp[rowNum ? 'ok' : 'err']();
   }
 
   /**
@@ -220,16 +220,16 @@ export class SysRoleController {
     title: '角色信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async dataScope(@Body() sysRole: SysRole): Promise<Result> {
+  async dataScope(@Body() sysRole: SysRole): Promise<Resp> {
     const roleId = sysRole.roleId;
-    if (!roleId) return result.err();
+    if (!roleId) return Resp.err();
     // 检查是否管理员角色
     if (roleId === SYS_ROLE_SYSTEM_ID) {
-      return result.errMsg('不允许操作管理员角色');
+      return Resp.errMsg('不允许操作管理员角色');
     }
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return result.errMsg('没有权限访问角色数据！');
+      return Resp.errMsg('没有权限访问角色数据！');
     }
     const newSysRole = new SysRole();
     newSysRole.roleId = roleId;
@@ -237,7 +237,7 @@ export class SysRoleController {
     newSysRole.dataScope = sysRole.dataScope;
     newSysRole.deptCheckStrictly = sysRole.deptCheckStrictly;
     const rows = await this.sysRoleService.authDataScope(newSysRole);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -245,20 +245,20 @@ export class SysRoleController {
    */
   @Get('/authUser/allocatedList')
   @PreAuthorize({ hasPermissions: ['system:role:list'] })
-  async authUserAllocatedList(): Promise<Result> {
+  async authUserAllocatedList(): Promise<Resp> {
     const { query } = this.contextService.getContext();
     const roleId = query.roleId as string;
-    if (!roleId) return result.err();
+    if (!roleId) return Resp.err();
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return result.errMsg('没有权限访问角色数据！');
+      return Resp.errMsg('没有权限访问角色数据！');
     }
     const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const data = await this.sysUserService.selectAllocatedPage(
       query,
       dataScopeSQL
     );
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -278,14 +278,14 @@ export class SysRoleController {
     @Body('roleId') roleId: string,
     @Body('userIds') userIds: string,
     @Body('checked') checked: boolean
-  ): Promise<Result> {
-    if (!roleId || !userIds) return result.err();
+  ): Promise<Resp> {
+    if (!roleId || !userIds) return Resp.err();
     // 处理字符转id数组
     const ids = userIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const role = await this.sysRoleService.selectRoleById(roleId);
     if (!role) {
-      return result.errMsg('没有权限访问角色数据！');
+      return Resp.errMsg('没有权限访问角色数据！');
     }
     let rows = 0;
     if (checked) {
@@ -297,7 +297,7 @@ export class SysRoleController {
         ...new Set(ids),
       ]);
     }
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -316,7 +316,7 @@ export class SysRoleController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysRoleService.selectRolePage(query, dataScopeSQL);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

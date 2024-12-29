@@ -15,7 +15,7 @@ import {
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import {
@@ -50,10 +50,10 @@ export class SysJobController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['monitor:job:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const data = await this.sysJobService.selectJobPage(query);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -61,10 +61,10 @@ export class SysJobController {
    */
   @Get('/:jobId')
   @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
-  async getInfo(@Param('jobId') jobId: string): Promise<Result> {
-    if (!jobId) return result.err();
+  async getInfo(@Param('jobId') jobId: string): Promise<Resp> {
+    if (!jobId) return Resp.err();
     const data = await this.sysJobService.selectJobById(jobId);
-    return result.okData(data);
+    return Resp.okData(data);
   }
 
   /**
@@ -76,7 +76,7 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.INSERT,
   })
-  async add(@Body() job: SysJob): Promise<Result> {
+  async add(@Body() job: SysJob): Promise<Resp> {
     const {
       jobId,
       jobName,
@@ -86,11 +86,11 @@ export class SysJobController {
       targetParams,
     } = job;
     if (jobId && !jobName && !jobGroup && !cronExpression && !invokeTarget) {
-      return result.err();
+      return Resp.err();
     }
     // 检查cron表达式格式
     if (parseCronExpression(cronExpression) === 0) {
-      return result.errMsg(`调度任务新增【${jobName}】失败，Cron表达式不正确`);
+      return Resp.errMsg(`调度任务新增【${jobName}】失败，Cron表达式不正确`);
     }
     // 检查属性唯一
     const uniqueJob = await this.sysJobService.checkUniqueJobName(
@@ -98,7 +98,7 @@ export class SysJobController {
       jobGroup
     );
     if (!uniqueJob) {
-      return result.errMsg(
+      return Resp.errMsg(
         `调度任务新增【${jobName}】失败，同任务组内有相同任务名称`
       );
     }
@@ -106,16 +106,16 @@ export class SysJobController {
     if (targetParams) {
       const msg = `调度任务新增【${jobName}】失败，任务传入参数json字符串不正确`;
       if (targetParams.length < 7) {
-        return result.errMsg(msg);
+        return Resp.errMsg(msg);
       }
       const params = parseStringToObject(targetParams);
       if (!params) {
-        return result.errMsg(msg);
+        return Resp.errMsg(msg);
       }
     }
     job.createBy = this.contextService.getUseName();
     const insertId = await this.sysJobService.insertJob(job);
-    return result[insertId ? 'ok' : 'err']();
+    return Resp[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -127,7 +127,7 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async edit(@Body() job: SysJob): Promise<Result> {
+  async edit(@Body() job: SysJob): Promise<Resp> {
     const {
       jobId,
       jobName,
@@ -137,11 +137,11 @@ export class SysJobController {
       targetParams,
     } = job;
     if (!jobId && !jobName && !jobGroup && !cronExpression && !invokeTarget) {
-      return result.err();
+      return Resp.err();
     }
     // 检查cron表达式格式
     if (parseCronExpression(cronExpression) === 0) {
-      return result.errMsg(`调度任务修改【${jobName}】失败，Cron表达式不正确`);
+      return Resp.errMsg(`调度任务修改【${jobName}】失败，Cron表达式不正确`);
     }
     // 检查属性唯一
     const uniqueJob = await this.sysJobService.checkUniqueJobName(
@@ -150,7 +150,7 @@ export class SysJobController {
       jobId
     );
     if (!uniqueJob) {
-      return result.errMsg(
+      return Resp.errMsg(
         `调度任务修改【${jobName}】失败，同任务组内有相同任务名称`
       );
     }
@@ -158,16 +158,16 @@ export class SysJobController {
     if (targetParams) {
       const msg = `调度任务修改【${jobName}】失败，任务传入参数json字符串不正确`;
       if (targetParams.length < 7) {
-        return result.errMsg(msg);
+        return Resp.errMsg(msg);
       }
       const params = parseStringToObject(targetParams);
       if (!params) {
-        return result.errMsg(msg);
+        return Resp.errMsg(msg);
       }
     }
     job.updateBy = this.contextService.getUseName();
     const rows = await this.sysJobService.updateJob(job);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -179,13 +179,13 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('jobIds') jobIds: string): Promise<Result> {
-    if (!jobIds) return result.err();
+  async remove(@Param('jobIds') jobIds: string): Promise<Resp> {
+    if (!jobIds) return Resp.err();
     // 处理字符转id数组
     const ids = jobIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysJobService.deleteJobByIds([...new Set(ids)]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -201,18 +201,18 @@ export class SysJobController {
   async changeStatus(
     @Body('jobId') jobId: string,
     @Body('status') status: string
-  ): Promise<Result> {
-    if (!jobId || status.length > 1) return result.err();
+  ): Promise<Resp> {
+    if (!jobId || status.length > 1) return Resp.err();
     const sysJob = await this.sysJobService.selectJobById(jobId);
-    if (!sysJob) return result.err();
+    if (!sysJob) return Resp.err();
     // 与旧值相等不变更
     if (sysJob.status === status) {
-      return result.errMsg('变更状态与旧值相等！');
+      return Resp.errMsg('变更状态与旧值相等！');
     }
     sysJob.status = status;
     sysJob.updateBy = this.contextService.getUseName();
     const ok = await this.sysJobService.updateJob(sysJob);
-    return result[ok ? 'ok' : 'err']();
+    return Resp[ok ? 'ok' : 'err']();
   }
 
   /**
@@ -225,12 +225,12 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async run(@Param('jobId') jobId: string): Promise<Result> {
-    if (!jobId) return result.err();
+  async run(@Param('jobId') jobId: string): Promise<Resp> {
+    if (!jobId) return Resp.err();
     const sysJob = await this.sysJobService.selectJobById(jobId);
-    if (!sysJob) return result.err();
+    if (!sysJob) return Resp.err();
     const ok = await this.sysJobService.runQueueJob(sysJob);
-    return result[ok ? 'ok' : 'err']();
+    return Resp[ok ? 'ok' : 'err']();
   }
 
   /**
@@ -243,9 +243,9 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.CLEAN,
   })
-  async resetQueueJob(): Promise<Result> {
+  async resetQueueJob(): Promise<Resp> {
     await this.sysJobService.resetQueueJob();
-    return result.ok();
+    return Resp.ok();
   }
 
   /**
@@ -263,7 +263,7 @@ export class SysJobController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysJobService.selectJobPage(query);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 读取任务组名字典数据
     const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(

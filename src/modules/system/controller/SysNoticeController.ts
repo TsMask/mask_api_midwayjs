@@ -9,7 +9,7 @@ import {
   Put,
 } from '@midwayjs/core';
 
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import {
   BUSINESS_TYPE,
   OperateLog,
@@ -37,10 +37,10 @@ export class SysNoticeController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:notice:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const data = await this.sysNoticeService.selectNoticePage(query);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -48,10 +48,10 @@ export class SysNoticeController {
    */
   @Get('/:noticeId')
   @PreAuthorize({ hasPermissions: ['system:notice:query'] })
-  async getInfo(@Param('noticeId') noticeId: string): Promise<Result> {
-    if (!noticeId) return result.err();
+  async getInfo(@Param('noticeId') noticeId: string): Promise<Resp> {
+    if (!noticeId) return Resp.err();
     const data = await this.sysNoticeService.selectNoticeById(noticeId);
-    return result.okData(data);
+    return Resp.okData(data);
   }
 
   /**
@@ -63,11 +63,11 @@ export class SysNoticeController {
     title: '通知公告信息',
     businessType: BUSINESS_TYPE.INSERT,
   })
-  async add(@Body() notice: SysNotice): Promise<Result> {
-    if (!notice.noticeContent) return result.err();
+  async add(@Body() notice: SysNotice): Promise<Resp> {
+    if (!notice.noticeContent) return Resp.err();
     notice.createBy = this.contextService.getUseName();
     const insertId = await this.sysNoticeService.insertNotice(notice);
-    return result[insertId ? 'ok' : 'err']();
+    return Resp[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -79,11 +79,11 @@ export class SysNoticeController {
     title: '通知公告信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async edit(@Body() notice: SysNotice): Promise<Result> {
-    if (!notice.noticeId) return result.err();
+  async edit(@Body() notice: SysNotice): Promise<Resp> {
+    if (!notice.noticeId) return Resp.err();
     notice.updateBy = this.contextService.getUseName();
     const rows = await this.sysNoticeService.updateNotice(notice);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -95,14 +95,14 @@ export class SysNoticeController {
     title: '通知公告信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('noticeIds') noticeIds: string): Promise<Result> {
-    if (!noticeIds) return result.err();
+  async remove(@Param('noticeIds') noticeIds: string): Promise<Resp> {
+    if (!noticeIds) return Resp.err();
     // 处理字符转id数组
     const ids = noticeIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysNoticeService.deleteNoticeByIds([
       ...new Set(ids),
     ]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 }

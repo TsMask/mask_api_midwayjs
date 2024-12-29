@@ -9,7 +9,7 @@ import {
   Put,
 } from '@midwayjs/core';
 
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import {
   BUSINESS_TYPE,
   OperateLog,
@@ -45,10 +45,10 @@ export class SysDictDataController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:dict:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const data = await this.sysDictDataServer.selectDictDataPage(query);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -56,9 +56,9 @@ export class SysDictDataController {
    */
   @Get('/:dictCode')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
-  async getInfo(@Param('dictCode') dictCode: string): Promise<Result> {
+  async getInfo(@Param('dictCode') dictCode: string): Promise<Resp> {
     const data = await this.sysDictDataServer.selectDictDataByCode(dictCode);
-    return result.okData(data);
+    return Resp.okData(data);
   }
 
   /**
@@ -70,13 +70,13 @@ export class SysDictDataController {
     title: '字典数据信息',
     businessType: BUSINESS_TYPE.INSERT,
   })
-  async add(@Body() sysDictData: SysDictData): Promise<Result> {
+  async add(@Body() sysDictData: SysDictData): Promise<Resp> {
     const { dictCode, dictType, dictLabel, dictValue } = sysDictData;
-    if (dictCode || !dictType || !dictLabel || !dictValue) return result.err();
+    if (dictCode || !dictType || !dictLabel || !dictValue) return Resp.err();
     // 检查字典类型是否存在
     const dict = await this.sysDictTypeService.selectDictTypeByType(dictType);
     if (!dict) {
-      return result.errMsg('没有权限访问字典类型数据！');
+      return Resp.errMsg('没有权限访问字典类型数据！');
     }
 
     // 检查字典标签唯一
@@ -85,7 +85,7 @@ export class SysDictDataController {
       dictLabel
     );
     if (!uniqueDictLabel) {
-      return result.errMsg(
+      return Resp.errMsg(
         `数据新增【${dictLabel}】失败，该字典类型下标签名已存在`
       );
     }
@@ -96,14 +96,14 @@ export class SysDictDataController {
       dictValue
     );
     if (!uniqueDictValue) {
-      return result.errMsg(
+      return Resp.errMsg(
         `数据新增【${dictValue}】失败，该字典类型下标签值已存在`
       );
     }
 
     sysDictData.createBy = this.contextService.getUseName();
     const insertId = await this.sysDictDataServer.insertDictData(sysDictData);
-    return result[insertId ? 'ok' : 'err']();
+    return Resp[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -115,14 +115,14 @@ export class SysDictDataController {
     title: '字典数据信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async edit(@Body() sysDictData: SysDictData): Promise<Result> {
+  async edit(@Body() sysDictData: SysDictData): Promise<Resp> {
     const { dictCode, dictType, dictLabel, dictValue } = sysDictData;
-    if (!dictCode || !dictType || !dictLabel || !dictValue) return result.err();
+    if (!dictCode || !dictType || !dictLabel || !dictValue) return Resp.err();
 
     // 检查字典类型是否存在
     const dict = await this.sysDictTypeService.selectDictTypeByType(dictType);
     if (!dict) {
-      return result.errMsg('没有权限访问字典类型数据！');
+      return Resp.errMsg('没有权限访问字典类型数据！');
     }
 
     // 检查字典编码是否存在
@@ -130,7 +130,7 @@ export class SysDictDataController {
       dictCode
     );
     if (!dictData) {
-      return result.errMsg('没有权限访问字典编码数据！');
+      return Resp.errMsg('没有权限访问字典编码数据！');
     }
 
     // 检查字典标签唯一
@@ -140,7 +140,7 @@ export class SysDictDataController {
       dictCode
     );
     if (!uniqueDictLabel) {
-      return result.errMsg(
+      return Resp.errMsg(
         `数据修改【${dictLabel}】失败，该字典类型下标签名已存在`
       );
     }
@@ -152,14 +152,14 @@ export class SysDictDataController {
       dictCode
     );
     if (!uniqueDictValue) {
-      return result.errMsg(
+      return Resp.errMsg(
         `数据修改【${dictValue}】失败，该字典类型下标签值已存在`
       );
     }
 
     sysDictData.updateBy = this.contextService.getUseName();
     const id = await this.sysDictDataServer.updateDictData(sysDictData);
-    return result[id ? 'ok' : 'err']();
+    return Resp[id ? 'ok' : 'err']();
   }
 
   /**
@@ -171,15 +171,15 @@ export class SysDictDataController {
     title: '字典数据信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('dictCodes') dictCodes: string): Promise<Result> {
-    if (!dictCodes) return result.err();
+  async remove(@Param('dictCodes') dictCodes: string): Promise<Resp> {
+    if (!dictCodes) return Resp.err();
     // 处理字符转id数组
     const ids = dictCodes.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysDictDataServer.deleteDictDataByCodes([
       ...new Set(ids),
     ]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -187,9 +187,9 @@ export class SysDictDataController {
    */
   @Get('/type/:dictType')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
-  async getDictType(@Param('dictType') dictType: string): Promise<Result> {
+  async getDictType(@Param('dictType') dictType: string): Promise<Resp> {
     const data = await this.sysDictDataServer.selectDictDataByType(dictType);
-    return result.okData(data || []);
+    return Resp.okData(data || []);
   }
 
   /**
@@ -207,7 +207,7 @@ export class SysDictDataController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysDictDataServer.selectDictDataPage(query);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

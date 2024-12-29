@@ -11,11 +11,9 @@ import { SysUser } from '../../system/model/SysUser';
 
 /**
  * 注册校验方法
- *
- * @author TsMask
  */
 @Provide()
-export class SysRegisterService {
+export class RegisterService {
   @Inject()
   private contextService: ContextService;
 
@@ -36,14 +34,9 @@ export class SysRegisterService {
    *
    * @param username 登录用户名
    * @param password 密码
-   * @param userType 用户类型
    * @returns 注册信息
    */
-  async register(
-    username: string,
-    password: string,
-    userType: string
-  ): Promise<string> {
+  async register(username: string, password: string): Promise<string> {
     // 是否开启用户注册功能 true开启，false关闭
     const registerUserStr = await this.sysConfigService.selectConfigValueByKey(
       'sys.account.registerUser'
@@ -68,11 +61,11 @@ export class SysRegisterService {
     // 归属部门为根节点
     sysUser.deptId = '100';
     // 标记用户类型
-    sysUser.userType = userType || 'sys';
+    sysUser.userType = 'sys';
     // 新增用户的角色管理
-    sysUser.roleIds = this.registerRoleInit(userType);
+    sysUser.roleIds = this.registerRoleInit(sysUser.userType);
     // 新增用户的岗位管理
-    sysUser.postIds = this.registerPostInit(userType);
+    sysUser.postIds = this.registerPostInit(sysUser.userType);
     // 创建来源
     sysUser.createBy = '注册';
 

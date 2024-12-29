@@ -1,7 +1,7 @@
 import { Controller, Inject, Get, Param, Del, Post } from '@midwayjs/core';
 import { OPERATOR_TYPE } from '../../../framework/enums/OperatorTypeEnum';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import {
   BUSINESS_TYPE,
   OperateLog,
@@ -34,10 +34,10 @@ export class SysLogOperateController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:log:operate:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const data = await this.sysLogOperateService.selectSysLogOperatePage(query);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -46,15 +46,15 @@ export class SysLogOperateController {
   @Del('/:operIds')
   @PreAuthorize({ hasPermissions: ['system:log:operate:remove'] })
   @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.DELETE })
-  async remove(@Param('operIds') operIds: string): Promise<Result> {
-    if (!operIds) return result.err();
+  async remove(@Param('operIds') operIds: string): Promise<Resp> {
+    if (!operIds) return Resp.err();
     // 处理字符转id数组
     const ids = operIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysLogOperateService.deleteSysLogOperateByIds([
       ...new Set(ids),
     ]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -63,9 +63,9 @@ export class SysLogOperateController {
   @Del('/clean')
   @PreAuthorize({ hasPermissions: ['system:log:operate:remove'] })
   @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.CLEAN })
-  async clean(): Promise<Result> {
+  async clean(): Promise<Resp> {
     const rows = await this.sysLogOperateService.cleanSysLogOperate();
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -80,7 +80,7 @@ export class SysLogOperateController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysLogOperateService.selectSysLogOperatePage(query);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

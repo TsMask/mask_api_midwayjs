@@ -9,7 +9,7 @@ import {
   Post,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
@@ -17,8 +17,6 @@ import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
 
 /**
  * 文件操作处理
- *
- * @author TsMask
  */
 @Controller('/file')
 export class FileController {
@@ -34,7 +32,7 @@ export class FileController {
   @Get('/download/:filePath')
   @PreAuthorize()
   async download(@Param('filePath') filePath: string) {
-    if (!filePath) return result.errMsg('未知文件资源路径');
+    if (!filePath) return Resp.errMsg('未知文件资源路径');
     filePath = Buffer.from(filePath, 'base64').toString('utf-8');
     const ctx = this.contextService.getContext();
 
@@ -44,7 +42,7 @@ export class FileController {
       filePath,
       headerRange
     );
-    if (!res.data) return result.errMsg('找不到文件资源');
+    if (!res.data) return Resp.errMsg('找不到文件资源');
 
     // 设置资源文件名称
     const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
@@ -77,12 +75,12 @@ export class FileController {
     @Fields('subPath') subPath: UploadSubPathEnum
   ) {
     if (files.length <= 0) {
-      return result.err();
+      return Resp.err();
     }
 
     // 子路径需要在指定范围内
     if (subPath && !Object.values(UploadSubPathEnum).includes(subPath)) {
-      return result.errMsg('subPath不在指定范围内');
+      return Resp.errMsg('subPath不在指定范围内');
     }
     if (!subPath) {
       subPath = UploadSubPathEnum.COMMON;
@@ -96,7 +94,7 @@ export class FileController {
     );
     const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
     await cleanupRequestFiles();
-    return result.okData({
+    return Resp.okData({
       url: `${origin}${upFilePath}`,
       fileName: upFilePath,
       newFileName: upFileName,
@@ -113,13 +111,13 @@ export class FileController {
     @Body('identifier') identifier: string,
     @Body('fileName') fileName: string
   ) {
-    if (!identifier || !fileName) return result.err();
+    if (!identifier || !fileName) return Resp.err();
 
     const uploadedChunks = await this.fileService.chunkCheckFile(
       identifier,
       fileName
     );
-    return result.okData(uploadedChunks);
+    return Resp.okData(uploadedChunks);
   }
 
   /**
@@ -133,12 +131,12 @@ export class FileController {
     @Body('subPath') subPath: UploadSubPathEnum
   ) {
     if (!identifier || !fileName) {
-      return result.err();
+      return Resp.err();
     }
 
     // 子路径需要在指定范围内
     if (subPath && !Object.values(UploadSubPathEnum).includes(subPath)) {
-      return result.errMsg('subPath不在指定范围内');
+      return Resp.errMsg('subPath不在指定范围内');
     }
     if (!subPath) {
       subPath = UploadSubPathEnum.COMMON;
@@ -151,7 +149,7 @@ export class FileController {
     );
     const { origin } = this.contextService.getContext();
     const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
-    return result.okData({
+    return Resp.okData({
       url: `${origin}${upFilePath}`,
       fileName: upFilePath,
       newFileName: upFileName,
@@ -169,7 +167,7 @@ export class FileController {
     @Fields('index') index: string,
     @Fields('identifier') identifier: string
   ) {
-    if (files.length <= 0 || !identifier) return result.err();
+    if (files.length <= 0 || !identifier) return Resp.err();
 
     const upFilePath = await this.fileService.transferChunkUploadFile(
       files[0],
@@ -179,6 +177,6 @@ export class FileController {
     const ctx = this.contextService.getContext();
     await ctx.cleanupRequestFiles();
     ctx.status = 206;
-    return result.okData(upFilePath);
+    return Resp.okData(upFilePath);
   }
 }

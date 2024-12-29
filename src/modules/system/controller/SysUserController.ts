@@ -11,7 +11,7 @@ import {
   Put,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ContextService } from '../../../framework/service/ContextService';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
@@ -73,11 +73,11 @@ export class SysUserController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     const data = await this.sysUserService.selectUserPage(query, dataScopeSQL);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -85,8 +85,8 @@ export class SysUserController {
    */
   @Get('/:userId')
   @PreAuthorize({ hasPermissions: ['system:user:query'] })
-  async getInfo(@Param('userId') userId: string): Promise<Result> {
-    if (!userId) return result.err();
+  async getInfo(@Param('userId') userId: string): Promise<Resp> {
+    if (!userId) return Resp.err();
     // 查询系统角色列表
     const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
     let roles = await this.sysRoleService.selectRoleList(
@@ -102,7 +102,7 @@ export class SysUserController {
 
     // 新增用户时，用户ID为0
     if (userId === '0') {
-      return result.okData({
+      return Resp.okData({
         user: {},
         roleIds: [],
         postIds: [],
@@ -114,7 +114,7 @@ export class SysUserController {
     // 检查用户是否存在
     const sysUser = await this.sysUserService.selectUserById(userId);
     if (!sysUser) {
-      return result.errMsg('没有权限访问用户数据');
+      return Resp.errMsg('没有权限访问用户数据');
     }
     delete sysUser.password;
 
@@ -127,7 +127,7 @@ export class SysUserController {
     );
     const userPostIds = userPosts.map(p => p.postId);
 
-    return result.okData({
+    return Resp.okData({
       user: sysUser,
       roleIds: userRoleIds,
       postIds: userPostIds,
@@ -145,24 +145,24 @@ export class SysUserController {
     title: '用户信息',
     businessType: BUSINESS_TYPE.INSERT,
   })
-  async add(@Body() sysUser: SysUser): Promise<Result> {
+  async add(@Body() sysUser: SysUser): Promise<Resp> {
     const { userId, userName, password, nickName } = sysUser;
-    if (userId || !nickName || !userName || !password) return result.err();
+    if (userId || !nickName || !userName || !password) return Resp.err();
 
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueUserName(
       userName
     );
     if (!uniqueUserName) {
-      return result.errMsg(`新增用户【${userName}】失败，登录账号已存在`);
+      return Resp.errMsg(`新增用户【${userName}】失败，登录账号已存在`);
     }
     if (!validUsername(userName)) {
-      return result.errMsg(
+      return Resp.errMsg(
         `新增用户【${userName}】失败，登录账号不能以数字开头，可包含大写小写字母，数字，且不少于5位`
       );
     }
     if (!validPassword(password)) {
-      return result.errMsg(
+      return Resp.errMsg(
         `新增用户【${userName}】失败，登录密码至少包含大小写字母、数字、特殊符号，且不少于6位`
       );
     }
@@ -173,10 +173,10 @@ export class SysUserController {
           sysUser.phonenumber
         );
         if (!uniquePhone) {
-          return result.errMsg(`新增用户【${userName}】失败，手机号码已存在`);
+          return Resp.errMsg(`新增用户【${userName}】失败，手机号码已存在`);
         }
       } else {
-        return result.errMsg(`新增用户【${userName}】失败，手机号码格式错误`);
+        return Resp.errMsg(`新增用户【${userName}】失败，手机号码格式错误`);
       }
     }
     // 检查邮箱格式并判断是否唯一
@@ -186,16 +186,16 @@ export class SysUserController {
           sysUser.email
         );
         if (!uniqueEmail) {
-          return result.errMsg(`新增用户【${userName}】失败，邮箱已存在`);
+          return Resp.errMsg(`新增用户【${userName}】失败，邮箱已存在`);
         }
       } else {
-        return result.errMsg(`新增用户【${userName}】失败，邮箱格式错误`);
+        return Resp.errMsg(`新增用户【${userName}】失败，邮箱格式错误`);
       }
     }
 
     sysUser.createBy = this.contextService.getUseName();
     const insertId = await this.sysUserService.insertUser(sysUser);
-    return result[insertId ? 'ok' : 'err']();
+    return Resp[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -207,16 +207,16 @@ export class SysUserController {
     title: '用户信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async edit(@Body() sysUser: SysUser): Promise<Result> {
+  async edit(@Body() sysUser: SysUser): Promise<Resp> {
     const { userId, userName, password, nickName } = sysUser;
-    if (!userId || !nickName || !userName || password) return result.err();
+    if (!userId || !nickName || !userName || password) return Resp.err();
     // 检查是否管理员用户
     if (this.contextService.isAdmin(userId)) {
-      return result.errMsg('不允许操作管理员用户');
+      return Resp.errMsg('不允许操作管理员用户');
     }
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
-      return result.errMsg('没有权限访问用户数据！');
+      return Resp.errMsg('没有权限访问用户数据！');
     }
 
     // 检查用户登录账号是否唯一
@@ -225,7 +225,7 @@ export class SysUserController {
       userId
     );
     if (!uniqueUserName) {
-      return result.errMsg(
+      return Resp.errMsg(
         `修改用户【${sysUser.userName}】失败，登录账号已存在`
       );
     }
@@ -237,10 +237,10 @@ export class SysUserController {
           userId
         );
         if (!uniquePhone) {
-          return result.errMsg(`修改用户【${userName}】失败，手机号码已存在`);
+          return Resp.errMsg(`修改用户【${userName}】失败，手机号码已存在`);
         }
       } else {
-        return result.errMsg(`修改用户【${userName}】失败，手机号码格式错误`);
+        return Resp.errMsg(`修改用户【${userName}】失败，手机号码格式错误`);
       }
     }
     // 检查邮箱格式并判断是否唯一
@@ -251,10 +251,10 @@ export class SysUserController {
           userId
         );
         if (!uniqueEmail) {
-          return result.errMsg(`修改用户【${userName}】失败，邮箱已存在`);
+          return Resp.errMsg(`修改用户【${userName}】失败，邮箱已存在`);
         }
       } else {
-        return result.errMsg(`修改用户【${userName}】失败，邮箱格式错误`);
+        return Resp.errMsg(`修改用户【${userName}】失败，邮箱格式错误`);
       }
     }
 
@@ -264,7 +264,7 @@ export class SysUserController {
     sysUser.loginDate = 0; // 忽略登录时间
     sysUser.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUserAndRolePost(sysUser);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -276,26 +276,26 @@ export class SysUserController {
     title: '用户信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('userIds') userIds: string): Promise<Result> {
-    if (!userIds) return result.err();
+  async remove(@Param('userIds') userIds: string): Promise<Resp> {
+    if (!userIds) return Resp.err();
     // 处理字符转id数组
     const ids = userIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
 
     // 检查是否管理员用户
     const loginUserId = this.contextService.getUserId();
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     for (const id of ids) {
       if (id === loginUserId) {
-        return result.errMsg('当前用户不能删除');
+        return Resp.errMsg('当前用户不能删除');
       }
       if (this.contextService.isAdmin(id)) {
-        return result.errMsg('不允许操作管理员用户');
+        return Resp.errMsg('不允许操作管理员用户');
       }
     }
 
     const rows = await this.sysUserService.deleteUserByIds([...new Set(ids)]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -310,23 +310,23 @@ export class SysUserController {
   async resetPwd(
     @Body('userId') userId: string,
     @Body('password') password: string
-  ): Promise<Result> {
+  ): Promise<Resp> {
     // 修改的用户ID和密码是否可用
-    if (!userId || !password) return result.err();
+    if (!userId || !password) return Resp.err();
 
     // 检查是否管理员用户
     if (this.contextService.isAdmin(userId)) {
-      return result.errMsg('不允许操作管理员用户');
+      return Resp.errMsg('不允许操作管理员用户');
     }
 
     // 检查是否存在
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
-      return result.errMsg('没有权限访问用户数据！');
+      return Resp.errMsg('没有权限访问用户数据！');
     }
 
     if (!validPassword(password)) {
-      return result.errMsg(
+      return Resp.errMsg(
         '登录密码至少包含大小写字母、数字、特殊符号，且不少于6位'
       );
     }
@@ -334,7 +334,7 @@ export class SysUserController {
     user.password = password;
     user.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUser(user);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -350,28 +350,28 @@ export class SysUserController {
   async changeStatus(
     @Body('userId') userId: string,
     @Body('status') status: string
-  ): Promise<Result> {
-    if (!userId || !status || status.length > 1) return result.err();
+  ): Promise<Resp> {
+    if (!userId || !status || status.length > 1) return Resp.err();
 
     // 检查是否管理员用户
     if (this.contextService.isAdmin(userId)) {
-      return result.errMsg('不允许操作管理员用户');
+      return Resp.errMsg('不允许操作管理员用户');
     }
 
     const user = await this.sysUserService.selectUserById(userId);
     if (!user) {
-      return result.errMsg('没有权限访问用户数据！');
+      return Resp.errMsg('没有权限访问用户数据！');
     }
 
     // 与旧值相等不变更
     if (user.status === status) {
-      return result.errMsg('变更状态与旧值相等！');
+      return Resp.errMsg('变更状态与旧值相等！');
     }
 
     user.status = status;
     user.updateBy = this.contextService.getUseName();
     const rows = await this.sysUserService.updateUser(user);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -390,7 +390,7 @@ export class SysUserController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysUserService.selectUserPage(query, dataScopeSQL);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 读取用户性别字典数据
     const dictSysUserSex = await this.sysDictDataService.selectDictDataByType(
@@ -467,11 +467,11 @@ export class SysUserController {
     @Files('file') files: UploadFileInfo<string>[],
     @Fields('updateSupport') updateSupport: string
   ) {
-    if (files.length <= 0) return result.err();
+    if (files.length <= 0) return Resp.err();
     // 读取表格数据
     const rows = await this.fileService.excelReadRecord(files[0]);
     if (rows.length <= 0) {
-      return result.errMsg('导入用户数据不能为空！');
+      return Resp.errMsg('导入用户数据不能为空！');
     }
 
     // 获取操作人名称
@@ -618,6 +618,6 @@ export class SysUserController {
       message = successMsgArr.join('<br/>');
     }
 
-    return result.okMsg(message);
+    return Resp.okMsg(message);
   }
 }

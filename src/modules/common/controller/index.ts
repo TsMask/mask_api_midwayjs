@@ -5,13 +5,11 @@ import {
   MidwayInformationService,
 } from '@midwayjs/core';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 
 /**
  * 路由主页
- *
- * @author TsMask
  */
 @Controller('/')
 export class IndexController {
@@ -20,10 +18,10 @@ export class IndexController {
 
   @Get()
   @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
-  async index(): Promise<Result> {
+  async index(): Promise<Resp> {
     // 读取配置项目名版本
     const pkg = this.midwayInformationService.getPkg();
-    return result.okMsg(
+    return Resp.okMsg(
       `欢迎使用${pkg.name}后台管理框架，当前版本：${pkg.version}，请通过前端管理地址访问。`
     );
   }

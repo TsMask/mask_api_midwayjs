@@ -1,5 +1,5 @@
 import { Controller, Del, Get, Inject, Param, Query } from '@midwayjs/core';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { LoginUser } from '../../../framework/vo/LoginUser';
@@ -28,7 +28,7 @@ export class SysUserOnlineController {
   async list(
     @Query('ipaddr') ipaddr: string,
     @Query('userName') userName: string
-  ): Promise<Result> {
+  ): Promise<Resp> {
     // 获取所有在线用户key
     const keys = await this.redisCache.getKeys(`${CACHE_LOGIN_TOKEN}*`);
 
@@ -66,7 +66,7 @@ export class SysUserOnlineController {
       userOnlines = userOnlines.filter(o => o.userName.includes(userName));
     }
 
-    return result.ok({
+    return Resp.ok({
       rows: userOnlines.sort((a, b) => b.loginTime - a.loginTime),
       total: keys.length,
     });
@@ -77,9 +77,9 @@ export class SysUserOnlineController {
    */
   @Del('/:tokenId')
   @PreAuthorize({ hasPermissions: ['monitor:online:forceLogout'] })
-  async forceLogout(@Param('tokenId') tokenId: string): Promise<Result> {
-    if (!tokenId || tokenId === '*') return result.err();
+  async forceLogout(@Param('tokenId') tokenId: string): Promise<Resp> {
+    if (!tokenId || tokenId === '*') return Resp.err();
     const num = await this.redisCache.del(`${CACHE_LOGIN_TOKEN}${tokenId}`);
-    return result[num > 0 ? 'ok' : 'err']();
+    return Resp[num > 0 ? 'ok' : 'err']();
   }
 }

@@ -9,7 +9,7 @@ import {
   Put,
 } from '@midwayjs/core';
 
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import {
   BUSINESS_TYPE,
   OperateLog,
@@ -42,10 +42,10 @@ export class SysDictTypeController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:dict:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const data = await this.sysDictTypeService.selectDictTypePage(query);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -55,7 +55,7 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   async getInfo(@Param('dictId') dictId: string) {
     const data = await this.sysDictTypeService.selectDictTypeById(dictId);
-    return result.okData(data);
+    return Resp.okData(data);
   }
 
   /**
@@ -67,16 +67,16 @@ export class SysDictTypeController {
     title: '字典类型信息',
     businessType: BUSINESS_TYPE.INSERT,
   })
-  async add(@Body() sysDictType: SysDictType): Promise<Result> {
+  async add(@Body() sysDictType: SysDictType): Promise<Resp> {
     const { dictId, dictName, dictType } = sysDictType;
-    if (dictId || !dictName || !dictType) return result.err();
+    if (dictId || !dictName || !dictType) return Resp.err();
 
     // 检查字典名称唯一
     const uniqueDictName = await this.sysDictTypeService.checkUniqueDictName(
       dictName
     );
     if (!uniqueDictName) {
-      return result.errMsg(`字典新增【${dictName}】失败，字典名称已存在`);
+      return Resp.errMsg(`字典新增【${dictName}】失败，字典名称已存在`);
     }
 
     // 检查字典类型唯一
@@ -84,12 +84,12 @@ export class SysDictTypeController {
       dictType
     );
     if (!uniqueDictType) {
-      return result.errMsg(`字典新增【${dictType}】失败，字典类型已存在`);
+      return Resp.errMsg(`字典新增【${dictType}】失败，字典类型已存在`);
     }
 
     sysDictType.createBy = this.contextService.getUseName();
     const insertId = await this.sysDictTypeService.insertDictType(sysDictType);
-    return result[insertId ? 'ok' : 'err']();
+    return Resp[insertId ? 'ok' : 'err']();
   }
 
   /**
@@ -101,9 +101,9 @@ export class SysDictTypeController {
     title: '字典类型信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async edit(@Body() sysDictType: SysDictType): Promise<Result> {
+  async edit(@Body() sysDictType: SysDictType): Promise<Resp> {
     const { dictId, dictName, dictType } = sysDictType;
-    if (!dictId || !dictName || !dictType) return result.err();
+    if (!dictId || !dictName || !dictType) return Resp.err();
 
     // 检查是否存在
     const dictInfo = await this.sysDictTypeService.selectDictTypeById(dictId);
@@ -117,7 +117,7 @@ export class SysDictTypeController {
       dictId
     );
     if (!uniqueDictName) {
-      return result.errMsg(`字典修改【${dictName}】失败，字典名称已存在`);
+      return Resp.errMsg(`字典修改【${dictName}】失败，字典名称已存在`);
     }
 
     // 检查字典类型唯一
@@ -126,12 +126,12 @@ export class SysDictTypeController {
       dictId
     );
     if (!uniqueDictType) {
-      return result.errMsg(`字典修改【${dictType}】失败，字典类型已存在`);
+      return Resp.errMsg(`字典修改【${dictType}】失败，字典类型已存在`);
     }
 
     sysDictType.updateBy = this.contextService.getUseName();
     const rows = await this.sysDictTypeService.updateDictType(sysDictType);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -143,15 +143,15 @@ export class SysDictTypeController {
     title: '字典类型信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('dictIds') dictIds: string): Promise<Result> {
-    if (!dictIds) return result.err();
+  async remove(@Param('dictIds') dictIds: string): Promise<Resp> {
+    if (!dictIds) return Resp.err();
     // 处理字符转id数组
     const ids = dictIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysDictTypeService.deleteDictTypeByIds([
       ...new Set(ids),
     ]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -163,9 +163,9 @@ export class SysDictTypeController {
     title: '字典类型信息',
     businessType: BUSINESS_TYPE.CLEAN,
   })
-  async refreshCache(): Promise<Result> {
+  async refreshCache(): Promise<Resp> {
     await this.sysDictTypeService.resetDictCache();
-    return result.ok();
+    return Resp.ok();
   }
 
   /**
@@ -185,7 +185,7 @@ export class SysDictTypeController {
         value: item.dictType,
       }));
     }
-    return result.okData(arr);
+    return Resp.okData(arr);
   }
 
   /**
@@ -203,7 +203,7 @@ export class SysDictTypeController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysDictTypeService.selectDictTypePage(query);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

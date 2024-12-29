@@ -1,6 +1,6 @@
 import { Controller, Inject, Get, Param, Del } from '@midwayjs/core';
 
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { SysCache } from '../model/SysCache';
@@ -31,8 +31,8 @@ export class CacheController {
    */
   @Get()
   @PreAuthorize({ hasPermissions: ['monitor:cache:info'] })
-  async getInfo(): Promise<Result> {
-    return result.okData({
+  async getInfo(): Promise<Resp> {
+    return Resp.okData({
       info: await this.redisCache.getInfo(),
       dbSize: await this.redisCache.getKeySize(),
       commandStats: await this.redisCache.getCommandStats(),
@@ -46,7 +46,7 @@ export class CacheController {
    */
   @Get('/getNames')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
-  async getNames(): Promise<Result> {
+  async getNames(): Promise<Resp> {
     const caches: SysCache[] = [
       new SysCache().newNames('用户信息', CACHE_LOGIN_TOKEN),
       new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
@@ -56,7 +56,7 @@ export class CacheController {
       new SysCache().newNames('限流处理', CACHE_RATE_LIMIT),
       new SysCache().newNames('密码错误次数', CACHE_PWD_ERR_COUNT),
     ];
-    return result.okData(caches);
+    return Resp.okData(caches);
   }
 
   /**
@@ -66,8 +66,8 @@ export class CacheController {
    */
   @Get('/getKeys/:cacheName')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
-  async getKeys(@Param('cacheName') cacheName: string): Promise<Result> {
-    if (!cacheName) return result.err();
+  async getKeys(@Param('cacheName') cacheName: string): Promise<Resp> {
+    if (!cacheName) return Resp.err();
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}:*`);
     const rows = [];
     if (cacheKeys && cacheKeys.length > 0) {
@@ -75,7 +75,7 @@ export class CacheController {
         rows.push(new SysCache().newKeys(cacheName, key));
       }
     }
-    return result.okData(rows);
+    return Resp.okData(rows);
   }
 
   /**
@@ -89,11 +89,11 @@ export class CacheController {
   async getValue(
     @Param('cacheName') cacheName: string,
     @Param('cacheKey') cacheKey: string
-  ): Promise<Result> {
-    if (!cacheName || !cacheKey) return result.err();
+  ): Promise<Resp> {
+    if (!cacheName || !cacheKey) return Resp.err();
     const cacheValue = await this.redisCache.get(`${cacheName}:${cacheKey}`);
     const sysCache = new SysCache().newValue(cacheName, cacheKey, cacheValue);
-    return result.okData(sysCache);
+    return Resp.okData(sysCache);
   }
 
   /**
@@ -103,11 +103,11 @@ export class CacheController {
    */
   @Del('/clearCacheName/:cacheName')
   @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
-  async clearCacheName(@Param('cacheName') cacheName: string): Promise<Result> {
-    if (!cacheName) return result.err();
+  async clearCacheName(@Param('cacheName') cacheName: string): Promise<Resp> {
+    if (!cacheName) return Resp.err();
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
     const num = await this.redisCache.delKeys(cacheKeys);
-    return result[num > 0 ? 'ok' : 'err']();
+    return Resp[num > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -121,10 +121,10 @@ export class CacheController {
   async clearCacheKey(
     @Param('cacheName') cacheName: string,
     @Param('cacheKey') cacheKey: string
-  ): Promise<Result> {
-    if (!cacheName || !cacheKey) return result.err();
+  ): Promise<Resp> {
+    if (!cacheName || !cacheKey) return Resp.err();
     const num = await this.redisCache.del(cacheName + ':' + cacheKey);
-    return result[num > 0 ? 'ok' : 'err']();
+    return Resp[num > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -135,7 +135,7 @@ export class CacheController {
    */
   @Del('/clearCacheSafe')
   @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
-  async clearCacheSafe(): Promise<Result> {
+  async clearCacheSafe(): Promise<Resp> {
     // 指定清除的缓存列表
     const caches: SysCache[] = [
       new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
@@ -149,6 +149,6 @@ export class CacheController {
       const cacheKeys = await this.redisCache.getKeys(`${v.cacheName}:*`);
       await this.redisCache.delKeys(cacheKeys);
     }
-    return result.ok();
+    return Resp.ok();
   }
 }

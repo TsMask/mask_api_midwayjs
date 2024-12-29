@@ -1,6 +1,6 @@
 import { Controller, Inject, Get, Param, Del, Post, Put } from '@midwayjs/core';
-import { AccountService } from '../../common/service/AccountService';
-import result from '../../../framework/result/result';
+import { AccountService } from '../../common/service/account';
+import { Resp } from '../../../framework/resp/api';
 
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
 import {
@@ -37,10 +37,10 @@ export class SysLogLoginController {
    */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:log:login:list'] })
-  async list(): Promise<Result> {
+  async list(): Promise<Resp> {
     const query = this.contextService.getContext().query;
     const data = await this.sysLogLoginService.selectSysLogLoginPage(query);
-    return result.ok(data);
+    return Resp.ok(data);
   }
 
   /**
@@ -52,15 +52,15 @@ export class SysLogLoginController {
     title: '系统登录信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(@Param('loginIds') loginIds: string): Promise<Result> {
-    if (!loginIds) return result.err();
+  async remove(@Param('loginIds') loginIds: string): Promise<Resp> {
+    if (!loginIds) return Resp.err();
     // 处理字符转id数组
     const ids = loginIds.split(',');
-    if (ids.length <= 0) return result.err();
+    if (ids.length <= 0) return Resp.err();
     const rows = await this.sysLogLoginService.deleteSysLogLoginByIds([
       ...new Set(ids),
     ]);
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -72,9 +72,9 @@ export class SysLogLoginController {
     title: '系统登录信息',
     businessType: BUSINESS_TYPE.CLEAN,
   })
-  async clean(): Promise<Result> {
+  async clean(): Promise<Resp> {
     const rows = await this.sysLogLoginService.cleanSysLogLogin();
-    return result[rows > 0 ? 'ok' : 'err']();
+    return Resp[rows > 0 ? 'ok' : 'err']();
   }
 
   /**
@@ -86,10 +86,10 @@ export class SysLogLoginController {
     title: '系统登录信息',
     businessType: BUSINESS_TYPE.CLEAN,
   })
-  async unlock(@Param('userName') userName: string): Promise<Result> {
-    if (!userName) return result.err();
+  async unlock(@Param('userName') userName: string): Promise<Resp> {
+    if (!userName) return Resp.err();
     const ok = await this.accountService.clearLoginRecordCache(userName);
-    return result[ok ? 'ok' : 'err']();
+    return Resp[ok ? 'ok' : 'err']();
   }
 
   /**
@@ -107,7 +107,7 @@ export class SysLogLoginController {
     const query: Record<string, any> = Object.assign({}, ctx.request.body);
     const data = await this.sysLogLoginService.selectSysLogLoginPage(query);
     if (data.total === 0) {
-      return result.errMsg('导出数据记录为空');
+      return Resp.errMsg('导出数据记录为空');
     }
     // 导出数据组装
     const rows = data.rows.reduce(

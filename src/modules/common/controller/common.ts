@@ -4,13 +4,11 @@ import {
   decryptWxData,
   encrypyHash,
 } from '../../../framework/utils/CryptoUtils';
-import result from '../../../framework/result/result';
+import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 
 /**
  * 通用请求
- *
- * @author TsMask
  */
 @Controller('/common')
 export class CommonController {
@@ -22,8 +20,8 @@ export class CommonController {
   async hash(
     @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
     @Body('str') str: string
-  ): Promise<Result> {
-    return result.okData(encrypyHash(str, type));
+  ): Promise<Resp> {
+    return Resp.okData(encrypyHash(str, type));
   }
 
   /**
@@ -34,8 +32,8 @@ export class CommonController {
   async hmac(
     @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
     @Body('str') str: string
-  ): Promise<Result> {
-    return result.okData(cryptoHmac(str, '89486', type));
+  ): Promise<Resp> {
+    return Resp.okData(cryptoHmac(str, '89486', type));
   }
 
   /**

@@ -26,8 +26,6 @@ import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginSer
 
 /**
  * 账号身份操作服务
- *
- * @author TsMask
  */
 @Provide()
 export class AccountService {
