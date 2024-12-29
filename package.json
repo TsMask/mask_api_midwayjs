@@ -39,6 +39,7 @@
     "@midwayjs/static-file": "^3.19.2",
     "@midwayjs/typeorm": "^3.19.2",
     "@midwayjs/upload": "^3.19.2",
+    "@midwayjs/validate": "^3.19.2",
     "@node-rs/bcrypt": "^1.10.7",
     "cron-parser": "^4.9.0",
     "dayjs": "^1.11.13",

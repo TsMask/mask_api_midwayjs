@@ -1,5 +1,6 @@
 import { Configuration, App, Inject } from '@midwayjs/core';
 import * as koa from '@midwayjs/koa';
+import * as validate from '@midwayjs/validate';
 import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';
 import * as staticFile from '@midwayjs/static-file';
@@ -18,6 +19,7 @@ import { ErrorCatchFilters } from './framework/catch';
 @Configuration({
   imports: [
     koa, // 核心程序服务
+    validate, // 参数校验
     security, // 安全
     crossDomain, // 跨域
     staticFile, // 静态文件映射
