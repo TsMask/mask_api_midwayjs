@@ -8,8 +8,6 @@ type ProjectInfoType = {
   name: string;
   /**项目版本 */
   version: string;
-  /**项目依赖 */
-  dependencies: any;
 };
 
 /**系统信息 */
@@ -93,7 +91,7 @@ type DiskInfoType = {
   /**剩余大小 */
   avail: string;
   /**空间使用率% */
-  pcent: string;
+  percent: string;
   /**路径盘符 */
   target: string;
 };
