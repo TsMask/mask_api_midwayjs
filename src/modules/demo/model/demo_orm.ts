@@ -8,16 +8,12 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
  */
 @Entity('demo_orm')
 export class DemoORM {
-  /**
-   * 测试ID
-   */
+  /**测试ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid',{ name: 'id' })
+  @PrimaryGeneratedColumn('rowid', { name: 'id' })
   id: number;
 
-  /**
-   * 测试标题
-   */
+  /**测试标题 */
   @Rule(RuleType.string().required())
   @Column({
     type: 'varchar',
@@ -25,47 +21,37 @@ export class DemoORM {
   })
   title: string;
 
-  /**
-   * orm类型
-   */
+  /**orm类型 */
   @Rule(RuleType.string().required())
   @Column({ name: 'orm_type' })
   ormType: string;
 
-  /**
-   * 状态（0关闭 1正常）
-   */
-  @Rule(RuleType.string().required().pattern(/^[01]$/))
+  /**状态（0关闭 1正常） */
+  @Rule(
+    RuleType.string()
+      .required()
+      .pattern(/^[01]$/)
+  )
   @Column({ name: 'status_flag' })
   statusFlag: string;
 
-  /**
-   * 创建者
-   */
+  /**创建者 */
   @Column({ name: 'create_by' })
   createBy: string;
 
-  /**
-   * 创建时间
-   */
+  /**创建时间 */
   @Column({ name: 'create_time' })
   createTime: number;
 
-  /**
-   * 更新者
-   */
+  /**更新者 */
   @Column({ name: 'update_by' })
   updateBy: string;
 
-  /**
-   * 更新时间
-   */
+  /**更新时间 */
   @Column({ name: 'update_time' })
   updateTime: number;
 
-  /**
-   * 备注
-   */
+  /**备注 */
   @Column({
     length: 200,
     name: 'remark',

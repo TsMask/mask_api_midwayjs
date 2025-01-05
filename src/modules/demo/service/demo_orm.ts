@@ -1,7 +1,7 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
-import { DemoORM } from '../model/demo_orm';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { DemoORM } from '../model/demo_orm';
 
 /**
  * 测试ORM信息
