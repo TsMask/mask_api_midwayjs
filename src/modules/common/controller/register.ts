@@ -1,13 +1,14 @@
 import { Controller, Body, Post, Inject } from '@midwayjs/core';
-import { Resp } from '../../../framework/resp/api';
-import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
-import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
+
 import {
   validPassword,
   validUsername,
 } from '../../../framework/utils/RegularUtils';
+import { Resp } from '../../../framework/resp/api';
+import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
+import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RegisterService } from '../service/register';
-import { RegisterBody } from '../model/register-body';
+import { RegisterBody } from '../model/register_body';
 
 /**
  * 账号注册操作处理
@@ -22,7 +23,7 @@ export class RegisterController {
    */
   @Post('/register')
   @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
-  async register(@Body() registerBody: RegisterBody): Promise<Resp> {
+  public async register(@Body() registerBody: RegisterBody): Promise<Resp> {
     const { username, password, confirmPassword } = registerBody;
     // 判断必传参数
     if (!validUsername(username)) {
@@ -31,9 +32,7 @@ export class RegisterController {
       );
     }
     if (!validPassword(password)) {
-      return Resp.errMsg(
-        '密码至少包含大小写字母、数字、特殊符号，且不少于6位'
-      );
+      return Resp.errMsg('密码至少包含大小写字母、数字、特殊符号，且不少于6位');
     }
     if (password !== confirmPassword) {
       return Resp.errMsg('用户确认输入密码不一致');

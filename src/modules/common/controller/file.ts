@@ -9,6 +9,7 @@ import {
   Post,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
+
 import { Resp } from '../../../framework/resp/api';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
@@ -31,7 +32,7 @@ export class FileController {
    */
   @Get('/download/:filePath')
   @PreAuthorize()
-  async download(@Param('filePath') filePath: string) {
+  public async download(@Param('filePath') filePath: string) {
     if (!filePath) return Resp.errMsg('未知文件资源路径');
     filePath = Buffer.from(filePath, 'base64').toString('utf-8');
     const ctx = this.contextService.getContext();
@@ -70,7 +71,7 @@ export class FileController {
    */
   @Post('/upload')
   @PreAuthorize()
-  async upload(
+  public async upload(
     @Files('file') files: UploadFileInfo<string>[],
     @Fields('subPath') subPath: UploadSubPathEnum
   ) {
@@ -107,7 +108,7 @@ export class FileController {
    */
   @Post('/chunkCheck')
   @PreAuthorize()
-  async chunkCheck(
+  public async chunkCheck(
     @Body('identifier') identifier: string,
     @Body('fileName') fileName: string
   ) {
@@ -125,7 +126,7 @@ export class FileController {
    */
   @Post('/chunkMerge')
   @PreAuthorize()
-  async chunkMerge(
+  public async chunkMerge(
     @Body('identifier') identifier: string,
     @Body('fileName') fileName: string,
     @Body('subPath') subPath: UploadSubPathEnum
@@ -162,7 +163,7 @@ export class FileController {
    */
   @Post('/chunkUpload')
   @PreAuthorize()
-  async chunkUpload(
+  public async chunkUpload(
     @Files('file') files: UploadFileInfo<string>[],
     @Fields('index') index: string,
     @Fields('identifier') identifier: string

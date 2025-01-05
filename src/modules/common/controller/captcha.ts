@@ -2,20 +2,20 @@ import { Controller, Get, Inject } from '@midwayjs/core';
 import { ConfigObject, create, createMathExpr } from 'svg-captcha';
 import svgBase64 = require('mini-svg-data-uri');
 
-import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { ContextService } from '../../../framework/service/ContextService';
-import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
-import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import {
   CAPTCHA_TYPE_CHAR,
   CAPTCHA_TYPE_MATH,
   CAPTCHA_EXPIRATION,
 } from '../../../framework/constants/captcha';
+import { Resp } from '../../../framework/resp/api';
+import { RedisCache } from '../../../framework/datasource/redis/redis';
+import { ContextService } from '../../../framework/service/ContextService';
+import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
+import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache-key';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { generateHash } from '../../../framework/utils/GenIdUtils';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
-import { Resp } from '../../../framework/resp/api';
 
 /**
  * 验证码操作处理
@@ -32,11 +32,11 @@ export class CaptchaController {
   private sysConfigService: SysConfigServiceImpl;
 
   /**
-   * 获取验证码
+   * 获取验证码-图片
    */
   @Get('/captcha-image')
   @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
-  async image(): Promise<Resp> {
+  public async image(): Promise<Resp> {
     // 从数据库配置获取验证码开关 true开启，false关闭
     const captchaEnabledStr =
       await this.sysConfigService.selectConfigValueByKey(

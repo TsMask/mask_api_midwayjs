@@ -14,7 +14,7 @@ import {
   SYS_PERMISSION_SYSTEM,
   SYS_ROLE_SYSTEM_KEY,
 } from '../../../framework/constants/system';
-import { RouterVo } from '../../../framework/vo/RouterVo';
+import { RouterVo } from '../../../framework/vo/Router';
 import { ContextService } from '../../../framework/service/ContextService';
 import { TokenService } from '../../../framework/service/TokenService';
 import { LoginUser } from '../../../framework/vo/LoginUser';
@@ -60,7 +60,7 @@ export class AccountService {
    * @param uuid 唯一标识
    * @return 结果
    */
-  async validateCaptcha(
+  public async validateCaptcha(
     username: string,
     code: string,
     uuid: string
@@ -116,7 +116,7 @@ export class AccountService {
    * @param password 密码
    * @return 结果
    */
-  async loginByUsername(username: string, password: string): Promise<string> {
+  public async loginByUsername(username: string, password: string): Promise<string> {
     // 解析ip地址和请求用户代理信息
     const il = await this.contextService.ipaddrLocation();
     const ob = await this.contextService.uaOsBrowser();
@@ -171,8 +171,8 @@ export class AccountService {
     loginUser.deptId = sysUser.deptId;
     loginUser.user = sysUser;
     // 用户权限组标识
-    const isAdmin = this.contextService.isAdmin(sysUser.userId);
-    if (isAdmin) {
+    const isSystemUser = this.contextService.isSystemUser(sysUser.userId);
+    if (isSystemUser) {
       loginUser.permissions = [SYS_PERMISSION_SYSTEM];
     } else {
       loginUser.permissions = await this.sysMenuService.selectMenuPermsByUserId(
@@ -198,7 +198,7 @@ export class AccountService {
    * @param ilobArgs 客户端IP UA标识
    * @param throwMsg 抛出错误消息
    */
-  async createLogLogin(
+  public async createLogLogin(
     username: string,
     status: string,
     msg: string,
@@ -220,7 +220,7 @@ export class AccountService {
    * @param userId 用户ID
    * @returns 是否登记完成
    */
-  async updateLoginDateAndIP(loginUser: LoginUser): Promise<boolean> {
+  public async updateLoginDateAndIP(loginUser: LoginUser): Promise<boolean> {
     const sysUser = loginUser.user;
     const user = await this.sysUserService.selectUserById(sysUser.userId);
     user.loginIp = sysUser.loginIp;
@@ -233,7 +233,7 @@ export class AccountService {
    * 清除错误记录次数
    * @param username 登录用户名
    */
-  async clearLoginRecordCache(username: string): Promise<boolean> {
+  public async clearLoginRecordCache(username: string): Promise<boolean> {
     const cacheKey = CACHE_PWD_ERR_COUNT + username;
     if (await this.redisCache.hasKey(cacheKey)) {
       const rows = await this.redisCache.del(cacheKey);
@@ -247,7 +247,7 @@ export class AccountService {
    * @param username 登录用户名
    * @param ilobArgs 客户端IP UA标识
    */
-  async passwordRetryCount(
+  public async passwordRetryCount(
     username: string,
     ilobArgs: string[]
   ): Promise<{
@@ -287,15 +287,15 @@ export class AccountService {
    * 角色和菜单权限
    * @returns
    */
-  async roleAndMenuPerms(): Promise<{
+  public async roleAndMenuPerms(): Promise<{
     permissions: string[];
     roles: string[];
   }> {
     const userId = this.contextService.getUserId();
-    const isAdmin = this.contextService.isAdmin(userId);
+    const isSystemUser = this.contextService.isSystemUser(userId);
 
     // 管理员拥有所有权限
-    if (isAdmin) {
+    if (isSystemUser) {
       return {
         permissions: [SYS_PERMISSION_SYSTEM],
         roles: [SYS_ROLE_SYSTEM_KEY],
@@ -318,13 +318,13 @@ export class AccountService {
    * 前端路由菜单
    * @returns
    */
-  async routeMenus(): Promise<RouterVo[]> {
+  public async routeMenus(): Promise<RouterVo[]> {
     const userId = this.contextService.getUserId();
-    const isAdmin = this.contextService.isAdmin(userId);
+    const isSystemUser = this.contextService.isSystemUser(userId);
 
     let buildMenus: RouterVo[] = [];
-    if (isAdmin) {
-      const menus = await this.sysMenuService.selectMenuTreeByUserId('*');
+    if (isSystemUser) {
+      const menus = await this.sysMenuService.selectMenuTreeByUserId(0);
       buildMenus = await this.sysMenuService.buildRouteMenus(menus, '');
     } else {
       const menus = await this.sysMenuService.selectMenuTreeByUserId(userId);
@@ -336,7 +336,7 @@ export class AccountService {
   /**
    * 登出清除token
    */
-  async logout(): Promise<void> {
+  public async logout(): Promise<void> {
     // 获取token在请求头标识信息
     const token = await this.contextService.getHeaderToken();
     if (!token) return;

@@ -7,7 +7,7 @@ import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
 import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
 import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
-import { SysUser } from '../../system/model/SysUser';
+import { SysUser } from '../../system/model/sys_user';
 
 /**
  * 注册校验方法
@@ -59,7 +59,7 @@ export class RegisterService {
     sysUser.status = STATUS_YES; // 账号状态激活
     sysUser.password = password;
     // 归属部门为根节点
-    sysUser.deptId = '100';
+    sysUser.deptId = 100;
     // 标记用户类型
     sysUser.userType = 'sys';
     // 新增用户的角色管理

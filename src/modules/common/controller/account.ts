@@ -1,10 +1,11 @@
 import { Controller, Body, Post, Get, Inject } from '@midwayjs/core';
+
+import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { AccountService } from '../service/account';
-import { LoginBody } from '../model/login-body';
-import { Resp } from '../../../framework/resp/api';
+import { LoginBody } from '../model/login_body';
 
 /**
  * 账号身份操作处理
@@ -24,7 +25,7 @@ export class AccountController {
    */
   @Post('/login')
   @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
-  async login(@Body() LoginBody: LoginBody): Promise<Resp> {
+  public async login(@Body() LoginBody: LoginBody): Promise<Resp> {
     const { username, password, code, uuid } = LoginBody;
     if (!username || !password) return Resp.err();
     await this.accountService.validateCaptcha(username, code, uuid);
@@ -45,7 +46,7 @@ export class AccountController {
    */
   @Get('/me')
   @PreAuthorize()
-  async getInfo(): Promise<Resp> {
+  public async info(): Promise<Resp> {
     const data = await this.accountService.roleAndMenuPerms();
     return Resp.okData(data);
   }
@@ -55,7 +56,7 @@ export class AccountController {
    */
   @Get('/router')
   @PreAuthorize()
-  async getRouters(): Promise<Resp> {
+  public async routers(): Promise<Resp> {
     const buildMenus = await this.accountService.routeMenus();
     return Resp.okData(buildMenus);
   }
@@ -65,7 +66,7 @@ export class AccountController {
    */
   @Post('/logout')
   @RateLimit({ time: 300, count: 5, limitType: LimitTypeEnum.IP })
-  async logout(): Promise<Resp> {
+  public async logout(): Promise<Resp> {
     await this.accountService.logout();
     return Resp.okMsg('退出成功');
   }

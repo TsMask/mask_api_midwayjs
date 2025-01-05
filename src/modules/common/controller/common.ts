@@ -1,4 +1,5 @@
 import { Body, Controller, Post } from '@midwayjs/core';
+
 import {
   cryptoHmac,
   decryptWxData,
@@ -17,7 +18,7 @@ export class CommonController {
    */
   @Post('/hash')
   @PreAuthorize()
-  async hash(
+  public async hash(
     @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
     @Body('str') str: string
   ): Promise<Resp> {
@@ -29,7 +30,7 @@ export class CommonController {
    */
   @Post('/hmac')
   @PreAuthorize()
-  async hmac(
+  public async hmac(
     @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
     @Body('str') str: string
   ): Promise<Resp> {
@@ -40,7 +41,7 @@ export class CommonController {
    * 微信数据解密
    */
   @Post('/decryptWxData')
-  async wxData(
+  public async wxData(
     @Body('encryptedData') encryptedData: string,
     @Body('key') key: string,
     @Body('iv') iv: string
