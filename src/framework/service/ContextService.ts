@@ -1,7 +1,7 @@
 import { ILogger, Inject, Provide, httpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { RoleDataScopeEnum } from '../enums/RoleDataScopeEnum';
-import { SysUser } from '../../modules/system/model/SysUser';
+import { SysUser } from '../../modules/system/model/sys_user';
 import { LoginUser } from '../vo/LoginUser';
 import { getUaInfo } from '../utils/UAParserUtils';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
@@ -55,14 +55,14 @@ export class ContextService {
   /**
    * 用户ID
    **/
-  getUserId(): string {
+  getUserId(): number {
     return this.getLoginUser().userId;
   }
 
   /**
    * 获取部门ID
    **/
-  getDeptId(): string {
+  getDeptId(): number {
     return this.getLoginUser().deptId;
   }
 
@@ -97,11 +97,11 @@ export class ContextService {
    * @param userId 用户ID
    * @return 结果
    */
-  isAdmin(userId: string): boolean {
-    if (!userId) return false;
-    // 从本地配置获取user信息
-    const { adminList } = this.getConfig('user');
-    return Array.isArray(adminList) && adminList.includes(userId);
+  isSystemUser(userId: number): boolean {
+    if (userId <= 0) return false;
+   // 从配置中获取系统管理员ID列表
+    const { system } = this.getConfig('user');
+    return Array.isArray(system) && system.includes(userId);
   }
 
   /**
@@ -152,7 +152,7 @@ export class ContextService {
     // 登录用户信息
     const user = this.getSysUser();
     // 如果是管理员，则不过滤数据
-    if (this.isAdmin(user.userId)) return dataScopeSQL;
+    if (this.isSystemUser(user.userId)) return dataScopeSQL;
     // 无用户角色
     if (!user.roles || user.roles.length <= 0) return dataScopeSQL;
 

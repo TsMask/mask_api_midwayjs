@@ -3,13 +3,14 @@ import {
   REQUEST_OBJ_CTX_KEY,
   createCustomMethodDecorator,
 } from '@midwayjs/core';
-import { Context } from '@midwayjs/koa'; 
+import { Context } from '@midwayjs/koa';
+
+import { Resp } from '../resp/api';
 import { LoginUser } from '../vo/LoginUser';
+import { parseSafeContent } from '../utils/ValueParseUtils';
 import { STATUS_NO, STATUS_YES } from '../constants/common';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
-import { parseSafeContent } from '../utils/ValueParseUtils';
-import { Resp } from '../resp/api';
-import { SysLogOperate } from '../../modules/system/model/SysLogOperate';
+import { SysLogOperate } from '../../modules/system/model/sys_log_operate';
 import { SysLogOperateServiceImpl } from '../../modules/system/service/impl/SysLogOperateServiceImpl';
 
 /**

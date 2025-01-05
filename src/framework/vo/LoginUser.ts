@@ -1,19 +1,17 @@
-import { SysUser } from '../../modules/system/model/SysUser';
+import { SysUser } from '../../modules/system/model/sys_user';
 
 /**
- * 登录用户身份权限信息
- *
- * @author TsMask
+ * 令牌登录用户身份权限信息对象
  */
 export class LoginUser {
-  /**用户ID */
-  userId: string;
-
-  /**部门ID */
-  deptId: string;
-
   /**用户唯一标识 */
   uuid: string;
+
+  /**用户ID */
+  userId: number;
+
+  /**部门ID */
+  deptId: number;
 
   /**登录时间时间戳 */
   loginTime: number;
@@ -22,7 +20,7 @@ export class LoginUser {
   expireTime: number;
 
   /**登录IP地址 x.x.x.x */
-  ipaddr: string;
+  loginIp: string;
 
   /**登录地点 xx xx */
   loginLocation: string;
