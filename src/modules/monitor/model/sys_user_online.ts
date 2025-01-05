@@ -1,8 +1,4 @@
-/**
- * 当前在线会话
- *
- * @author TsMask
- */
+/**当前在线会话对象 */
 export class SysUserOnline {
   /**会话编号 */
   tokenId: string;
@@ -14,7 +10,7 @@ export class SysUserOnline {
   userName: string;
 
   /**登录IP地址 */
-  ipaddr: string;
+  loginIp: string;
 
   /**登录地址 */
   loginLocation: string;

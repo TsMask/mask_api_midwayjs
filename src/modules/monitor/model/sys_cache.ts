@@ -1,8 +1,4 @@
-/**
- * 缓存信息
- *
- * @author TsMask
- */
+/**缓存信息对象 */
 export class SysCache {
   /**缓存名称 */
   cacheName: string;

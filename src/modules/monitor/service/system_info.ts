@@ -21,18 +21,13 @@ import {
   cpus,
   networkInterfaces,
 } from 'os';
-import { parseDateToStr } from '../../../../framework/utils/DateUtils';
-import { parseBit } from '../../../../framework/utils/ValueParseUtils';
-import { ISystemInfoService } from '../ISystemInfoService';
+import { parseDateToStr } from '../../../framework/utils/DateUtils';
+import { parseBit } from '../../../framework/utils/ValueParseUtils';
 
-/**
- * 服务器系统相关信息 服务层实现
- *
- * @author TsMask
- */
+/**服务器系统相关信息 服务层处理 */
 @Provide()
 @Singleton()
-export class SystemInfoServiceImpl implements ISystemInfoService {
+export class SystemInfoService {
   @Inject()
   private midwayInformationService: MidwayInformationService;
 
@@ -41,24 +36,25 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
 
   /**
    * 获取程序项目信息
+   * 
    * @returns 程序项目信息对象
    */
-  getProjectInfo(): ProjectInfoType {
+  public projectInfo(): ProjectInfoType {
     const pkg = this.midwayInformationService.getPkg();
     return {
       appDir: this.app.getAppDir(),
       env: this.app.getEnv(),
-      name: pkg.name || '',
-      version: pkg.version || '',
-      dependencies: pkg.dependencies || {},
+      name: pkg.name || '-',
+      version: pkg.version || '-',
     };
   }
 
   /**
    * 获取系统信息
+   * 
    * @returns 系统信息对象
    */
-  getSystemInfo(): SystemInfoType {
+  public systemInfo(): SystemInfoType {
     const runTime: number = this.app.getAttr('runTime');
     return {
       platform: platform(),
@@ -80,9 +76,10 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
 
   /**
    * 获取系统时间信息
+   * 
    * @returns 系统时间信息对象
    */
-  getTimeInfo(): TimeInfoType {
+  public timeInfo(): TimeInfoType {
     const now = new Date();
     const t = now.toString().split(' ');
     return {
@@ -97,9 +94,10 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
 
   /**
    * 获取内存信息
+   * 
    * @returns 内存信息对象
    */
-  getMemoryInfo(): MemoryInfoType {
+  public memoryInfo(): MemoryInfoType {
     const memory = process.memoryUsage();
     const total = totalmem();
     const free = freemem();
@@ -116,14 +114,20 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
 
   /**
    * 获取CPU信息
+   * 
    * @returns CPU信息对象
    */
-  getCPUInfo(): CPUInfoType {
+  public cpuInfo(): CPUInfoType {
+    let model = '-';
+    let speed = '-';
+    let core = 0;
     const cpu = cpus();
-    const model = cpu[0] ? cpu[0].model.trim() : '未知';
-    const speed = cpu[0] ? `${cpu[0].speed}MHz` : '未知';
-    const core = cpu.length;
-    const coreUsed = cpu.map(cpuInfo => {
+    if (cpu.length > 0 && cpu[0]) {
+      core = cpu.length;
+      speed = `${cpu[0].speed}MHz`;
+      model = cpu[0].model.trim();
+    }
+    const used = cpu.map(cpuInfo => {
       const times = cpuInfo.times;
       const value =
         times.idle + times.user + times.nice + times.sys + times.irq;
@@ -133,15 +137,16 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
       model: model,
       speed: speed,
       core: core,
-      coreUsed,
+      coreUsed: used,
     };
   }
 
   /**
    * 获取网络信息
+   * 
    * @returns 网络信息对象
    */
-  getNetworkInfo(): Record<string, any> {
+  public networkInfo(): Record<string, any> {
     const net = networkInterfaces();
     return Object.keys(net).reduce((pre, type) => {
       const netItemList = net[type];
@@ -171,16 +176,17 @@ export class SystemInfoServiceImpl implements ISystemInfoService {
 
   /**
    * 获取磁盘信息
+   * 
    * @returns 磁盘信息列表
    */
-  async getDiskInfo(): Promise<DiskInfoType[]> {
+  public async diskInfo(): Promise<DiskInfoType[]> {
     const disks = await diskinfo();
     const diskInfos = disks.map(disk => {
       return {
         size: parseBit(disk.size),
         used: parseBit(disk.used),
         avail: parseBit(disk.avail),
-        pcent: disk.pcent,
+        percent: disk.pcent,
         target: disk.target,
       };
     });

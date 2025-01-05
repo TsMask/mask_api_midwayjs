@@ -1,9 +1,6 @@
-import { Controller, Inject, Get, Param, Del } from '@midwayjs/core';
+import { Controller, Inject, Get, Del, Query } from '@midwayjs/core';
+import { RuleType, Valid } from '@midwayjs/validate';
 
-import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { SysCache } from '../model/SysCache';
 import {
   CACHE_SYS_CONFIG,
   CACHE_SYS_DICT,
@@ -13,12 +10,12 @@ import {
   CACHE_PWD_ERR_COUNT,
   CACHE_LOGIN_TOKEN,
 } from '../../../framework/constants/cache-key';
+import { Resp } from '../../../framework/resp/api';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { RedisCache } from '../../../framework/datasource/redis/redis';
+import { SysCache } from '../model/sys_cache';
 
-/**
- * 缓存监控信息
- *
- * @author TsMask
- */
+/**缓存信息 控制层处理 */
 @Controller('/monitor/cache')
 export class CacheController {
   @Inject()
@@ -31,7 +28,7 @@ export class CacheController {
    */
   @Get()
   @PreAuthorize({ hasPermissions: ['monitor:cache:info'] })
-  async getInfo(): Promise<Resp> {
+  public async info(): Promise<Resp> {
     return Resp.okData({
       info: await this.redisCache.getInfo(),
       dbSize: await this.redisCache.getKeySize(),
@@ -44,9 +41,9 @@ export class CacheController {
    *
    * @returns 返回结果
    */
-  @Get('/getNames')
+  @Get('/names')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
-  async getNames(): Promise<Resp> {
+  public async names(): Promise<Resp> {
     const caches: SysCache[] = [
       new SysCache().newNames('用户信息', CACHE_LOGIN_TOKEN),
       new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
@@ -64,78 +61,45 @@ export class CacheController {
    * @param cacheName 缓存名称列表中得到的缓存名称
    * @returns 返回结果
    */
-  @Get('/getKeys/:cacheName')
+  @Get('/keys')
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
-  async getKeys(@Param('cacheName') cacheName: string): Promise<Resp> {
-    if (!cacheName) return Resp.err();
+  public async keys(
+    @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string
+  ): Promise<Resp> {
     const cacheKeys = await this.redisCache.getKeys(`${cacheName}:*`);
-    const rows = [];
-    if (cacheKeys && cacheKeys.length > 0) {
-      for (const key of cacheKeys) {
-        rows.push(new SysCache().newKeys(cacheName, key));
-      }
+    const caches: SysCache[] = [];
+    for (const key of cacheKeys) {
+      caches.push(new SysCache().newKeys(cacheName, key));
     }
-    return Resp.okData(rows);
+    return Resp.okData(caches);
   }
 
   /**
-   * 缓存内容
+   * 缓存内容信息
    * @param cacheName 键名列表中得到的缓存名称
    * @param cacheKey 键名列表中得到的缓存键名
    * @returns 返回结果
    */
-  @Get('/getValue/:cacheName/:cacheKey')
+  @Get('/value')
   @PreAuthorize({ hasPermissions: ['monitor:cache:query'] })
-  async getValue(
-    @Param('cacheName') cacheName: string,
-    @Param('cacheKey') cacheKey: string
+  public async getValue(
+    @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string,
+    @Valid(RuleType.string().required()) @Query('cacheKey') cacheKey: string
   ): Promise<Resp> {
-    if (!cacheName || !cacheKey) return Resp.err();
     const cacheValue = await this.redisCache.get(`${cacheName}:${cacheKey}`);
     const sysCache = new SysCache().newValue(cacheName, cacheKey, cacheValue);
     return Resp.okData(sysCache);
   }
 
   /**
-   * 删除缓存名称下键名列表
-   * @param cacheName 缓存名称列表中得到的缓存名称
-   * @returns 返回结果
-   */
-  @Del('/clearCacheName/:cacheName')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
-  async clearCacheName(@Param('cacheName') cacheName: string): Promise<Resp> {
-    if (!cacheName) return Resp.err();
-    const cacheKeys = await this.redisCache.getKeys(`${cacheName}*`);
-    const num = await this.redisCache.delKeys(cacheKeys);
-    return Resp[num > 0 ? 'ok' : 'err']();
-  }
-
-  /**
-   * 删除缓存键名
-   * @param cacheName 键名列表中得到的缓存名称
-   * @param cacheKey 键名列表中得到的缓存键名
-   * @returns 返回结果
-   */
-  @Del('/clearCacheKey/:cacheName/:cacheKey')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
-  async clearCacheKey(
-    @Param('cacheName') cacheName: string,
-    @Param('cacheKey') cacheKey: string
-  ): Promise<Resp> {
-    if (!cacheName || !cacheKey) return Resp.err();
-    const num = await this.redisCache.del(cacheName + ':' + cacheKey);
-    return Resp[num > 0 ? 'ok' : 'err']();
-  }
-
-  /**
-   * 安全清理缓存名称
+   * 缓存名称列表安全删除
    *
    * 指定可清理的缓存key
    * @returns 返回结果
    */
-  @Del('/clearCacheSafe')
+  @Del('/names')
   @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
-  async clearCacheSafe(): Promise<Resp> {
+  public async CleanNames(): Promise<Resp> {
     // 指定清除的缓存列表
     const caches: SysCache[] = [
       new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
@@ -150,5 +114,45 @@ export class CacheController {
       await this.redisCache.delKeys(cacheKeys);
     }
     return Resp.ok();
+  }
+
+  /**
+   * 缓存名称下键名删除
+   * @param cacheName 缓存名称列表中得到的缓存名称
+   * @returns 返回结果
+   */
+  @Del('/keys')
+  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
+  public async CleanKeys(
+    @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string
+  ): Promise<Resp> {
+    if (cacheName.startsWith(CACHE_LOGIN_TOKEN)) {
+      return Resp.errMsg('不能删除用户信息缓存');
+    }
+    const cacheKeys = await this.redisCache.getKeys(`${cacheName}:*`);
+    const num = await this.redisCache.delKeys(cacheKeys);
+    if (num > 0) {
+      return Resp.ok();
+    }
+    return Resp.err();
+  }
+
+  /**
+   * 缓存内容删除
+   * @param cacheName 键名列表中得到的缓存名称
+   * @param cacheKey 键名列表中得到的缓存键名
+   * @returns 返回结果
+   */
+  @Del('/value')
+  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
+  public async clearCacheKey(
+    @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string,
+    @Valid(RuleType.string().required()) @Query('cacheKey') cacheKey: string
+  ): Promise<Resp> {
+    const num = await this.redisCache.del(cacheName + ':' + cacheKey);
+    if (num > 0) {
+      return Resp.ok();
+    }
+    return Resp.err();
   }
 }

@@ -1,0 +1,198 @@
+import { Inject, Provide, Singleton } from '@midwayjs/core';
+import { DeleteResult, InsertResult } from 'typeorm';
+import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { SysJobLog } from '../model/sys_job_log';
+import { parseNumber } from '../../../framework/utils/ValueParseUtils';
+
+/**调度任务日志表 数据层处理 */
+@Provide()
+@Singleton()
+export class SysJobLogRepository {
+  @Inject()
+  private db: DynamicDataSource;
+
+  /**
+   * 分页查询集合
+   *
+   * @param query 参数
+   * @returns 集合
+   */
+  public async selectByPage(
+    query: Record<string, string>
+  ): Promise<[SysJobLog[], number]> {
+    const tx = this.db
+      .executeQueryBuilder('default')
+      .createQueryBuilder()
+      .select('s')
+      .from(SysJobLog, 's');
+    // 查询条件拼接
+    if (query.jobName) {
+      tx.where('s.job_name = :jobName', { jobName: query.jobName });
+    }
+    if (query.jobGroup) {
+      tx.where('s.job_group = :jobGroup', { jobGroup: query.jobGroup });
+    }
+    if (query.statusFlag) {
+      tx.where('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+    }
+    if (query.invokeTarget) {
+      tx.where("s.invoke_target like concat(:invokeTarget, '%')", {
+        invokeTarget: query.invokeTarget,
+      });
+    }
+    if (query.beginTime) {
+      if (`${query.beginTime}`.length === 10) {
+        tx.where('s.create_time >= :beginTime', {
+          beginTime: parseNumber(`${query.beginTime}000`),
+        });
+      } else if (`${query.beginTime}`.length === 13) {
+        tx.where('s.create_time >= :beginTime', {
+          beginTime: parseNumber(query.beginTime),
+        });
+      }
+    }
+    if (query.endTime) {
+      if (`${query.endTime}`.length === 10) {
+        tx.where('s.create_time <= :endTime', {
+          endTime: parseNumber(`${query.endTime}000`),
+        });
+      } else if (`${query.endTime}`.length === 13) {
+        tx.where('s.create_time <= :endTime', {
+          endTime: parseNumber(query.endTime),
+        });
+      }
+    }
+
+    // 查询结果
+    let total: number = 0;
+    let rows: SysJobLog[] = [];
+
+    // 查询数量为0直接返回
+    total = await tx.getCount();
+    if (total <= 0) {
+      return [rows, total];
+    }
+
+    // 查询数据分页
+    const [pageNum, pageSize] = this.db.pageNumSize(
+      query.pageNum,
+      query.pageSize
+    );
+    tx.skip(pageSize * pageNum).take(pageSize);
+    rows = await tx.getMany();
+    return [rows, total];
+  }
+
+  /**
+   * 查询集合
+   *
+   * @param sysJobLog 信息
+   * @return 列表
+   */
+  public async select(sysJobLog: SysJobLog): Promise<SysJobLog[]> {
+    const tx = this.db
+      .executeQueryBuilder('default')
+      .createQueryBuilder()
+      .select('s')
+      .from(SysJobLog, 's');
+    // 构建查询条件
+    if (sysJobLog.jobName) {
+      tx.where("s.job_name like concat(:jobName, '%')", {
+        jobName: sysJobLog.jobName,
+      });
+    }
+    if (sysJobLog.jobGroup) {
+      tx.where('s.job_group = :jobGroup', { jobGroup: sysJobLog.jobGroup });
+    }
+    if (sysJobLog.statusFlag) {
+      tx.where('s.status_flag = :statusFlag', {
+        statusFlag: sysJobLog.statusFlag,
+      });
+    }
+    if (sysJobLog.invokeTarget) {
+      tx.where("s.invoke_target like concat(:invokeTarget, '%')", {
+        invokeTarget: sysJobLog.invokeTarget,
+      });
+    }
+    // 查询数据
+    return await tx.getMany();
+  }
+
+  /**
+   * 通过ID查询
+   *
+   * @param id ID
+   * @return 信息
+   */
+  public async selectById(logId: number): Promise<SysJobLog> {
+    if (logId <= 0) {
+      return new SysJobLog();
+    }
+    // 查询数据
+    const item = await this.db
+      .executeQueryBuilder('default')
+      .createQueryBuilder()
+      .select('s')
+      .from(SysJobLog, 's')
+      .where('s.log_id = :logId', { logId })
+      .getOne();
+    if (!item) {
+      return new SysJobLog();
+    }
+    return item;
+  }
+
+  /**
+   * 新增
+   *
+   * @param sysJob 信息
+   * @return ID
+   */
+  public async insert(sysJobLog: SysJobLog): Promise<number> {
+    // 执行插入
+    const tx: InsertResult = await this.db
+      .executeQueryBuilder('default')
+      .insert()
+      .into(SysJobLog)
+      .values(sysJobLog)
+      .execute();
+    const raw: ResultSetHeader = tx.raw;
+    if (raw.insertId > 0) {
+      return raw.insertId;
+    }
+    return 0;
+  }
+
+  /**
+   * 批量删除
+   *
+   * @param ids ID数组
+   * @return 影响记录数
+   */
+  public async deleteByIds(logIds: number[]): Promise<number> {
+    if (logIds.length === 0) return 0;
+    // 执行删除
+    const tx: DeleteResult = await this.db
+      .executeQueryBuilder('default')
+      .delete()
+      .from(SysJobLog)
+      .where('log_id in (:logIds)', { logIds: logIds })
+      .execute();
+    return tx.affected;
+  }
+
+  /**
+   * 清空集合数据
+   *
+   * @return 影响记录数
+   */
+  public async clean(): Promise<number> {
+    // 执行删除
+    const tx: DeleteResult = await this.db
+      .executeQueryBuilder('default')
+      .delete()
+      .from(SysJobLog)
+      .execute();
+    return tx.affected;
+  }
+}
