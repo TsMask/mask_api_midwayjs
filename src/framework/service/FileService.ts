@@ -281,6 +281,18 @@ export class FileService {
   }
 
   /**
+   * 上传资源本地绝对资源路径
+   * @param filePath 上传文件路径
+   * @return 绝对路径
+   */
+  parseUploadFileAbsPath(filePath: string): string {
+    return filePath.replace(
+      this.resourceUpload.prefix,
+      this.resourceUpload.dir
+    );
+  }
+
+  /**
    * 表格读取数据， 只读第一张工作表
    * @param file 上传文件对象
    * @param indexOrName 工作表，默认值：1，读取第一张工作表
