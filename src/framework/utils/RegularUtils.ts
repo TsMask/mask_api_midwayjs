@@ -50,13 +50,13 @@ export function validPassword(password: string): boolean {
 /**
  * 判断是否为有效用户名格式
  *
- * 用户名不能以数字开头，可包含大写小写字母，数字，且不少于5位
+ * 用户账号只能包含大写小写字母，数字，且不少于4位
  * @param username 用户名字符串
  * @returns true | false
  */
 export function validUsername(username: string): boolean {
   if (!username) return false;
-  return /^[a-zA-Z][a-z0-9A-Z]{5,}$/.test(username);
+  return /[a-z0-9A-Z]{3,}$/.test(username);
 }
 
 /**
