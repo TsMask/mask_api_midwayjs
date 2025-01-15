@@ -32,7 +32,6 @@ export class DemoORMController {
   @Get('/list')
   async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.demoORMService.findByPage(query);
-    // return Resp.okData({ rows, total });
     return Resp.okData({ rows, total });
   }
 
@@ -59,7 +58,7 @@ export class DemoORMController {
    * 信息
    */
   @Get('/:id')
-  async getInfo(@Param('id') id: number): Promise<Resp> {
+  async info(@Param('id') id: number): Promise<Resp> {
     if (id <= 0) {
       throw new httpError.BadRequestError('bind err: id is empty');
     }
