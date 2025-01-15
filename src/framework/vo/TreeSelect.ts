@@ -1,62 +1,58 @@
 import { SysDept } from '../../modules/system/model/sys_dept';
 import { SysMenu } from '../../modules/system/model/sys_menu';
 
-/**
- * Treeselect树结构实体类
- *
- * @author TsMask
- */
+/**树结构实体类 */
 export class TreeSelect {
   /**节点ID */
-  id: string;
+  id: number;
 
   /**节点名称 */
   label: string;
 
   /**子节点 */
   children: TreeSelect[];
+}
 
-  /**
-   * 下拉树结构
-   * @param sysDept 部门
-   * @returns 下拉树结构列表
-   */
-  parseSysDept(sysDept: SysDept): TreeSelect {
-    this.id = sysDept.deptId;
-    this.label = sysDept.deptName;
-    if (
-      Array.isArray(sysDept.children) &&
-      sysDept.children &&
-      sysDept.children.length > 0
-    ) {
-      this.children = sysDept.children.map(dept =>
-        new TreeSelect().parseSysDept(dept)
-      );
-    } else {
-      this.children = [];
+/**
+ * 使用给定的 SysMenu 对象解析为 TreeSelect 对象
+ * @param sysMenu 对象
+ * @returns 结果
+ */
+export function sysMenuTreeSelect(sysMenu: SysMenu): TreeSelect {
+  const t = new TreeSelect();
+  t.id = sysMenu.menuId;
+  t.label = sysMenu.menuName;
+
+  if (sysMenu.children.length > 0) {
+    for (const menu of sysMenu.children) {
+      const child = sysMenuTreeSelect(menu);
+      t.children.push(child);
     }
-    return this;
+  } else {
+    t.children = [];
   }
 
-  /**
-   * 下拉树结构
-   * @param sysMenu 菜单
-   * @returns 下拉树结构列表
-   */
-  parseSysMenu(sysMenu: SysMenu): TreeSelect {
-    this.id = sysMenu.menuId;
-    this.label = sysMenu.menuName;
-    if (
-      Array.isArray(sysMenu.children) &&
-      sysMenu.children &&
-      sysMenu.children.length > 0
-    ) {
-      this.children = sysMenu.children.map(menu =>
-        new TreeSelect().parseSysMenu(menu)
-      );
-    } else {
-      this.children = [];
+  return t;
+}
+
+/**
+ * 使用给定的 SysDept 对象解析为 TreeSelect 对象
+ * @param sysDept 对象
+ * @returns 结果
+ */
+export function sysDeptTreeSelect(sysDept: SysDept): TreeSelect {
+  const t = new TreeSelect();
+  t.id = sysDept.deptId;
+  t.label = sysDept.deptName;
+
+  if (sysDept.children.length > 0) {
+    for (const dept of sysDept.children) {
+      const child = sysDeptTreeSelect(dept);
+      t.children.push(child);
     }
-    return this;
+  } else {
+    t.children = [];
   }
+
+  return t;
 }
