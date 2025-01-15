@@ -52,7 +52,7 @@ export class SysJobController {
    */
   @Get('/:jobId')
   @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
-  async getInfo(
+  async info(
     @Valid(RuleType.number().required()) @Param('jobId') jobId: number
   ): Promise<Resp> {
     const data = await this.sysJobService.findById(jobId);
@@ -197,7 +197,7 @@ export class SysJobController {
     const uniqueIDs = parseRemoveDuplicatesToArray(jobId, ',');
     // 转换成number数组类型
     const jobIds = uniqueIDs.map(id => parseNumber(id));
-    const rows = await this.sysJobService.removeByIds(jobIds);
+    const rows = await this.sysJobService.deleteByIds(jobIds);
     if (rows > 0) {
       return Resp.okMsg(`删除成功: ${rows}`);
     }

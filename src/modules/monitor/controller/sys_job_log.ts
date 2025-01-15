@@ -58,7 +58,7 @@ export class SysJobLogController {
    */
   @Get('/:logId')
   @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
-  async getInfo(
+  async info(
     @Valid(RuleType.number().required()) @Param('logId') logId: number
   ): Promise<Resp> {
     if (logId <= 0) {
@@ -87,7 +87,7 @@ export class SysJobLogController {
     const uniqueIDs = parseRemoveDuplicatesToArray(logId, ',');
     // 转换成number数组类型
     const logIds = uniqueIDs.map(id => parseNumber(id));
-    const rows = await this.sysJobLogService.removeByIds(logIds);
+    const rows = await this.sysJobLogService.deleteByIds(logIds);
     if (rows > 0) {
       return Resp.okMsg(`删除成功: ${rows}`);
     }

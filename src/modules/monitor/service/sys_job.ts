@@ -7,7 +7,7 @@ import { SysJobRepository } from '../repository/sys_job';
 import { SysJobLogRepository } from '../repository/sys_job_log';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { FileService } from '../../../framework/service/FileService';
-import { SysDictDataServiceImpl } from '../../system/service/impl/SysDictDataServiceImpl';
+import { SysDictDataService } from '../../system/service/sys_dict_data';
 
 /**调度任务 服务层处理 */
 @Provide()
@@ -26,7 +26,7 @@ export class SysJobService {
   private fileService: FileService;
 
   @Inject()
-  private sysDictDataService: SysDictDataServiceImpl;
+  private sysDictDataService: SysDictDataService;
 
   @Init()
   public async init() {
@@ -109,7 +109,7 @@ export class SysJobService {
    * @param jobIds ID数组
    * @returns 影响记录数
    */
-  public async removeByIds(jobIds: number[]): Promise<number> {
+  public async deleteByIds(jobIds: number[]): Promise<number> {
     // 检查是否存在
     const jobs = await this.sysJobRepository.selectByIds(jobIds);
     if (jobs.length <= 0) {
@@ -355,7 +355,7 @@ export class SysJobService {
    */
   public async exportData(rows: SysJob[], fileName: string) {
     // 读取任务组名字典数据
-    const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(
+    const dictSysJobGroup = await this.sysDictDataService.findByType(
       'sys_job_group'
     );
     // 导出数据组装
@@ -364,8 +364,8 @@ export class SysJobService {
       // 任务组名
       let sysJobGroup = '';
       for (const v of dictSysJobGroup) {
-        if (item.jobGroup == v.dictValue) {
-          sysJobGroup = v.dictLabel;
+        if (item.jobGroup == v.dataValue) {
+          sysJobGroup = v.dataLabel;
           break;
         }
       }

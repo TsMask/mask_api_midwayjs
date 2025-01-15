@@ -1,10 +1,10 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { SysJobLog } from '../model/sys_job_log';
-import { SysJobLogRepository } from '../repository/sys_job_log';
-import { SysDictDataServiceImpl } from '../../system/service/impl/SysDictDataServiceImpl';
 import { FileService } from '../../../framework/service/FileService';
 import { parseDateToStr } from '../../../framework/utils/DateUtils';
+import { SysJobLogRepository } from '../repository/sys_job_log';
+import { SysDictDataService } from '../../system/service/sys_dict_data';
+import { SysJobLog } from '../model/sys_job_log';
 
 /**调度任务日志 服务层处理 */
 @Provide()
@@ -17,7 +17,7 @@ export class SysJobLogService {
   private fileService: FileService;
 
   @Inject()
-  private sysDictDataService: SysDictDataServiceImpl;
+  private sysDictDataService: SysDictDataService;
 
   /**
    * 分页查询
@@ -53,7 +53,7 @@ export class SysJobLogService {
    * @param logIds 日志ID数组
    * @returns
    */
-  async removeByIds(logIds: number[]): Promise<number> {
+  async deleteByIds(logIds: number[]): Promise<number> {
     return await this.sysJobLogRepository.deleteByIds(logIds);
   }
 
@@ -73,7 +73,7 @@ export class SysJobLogService {
    */
   public async exportData(rows: SysJobLog[], fileName: string) {
     // 读取任务组名字典数据
-    const dictSysJobGroup = await this.sysDictDataService.selectDictDataByType(
+    const dictSysJobGroup = await this.sysDictDataService.findByType(
       'sys_job_group'
     );
     // 导出数据组装
@@ -82,8 +82,8 @@ export class SysJobLogService {
       // 任务组名
       let sysJobGroup = '';
       for (const v of dictSysJobGroup) {
-        if (item.jobGroup == v.dictValue) {
-          sysJobGroup = v.dictLabel;
+        if (item.jobGroup == v.dataValue) {
+          sysJobGroup = v.dataLabel;
           break;
         }
       }
