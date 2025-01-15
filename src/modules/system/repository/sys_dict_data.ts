@@ -77,9 +77,9 @@ export class SysDictDataRepository {
       .from(SysDictData, 's')
       .where("s,del_flag = '0'");
     // 构建查询条件
-    if (sysDictData.dictLabel) {
-      tx.where("s.data_label like concat(:dictLabel, '%')", {
-        dictLabel: sysDictData.dictLabel,
+    if (sysDictData.dataLabel) {
+      tx.where("s.data_label like concat(:dataLabel, '%')", {
+        dataLabel: sysDictData.dataLabel,
       });
     }
     if (sysDictData.dictType) {
@@ -208,14 +208,14 @@ export class SysDictDataRepository {
         dictType: sysDictData.dictType,
       });
     }
-    if (sysDictData.dictLabel) {
-      tx.where('s.data_label = :dictLabel', {
-        dictLabel: sysDictData.dictLabel,
+    if (sysDictData.dataLabel) {
+      tx.where('s.data_label = :dataLabel', {
+        dataLabel: sysDictData.dataLabel,
       });
     }
-    if (sysDictData.dictValue) {
-      tx.where('s.data_value = :dictValue', {
-        dictValue: sysDictData.dictValue,
+    if (sysDictData.dataValue) {
+      tx.where('s.data_value = :dataValue', {
+        dataValue: sysDictData.dataValue,
       });
     }
     // 查询数据
@@ -254,7 +254,7 @@ export class SysDictDataRepository {
    * @param newDictType 新字典类型
    * @return 影响记录数
    */
-  public async updateDeptStatusNormal(
+  public async updateDataByDictType(
     oldDictType: string,
     newDictType: string
   ): Promise<number> {

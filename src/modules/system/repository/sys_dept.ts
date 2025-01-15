@@ -16,11 +16,12 @@ export class SysDeptRepository {
    * 查询集合
    *
    * @param sysDept 信息
+   * @param dataScopeSQL 角色数据范围过滤SQL字符串
    * @return 列表
    */
   public async select(
     sysDept: SysDept,
-    dataScopeSQL?: string
+    dataScopeSQL: string
   ): Promise<SysDept[]> {
     const tx = this.db
       .executeQueryBuilder('default')
@@ -92,7 +93,7 @@ export class SysDeptRepository {
       const ms = Date.now().valueOf();
       sysDept.updateBy = sysDept.createBy;
       sysDept.updateTime = ms;
-      sysDept.createTime = ms
+      sysDept.createTime = ms;
     }
     // 执行插入
     const tx: InsertResult = await this.db

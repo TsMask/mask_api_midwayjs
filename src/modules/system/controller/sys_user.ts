@@ -1,0 +1,501 @@
+import {
+  Body,
+  Controller,
+  Del,
+  Fields,
+  Files,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@midwayjs/core';
+import { RuleType, Valid } from '@midwayjs/validate';
+
+import {
+  validEmail,
+  validMobile,
+  validUsername,
+  validPassword,
+} from '../../../framework/utils/RegularUtils';
+import {
+  parseNumber,
+  parseRemoveDuplicatesToArray,
+} from '../../../framework/utils/ValueParseUtils';
+import {
+  BUSINESS_TYPE,
+  OperateLog,
+} from '../../../framework/decorator/OperateLogMethodDecorator';
+import { UploadFileInfo } from '@midwayjs/upload';
+import { Resp } from '../../../framework/resp/api';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
+import { FileService } from '../../../framework/service/FileService';
+import { ContextService } from '../../../framework/service/ContextService';
+import { SysUserService } from '../service/sys_user';
+import { SysRoleService } from '../service/sys_role';
+import { SysPostService } from '../service/sys_post';
+import { SysRole } from '../model/sys_role';
+import { SysUser } from '../model/sys_user';
+import { SysPost } from '../model/sys_post';
+
+/**用户信息 控制层处理 */
+@Controller('/system/user')
+export class SysUserController {
+  @Inject()
+  private contextService: ContextService;
+
+  @Inject()
+  private sysUserService: SysUserService;
+
+  @Inject()
+  private sysRoleService: SysRoleService;
+
+  @Inject()
+  private sysPostService: SysPostService;
+
+  @Inject()
+  private fileService: FileService;
+
+  /**
+   * 用户信息列表
+   */
+  @Get('/list')
+  @PreAuthorize({ hasPermissions: ['system:user:list'] })
+  public async list(@Query() query: Record<string, string>): Promise<Resp> {
+    const dataScopeSQL = this.contextService.getDataScopeSQL(
+      'sys_user',
+      'sys_user'
+    );
+    const [rows, total] = await this.sysUserService.findByPage(
+      query,
+      dataScopeSQL
+    );
+    return Resp.okData({ rows, total });
+  }
+
+  /**
+   * 用户信息详情
+   */
+  @Get('/:userId')
+  @PreAuthorize({ hasPermissions: ['system:user:query'] })
+  public async info(
+    @Valid(RuleType.number().required()) @Param('userId') userId: number
+  ): Promise<Resp> {
+    if (userId < 0) {
+      return Resp.codeMsg(40010, 'bind err: userId is empty');
+    }
+
+    // 查询系统角色列表
+    const roles = await this.sysRoleService.find(new SysRole());
+    // 查询系统岗位列表
+    const posts = await this.sysPostService.find(new SysPost());
+
+    // 新增用户时，用户ID为0
+    if (userId === 0) {
+      return Resp.okData({
+        user: {},
+        roleIds: [],
+        postIds: [],
+        roles: roles,
+        posts: posts,
+      });
+    }
+
+    // 检查用户是否存在
+    const userInfo = await this.sysUserService.findById(userId);
+    if (userInfo.userId != userId) {
+      return Resp.errMsg('没有权限访问用户数据');
+    }
+    delete userInfo.password;
+
+    // 角色ID组
+    const roleIds = userInfo.roles.map(r => r.roleId);
+
+    // 岗位ID组
+    const userPosts = await this.sysPostService.findByUserId(userInfo.userId);
+    const postIds = userPosts.map(p => p.postId);
+
+    return Resp.okData({
+      user: userInfo,
+      roleIds: roleIds,
+      postIds: postIds,
+      roles: roles,
+      posts: posts,
+    });
+  }
+
+  /**
+   * 用户信息新增
+   */
+  @Post()
+  @PreAuthorize({ hasPermissions: ['system:user:add'] })
+  @OperateLog({
+    title: '用户信息',
+    businessType: BUSINESS_TYPE.INSERT,
+  })
+  public async add(@Body() body: SysUser): Promise<Resp> {
+    if (body.userId > 0) {
+      return Resp.codeMsg(40010, 'bind err: userId not is empty');
+    }
+    if (!validUsername(body.userName)) {
+      return Resp.errMsg(
+        `新增用户【${body.userName}】失败，登录账号用户账号只能包含大写小写字母，数字，且不少于4位`
+      );
+    }
+    if (!validPassword(body.password)) {
+      return Resp.errMsg(
+        `新增用户【${body.userName}】失败，登录密码至少包含大小写字母、数字、特殊符号，且不少于6位`
+      );
+    }
+
+    // 检查用户登录账号是否唯一
+    const uniqueUserName = await this.sysUserService.checkUniqueByUserName(
+      body.userName,
+      0
+    );
+    if (!uniqueUserName) {
+      return Resp.errMsg(`新增用户【${body.userName}】失败，登录账号已存在`);
+    }
+
+    // 检查手机号码格式并判断是否唯一
+    if (body.phone) {
+      if (validMobile(body.phone)) {
+        const uniquePhone = await this.sysUserService.checkUniqueByPhone(
+          body.phone,
+          0
+        );
+        if (!uniquePhone) {
+          return Resp.errMsg(
+            `新增用户【${body.userName}】失败，手机号码已存在`
+          );
+        }
+      } else {
+        return Resp.errMsg(
+          `新增用户【${body.userName}】失败，手机号码格式错误`
+        );
+      }
+    }
+
+    // 检查邮箱格式并判断是否唯一
+    if (body.email) {
+      if (validEmail(body.email)) {
+        const uniqueEmail = await this.sysUserService.checkUniqueByEmail(
+          body.email,
+          0
+        );
+        if (!uniqueEmail) {
+          return Resp.errMsg(`新增用户【${body.userName}】失败，邮箱已存在`);
+        }
+      } else {
+        return Resp.errMsg(`新增用户【${body.userName}】失败，邮箱格式错误`);
+      }
+    }
+
+    const sysUser = new SysUser();
+    sysUser.userName = body.userName;
+    sysUser.password = body.password;
+    sysUser.nickName = body.nickName;
+    sysUser.email = body.email;
+    sysUser.phone = body.phone;
+    sysUser.sex = body.sex;
+    sysUser.statusFlag = body.statusFlag;
+    sysUser.remark = body.remark;
+    sysUser.deptId = body.deptId; // 部门ID
+    sysUser.roleIds = body.roleIds; // 角色ID组
+    sysUser.postIds = body.postIds; // 岗位ID组
+    sysUser.avatar = body.avatar;
+    sysUser.createBy = this.contextService.getUseName();
+    const insertId = await this.sysUserService.insert(sysUser);
+    if (insertId > 0) {
+      return Resp.okData(insertId);
+    }
+    return Resp.err();
+  }
+
+  /**
+   * 用户信息修改
+   */
+  @Put()
+  @PreAuthorize({ hasPermissions: ['system:user:edit'] })
+  @OperateLog({
+    title: '用户信息',
+    businessType: BUSINESS_TYPE.UPDATE,
+  })
+  public async edit(@Body() body: SysUser): Promise<Resp> {
+    if (body.userId <= 0) {
+      return Resp.codeMsg(40010, 'bind err: userId is empty');
+    }
+
+    // 检查是否系统管理员用户
+    if (this.contextService.isSystemUser(body.userId)) {
+      return Resp.errMsg('不允许操作系统管理员用户');
+    }
+
+    // 检查用户登录账号是否唯一
+    const uniqueUserName = await this.sysUserService.checkUniqueByUserName(
+      body.userName,
+      body.userId
+    );
+    if (!uniqueUserName) {
+      return Resp.errMsg(`修改用户【${body.userName}】失败，登录账号已存在`);
+    }
+
+    // 检查是否存在
+    const userInfo = await this.sysUserService.findById(body.userId);
+    if (userInfo.userId != body.userId) {
+      return Resp.errMsg('没有权限访问用户数据！');
+    }
+
+    // 检查手机号码格式并判断是否唯一
+    if (body.phone) {
+      if (validMobile(body.phone)) {
+        const uniquePhone = await this.sysUserService.checkUniqueByPhone(
+          body.phone,
+          body.userId
+        );
+        if (!uniquePhone) {
+          return Resp.errMsg(
+            `修改用户【${body.userName}】失败，手机号码已存在`
+          );
+        }
+      } else {
+        return Resp.errMsg(
+          `修改用户【${body.userName}】失败，手机号码格式错误`
+        );
+      }
+    }
+
+    // 检查邮箱格式并判断是否唯一
+    if (body.email) {
+      if (validEmail(body.email)) {
+        const uniqueEmail = await this.sysUserService.checkUniqueByEmail(
+          body.email,
+          body.userId
+        );
+        if (!uniqueEmail) {
+          return Resp.errMsg(`修改用户【${body.userName}】失败，邮箱已存在`);
+        }
+      } else {
+        return Resp.errMsg(`修改用户【${body.userName}】失败，邮箱格式错误`);
+      }
+    }
+
+    userInfo.phone = body.phone;
+    userInfo.email = body.email;
+    userInfo.sex = body.sex;
+    userInfo.statusFlag = body.statusFlag;
+    userInfo.remark = body.remark;
+    userInfo.deptId = body.deptId;
+    userInfo.roleIds = body.roleIds;
+    userInfo.postIds = body.postIds;
+    userInfo.password = ''; // 忽略登录时间
+    userInfo.updateBy = this.contextService.getUseName();
+    const rows = await this.sysUserService.updateUserAndRolePost(userInfo);
+    if (rows > 0) {
+      return Resp.ok();
+    }
+    return Resp.err();
+  }
+
+  /**
+   * 用户信息删除
+   */
+  @Del('/:userId')
+  @PreAuthorize({ hasPermissions: ['system:user:remove'] })
+  @OperateLog({
+    title: '用户信息',
+    businessType: BUSINESS_TYPE.DELETE,
+  })
+  public async remove(
+    @Valid(RuleType.string().required()) @Param('userId') userId: string
+  ): Promise<Resp> {
+    // 处理字符转id数组后去重
+    const uniqueIDs = parseRemoveDuplicatesToArray(userId, ',');
+    // 转换成number数组类型
+    const ids = uniqueIDs.map(id => parseNumber(id));
+    if (ids.length <= 0) return Resp.err();
+
+    // 检查是否管理员用户
+    const loginUserId = this.contextService.getUserId();
+    for (const id of ids) {
+      if (id === loginUserId) {
+        return Resp.errMsg('当前用户不能删除');
+      }
+      if (this.contextService.isSystemUser(id)) {
+        return Resp.errMsg('不允许操作管理员用户');
+      }
+    }
+
+    const rows = await this.sysUserService.deleteByIds(ids);
+    if (rows > 0) {
+      return Resp.okMsg(`删除成功: ${rows}`);
+    }
+    return Resp.err();
+  }
+
+  /**
+   * 用户密码修改
+   */
+  @Put('/password')
+  @PreAuthorize({ hasPermissions: ['system:user:resetPwd'] })
+  @OperateLog({
+    title: '用户信息',
+    businessType: BUSINESS_TYPE.UPDATE,
+  })
+  public async password(
+    @Valid(RuleType.number().required()) @Body('userId') userId: number,
+    @Valid(RuleType.string().required()) @Body('password') password: string
+  ): Promise<Resp> {
+    // 检查是否系统管理员用户
+    if (this.contextService.isSystemUser(userId)) {
+      return Resp.errMsg('不允许操作系统管理员用户');
+    }
+
+    if (!validPassword(password)) {
+      return Resp.errMsg(
+        '登录密码至少包含大小写字母、数字、特殊符号，且不少于6位'
+      );
+    }
+
+    // 检查是否存在
+    const userInfo = await this.sysUserService.findById(userId);
+    if (userInfo.userId != userId) {
+      return Resp.errMsg('没有权限访问用户数据！');
+    }
+
+    userInfo.password = password;
+    userInfo.updateBy = this.contextService.getUseName();
+    const rows = await this.sysUserService.update(userInfo);
+    if (rows > 0) {
+      return Resp.ok();
+    }
+    return Resp.err();
+  }
+
+  /**
+   * 用户状态修改
+   */
+  @Put('/status')
+  @RepeatSubmit()
+  @PreAuthorize({ hasPermissions: ['system:user:edit'] })
+  @OperateLog({
+    title: '用户信息',
+    businessType: BUSINESS_TYPE.UPDATE,
+  })
+  public async status(
+    @Valid(RuleType.number().required()) @Body('userId') userId: number,
+    @Valid(RuleType.string().required()) @Body('statusFlag') statusFlag: string
+  ): Promise<Resp> {
+    // 检查是否系统管理员用户
+    if (this.contextService.isSystemUser(userId)) {
+      return Resp.errMsg('不允许操作系统管理员用户');
+    }
+    // 检查是否存在
+    const userInfo = await this.sysUserService.findById(userId);
+    if (userInfo.userId != userId) {
+      return Resp.errMsg('没有权限访问用户数据！');
+    }
+
+    // 与旧值相等不变更
+    if (userInfo.statusFlag === statusFlag) {
+      return Resp.errMsg('变更状态与旧值相等！');
+    }
+
+    userInfo.statusFlag = statusFlag;
+    userInfo.password = ''; // 密码不更新
+    userInfo.updateBy = this.contextService.getUseName();
+    const rows = await this.sysUserService.update(userInfo);
+    if (rows > 0) {
+      return Resp.ok();
+    }
+    return Resp.err();
+  }
+
+  /**
+   * 用户信息列表导出
+   */
+  @Post('/export')
+  @PreAuthorize({ hasPermissions: ['system:user:export'] })
+  @OperateLog({
+    title: '用户信息',
+    businessType: BUSINESS_TYPE.EXPORT,
+  })
+  public async export(@Query() query: Record<string, string>) {
+    // 查询结果，根据查询条件结果，单页最大值限制
+    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
+    const [rows, total] = await this.sysUserService.findByPage(
+      query,
+      dataScopeSQL
+    );
+    if (total === 0) {
+      return Resp.codeMsg(40016, 'export data record as empty');
+    }
+
+    // 导出文件名称
+    const fileName = `user_export_${rows.length}_${Date.now()}.xlsx`;
+    const ctx = this.contextService.getContext();
+    ctx.set(
+      'content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.sysUserService.exportData(rows, fileName);
+  }
+
+  /**
+   * 用户信息列表导入模板下载
+   */
+  @Get('/import/template')
+  @PreAuthorize({ hasPermissions: ['system:user:import'] })
+  public async template() {
+    const ctx = this.contextService.getContext();
+    const fileName = `user_import_template_${Date.now()}.xlsx`;
+    ctx.set(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    ctx.set(
+      'Content-disposition',
+      `attachment;filename=${encodeURIComponent(fileName)}`
+    );
+    return await this.fileService.readAssetsFileStream(
+      'template/excel/user_import_template.xlsx'
+    );
+  }
+
+  /**
+   * 用户信息列表导入
+   */
+  @Post('/import')
+  @PreAuthorize({ hasPermissions: ['system:user:import'] })
+  @OperateLog({
+    title: '用户信息',
+    businessType: BUSINESS_TYPE.IMPORT,
+  })
+  public async import(
+    @Files('file') filePath: UploadFileInfo<string>[],
+    @Fields('update') update: boolean
+  ) {
+    if (filePath.length <= 0) return Resp.err();
+    // 读取表格数据
+    const rows = await this.fileService.excelReadRecord(filePath[0]);
+    if (rows.length <= 0) {
+      return Resp.errMsg('导入用户数据不能为空！');
+    }
+
+    // 获取操作人名称
+    const operaName = this.contextService.getUseName();
+    // 导入数据
+    const message = await this.sysUserService.importData(
+      rows,
+      operaName,
+      update
+    );
+    return Resp.okMsg(message);
+  }
+}

@@ -15,9 +15,9 @@ export class SysMenu {
   menuName: string;
 
   /**父菜单ID 默认0 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.number())
   @Column({ name: 'parent_id' })
-  parentId: string;
+  parentId: number;
 
   /**显示顺序 */
   @Rule(RuleType.number())

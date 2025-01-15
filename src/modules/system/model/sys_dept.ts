@@ -12,7 +12,7 @@ export class SysDept {
   /**父部门ID */
   @Rule(RuleType.number())
   @Column({ name: 'parent_id' })
-  parentId: string;
+  parentId: number;
 
   /**祖级列表 */
   @Rule(RuleType.string())

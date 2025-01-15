@@ -16,18 +16,18 @@ export class SysDictData {
 
   /**数据标签 */
   @Rule(RuleType.string().required())
-  @Column({ name: 'dict_label' })
-  dictLabel: string;
+  @Column({ name: 'data_label' })
+  dataLabel: string;
 
   /**数据键值 */
   @Rule(RuleType.string().required())
-  @Column({ name: 'dict_value' })
-  dictValue: string;
+  @Column({ name: 'data_value' })
+  dataValue: string;
 
   /**数据排序 */
   @Rule(RuleType.number())
-  @Column({ name: 'dict_sort' })
-  dictSort: number;
+  @Column({ name: 'data_sort' })
+  dataSort: number;
 
   /**样式属性（样式扩展） */
   @Rule(RuleType.string())
