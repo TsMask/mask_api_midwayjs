@@ -1,11 +1,17 @@
 import { ILogger, Inject, Provide, httpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { RoleDataScopeEnum } from '../enums/RoleDataScopeEnum';
 import { SysUser } from '../../modules/system/model/sys_user';
 import { LoginUser } from '../vo/LoginUser';
 import { getUaInfo } from '../utils/UAParserUtils';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
+import {
+  ROLE_SCOPE_ALL,
+  ROLE_SCOPE_CUSTOM,
+  ROLE_SCOPE_DEPT,
+  ROLE_SCOPE_DEPT_CHILD,
+  ROLE_SCOPE_SELF,
+} from '../constants/role_data_scope';
 
 /**
  * 上下文对象服务
@@ -99,7 +105,7 @@ export class ContextService {
    */
   isSystemUser(userId: number): boolean {
     if (userId <= 0) return false;
-   // 从配置中获取系统管理员ID列表
+    // 从配置中获取系统管理员ID列表
     const { system } = this.getConfig('user');
     return Array.isArray(system) && system.includes(userId);
   }
@@ -147,51 +153,58 @@ export class ContextService {
    * @param userAlias 用户表别名（可选）
    * @return SQL字符串 AND (...)
    */
-  getDataScopeSQL(deptAlias: string, userAlias?: string): string {
+  getDataScopeSQL(deptAlias: string, userAlias: string): string {
     let dataScopeSQL = '';
     // 登录用户信息
-    const user = this.getSysUser();
-    // 如果是管理员，则不过滤数据
-    if (this.isSystemUser(user.userId)) return dataScopeSQL;
+    const userInfo = this.getSysUser();
+
+    // 如果是系统管理员，则不过滤数据
+    if (this.isSystemUser(userInfo.userId)) return dataScopeSQL;
     // 无用户角色
-    if (!user.roles || user.roles.length <= 0) return dataScopeSQL;
+    if (!userInfo.roles || userInfo.roles.length <= 0) return dataScopeSQL;
 
     // 记录角色权限范围定义添加过, 非自定数据权限不需要重复拼接SQL
     const scopeKeys: string[] = [];
     const conditions: string[] = [];
-    for (const role of user.roles) {
+    for (const role of userInfo.roles) {
       const dataScope = role.dataScope;
 
-      if (RoleDataScopeEnum.ALL === dataScope) break;
+      if (ROLE_SCOPE_ALL === dataScope) break;
 
-      if (
-        RoleDataScopeEnum.CUSTOM !== dataScope &&
-        scopeKeys.includes(dataScope)
-      )
+      if (ROLE_SCOPE_CUSTOM !== dataScope && scopeKeys.includes(dataScope)) {
         continue;
-
-      if (RoleDataScopeEnum.CUSTOM === dataScope) {
-        conditions.push(
-          `${deptAlias}.dept_id IN ( SELECT dept_id FROM sys_role_dept WHERE role_id = '${role.roleId}' )`
-        );
       }
 
-      if (RoleDataScopeEnum.DEPT === dataScope) {
-        conditions.push(`${deptAlias}.dept_id = '${user.deptId}'`);
+      if (ROLE_SCOPE_CUSTOM === dataScope) {
+        const sql = `${deptAlias}.dept_id IN 
+        ( SELECT dept_id FROM sys_role_dept WHERE role_id = ${role.roleId} ) 
+        AND ${deptAlias}.dept_id NOT IN 
+        ( 
+        SELECT d.parent_id FROM sys_dept d 
+        INNER JOIN sys_role_dept rd ON rd.dept_id = d.dept_id 
+        AND rd.role_id = ${role.roleId}
+        )`;
+        conditions.push(sql);
       }
 
-      if (RoleDataScopeEnum.DEPT_AND_CHILD === dataScope) {
-        conditions.push(
-          `${deptAlias}.dept_id IN ( SELECT dept_id FROM sys_dept WHERE dept_id = '${user.deptId}' or find_in_set('${user.deptId}' , ancestors ) )`
-        );
+      if (ROLE_SCOPE_DEPT === dataScope) {
+        conditions.push(`${deptAlias}.dept_id = ${userInfo.deptId}`);
       }
 
-      if (RoleDataScopeEnum.SELF === dataScope) {
-        // 数据权限为仅本人且没有userAlias别名不查询任何数据
-        if (userAlias) {
-          conditions.push(`${userAlias}.user_id = '${user.userId}'`);
+      if (ROLE_SCOPE_DEPT_CHILD === dataScope) {
+        const sql = `${deptAlias}.dept_id IN ( 
+        SELECT dept_id FROM sys_dept 
+        WHERE dept_id = ${userInfo.deptId} 
+        OR find_in_set(${userInfo.deptId}, ancestors ) 
+        )`;
+        conditions.push(sql);
+      }
+
+      if (ROLE_SCOPE_SELF === dataScope) {
+        if (userAlias === '') {
+          conditions.push(`${deptAlias}.dept_id = ${userInfo.deptId}`);
         } else {
-          conditions.push(`${deptAlias}.dept_id = '0'`);
+          conditions.push(`${userAlias}.user_id = ${userInfo.userId}`);
         }
       }
 
@@ -201,7 +214,7 @@ export class ContextService {
 
     // 构建查询条件语句
     if (conditions.length > 0) {
-      dataScopeSQL = ` AND ( ${conditions.join(' OR ')} ) `;
+      dataScopeSQL = ` ( ${conditions.join(' OR ')} ) `;
     }
     return dataScopeSQL;
   }

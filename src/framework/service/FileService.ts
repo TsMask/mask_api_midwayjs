@@ -1,7 +1,6 @@
 import { Config, Provide, Singleton } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
 import { posix } from 'path';
-import { UploadSubPathEnum } from '../enums/UploadSubPathEnum';
 import { parseDatePath } from '../utils/DateUtils';
 import { readSheet, writeSheet } from '../utils/ExeclUtils';
 import { generateHash } from '../utils/GenIdUtils';
@@ -17,6 +16,12 @@ import {
   getFileSize,
   writeBufferFile,
 } from '../utils/FileUtils';
+import {
+  UPLOAD_CHUNK,
+  UPLOAD_DEFAULT,
+  UPLOAD_EXPORT,
+  UPLOAD_IMPORT,
+} from '../constants/upload_sub_path';
 
 /**最大文件名长度 */
 const DEFAULT_FILE_NAME_LENGTH = 100;
@@ -116,11 +121,7 @@ export class FileService {
     originalFileName: string
   ): Promise<string[]> {
     this.isAllowWrite(originalFileName, []);
-    const dirPath = posix.join(
-      UploadSubPathEnum.CHUNK,
-      parseDatePath(),
-      identifier
-    );
+    const dirPath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
     const readPath = posix.join(this.resourceUpload.dir, dirPath);
     return await getDirFileNameList(readPath);
   }
@@ -135,15 +136,11 @@ export class FileService {
   async chunkMergeFile(
     identifier: string,
     originalFileName: string,
-    subPath: string = UploadSubPathEnum.DEFAULT
+    subPath: string = UPLOAD_DEFAULT
   ): Promise<string> {
     this.isAllowWrite(originalFileName, []);
     // 切片存放目录
-    const dirPath = posix.join(
-      UploadSubPathEnum.CHUNK,
-      parseDatePath(),
-      identifier
-    );
+    const dirPath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
     const readPath = posix.join(this.resourceUpload.dir, dirPath);
     // 组合存放文件路径
     const fileName = this.generateFileName(originalFileName);
@@ -167,11 +164,7 @@ export class FileService {
   ): Promise<string> {
     const { filename, mimeType, data } = file;
     this.isAllowWrite(filename, [], mimeType);
-    const filePath = posix.join(
-      UploadSubPathEnum.CHUNK,
-      parseDatePath(),
-      identifier
-    );
+    const filePath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
     const writePath = posix.join(this.resourceUpload.dir, filePath);
     await transferToNewFile(data, writePath, index);
     return posix.join(this.resourceUpload.prefix, filePath, index);
@@ -186,7 +179,7 @@ export class FileService {
    */
   async transferUploadFile(
     file: UploadFileInfo<string>,
-    subPath: string = UploadSubPathEnum.DEFAULT,
+    subPath: string,
     allowExts: string[] = []
   ): Promise<string> {
     const { filename, mimeType, data } = file;
@@ -307,7 +300,7 @@ export class FileService {
     // 保存上传文件
     const savePath = posix.join(
       this.resourceUpload.dir,
-      UploadSubPathEnum.IMPORT,
+      UPLOAD_IMPORT,
       parseDatePath()
     );
     await checkDirPathExists(savePath);
@@ -331,7 +324,7 @@ export class FileService {
     if (fileName) {
       const savePath = posix.join(
         this.resourceUpload.dir,
-        UploadSubPathEnum.EXPORT,
+        UPLOAD_EXPORT,
         parseDatePath()
       );
       await checkDirPathExists(savePath);

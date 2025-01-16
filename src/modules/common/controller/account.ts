@@ -2,8 +2,7 @@ import { Controller, Body, Post, Get, Inject } from '@midwayjs/core';
 
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
-import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
+import { LIMIT_IP, RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { AccountService } from '../service/account';
 import { LoginBody } from '../model/login_body';
 
@@ -24,7 +23,7 @@ export class AccountController {
    * @returns
    */
   @Post('/login')
-  @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
+  @RateLimit({ time: 300, count: 20, limitType: LIMIT_IP })
   public async login(@Body() LoginBody: LoginBody): Promise<Resp> {
     const { username, password, code, uuid } = LoginBody;
     if (!username || !password) return Resp.err();
@@ -65,7 +64,7 @@ export class AccountController {
    * 系统登出
    */
   @Post('/logout')
-  @RateLimit({ time: 300, count: 5, limitType: LimitTypeEnum.IP })
+  @RateLimit({ time: 300, count: 5, limitType: LIMIT_IP })
   public async logout(): Promise<Resp> {
     await this.accountService.logout();
     return Resp.okMsg('退出成功');

@@ -7,7 +7,7 @@ export const HEADER_PREFIX = 'Bearer ';
 export const HEADER_KEY = 'Authorization';
 
 /**令牌-JWT唯一标识字段 */
-export const JWT_UUID = 'login_key';
+export const JWT_UUID = 'uuid';
 
 /**令牌-JWT标识用户主键字段 */
 export const JWT_USER_ID = 'user_id';

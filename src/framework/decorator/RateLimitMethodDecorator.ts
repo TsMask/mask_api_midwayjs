@@ -5,11 +5,19 @@ import {
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { LoginUser } from '../vo/LoginUser';
-import { LimitTypeEnum } from '../enums/LimitTypeEnum';
 import { CACHE_RATE_LIMIT } from '../constants/cache_key';
 import { RedisCache } from '../datasource/redis/redis';
 import { getClientIP } from '../utils/ip2region';
 import { Resp } from '../resp/api';
+
+/**默认策略全局限流 */
+export const LIMIT_GLOBAL = 1;
+
+/**根据请求者IP进行限流 */
+export const LIMIT_IP = 2;
+
+/**根据用户ID进行限流 */
+export const LIMIT_USER = 3;
 
 /** 限流参数 */
 interface rateLimitOptions {
@@ -18,7 +26,7 @@ interface rateLimitOptions {
   /**限流次数 */
   count: number;
   /**限流条件类型 */
-  limitType?: LimitTypeEnum;
+  limitType?: 1 | 2 | 3;
 }
 
 /**装饰器key标识-请求限流 */
@@ -27,7 +35,7 @@ export const METHOD_KEY_RATE_LIMIT = 'decorator_method:rate_limit';
 /**
  * 装饰器声明-请求限流
  *
- * 示例参数：`{ time: 5, count: 10, limitType: LimitTypeEnum.IP }`
+ * 示例参数：`{ time: 5, count: 10, limitType:  LIMIT_IP }`
  *
  * 参数表示：5秒内，最多请求10次，类型记录IP
  *
@@ -58,24 +66,25 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
 
       const className = joinPoint.target.constructor.name;
       const classMethod = `${className}.${joinPoint.methodName}()`;
-      let combinedKey = CACHE_RATE_LIMIT +":"+ classMethod;
+      let combinedKey = CACHE_RATE_LIMIT + ':' + classMethod;
 
       // 默认
       if (!limitType) {
-        limitType = LimitTypeEnum.GLOBAL;
+        limitType = LIMIT_GLOBAL;
       }
 
       // IP
-      if (limitType === LimitTypeEnum.IP) {
+      if (limitType === LIMIT_IP) {
         const clientIP = getClientIP(ctx.ip);
-        combinedKey = CACHE_RATE_LIMIT +":"+ `${clientIP}:${classMethod}`;
+        combinedKey = CACHE_RATE_LIMIT + ':' + `${clientIP}:${classMethod}`;
       }
 
       // 用户
-      if (limitType === LimitTypeEnum.USER) {
+      if (limitType === LIMIT_USER) {
         const loginUser: LoginUser = ctx.loginUser;
         if (loginUser && loginUser.userId) {
-          combinedKey = CACHE_RATE_LIMIT +":"+ `${loginUser.userId}:${classMethod}`;
+          combinedKey =
+            CACHE_RATE_LIMIT + ':' + `${loginUser.userId}:${classMethod}`;
         }
       }
 

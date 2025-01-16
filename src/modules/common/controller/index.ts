@@ -6,8 +6,7 @@ import {
 } from '@midwayjs/core';
 
 import { Resp } from '../../../framework/resp/api';
-import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
-import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
+import { LIMIT_IP, RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 
 /**
  * 路由主页
@@ -18,7 +17,7 @@ export class IndexController {
   private midwayInformationService: MidwayInformationService;
 
   @Get()
-  @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
+  @RateLimit({ time: 300, count: 60, limitType: LIMIT_IP })
   public async index(): Promise<Resp> {
     // 读取配置项目名版本
     const pkg = this.midwayInformationService.getPkg();

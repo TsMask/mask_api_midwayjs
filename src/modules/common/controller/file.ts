@@ -14,7 +14,10 @@ import { Resp } from '../../../framework/resp/api';
 import { ContextService } from '../../../framework/service/ContextService';
 import { FileService } from '../../../framework/service/FileService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { UploadSubPathEnum } from '../../../framework/enums/UploadSubPathEnum';
+import {
+  UPLOAD_COMMON,
+  UPLOAD_SUB_PATH,
+} from '../../../framework/constants/upload_sub_path';
 
 /**
  * 文件操作处理
@@ -73,18 +76,18 @@ export class FileController {
   @PreAuthorize()
   public async upload(
     @Files('file') files: UploadFileInfo<string>[],
-    @Fields('subPath') subPath: UploadSubPathEnum
+    @Fields('subPath') subPath: string
   ) {
     if (files.length <= 0) {
       return Resp.err();
     }
 
     // 子路径需要在指定范围内
-    if (subPath && !Object.values(UploadSubPathEnum).includes(subPath)) {
+    if (subPath && !UPLOAD_SUB_PATH[subPath]) {
       return Resp.errMsg('subPath不在指定范围内');
     }
     if (!subPath) {
-      subPath = UploadSubPathEnum.COMMON;
+      subPath = UPLOAD_COMMON;
     }
 
     const { origin, cleanupRequestFiles } = this.contextService.getContext();
@@ -129,18 +132,18 @@ export class FileController {
   public async chunkMerge(
     @Body('identifier') identifier: string,
     @Body('fileName') fileName: string,
-    @Body('subPath') subPath: UploadSubPathEnum
+    @Body('subPath') subPath: string
   ) {
     if (!identifier || !fileName) {
       return Resp.err();
     }
 
     // 子路径需要在指定范围内
-    if (subPath && !Object.values(UploadSubPathEnum).includes(subPath)) {
+    if (subPath && !UPLOAD_SUB_PATH[subPath]) {
       return Resp.errMsg('subPath不在指定范围内');
     }
     if (!subPath) {
-      subPath = UploadSubPathEnum.COMMON;
+      subPath = UPLOAD_COMMON;
     }
 
     const upFilePath = await this.fileService.chunkMergeFile(

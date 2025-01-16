@@ -10,12 +10,14 @@ import {
 import { Resp } from '../../../framework/resp/api';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { ContextService } from '../../../framework/service/ContextService';
-import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
-import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
+import {
+  LIMIT_IP,
+  RateLimit,
+} from '../../../framework/decorator/RateLimitMethodDecorator';
 import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache_key';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { generateHash } from '../../../framework/utils/GenIdUtils';
-import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
+import { SysConfigService } from '../../system/service/sys_config';
 
 /**
  * 验证码操作处理
@@ -29,19 +31,18 @@ export class CaptchaController {
   private redisCache: RedisCache;
 
   @Inject()
-  private sysConfigService: SysConfigServiceImpl;
+  private sysConfigService: SysConfigService;
 
   /**
    * 获取验证码-图片
    */
   @Get('/captcha-image')
-  @RateLimit({ time: 300, count: 60, limitType: LimitTypeEnum.IP })
+  @RateLimit({ time: 300, count: 60, limitType: LIMIT_IP })
   public async image(): Promise<Resp> {
     // 从数据库配置获取验证码开关 true开启，false关闭
-    const captchaEnabledStr =
-      await this.sysConfigService.selectConfigValueByKey(
-        'sys.account.captchaEnabled'
-      );
+    const captchaEnabledStr = await this.sysConfigService.findValueByKey(
+      'sys.account.captchaEnabled'
+    );
     const captchaEnabled = parseBoolean(captchaEnabledStr);
     if (!captchaEnabled) {
       return Resp.okData({
@@ -58,7 +59,7 @@ export class CaptchaController {
     };
 
     // 从数据库配置获取验证码类型 math 数值计算 char 字符验证
-    const captchaType = await this.sysConfigService.selectConfigValueByKey(
+    const captchaType = await this.sysConfigService.findValueByKey(
       'sys.account.captchaType'
     );
     if (captchaType === CAPTCHA_TYPE_MATH) {
@@ -68,7 +69,7 @@ export class CaptchaController {
       const { data: question, text: answer } = createMathExpr(options);
       data.uuid = uuid;
       data.img = svgBase64(question);
-      verifyKey = CACHE_CAPTCHA_CODE+":" + uuid;
+      verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
       await this.redisCache.setByExpire(verifyKey, answer, CAPTCHA_EXPIRATION);
     }
     if (captchaType === CAPTCHA_TYPE_CHAR) {
@@ -78,7 +79,7 @@ export class CaptchaController {
       const { data: question, text: answer } = create(options);
       data.uuid = uuid;
       data.img = svgBase64(question);
-      verifyKey = CACHE_CAPTCHA_CODE+":" + uuid;
+      verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
       await this.redisCache.setByExpire(
         verifyKey,
         answer.toLowerCase(),

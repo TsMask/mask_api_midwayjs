@@ -5,8 +5,7 @@ import {
   validUsername,
 } from '../../../framework/utils/RegularUtils';
 import { Resp } from '../../../framework/resp/api';
-import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
-import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
+import { LIMIT_IP, RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { RegisterService } from '../service/register';
 import { RegisterBody } from '../model/register_body';
 
@@ -22,7 +21,7 @@ export class RegisterController {
    * 系统注册
    */
   @Post('/register')
-  @RateLimit({ time: 300, count: 20, limitType: LimitTypeEnum.IP })
+  @RateLimit({ time: 300, count: 20, limitType: LIMIT_IP })
   public async register(@Body() registerBody: RegisterBody): Promise<Resp> {
     const { username, password, confirmPassword } = registerBody;
     // 判断必传参数
