@@ -10,7 +10,7 @@ import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { LoginUser } from '../../../framework/vo/LoginUser';
-import { CACHE_LOGIN_TOKEN } from '../../../framework/constants/cache-key';
+import { CACHE_LOGIN_TOKEN } from '../../../framework/constants/cache_key';
 import { SysUserOnline } from '../model/sys_user_online';
 import { SysUserOnlineService } from '../service/sys_user_online';
 
@@ -33,7 +33,7 @@ export class SysUserOnlineController {
     @Query('userName') userName: string
   ): Promise<Resp> {
     // 获取所有在线用户key
-    const keys = await this.redisCache.getKeys(`${CACHE_LOGIN_TOKEN}*`);
+    const keys = await this.redisCache.getKeys(`${CACHE_LOGIN_TOKEN}:*`);
 
     // 分批获取
     const arr: string[] = [];

@@ -39,7 +39,7 @@ export class SysLogLoginService {
     userName: string,
     status: string,
     msg: string,
-    ilobArr: string[4]
+    ilobArr: string[]
   ): Promise<number> {
     const sysLogLogin = new SysLogLogin();
     sysLogLogin.loginIp = ilobArr[0];

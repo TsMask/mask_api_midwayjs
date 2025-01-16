@@ -2,7 +2,7 @@ import { Provide, Inject } from '@midwayjs/core';
 import {
   CACHE_CAPTCHA_CODE,
   CACHE_PWD_ERR_COUNT,
-} from '../../../framework/constants/cache-key';
+} from '../../../framework/constants/cache_key';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import {
   parseBoolean,
@@ -18,11 +18,11 @@ import { RouterVo } from '../../../framework/vo/Router';
 import { ContextService } from '../../../framework/service/ContextService';
 import { TokenService } from '../../../framework/service/TokenService';
 import { LoginUser } from '../../../framework/vo/LoginUser';
-import { SysUserServiceImpl } from '../../system/service/impl/SysUserServiceImpl';
-import { SysMenuServiceImpl } from '../../system/service/impl/SysMenuServiceImpl';
-import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
-import { SysRoleServiceImpl } from '../../system/service/impl/SysRoleServiceImpl';
-import { SysLogLoginServiceImpl } from '../../system/service/impl/SysLogLoginServiceImpl';
+import { SysConfigService } from '../../system/service/sys_config';
+import { SysLogLoginService } from '../../system/service/sys_log_login';
+import { SysMenuService } from '../../system/service/sys_menu';
+import { SysRoleService } from '../../system/service/sys_role';
+import { SysUserService } from '../../system/service/sys_user';
 
 /**
  * 账号身份操作服务
@@ -36,19 +36,19 @@ export class AccountService {
   private tokenService: TokenService;
 
   @Inject()
-  private sysMenuService: SysMenuServiceImpl;
+  private sysMenuService: SysMenuService;
 
   @Inject()
-  private sysRoleService: SysRoleServiceImpl;
+  private sysRoleService: SysRoleService;
 
   @Inject()
-  private sysConfigService: SysConfigServiceImpl;
+  private sysConfigService: SysConfigService;
 
   @Inject()
-  private sysUserService: SysUserServiceImpl;
+  private sysUserService: SysUserService;
 
   @Inject()
-  private sysLogLoginService: SysLogLoginServiceImpl;
+  private sysLogLoginService: SysLogLoginService;
 
   @Inject()
   private redisCache: RedisCache;
@@ -67,7 +67,7 @@ export class AccountService {
   ): Promise<void> {
     // 验证码检查，从数据库配置获取验证码开关 true开启，false关闭
     const captchaEnabledStr =
-      await this.sysConfigService.selectConfigValueByKey(
+      await this.sysConfigService.findValueByKey(
         'sys.account.captchaEnabled'
       );
     if (!parseBoolean(captchaEnabledStr)) {
@@ -77,18 +77,17 @@ export class AccountService {
       // 验证码信息错误
       throw new Error('验证码信息错误');
     }
-    const verifyKey = CACHE_CAPTCHA_CODE + uuid;
+    const verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
     const captcha = await this.redisCache.get(verifyKey);
     if (!captcha) {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.createSysLogLogin(
+      await this.sysLogLoginService.insert(
         username,
         STATUS_NO,
         `验证码失效 ${code}`,
-        ...il,
-        ...ob
+        [...il, ...ob]
       );
       // 验证码失效
       throw new Error('验证码已失效');
@@ -98,12 +97,11 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.createSysLogLogin(
+      await this.sysLogLoginService.insert(
         username,
         STATUS_NO,
         `验证码错误 ${code}`,
-        ...il,
-        ...ob
+        [...il, ...ob]
       );
       // 验证码错误
       throw new Error('验证码错误');
@@ -116,7 +114,10 @@ export class AccountService {
    * @param password 密码
    * @return 结果
    */
-  public async loginByUsername(username: string, password: string): Promise<string> {
+  public async loginByUsername(
+    username: string,
+    password: string
+  ): Promise<string> {
     // 解析ip地址和请求用户代理信息
     const il = await this.contextService.ipaddrLocation();
     const ob = await this.contextService.uaOsBrowser();
@@ -126,7 +127,7 @@ export class AccountService {
     const retryPwdObj = await this.passwordRetryCount(username, ilobArgs);
 
     // 查询用户登录账号
-    const sysUser = await this.sysUserService.selectUserByUserName(username);
+    const sysUser = await this.sysUserService.findByUserName(username);
     if (!sysUser || sysUser.userName !== username) {
       const msg = `登录用户：${username} 不存在`;
       const throwMsg = '用户不存在或密码错误';
@@ -139,7 +140,7 @@ export class AccountService {
       this.createLogLogin(username, STATUS_NO, msg, ilobArgs, throwMsg);
       return;
     }
-    if (sysUser.status === STATUS_NO) {
+    if (sysUser.statusFlag === STATUS_NO) {
       const msg = `登录用户：${username} 已被停用`;
       const throwMsg = '对不起，您的账号已禁用';
       this.createLogLogin(username, STATUS_NO, msg, ilobArgs, throwMsg);
@@ -175,7 +176,7 @@ export class AccountService {
     if (isSystemUser) {
       loginUser.permissions = [SYS_PERMISSION_SYSTEM];
     } else {
-      loginUser.permissions = await this.sysMenuService.selectMenuPermsByUserId(
+      loginUser.permissions = await this.sysMenuService.findPermsByUserId(
         sysUser.userId
       );
     }
@@ -206,12 +207,7 @@ export class AccountService {
     throwMsg: string
   ) {
     this.contextService.getLogger().info(msg);
-    await this.sysLogLoginService.createSysLogLogin(
-      username,
-      status,
-      msg,
-      ...ilobArgs
-    );
+    await this.sysLogLoginService.insert(username, status, msg, ilobArgs);
     throw new Error(throwMsg);
   }
 
@@ -222,10 +218,10 @@ export class AccountService {
    */
   public async updateLoginDateAndIP(loginUser: LoginUser): Promise<boolean> {
     const sysUser = loginUser.user;
-    const user = await this.sysUserService.selectUserById(sysUser.userId);
+    const user = await this.sysUserService.findById(sysUser.userId);
     user.loginIp = sysUser.loginIp;
-    user.loginDate = sysUser.loginDate;
-    const rows = await this.sysUserService.updateUser(user);
+    user.loginTime = sysUser.loginTime;
+    const rows = await this.sysUserService.update(user);
     return rows > 0;
   }
 
@@ -234,7 +230,7 @@ export class AccountService {
    * @param username 登录用户名
    */
   public async clearLoginRecordCache(username: string): Promise<boolean> {
-    const cacheKey = CACHE_PWD_ERR_COUNT + username;
+    const cacheKey = CACHE_PWD_ERR_COUNT + ':' + username;
     if (await this.redisCache.hasKey(cacheKey)) {
       const rows = await this.redisCache.del(cacheKey);
       return rows > 0;
@@ -264,7 +260,7 @@ export class AccountService {
       'user.password.lockTime'
     );
     // 验证缓存记录次数
-    const cacheKey = CACHE_PWD_ERR_COUNT + username;
+    const cacheKey = CACHE_PWD_ERR_COUNT + ':' + username;
     let retryCount = await this.redisCache.get(cacheKey);
     if (!retryCount) {
       retryCount = '0';
@@ -301,10 +297,10 @@ export class AccountService {
         roles: [SYS_ROLE_SYSTEM_KEY],
       };
     }
-    const perms = await this.sysMenuService.selectMenuPermsByUserId(userId);
+    const perms = await this.sysMenuService.findPermsByUserId(userId);
     // 角色key
     const roleGroup: string[] = [];
-    const roles = await this.sysRoleService.selectRoleListByUserId(userId);
+    const roles = await this.sysRoleService.findByUserId(userId);
     for (const role of roles) {
       roleGroup.push(role.roleKey);
     }
@@ -324,10 +320,10 @@ export class AccountService {
 
     let buildMenus: RouterVo[] = [];
     if (isSystemUser) {
-      const menus = await this.sysMenuService.selectMenuTreeByUserId(0);
+      const menus = await this.sysMenuService.buildTreeMenusByUserId(0);
       buildMenus = await this.sysMenuService.buildRouteMenus(menus, '');
     } else {
-      const menus = await this.sysMenuService.selectMenuTreeByUserId(userId);
+      const menus = await this.sysMenuService.buildTreeMenusByUserId(userId);
       buildMenus = await this.sysMenuService.buildRouteMenus(menus, '');
     }
     return buildMenus;
@@ -347,13 +343,10 @@ export class AccountService {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
       const ob = await this.contextService.uaOsBrowser();
-      await this.sysLogLoginService.createSysLogLogin(
-        userName,
-        STATUS_YES,
-        '退出成功',
+      await this.sysLogLoginService.insert(userName, STATUS_YES, '退出成功', [
         ...il,
-        ...ob
-      );
+        ...ob,
+      ]);
     }
   }
 }

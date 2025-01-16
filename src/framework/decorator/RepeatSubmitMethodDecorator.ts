@@ -4,7 +4,7 @@ import {
   createCustomMethodDecorator,
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { CACHE_REPEAT_SUBMIT } from '../constants/cache-key';
+import { CACHE_REPEAT_SUBMIT } from '../constants/cache_key';
 import { RedisCache } from '../datasource/redis/redis';
 import { diffSeconds } from '../utils/DateUtils';
 import { getClientIP } from '../utils/ip2region';
@@ -57,7 +57,7 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       const clientIP = getClientIP(ctx.ip);
 
       // 唯一标识（指定key + 客户端IP + 请求地址）
-      const cacheKey = CACHE_REPEAT_SUBMIT + `${clientIP}:${ctx.path}`;
+      const cacheKey = CACHE_REPEAT_SUBMIT +":"+ `${clientIP}:${ctx.path}`;
 
       // 从Redis读取上一次保存的请求时间和参数
       const redisCacheServer: RedisCache = await ctx.requestContext.getAsync(

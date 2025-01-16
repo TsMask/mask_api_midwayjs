@@ -1,5 +1,5 @@
 import { Provide, Inject } from '@midwayjs/core';
-import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache-key';
+import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache_key';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { ContextService } from '../../../framework/service/ContextService';
@@ -111,7 +111,7 @@ export class RegisterService {
       // 验证码信息错误
       throw new Error('验证码信息错误');
     }
-    const verifyKey = CACHE_CAPTCHA_CODE + uuid;
+    const verifyKey = CACHE_CAPTCHA_CODE+":" + uuid;
     const captcha = await this.redisCache.get(verifyKey);
     if (!captcha) {
       // 解析ip地址和请求用户代理信息

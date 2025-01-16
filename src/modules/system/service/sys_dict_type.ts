@@ -1,7 +1,7 @@
 import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
 
 import { STATUS_YES } from '../../../framework/constants/common';
-import { CACHE_SYS_DICT } from '../../../framework/constants/cache-key';
+import { CACHE_SYS_DICT } from '../../../framework/constants/cache_key';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { FileService } from '../../../framework/service/FileService';
 import { SysDictTypeRepository } from '../repository/sys_dict_type';

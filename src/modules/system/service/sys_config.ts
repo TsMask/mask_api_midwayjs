@@ -1,6 +1,6 @@
 import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
 
-import { CACHE_SYS_CONFIG } from '../../../framework/constants/cache-key';
+import { CACHE_SYS_CONFIG } from '../../../framework/constants/cache_key';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { FileService } from '../../../framework/service/FileService';
 import { SysConfigRepository } from '../repository/sys_config';

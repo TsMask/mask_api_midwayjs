@@ -6,7 +6,7 @@ import {
 import { Context } from '@midwayjs/koa';
 import { LoginUser } from '../vo/LoginUser';
 import { LimitTypeEnum } from '../enums/LimitTypeEnum';
-import { CACHE_RATE_LIMIT } from '../constants/cache-key';
+import { CACHE_RATE_LIMIT } from '../constants/cache_key';
 import { RedisCache } from '../datasource/redis/redis';
 import { getClientIP } from '../utils/ip2region';
 import { Resp } from '../resp/api';
@@ -58,7 +58,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
 
       const className = joinPoint.target.constructor.name;
       const classMethod = `${className}.${joinPoint.methodName}()`;
-      let combinedKey = CACHE_RATE_LIMIT + classMethod;
+      let combinedKey = CACHE_RATE_LIMIT +":"+ classMethod;
 
       // 默认
       if (!limitType) {
@@ -68,14 +68,14 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
       // IP
       if (limitType === LimitTypeEnum.IP) {
         const clientIP = getClientIP(ctx.ip);
-        combinedKey = CACHE_RATE_LIMIT + `${clientIP}:${classMethod}`;
+        combinedKey = CACHE_RATE_LIMIT +":"+ `${clientIP}:${classMethod}`;
       }
 
       // 用户
       if (limitType === LimitTypeEnum.USER) {
         const loginUser: LoginUser = ctx.loginUser;
         if (loginUser && loginUser.userId) {
-          combinedKey = CACHE_RATE_LIMIT + `${loginUser.userId}:${classMethod}`;
+          combinedKey = CACHE_RATE_LIMIT +":"+ `${loginUser.userId}:${classMethod}`;
         }
       }
 

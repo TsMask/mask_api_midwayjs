@@ -12,7 +12,7 @@ import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { ContextService } from '../../../framework/service/ContextService';
 import { RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { LimitTypeEnum } from '../../../framework/enums/LimitTypeEnum';
-import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache-key';
+import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache_key';
 import { parseBoolean } from '../../../framework/utils/ValueParseUtils';
 import { generateHash } from '../../../framework/utils/GenIdUtils';
 import { SysConfigServiceImpl } from '../../system/service/impl/SysConfigServiceImpl';
@@ -68,7 +68,7 @@ export class CaptchaController {
       const { data: question, text: answer } = createMathExpr(options);
       data.uuid = uuid;
       data.img = svgBase64(question);
-      verifyKey = CACHE_CAPTCHA_CODE + uuid;
+      verifyKey = CACHE_CAPTCHA_CODE+":" + uuid;
       await this.redisCache.setByExpire(verifyKey, answer, CAPTCHA_EXPIRATION);
     }
     if (captchaType === CAPTCHA_TYPE_CHAR) {
@@ -78,7 +78,7 @@ export class CaptchaController {
       const { data: question, text: answer } = create(options);
       data.uuid = uuid;
       data.img = svgBase64(question);
-      verifyKey = CACHE_CAPTCHA_CODE + uuid;
+      verifyKey = CACHE_CAPTCHA_CODE+":" + uuid;
       await this.redisCache.setByExpire(
         verifyKey,
         answer.toLowerCase(),

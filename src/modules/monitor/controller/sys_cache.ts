@@ -9,7 +9,7 @@ import {
   CACHE_RATE_LIMIT,
   CACHE_PWD_ERR_COUNT,
   CACHE_LOGIN_TOKEN,
-} from '../../../framework/constants/cache-key';
+} from '../../../framework/constants/cache_key';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
