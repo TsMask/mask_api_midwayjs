@@ -6,7 +6,7 @@ import {Resp} from '../resp/api';
 /**
  * 处理校验错误-拦截器
  *
- * 404 错误会到这里
+ * 422 参数错误会到这里
  * @author TsMask
  */
 @Catch(MidwayValidationError)

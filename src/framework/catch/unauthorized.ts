@@ -5,7 +5,7 @@ import {Resp} from '../resp/api';
 /**
  * 未授权认证用户-拦截器
  *
- * 401 错误会到这里
+ * 401 身份错误会到这里
  * @author TsMask
  */
 @Catch(httpError.UnauthorizedError)

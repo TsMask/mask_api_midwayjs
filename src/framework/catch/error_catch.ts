@@ -29,6 +29,6 @@ export class ErrorCatch {
 
     // 返回200，提示错误信息
     ctx.body = Resp.codeMsg(50000, msg);
-    ctx.status = HttpStatus.OK;
+    ctx.status = HttpStatus.INTERNAL_SERVER_ERROR;
   }
 }
