@@ -22,7 +22,7 @@ export class SysConfigRepository {
     query: Record<string, string>
   ): Promise<[SysConfig[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's');
@@ -91,7 +91,7 @@ export class SysConfigRepository {
    */
   public async select(sysConfig: SysConfig): Promise<SysConfig[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's');
@@ -132,7 +132,7 @@ export class SysConfigRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's')
@@ -159,7 +159,7 @@ export class SysConfigRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysConfig)
       .values(sysConfig)
@@ -186,7 +186,7 @@ export class SysConfigRepository {
     }
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysConfig)
       .set(sysConfig)
@@ -205,7 +205,7 @@ export class SysConfigRepository {
     if (configIds.length === 0) return 0;
     // 执行更新删除标记
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .update(SysConfig)
       .set({ delFlag: '1' })
       .where('config_id in (:configIds)', { configIds })
@@ -220,7 +220,7 @@ export class SysConfigRepository {
    */
   public async checkUnique(sysConfig: SysConfig): Promise<number> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.config_id')
       .from(SysConfig, 's')
@@ -254,7 +254,7 @@ export class SysConfigRepository {
 
     // 查询数据
     const item = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.config_value')
       .from(SysConfig, 's')

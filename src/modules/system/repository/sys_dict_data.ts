@@ -21,7 +21,7 @@ export class SysDictDataRepository {
     query: Record<string, string>
   ): Promise<[SysDictData[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
@@ -71,7 +71,7 @@ export class SysDictDataRepository {
    */
   public async select(sysDictData: SysDictData): Promise<SysDictData[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
@@ -108,7 +108,7 @@ export class SysDictDataRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
@@ -136,7 +136,7 @@ export class SysDictDataRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysDictData)
       .values(sysDictData)
@@ -163,7 +163,7 @@ export class SysDictDataRepository {
     }
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysDictData)
       .set(sysDictData)
@@ -182,7 +182,7 @@ export class SysDictDataRepository {
     if (dataIds.length === 0) return 0;
     // 执行更新删除标记
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .update(SysDictData)
       .set({ delFlag: '1' })
       .where('data_id in (:dataIds)', { dataIds })
@@ -197,7 +197,7 @@ export class SysDictDataRepository {
    */
   public async checkUnique(sysDictData: SysDictData): Promise<number> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.data_id')
       .from(SysDictData, 's')
@@ -238,7 +238,7 @@ export class SysDictDataRepository {
     }
     // 查询数据
     const count = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .from(SysDictData, 's')
       .where("s.del_flag = '0'")
@@ -263,7 +263,7 @@ export class SysDictDataRepository {
     }
     // 执行更新状态标记
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysDictData)
       .set({ dictType: newDictType })

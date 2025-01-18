@@ -21,7 +21,7 @@ export class SysUserRoleRepository {
       return 0;
     }
     const count = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysUserRole, 's')
@@ -40,7 +40,7 @@ export class SysUserRoleRepository {
     if (userIds.length <= 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysUserRole)
       .where('user_id int (:userIds)', { userIds })
@@ -62,7 +62,7 @@ export class SysUserRoleRepository {
     if (roleId <= 0 || userIds.length <= 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysUserRole)
       .where('role_id = :roleId', { roleId })
@@ -81,7 +81,7 @@ export class SysUserRoleRepository {
     if (sysUserRoles.length <= 0) return 0;
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysUserRole)
       .values(sysUserRoles)

@@ -24,7 +24,7 @@ export class SysLogOperateRepository {
     dataScopeSQL: string
   ): Promise<[SysLogOperate[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysLogOperate, 's');
@@ -113,7 +113,7 @@ export class SysLogOperateRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysLogOperate)
       .values(sysLogOperate)
@@ -133,7 +133,7 @@ export class SysLogOperateRepository {
   public async clean(): Promise<number> {
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysLogOperate)
       .execute();

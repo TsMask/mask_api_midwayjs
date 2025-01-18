@@ -21,7 +21,7 @@ export class SysRoleMenuRepository {
       return 0;
     }
     const count = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysRoleMenu, 's')
@@ -40,7 +40,7 @@ export class SysRoleMenuRepository {
     if (roleIds.length <= 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysRoleMenu)
       .where('role_id int (:roleIds)', { roleIds })
@@ -58,7 +58,7 @@ export class SysRoleMenuRepository {
     if (menuIds.length <= 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysRoleMenu)
       .where('menu_id int (:menuIds)', { menuIds })
@@ -76,7 +76,7 @@ export class SysRoleMenuRepository {
     if (sysRoleMenus.length <= 0) return 0;
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysRoleMenu)
       .values(sysRoleMenus)

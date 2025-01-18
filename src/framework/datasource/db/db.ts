@@ -1,11 +1,10 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { DataSource, SelectQueryBuilder } from 'typeorm';
+
 import { parseNumber } from '../../utils/ValueParseUtils';
 
-/**
- * 动态数据源
- */
+/**动态数据源 */
 @Provide()
 @Singleton()
 export class DynamicDataSource {
@@ -17,7 +16,10 @@ export class DynamicDataSource {
    * @param source 数据库连接
    * @return 连接实例
    */
-  public dataSource(source = 'default'): DataSource {
+  public db(source: string): DataSource {
+    if (!source) {
+      source = 'default';
+    }
     return this.dataSourceManager.getDataSource(source);
   }
 
@@ -25,27 +27,30 @@ export class DynamicDataSource {
    * 获取可用数据源名称
    * @return 数据源名称
    */
-  public dataSourceNames(): string[] {
+  public names(): string[] {
     return this.dataSourceManager.getDataSourceNames();
   }
 
   /**
-   * 执行sql语句
+   * 原生语句查询和执行
    *
    * 使用后自动释放连接
    *
+   * @param source 数据源 空字符默认'default'
    * @param sql sql预编译语句
    * @param parameters 预编译?参数
-   * @param source 数据源 默认'default'
    * @returns 查询结果或异常错误
    */
   public execute(
+    source: string,
     sql: string,
-    parameters?: any[],
-    source = 'default'
+    parameters?: any[]
   ): Promise<any> {
+    const db = this.db(source);
+    // 使用正则表达式替换连续的空白字符为单个空格
     sql = sql.replace(/\s+/g, ' ');
-    return this.dataSource(source).query(sql, parameters);
+    // 查询结果
+    return db.query(sql, parameters);
   }
 
   /**
@@ -53,11 +58,12 @@ export class DynamicDataSource {
    *
    * 创建和控制单个数据库连接的状态, 允许控制事务但需要使用后手动释放连接
    *
-   * @param source 数据源 默认'default'
+   * @param source 数据源 空字符默认'default'
    * @returns 查询结果或异常错误
    */
-  public executeQueryBuilder(source = 'default'): SelectQueryBuilder<any> {
-    return this.dataSource(source).createQueryBuilder();
+  public queryBuilder(source: string): SelectQueryBuilder<any> {
+    const db = this.db(source);
+    return db.createQueryBuilder();
   }
 
   /**
@@ -82,47 +88,5 @@ export class DynamicDataSource {
       size = 10;
     }
     return [num - 1, size];
-  }
-
-  /**
-   * 查询-参数值的占位符
-   * @param sum 数量
-   * @returns 占位符字符串 "?,?"
-   */
-  public keyPlaceholderByQuery(sum: number): string {
-    const placeholders = Array.from({ length: sum }, () => '?');
-    return placeholders.join(',');
-  }
-
-  /**
-   * 插入-键值数据与参数映射键值占位符
-   * @param params 键值参数
-   * @returns [keys, placeholder, values]
-   */
-  public keyValuePlaceholderByInsert(
-    params: Map<string, any>
-  ): [string, any[], string] {
-    // 参数映射的键
-    const keys = [...params.keys()].join(',');
-    // 参数映射的值
-    const values = [...params.values()];
-    // 参数值的占位符
-    const placeholders = Array.from({ length: params.size }, () => '?');
-
-    return [keys, values, placeholders.join(',')];
-  }
-
-  /**
-   * 更新-键值数据
-   * @param params 键值参数
-   * @returns [keys, values]
-   */
-  public keyValueByUpdate(params: Map<string, any>): [string, any[]] {
-    // 参数映射的键
-    const keys = [...params.keys()].map(k => k + '=?').join(',');
-    // 参数映射的值
-    const values = [...params.values()];
-
-    return [keys, values];
   }
 }

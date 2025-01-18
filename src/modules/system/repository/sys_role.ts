@@ -22,7 +22,7 @@ export class SysRoleRepository {
     query: Record<string, string>
   ): Promise<[SysRole[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
@@ -103,7 +103,7 @@ export class SysRoleRepository {
    */
   public async select(sysRole: SysRole): Promise<SysRole[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
@@ -140,7 +140,7 @@ export class SysRoleRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
@@ -168,7 +168,7 @@ export class SysRoleRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysRole)
       .values(sysRole)
@@ -195,7 +195,7 @@ export class SysRoleRepository {
     }
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysRole)
       .set(sysRole)
@@ -214,7 +214,7 @@ export class SysRoleRepository {
     if (roleIds.length === 0) return 0;
     // 执行更新删除标记
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .update(SysRole)
       .set({ delFlag: '1' })
       .where('role_id in (:roleIds)', { roleIds })
@@ -229,7 +229,7 @@ export class SysRoleRepository {
    */
   public async checkUnique(sysRole: SysRole): Promise<number> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.role_id')
       .from(SysRole, 's')

@@ -20,7 +20,7 @@ export class SysJobRepository {
     query: Record<string, string>
   ): Promise<[SysJob[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysJob, 's');
@@ -70,7 +70,7 @@ export class SysJobRepository {
    */
   public async select(sysJob: SysJob): Promise<SysJob[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysJob, 's');
@@ -109,7 +109,7 @@ export class SysJobRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysJob, 's')
@@ -136,7 +136,7 @@ export class SysJobRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysJob)
       .values(sysJob)
@@ -163,7 +163,7 @@ export class SysJobRepository {
     }
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysJob)
       .set(sysJob)
@@ -182,7 +182,7 @@ export class SysJobRepository {
     if (jobIds.length <= 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysJob)
       .where('jobId in (:jobIds)', { jobIds })
@@ -198,7 +198,7 @@ export class SysJobRepository {
    */
   public async checkUniqueJob(sysJob: SysJob): Promise<number> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.job_id')
       .from(SysJob, 's');

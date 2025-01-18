@@ -24,7 +24,7 @@ export class SysDeptRepository {
     dataScopeSQL: string
   ): Promise<SysDept[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysDept, 's')
@@ -69,7 +69,7 @@ export class SysDeptRepository {
     }
     // 查询数据
     const item = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysDept, 's')
@@ -97,7 +97,7 @@ export class SysDeptRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysDept)
       .values(sysDept)
@@ -124,7 +124,7 @@ export class SysDeptRepository {
     }
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysDept)
       .set(sysDept)
@@ -143,7 +143,7 @@ export class SysDeptRepository {
     if (deptId <= 0) return 0;
     // 执行更新删除标记
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .update(SysDept)
       .set({ delFlag: '1' })
       .where('dept_id = :deptId', { deptId })
@@ -158,7 +158,7 @@ export class SysDeptRepository {
    */
   public async checkUnique(sysDept: SysDept): Promise<number> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.dept_id')
       .from(SysDept, 's')
@@ -194,7 +194,7 @@ export class SysDeptRepository {
     }
     // 查询数据
     const count = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .from(SysDept, 's')
       .where("s.del_flag = '0' and s.status_flag = '1'")
@@ -215,7 +215,7 @@ export class SysDeptRepository {
     }
     // 查询数据
     const count = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .from(SysUser, 's')
       .where("s.del_flag = '0'")
@@ -239,7 +239,7 @@ export class SysDeptRepository {
       return [];
     }
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .from(SysDept, 's')
       .where("s.del_flag = '0'")
@@ -274,7 +274,7 @@ export class SysDeptRepository {
    */
   public async selectChildrenDeptById(deptId: number): Promise<SysDept[]> {
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysDept, 's')
@@ -299,7 +299,7 @@ export class SysDeptRepository {
     }
     // 执行更新状态标记
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysDept)
       .set("status_flag = '1'")
@@ -329,7 +329,7 @@ export class SysDeptRepository {
 
     // 执行更新操作
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysDept)
       .set(`ancestors = ${casesValues}`)

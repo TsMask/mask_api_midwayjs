@@ -22,7 +22,7 @@ export class SysNoticeRepository {
     query: Record<string, string>
   ): Promise<[SysNotice[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysNotice, 's')
@@ -95,7 +95,7 @@ export class SysNoticeRepository {
    */
   public async select(sysNotice: SysNotice): Promise<SysNotice[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysNotice, 's');
@@ -136,7 +136,7 @@ export class SysNoticeRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysNotice, 's')
@@ -164,7 +164,7 @@ export class SysNoticeRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysNotice)
       .values(sysNotice)
@@ -191,7 +191,7 @@ export class SysNoticeRepository {
     }
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysNotice)
       .set(sysNotice)
@@ -210,7 +210,7 @@ export class SysNoticeRepository {
     if (noticeIds.length === 0) return 0;
     // 执行更新删除标记
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .update(SysNotice)
       .set({ delFlag: '1' })
       .where('notice_id in (:noticeIds)', { noticeIds })

@@ -21,7 +21,7 @@ export class SysUserPostRepository {
       return 0;
     }
     const count = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysUserPost, 's')
@@ -40,7 +40,7 @@ export class SysUserPostRepository {
     if (userIds.length <= 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysUserPost)
       .where('user_id int (:userIds)', { userIds })
@@ -58,7 +58,7 @@ export class SysUserPostRepository {
     if (sysUserPosts.length <= 0) return 0;
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysUserPost)
       .values(sysUserPosts)

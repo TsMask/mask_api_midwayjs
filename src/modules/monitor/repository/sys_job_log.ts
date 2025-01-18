@@ -21,7 +21,7 @@ export class SysJobLogRepository {
     query: Record<string, string>
   ): Promise<[SysJobLog[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysJobLog, 's');
@@ -91,7 +91,7 @@ export class SysJobLogRepository {
    */
   public async select(sysJobLog: SysJobLog): Promise<SysJobLog[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysJobLog, 's');
@@ -130,7 +130,7 @@ export class SysJobLogRepository {
     }
     // 查询数据
     const item = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysJobLog, 's')
@@ -151,7 +151,7 @@ export class SysJobLogRepository {
   public async insert(sysJobLog: SysJobLog): Promise<number> {
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysJobLog)
       .values(sysJobLog)
@@ -173,7 +173,7 @@ export class SysJobLogRepository {
     if (logIds.length === 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysJobLog)
       .where('log_id in (:logIds)', { logIds: logIds })
@@ -189,7 +189,7 @@ export class SysJobLogRepository {
   public async clean(): Promise<number> {
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysJobLog)
       .execute();

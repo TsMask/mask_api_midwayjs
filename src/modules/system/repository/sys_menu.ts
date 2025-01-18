@@ -25,7 +25,7 @@ export class SysMenuRepository {
    */
   public async select(sysMenu: SysMenu, userId: number): Promise<SysMenu[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysMenu, 's')
@@ -75,7 +75,7 @@ export class SysMenuRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysMenu, 's')
@@ -125,7 +125,7 @@ export class SysMenuRepository {
 
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysMenu)
       .values(sysMenu)
@@ -171,7 +171,7 @@ export class SysMenuRepository {
 
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysMenu)
       .set(sysMenu)
@@ -190,7 +190,7 @@ export class SysMenuRepository {
     if (menuId <= 0) return 0;
     // 执行更新删除标记
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .update(SysMenu)
       .set({ delFlag: '1' })
       .where('menu_id = :menuId', { menuId })
@@ -205,7 +205,7 @@ export class SysMenuRepository {
    */
   public async checkUnique(sysMenu: SysMenu): Promise<number> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.menu_id')
       .from(SysMenu, 's')
@@ -250,7 +250,7 @@ export class SysMenuRepository {
     }
     // 查询数据
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .from(SysMenu, 's')
       .where("s.del_flag = '0'");
@@ -301,7 +301,7 @@ export class SysMenuRepository {
       return [];
     }
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .from(SysMenu, 's')
       .where("s.del_flag = '0'")
@@ -339,7 +339,7 @@ export class SysMenuRepository {
       return [];
     }
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .from(SysMenu, 's')
       .where("s.del_flag = '0'");

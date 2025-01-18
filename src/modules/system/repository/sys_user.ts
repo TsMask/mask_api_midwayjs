@@ -28,7 +28,7 @@ export class SysUserRepository {
     dataScopeSQL: string
   ): Promise<[SysUser[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
@@ -116,7 +116,7 @@ export class SysUserRepository {
    */
   public async select(sysUser: SysUser): Promise<SysUser[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
@@ -158,7 +158,7 @@ export class SysUserRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
@@ -190,7 +190,7 @@ export class SysUserRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysUser)
       .values(sysUser)
@@ -221,7 +221,7 @@ export class SysUserRepository {
     }
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysUser)
       .set(sysUser)
@@ -240,7 +240,7 @@ export class SysUserRepository {
     if (userIds.length === 0) return 0;
     // 执行更新删除标记
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .update(SysUser)
       .set({ delFlag: '1' })
       .where('user_id in (:userIds)', { userIds })
@@ -255,7 +255,7 @@ export class SysUserRepository {
    */
   public async checkUnique(sysUser: SysUser): Promise<number> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.user_id')
       .from(SysUser, 's')
@@ -296,7 +296,7 @@ export class SysUserRepository {
 
     // 查询数据
     const item = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
@@ -320,7 +320,7 @@ export class SysUserRepository {
     dataScopeSQL: string
   ): Promise<[SysUser[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')

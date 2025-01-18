@@ -21,7 +21,7 @@ export class SysRoleDeptRepository {
     if (roleIds.length <= 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysRoleDept)
       .where('role_id int (:roleIds)', { roleIds })
@@ -39,7 +39,7 @@ export class SysRoleDeptRepository {
     if (deptIds.length <= 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysRoleDept)
       .where('dept_id int (:deptIds)', { deptIds })
@@ -57,7 +57,7 @@ export class SysRoleDeptRepository {
     if (sysRoleDepts.length <= 0) return 0;
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysRoleDept)
       .values(sysRoleDepts)

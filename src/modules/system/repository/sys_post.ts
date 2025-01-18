@@ -21,7 +21,7 @@ export class SysPostRepository {
     query: Record<string, string>
   ): Promise<[SysPost[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysPost, 's')
@@ -69,7 +69,7 @@ export class SysPostRepository {
    */
   public async select(sysPost: SysPost): Promise<SysPost[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysPost, 's')
@@ -106,7 +106,7 @@ export class SysPostRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysPost, 's')
@@ -134,7 +134,7 @@ export class SysPostRepository {
     }
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysPost)
       .values(sysPost)
@@ -161,7 +161,7 @@ export class SysPostRepository {
     }
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(SysPost)
       .set(sysPost)
@@ -180,7 +180,7 @@ export class SysPostRepository {
     if (postIds.length === 0) return 0;
     // 执行更新删除标记
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .update(SysPost)
       .set({ delFlag: '1' })
       .where('post_id in (:postIds)', { postIds })
@@ -195,7 +195,7 @@ export class SysPostRepository {
    */
   public async checkUnique(sysPost: SysPost): Promise<number> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.post_id')
       .from(SysPost, 's')
@@ -230,7 +230,7 @@ export class SysPostRepository {
     }
     // 查询数据
     const rows = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s.config_value')
       .from(SysPost, 's')

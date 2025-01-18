@@ -21,7 +21,7 @@ export class DemoORMService {
     query: Record<string, string>
   ): Promise<[DemoORM[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd');
@@ -61,7 +61,7 @@ export class DemoORMService {
    */
   public async find(demoORM: DemoORM): Promise<DemoORM[]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd');
@@ -85,7 +85,7 @@ export class DemoORMService {
     }
     // 查询数据
     const item = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd')
@@ -110,7 +110,7 @@ export class DemoORMService {
     demoORM.updateTime = demoORM.createTime;
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(DemoORM)
       .values(demoORM)
@@ -133,7 +133,7 @@ export class DemoORMService {
       return 0;
     }
     const item = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd')
@@ -152,7 +152,7 @@ export class DemoORMService {
     };
     // 执行更新
     const tx: UpdateResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .update(DemoORM)
       .set(setColumns)
@@ -171,7 +171,7 @@ export class DemoORMService {
     if (ids.length === 0) return 0;
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(DemoORM)
       .where('id in (:ids)', { ids: ids })
@@ -185,7 +185,7 @@ export class DemoORMService {
    */
   public async clean(): Promise<number> {
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(DemoORM)
       .execute();

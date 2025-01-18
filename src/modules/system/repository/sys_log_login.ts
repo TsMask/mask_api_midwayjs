@@ -24,7 +24,7 @@ export class SysLogLoginRepository {
     dataScopeSQL: string
   ): Promise<[SysLogLogin[], number]> {
     const tx = this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysLogLogin, 's');
@@ -101,7 +101,7 @@ export class SysLogLoginRepository {
     sysLogLogin.loginTime = Date.now().valueOf();
     // 执行插入
     const tx: InsertResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .insert()
       .into(SysLogLogin)
       .values(sysLogLogin)
@@ -121,7 +121,7 @@ export class SysLogLoginRepository {
   public async clean(): Promise<number> {
     // 执行删除
     const tx: DeleteResult = await this.db
-      .executeQueryBuilder('default')
+      .queryBuilder('')
       .delete()
       .from(SysLogLogin)
       .execute();
