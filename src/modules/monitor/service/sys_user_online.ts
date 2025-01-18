@@ -1,5 +1,5 @@
 import { Provide, Singleton } from '@midwayjs/core';
-import { LoginUser } from '../../../framework/vo/LoginUser';
+import { TokenInfo } from '../../../framework/utils/token/token_info';
 import { SysUserOnline } from '../model/sys_user_online';
 
 /**在线用户 服务层处理 */
@@ -13,7 +13,7 @@ export class SysUserOnlineService {
    * @return 在线用户
    */
   public async loginUserToUserOnline(
-    loginUser: LoginUser
+    loginUser: TokenInfo
   ): Promise<SysUserOnline> {
     if (!loginUser || loginUser.userId <= 0) {
       return new SysUserOnline();

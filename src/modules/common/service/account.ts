@@ -14,15 +14,15 @@ import {
   SYS_PERMISSION_SYSTEM,
   SYS_ROLE_SYSTEM_KEY,
 } from '../../../framework/constants/system';
-import { RouterVo } from '../../../framework/vo/Router';
+import { Router } from '../../system/model/vo/router';
 import { ContextService } from '../../../framework/service/ContextService';
-import { TokenService } from '../../../framework/service/TokenService';
-import { LoginUser } from '../../../framework/vo/LoginUser';
+import { TokenService } from '../../../framework/utils/token/token';
 import { SysConfigService } from '../../system/service/sys_config';
 import { SysLogLoginService } from '../../system/service/sys_log_login';
 import { SysMenuService } from '../../system/service/sys_menu';
 import { SysRoleService } from '../../system/service/sys_role';
 import { SysUserService } from '../../system/service/sys_user';
+import { TokenInfo } from '../../../framework/utils/token/token_info';
 
 /**
  * 账号身份操作服务
@@ -66,10 +66,9 @@ export class AccountService {
     uuid: string
   ): Promise<void> {
     // 验证码检查，从数据库配置获取验证码开关 true开启，false关闭
-    const captchaEnabledStr =
-      await this.sysConfigService.findValueByKey(
-        'sys.account.captchaEnabled'
-      );
+    const captchaEnabledStr = await this.sysConfigService.findValueByKey(
+      'sys.account.captchaEnabled'
+    );
     if (!parseBoolean(captchaEnabledStr)) {
       return;
     }
@@ -78,7 +77,7 @@ export class AccountService {
       throw new Error('验证码信息错误');
     }
     const verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
-    const captcha = await this.redisCache.get(verifyKey);
+    const captcha = await this.redisCache.get('', verifyKey);
     if (!captcha) {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
@@ -92,7 +91,7 @@ export class AccountService {
       // 验证码失效
       throw new Error('验证码已失效');
     }
-    await this.redisCache.del(verifyKey);
+    await this.redisCache.del('', verifyKey);
     if (captcha !== code) {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();
@@ -156,6 +155,7 @@ export class AccountService {
       // 尝试登录错误计数累加
       const errCount = parseNumber(retryPwdObj.retryCount) + 1;
       await this.redisCache.setByExpire(
+        '',
         retryPwdObj.cacheKey,
         errCount,
         parseNumber(retryPwdObj.lockTime) * 60
@@ -167,7 +167,7 @@ export class AccountService {
     }
 
     // 登录用户信息
-    const loginUser = new LoginUser();
+    const loginUser = new TokenInfo();
     loginUser.userId = sysUser.userId;
     loginUser.deptId = sysUser.deptId;
     loginUser.user = sysUser;
@@ -182,7 +182,7 @@ export class AccountService {
     }
 
     // 生成令牌，创建系统访问记录
-    const tokenStr = await this.tokenService.createToken(loginUser, ilobArgs);
+    const tokenStr = await this.tokenService.create(loginUser, ilobArgs);
     if (tokenStr) {
       const msg = '登录成功';
       const throwMsg = '用户不存在/密码错误';
@@ -216,7 +216,7 @@ export class AccountService {
    * @param userId 用户ID
    * @returns 是否登记完成
    */
-  public async updateLoginDateAndIP(loginUser: LoginUser): Promise<boolean> {
+  public async updateLoginDateAndIP(loginUser: TokenInfo): Promise<boolean> {
     const sysUser = loginUser.user;
     const user = await this.sysUserService.findById(sysUser.userId);
     user.loginIp = sysUser.loginIp;
@@ -231,8 +231,8 @@ export class AccountService {
    */
   public async clearLoginRecordCache(username: string): Promise<boolean> {
     const cacheKey = CACHE_PWD_ERR_COUNT + ':' + username;
-    if (await this.redisCache.hasKey(cacheKey)) {
-      const rows = await this.redisCache.del(cacheKey);
+    if (await this.redisCache.has('', cacheKey)) {
+      const rows = await this.redisCache.del('', cacheKey);
       return rows > 0;
     }
     return false;
@@ -261,7 +261,7 @@ export class AccountService {
     );
     // 验证缓存记录次数
     const cacheKey = CACHE_PWD_ERR_COUNT + ':' + username;
-    let retryCount = await this.redisCache.get(cacheKey);
+    let retryCount = await this.redisCache.get('', cacheKey);
     if (!retryCount) {
       retryCount = '0';
     }
@@ -314,11 +314,11 @@ export class AccountService {
    * 前端路由菜单
    * @returns
    */
-  public async routeMenus(): Promise<RouterVo[]> {
+  public async routeMenus(): Promise<Router[]> {
     const userId = this.contextService.getUserId();
     const isSystemUser = this.contextService.isSystemUser(userId);
 
-    let buildMenus: RouterVo[] = [];
+    let buildMenus: Router[] = [];
     if (isSystemUser) {
       const menus = await this.sysMenuService.buildTreeMenusByUserId(0);
       buildMenus = await this.sysMenuService.buildRouteMenus(menus, '');
@@ -338,7 +338,7 @@ export class AccountService {
     if (!token) return;
 
     // 存在token时记录退出信息
-    const userName = await this.tokenService.removeToken(token);
+    const userName = await this.tokenService.remove(token);
     if (userName) {
       // 解析ip地址和请求用户代理信息
       const il = await this.contextService.ipaddrLocation();

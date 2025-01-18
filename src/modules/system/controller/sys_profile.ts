@@ -9,7 +9,7 @@ import { Resp } from '../../../framework/resp/api';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 import { ContextService } from '../../../framework/service/ContextService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { TokenService } from '../../../framework/service/TokenService';
+import { TokenService } from '../../../framework/utils/token/token';
 import { bcryptCompare } from '../../../framework/utils/CryptoUtils';
 import { SysPostService } from '../service/sys_post';
 import { SysRoleService } from '../service/sys_role';
@@ -131,7 +131,7 @@ export class SysProfileController {
       // 更新缓存用户信息
       loginUser.user = userInfo;
       // 刷新令牌信息
-      await this.tokenService.cacheLoginUser(loginUser);
+      await this.tokenService.cache(loginUser);
       return Resp.ok();
     }
     return Resp.errMsg('修改个人信息异常');

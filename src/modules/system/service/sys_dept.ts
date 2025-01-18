@@ -3,7 +3,7 @@ import { Provide, Inject, Singleton } from '@midwayjs/core';
 import {
   TreeSelect,
   sysDeptTreeSelect,
-} from '../../../framework/vo/TreeSelect';
+} from '../model/vo/tree_select';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { parseNumber } from '../../../framework/utils/ValueParseUtils';
 import { SysRoleDeptRepository } from '../repository/sys_role_dept';

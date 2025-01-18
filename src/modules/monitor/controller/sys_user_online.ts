@@ -9,7 +9,7 @@ import { parseRemoveDuplicatesToArray } from '../../../framework/utils/ValuePars
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { LoginUser } from '../../../framework/vo/LoginUser';
+import { TokenInfo } from '../../../framework/utils/token/token_info';
 import { CACHE_LOGIN_TOKEN } from '../../../framework/constants/cache_key';
 import { SysUserOnline } from '../model/sys_user_online';
 import { SysUserOnlineService } from '../service/sys_user_online';
@@ -33,7 +33,7 @@ export class SysUserOnlineController {
     @Query('userName') userName: string
   ): Promise<Resp> {
     // 获取所有在线用户key
-    const keys = await this.redisCache.getKeys(`${CACHE_LOGIN_TOKEN}:*`);
+    const keys = await this.redisCache.get('', `${CACHE_LOGIN_TOKEN}:*`);
 
     // 分批获取
     const arr: string[] = [];
@@ -43,7 +43,7 @@ export class SysUserOnlineController {
         end = keys.length;
       }
       const chunk = keys.slice(i, end);
-      const values = await this.redisCache.getBatch(chunk);
+      const values = await this.redisCache.getBatch('', [chunk]);
       if (values.length > 0) {
         arr.push(...values);
       }
@@ -53,7 +53,7 @@ export class SysUserOnlineController {
     let userOnlines: SysUserOnline[] = [];
     for (const str of arr) {
       if (!str) continue;
-      const loginUser: LoginUser = JSON.parse(str);
+      const loginUser: TokenInfo = JSON.parse(str);
       const onlineUser = await this.sysUserOnlineService.loginUserToUserOnline(
         loginUser
       );
@@ -115,7 +115,7 @@ export class SysUserOnlineController {
     const uniqueIDs = parseRemoveDuplicatesToArray(tokenId, ',');
     for (const v of uniqueIDs) {
       const key = `${CACHE_LOGIN_TOKEN}:${v}`;
-      await this.redisCache.del(key);
+      await this.redisCache.del('', key);
     }
     return Resp.ok();
   }

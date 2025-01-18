@@ -3,7 +3,7 @@ import { Provide, Inject, Singleton } from '@midwayjs/core';
 import {
   TreeSelect,
   sysMenuTreeSelect,
-} from '../../../framework/vo/TreeSelect';
+} from '../model/vo/tree_select';
 import {
   MENU_COMPONENT_LAYOUT_BASIC,
   MENU_COMPONENT_LAYOUT_BLANK,
@@ -15,7 +15,7 @@ import {
 import { ConvertToCamelCase } from '../../../framework/utils/ValueParseUtils';
 import { validHttp } from '../../../framework/utils/RegularUtils';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import { RouterMateVo, RouterVo } from '../../../framework/vo/Router';
+import {  Router, RouterMeta } from '../model/vo/router';
 import { SysMenuRepository } from '../repository/sys_menu';
 import { SysRoleMenuRepository } from '../repository/sys_role_menu';
 import { SysRoleRepository } from '../repository/sys_role';
@@ -273,10 +273,10 @@ export class SysMenuService {
   public async buildRouteMenus(
     sysMenus: SysMenu[],
     prefix = ''
-  ): Promise<RouterVo[]> {
-    const routers: RouterVo[] = [];
+  ): Promise<Router[]> {
+    const routers: Router[] = [];
     for (const item of sysMenus) {
-      const router = new RouterVo();
+      const router = new Router();
       router.name = this.getRouteName(item);
       router.path = this.getRouterPath(item);
       router.component = this.getComponent(item);
@@ -307,7 +307,7 @@ export class SysMenuService {
         // 父菜单 内部跳转 菜单类型
         const menuPath = '/' + item.menuId;
         const childPath = menuPath + this.getRouterPath(item);
-        const children = new RouterVo();
+        const children = new Router();
         children.name = this.getRouteName(item);
         children.path = childPath;
         children.component = item.component;
@@ -326,7 +326,7 @@ export class SysMenuService {
         // 父菜单 内部跳转 路径链接
         const menuPath = '/' + item.menuId;
         const childPath = menuPath + this.getRouterPath(item);
-        const children = new RouterVo();
+        const children = new Router();
         children.name = this.getRouteName(item);
         children.path = childPath;
         children.component = MENU_COMPONENT_LAYOUT_LINK;
@@ -429,8 +429,8 @@ export class SysMenuService {
    * @param sysMenu 菜单信息
    * @return 元信息
    */
-  private getRouteMeta(sysMenu: SysMenu): RouterMateVo {
-    const meta = new RouterMateVo();
+  private getRouteMeta(sysMenu: SysMenu): RouterMeta {
+    const meta = new RouterMeta();
     meta.icon = sysMenu.icon === '#' ? '' : sysMenu.icon;
     meta.title = sysMenu.menuName;
     meta.hideChildInMenu = false;
