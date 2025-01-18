@@ -9,7 +9,7 @@ import {
   SYS_PERMISSION_SYSTEM,
   SYS_ROLE_SYSTEM_KEY,
 } from '../constants/system';
-import { TokenService } from '../service/TokenService';
+import { TokenService } from '../utils/token/token';
 import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
 
 /** 授权限制参数 */
@@ -63,13 +63,13 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       }
 
       // 验证令牌
-      const claims = await tokenService.verifyToken(headerToken);
+      const claims = await tokenService.verify(headerToken);
       // 获取缓存的用户信息
-      let loginUser = await tokenService.getLoginUser(claims);
+      let loginUser = await tokenService.info(claims);
       if (!loginUser.userId) {
         throw new httpError.UnauthorizedError('无效身份授权');
       }
-      loginUser = await tokenService.refreshInToken(loginUser);
+      loginUser = await tokenService.refreshIn(loginUser);
       ctx.loginUser = loginUser;
 
       // 登录用户角色权限校验

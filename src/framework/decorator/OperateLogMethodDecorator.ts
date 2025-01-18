@@ -6,12 +6,12 @@ import {
 import { Context } from '@midwayjs/koa';
 
 import { Resp } from '../resp/api';
-import { LoginUser } from '../vo/LoginUser';
+import { TokenInfo } from '../utils/token/token_info';
 import { parseSafeContent } from '../utils/ValueParseUtils';
 import { STATUS_NO, STATUS_YES } from '../constants/common';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { SysLogOperate } from '../../modules/system/model/sys_log_operate';
-import { SysLogOperateServiceImpl } from '../../modules/system/service/impl/SysLogOperateServiceImpl';
+import { SysLogOperateService } from '../../modules/system/service/sys_log_operate';
 
 /**
  * 操作日志-业务操作类型枚举
@@ -101,23 +101,17 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       operLog.businessType = metadataObj.businessType;
       // operLog.operatorType = metadataObj.operatorType;
       const className = joinPoint.target.constructor.name;
-      operLog.method = `${className}.${joinPoint.methodName}()`;
-      operLog.operUrl = ctx.path;
-      operLog.requestMethod = ctx.method;
+      operLog.operaMethod = `${className}.${joinPoint.methodName}()`;
+      operLog.operaUrl = ctx.path;
+      operLog.operaUrlMethod = ctx.method;
       // 解析ip地址
-      operLog.operIp = getClientIP(ctx.ip);
-      operLog.operLocation = await getRealAddressByIp(ctx.ip);
+      operLog.operaIp = getClientIP(ctx.ip);
+      operLog.operaLocation = await getRealAddressByIp(ctx.ip);
 
       // 获取登录用户信息
-      const loginUser: LoginUser = ctx.loginUser;
+      const loginUser: TokenInfo = ctx.loginUser;
       if (loginUser && loginUser.userId) {
-        operLog.operName = loginUser.user.userName;
-        operLog.deptName = loginUser.user.dept?.deptName;
-        if (loginUser.user.userType === 'sys') {
-          operLog.operatorType = '1';
-        } else {
-          operLog.operatorType = '0';
-        }
+        operLog.operaBy = loginUser.user.userName;
       }
 
       // 是否需要保存request，参数和值
@@ -134,7 +128,7 @@ export function OpLerateLogSave(options: { metadata: Options }) {
             }
           }
         }
-        operLog.operParam = JSON.stringify(params).substring(0, 2000);
+        operLog.operaParam = JSON.stringify(params).substring(0, 2000);
       }
 
       // 执行原方法
@@ -144,25 +138,25 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       if (metadataObj.isSaveResponseData) {
         // 二进制流文件记录响应文件名
         if (Buffer.isBuffer(res)) {
-          operLog.operMsg =
+          operLog.operaMsg =
             ctx.response.headers['content-disposition'].toString();
         } else {
-          operLog.operMsg = JSON.stringify(res).substring(0, 2000);
+          operLog.operaMsg = JSON.stringify(res).substring(0, 2000);
         }
       }
 
       // 保存操作记录到数据库
-      const sysLogOperateService: SysLogOperateServiceImpl =
-        await ctx.requestContext.getAsync(SysLogOperateServiceImpl);
+      const sysLogOperateService: SysLogOperateService =
+        await ctx.requestContext.getAsync(SysLogOperateService);
       if (res instanceof Resp) {
-        operLog.status =
+        operLog.statusFlag =
           res.code === Resp.CODE_SUCCESS ? STATUS_YES : STATUS_NO;
       } else {
-        operLog.status = STATUS_YES;
+        operLog.statusFlag = STATUS_YES;
       }
       // 请求耗时
       operLog.costTime = Date.now() - ctx.startTime;
-      await sysLogOperateService.insertSysLogOperate(operLog);
+      await sysLogOperateService.insert(operLog);
 
       // 返回执行结果
       return res;

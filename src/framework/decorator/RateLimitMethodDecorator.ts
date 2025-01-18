@@ -4,7 +4,7 @@ import {
   createCustomMethodDecorator,
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { LoginUser } from '../vo/LoginUser';
+import { TokenInfo } from '../utils/token/token_info';
 import { CACHE_RATE_LIMIT } from '../constants/cache_key';
 import { RedisCache } from '../datasource/redis/redis';
 import { getClientIP } from '../utils/ip2region';
@@ -81,7 +81,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
 
       // 用户
       if (limitType === LIMIT_USER) {
-        const loginUser: LoginUser = ctx.loginUser;
+        const loginUser: TokenInfo = ctx.loginUser;
         if (loginUser && loginUser.userId) {
           combinedKey =
             CACHE_RATE_LIMIT + ':' + `${loginUser.userId}:${classMethod}`;
@@ -93,11 +93,12 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
         RedisCache
       );
       const rateCount = await redisCacheServer.rateLimit(
+        '',
         combinedKey,
         limitTime,
         limitCount
       );
-      const rateTime = await redisCacheServer.getExpire(combinedKey);
+      const rateTime = await redisCacheServer.getExpire('', combinedKey);
 
       // 设置限流声明响应头
       ctx.set('X-Ratelimit-Limit', `${limitCount}`);
