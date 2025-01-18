@@ -1,4 +1,4 @@
-import { ErrorCatch } from './error-catch';
+import { ErrorCatch } from './error_catch';
 import { Forbidden } from './forbidden';
 import { NotFound } from './notfound';
 import { Unauthorized } from './unauthorized';
