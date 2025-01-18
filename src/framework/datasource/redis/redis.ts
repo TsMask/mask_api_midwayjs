@@ -1,43 +1,38 @@
-import { Provide, Inject, Singleton, Init } from '@midwayjs/core';
-import { RedisService } from '@midwayjs/redis';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { Redis, RedisServiceFactory } from '@midwayjs/redis';
 
-/**
- * redis 缓存处理
- *
- * @author TsMask
- */
+/**Redis连接实例 */
 @Provide()
 @Singleton()
 export class RedisCache {
   @Inject()
-  private redisService: RedisService;
+  private redisServiceFactory: RedisServiceFactory;
 
-  @Init()
-  async init() {
-    // 启动时，声明定义限流脚本命令
-    this.redisService.defineCommand('rateLimitCommand', {
-      numberOfKeys: 1,
-      lua: `local key = KEYS[1]
-      local time = tonumber(ARGV[1])
-      local count = tonumber(ARGV[2])
-      local current = redis.call('get', key);
-      if current and tonumber(current) >= count then
-          return tonumber(current);
-      end
-      current = redis.call('incr', key)
-      if tonumber(current) == 1 then
-          redis.call('expire', key, time)
-      end
-      return tonumber(current);`,
-    });
+  /**定义Lua脚本标记，避免重复定义 */
+  private defineCommand: Record<string, string[]> = {};
+
+  /**
+   * 获取实例
+   * @param source redis服务标识，默认为default
+   * @returns redis实例
+   */
+  public async rdb(source: string): Promise<Redis> {
+    if (!source) {
+      source = 'default';
+    }
+    return await this.redisServiceFactory.get(source);
   }
 
   /**
    * 获取redis服务信息
-   * @return 信息对象
+   * @param source 数据源名称，空字符值默认为default
+   * @returns 信息对象
    */
-  async getInfo(): Promise<Record<string, Record<string, string>>> {
-    const info = await this.redisService.info();
+  public async info(
+    source: string
+  ): Promise<Record<string, Record<string, string>>> {
+    const rdb = await this.rdb(source);
+    const info = await rdb.info();
     // 处理字符串信息
     const infoObj: Record<string, Record<string, string>> = {};
     let label = '';
@@ -60,11 +55,23 @@ export class RedisCache {
   }
 
   /**
+   * 获取redis当前连接可用键Key总数信息
+   * @param source 数据源名称，空字符值默认为default
+   * @return key总数
+   */
+  public async keySize(source: string): Promise<number> {
+    const rdb = await this.rdb(source);
+    return await rdb.dbsize();
+  }
+
+  /**
    * 获取redis命令状态信息
+   * @param source 数据源名称，空字符值默认为default
    * @return 命令状态列表
    */
-  async getCommandStats(): Promise<Record<string, string>[]> {
-    const commandstats = await this.redisService.info('commandstats');
+  public async commandStats(source: string): Promise<Record<string, string>[]> {
+    const rdb = await this.rdb(source);
+    const commandstats = await rdb.info('commandstats');
     // 处理字符串信息
     const statsObjArr: Record<string, string>[] = [];
     const lines: string[] = commandstats.split('\r\n');
@@ -82,154 +89,39 @@ export class RedisCache {
   }
 
   /**
-   * 获取redis当前连接可用键Key总数信息
-   * @return key总数
-   */
-  async getKeySize(): Promise<number> {
-    return await this.redisService.dbsize();
-  }
-
-  /**
-   * 限流查询并记录
-   * @param limitKey 限流缓存key
-   * @param time 限流时间,单位秒
-   * @param count 限流次数
-   * @return 请求记录总数
-   */
-  async rateLimit(
-    limitKey: string,
-    time: number,
-    count: number
-  ): Promise<number> {
-    return await this.redisService.rateLimitCommand(limitKey, time, count);
-  }
-
-  /**
-   * 设置缓存数据
-   *
-   * @param key 键
-   * @param value 值
-   * @return 成功返回 "OK"
-   */
-  async set(key: string, value: string | Buffer | number): Promise<string> {
-    return await this.redisService.set(key, value);
-  }
-
-  /**
-   * 设置缓存数据与过期时间
-   *
-   * @param key 键
-   * @param value 值
-   * @param timeout 有效时间，单位秒
-   * @return 成功返回 "OK"
-   */
-  async setByExpire(
-    key: string,
-    value: string | Buffer | number,
-    timeout: number
-  ): Promise<string> {
-    return await this.redisService.set(key, value, 'EX', timeout);
-  }
-
-  /**
-   * 设置有效时间
-   *
-   * @param key 键
-   * @param timeout 超时时间, 单位秒
-   * @return true=设置成功 false=设置失败
-   */
-  async setExpire(key: string, timeout: string | number): Promise<boolean> {
-    const keys = await this.redisService.expire(key, timeout);
-    return keys > 0;
-  }
-
-  /**
-   * 获取有效时间
-   *
+   * 获取键的剩余有效时间（秒）
+   * @param source 数据源名称，空字符值默认为default
    * @param key 键
    * @return key剩余有效期，单位秒
    */
-  async getExpire(key: string): Promise<number> {
-    return await this.redisService.ttl(key);
-  }
-
-  /**
-   * 判断key是否存在
-   *
-   * @param key 键
-   * @return true=存在 false=不存在
-   */
-  async hasKey(key: string): Promise<boolean> {
-    const keys = await this.redisService.exists(key);
-    return keys > 0;
-  }
-
-  /**
-   * 删除单个
-   *
-   * @param key 键
-   * @return 删除key数量
-   */
-  async del(key: string): Promise<number> {
-    return await this.redisService.del(key);
-  }
-
-  /**
-   * 删除多个
-   *
-   * @param keys 多个键
-   * @return 删除key数量
-   */
-  async delKeys(keys: string[]): Promise<number> {
-    if (!keys || keys.length === 0) {
-      return 0;
-    }
-    return await this.redisService.del(keys);
-  }
-
-  /**
-   * 获得缓存数据
-   *
-   * @param key 缓存的键值
-   * @return 缓存键值对应的数据
-   */
-  async get(key: string): Promise<string> {
-    return await this.redisService.get(key);
-  }
-
-  /**
-   * 批量获得缓存数据
-   *
-   * 如果某个键不存在，则对应的元素为 null
-   *
-   * @param keys 缓存的键值数组
-   * @return 缓存键值对应的数据
-   */
-  async getBatch(keys: string[]): Promise<string[]> {
-    if (!keys || keys.length === 0) {
-      return [];
-    }
-    return await this.redisService.mget(keys);
+  public async getExpire(source: string, key: string): Promise<number> {
+    const rdb = await this.rdb(source);
+    return await rdb.ttl(key);
   }
 
   /**
    * 获得缓存数据的key列表
-   *
-   * @param pattern 字符串前缀 例如：sys_*
+   * @param source 数据源名称，空字符值默认为default
+   * @param pattern 键
    * @return key列表
    */
-  async getKeys(pattern = '*'): Promise<string[]> {
-    // return await this.redisService.keys(pattern);
+  public async getKeys(source: string, pattern: string): Promise<string[]> {
+    // 数据源
+    const rdb = await this.rdb(source);
+    // return await rdb.keys(pattern);
     const keys: string[] = [];
+    // 游标
     let cursor = '0';
-
+    let count = 100;
+    // 循环遍历获取匹配的键
     for (;;) {
-      const [nextCursor, batchKeys] = await this.redisService.scan(
+      // 使用 SCAN 命令获取匹配的键
+      const [nextCursor, batchKeys] = await rdb.scan(
         cursor,
         'MATCH',
         pattern,
         'COUNT',
-        100
+        count
       );
       cursor = nextCursor;
       keys.push(...batchKeys);
@@ -238,7 +130,156 @@ export class RedisCache {
         break;
       }
     }
-
     return keys;
+  }
+
+  /**
+   * 批量获得缓存数据
+   * @param source 数据源名称，空字符值默认为default
+   * @param keys 缓存的键值数组
+   * @return 缓存键值对应的数据
+   */
+  public async getBatch(source: string, keys: string[]): Promise<string[]> {
+    if (!keys || keys.length === 0) {
+      return [];
+    }
+    const rdb = await this.rdb(source);
+    let v = await rdb.mget(keys);
+    if (Array.isArray(v) && v.length > 0) {
+      return v;
+    }
+    return [];
+  }
+
+  /**
+   * 获得缓存数据
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 缓存的键值
+   * @return 缓存键值对应的数据
+   */
+  public async get(source: string, key: string): Promise<string> {
+    const rdb = await this.rdb(source);
+    return await rdb.get(key);
+  }
+
+  /**
+   * 判断key是否存在
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 键
+   * @return 存在数量
+   */
+  public async has(source: string, key: string): Promise<number> {
+    const rdb = await this.rdb(source);
+    return await rdb.exists(key);
+  }
+
+  /**
+   * 设置缓存数据
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 键
+   * @param value 值
+   * @return 布尔
+   */
+  public async set(
+    source: string,
+    key: string,
+    value: string | Buffer | number
+  ): Promise<boolean> {
+    const rdb = await this.rdb(source);
+    const ok = await rdb.set(key, value);
+    return ok === 'OK';
+  }
+
+  /**
+   * 设置缓存数据与过期时间
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 键
+   * @param value 值
+   * @param timeout 有效时间，单位秒
+   * @return 布尔
+   */
+  public async setByExpire(
+    source: string,
+    key: string,
+    value: string | Buffer | number,
+    timeout: number
+  ): Promise<boolean> {
+    const rdb = await this.rdb(source);
+    const ok = await rdb.set(key, value, 'EX', timeout);
+    return ok === 'OK';
+  }
+
+  /**
+   * 删除单个
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 键
+   * @return 删除key数量
+   */
+  public async del(source: string, key: string): Promise<number> {
+    const rdb = await this.rdb(source);
+    return await rdb.del(key);
+  }
+
+  /**
+   * 删除多个
+   * @param source 数据源名称，空字符值默认为default
+   * @param keys 多个键
+   * @return 删除key数量
+   */
+  public async delKeys(source: string, keys: string[]): Promise<number> {
+    if (!keys || keys.length === 0) {
+      return 0;
+    }
+    const rdb = await this.rdb(source);
+    return await rdb.del(keys);
+  }
+
+  /**
+   * 限流查询并记录
+   * @param source 数据源名称，空字符值默认为default
+   * @param limitKey 限流缓存key
+   * @param time 限流时间,单位秒
+   * @param count 限流次数
+   * @return 请求记录总数
+   */
+  public async rateLimit(
+    source: string,
+    limitKey: string,
+    time: number,
+    count: number
+  ): Promise<number> {
+    const rdb = await this.rdb(source);
+
+    // 定义限流命令
+    let isDefine = true;
+    if (Object.hasOwn(this.defineCommand, 'rateLimitCommand')) {
+      if (this.defineCommand.rateLimitCommand.indexOf(source) === -1) {
+        isDefine = false;
+      }
+    } else {
+      this.defineCommand.rateLimitCommand = [];
+      isDefine = false;
+    }
+    if (!isDefine) {
+      // 声明定义限流脚本命令
+      rdb.defineCommand('rateLimitCommand', {
+        numberOfKeys: 1,
+        lua: `local key = KEYS[1]
+        local time = tonumber(ARGV[1])
+        local count = tonumber(ARGV[2])
+        local current = redis.call('get', key);
+        if current and tonumber(current) >= count then
+            return tonumber(current);
+        end
+        current = redis.call('incr', key)
+        if tonumber(current) == 1 then
+            redis.call('expire', key, time)
+        end
+        return tonumber(current);`,
+      });
+      this.defineCommand.rateLimitCommand.push(source);
+    }
+
+    return await rdb.rateLimitCommand(limitKey, time, count);
   }
 }
