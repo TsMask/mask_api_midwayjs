@@ -1,7 +1,7 @@
 import { ILogger, Inject, Provide, httpError } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 import { SysUser } from '../../modules/system/model/sys_user';
-import { LoginUser } from '../vo/LoginUser';
+import { TokenInfo } from '../utils/token/token_info';
 import { getUaInfo } from '../utils/UAParserUtils';
 import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
 import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
@@ -75,7 +75,7 @@ export class ContextService {
   /**
    * 获取登录用户
    **/
-  getLoginUser(): LoginUser {
+  getLoginUser(): TokenInfo {
     const loginUser = this.ctx.loginUser;
     if (loginUser) return loginUser;
     throw new httpError.UnauthorizedError('获取登录用户信息异常');

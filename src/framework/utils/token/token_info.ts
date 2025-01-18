@@ -1,9 +1,7 @@
-import { SysUser } from '../../modules/system/model/sys_user';
+import { SysUser } from '../../../modules/system/model/sys_user';
 
-/**
- * 令牌登录用户身份权限信息对象
- */
-export class LoginUser {
+/**令牌信息对象 */
+export class TokenInfo {
   /**用户唯一标识 */
   uuid: string;
 

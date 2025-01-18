@@ -1,7 +1,5 @@
-/**
- * 路由信息对象
- */
-export class RouterVo {
+/**路由信息对象 */
+export class Router {
   /**路由名字 英文首字母大写 */
   name: string;
 
@@ -9,7 +7,7 @@ export class RouterVo {
   path: string;
 
   /**其他元素 */
-  meta: RouterMateVo;
+  meta: RouterMeta;
 
   /**组件地址 */
   component: string;
@@ -18,13 +16,11 @@ export class RouterVo {
   redirect: string;
 
   /**子路由 */
-  children: RouterVo[];
+  children: Router[];
 }
 
-/**
- * 路由元信息对象
- */
-export class RouterMateVo {
+/**路由元信息对象 */
+export class RouterMeta {
   /**设置该菜单在侧边栏和面包屑中展示的名字 */
   title: string;
 
