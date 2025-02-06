@@ -5,3 +5,6 @@ export const STATUS_YES = '1';
 
 /**通用状态标识-停用/失败/否 */
 export const STATUS_NO = '0';
+
+/**上下文信息-登录用户 */
+export const CTX_LOGIN_USER = 'ctx:login_user';
