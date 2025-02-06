@@ -6,8 +6,15 @@ import cronParser = require('cron-parser');
  */
 export function parseNumber(value: any): number {
   if (typeof value === 'number') return value;
-  if (!value) return 0;
-  return Number(value) || 0;
+  if (typeof value === 'boolean') {
+    return Number(value);
+  }
+  if (typeof value === 'string') {
+    const v = Number(value);
+    if (!isNaN(v)) return v;
+    return 0;
+  }
+  return 0;
 }
 
 /**
@@ -15,9 +22,19 @@ export function parseNumber(value: any): number {
  * @param value 值
  */
 export function parseBoolean(value: any): boolean {
-  if (typeof value === 'number') return Boolean(value);
-  if (!value || value === 'false' || value === '0') return false;
-  return Boolean(value) || false;
+  if (typeof value === 'number') {
+    return value > 0 ? true : false;
+  }
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    if (value === 'false' || value === '0' || value.trim().length === 0) {
+      return false;
+    }
+    return Boolean(value);
+  }
+  return false;
 }
 
 /**
