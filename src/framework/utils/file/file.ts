@@ -1,113 +1,210 @@
 import { Config, Provide, Singleton } from '@midwayjs/core';
-import { UploadFileInfo } from '@midwayjs/upload';
 import { posix } from 'path';
-import { parseDatePath } from '../utils/DateUtils';
-import { readSheet, writeSheet } from '../utils/ExeclUtils';
-import { generateHash } from '../utils/GenIdUtils';
+import { parseDatePath } from '../date/data';
+import { readSheet, writeSheet } from './execl';
+import { generateCode } from '../generate/generate';
 import {
   getDirFileNameList,
   checkDirPathExists,
   deleteFile,
-  getFileExt,
-  getFileStream,
-  getMimeTypeExt,
+  getFileStream, 
   transferToNewFile,
   mergeToNewFile,
   getFileSize,
   writeBufferFile,
-} from '../utils/FileUtils';
+} from './utils';
 import {
   UPLOAD_CHUNK,
   UPLOAD_DEFAULT,
   UPLOAD_EXPORT,
   UPLOAD_IMPORT,
-} from '../constants/upload_sub_path';
+} from '../../constants/upload_sub_path';
+import { replace } from '../regular/regular';
+import { UploadFileInfo } from '@midwayjs/busboy';
 
-/**最大文件名长度 */
-const DEFAULT_FILE_NAME_LENGTH = 100;
-
-/**
- * 文件服务
- *
- * @author TsMask
- */
+/**File文件工具验证处理*/
 @Provide()
 @Singleton()
-export class FileService {
-  // 文件上传路径
+export class FileUtil {
+  /**文件上传路径 */
   @Config('staticFile.dirs.upload')
   private resourceUpload: { prefix: string; dir: string };
 
-  // 文件上传扩展名白名单
+  /**文件上传扩展名白名单 */
   @Config('upload.whitelist')
   private uploadWhiteList: string[];
 
   /**
    * 生成文件名称
    * @param fileName 原始文件名称含后缀，如：logo.png
-   * @param mimeType 原始文件类型，如：image/png
    * @returns fileName_随机值.extName
    */
-  private generateFileName(fileName: string, mimeType?: string): string {
-    // 截取拓展
-    let ext = getFileExt(fileName);
-    if (!ext && mimeType) {
-      ext = getMimeTypeExt(mimeType);
-    }
+  private generateFileName(fileName: string): string {
+    const fileExt = posix.extname(fileName);
     // 替换掉后缀和特殊字符保留文件名
-    let newFileName = fileName.replace(ext, '');
-    newFileName = newFileName.replace(/[<>:"\\|?*]+/g, '');
-    return `${newFileName.trim()}_${generateHash(6)}${ext}`;
+    let newFileName = replace(fileExt, fileName, '');
+    newFileName = replace(`/[<>:"\\|?*]+/g`, newFileName, '');
+    newFileName = newFileName.trim();
+    return `${newFileName}_${generateCode(6)}${fileExt}`;
   }
 
   /**
    * 检查文件允许写入本地
-   * @param fileName 原始文件名称含后缀，如：midway1_logo_iipc68.png
+   * @param fileName 原始文件名称含后缀，如：file_logo_xxw68.png
    * @param allowExts 允许上传拓展类型，['.png']
-   * @param mimeType 原始文件类型，如：image/png
-   * @returns 抛出异常
+   * @returns 错误信息
    */
-  private isAllowWrite(
-    fileName: string,
-    allowExts: string[],
-    mimeType?: string
-  ) {
+  private isAllowWrite(fileName: string, allowExts: string[]): string {
+    /**最大文件名长度 */
+    const DEFAULT_FILE_NAME_LENGTH = 100;
     // 判断上传文件名称长度
     if (fileName.length > DEFAULT_FILE_NAME_LENGTH) {
       throw new Error(`上传文件名称长度限制最长为 ${DEFAULT_FILE_NAME_LENGTH}`);
     }
 
     // 判断文件拓展是否为允许的拓展类型
-    let fileExt = getFileExt(fileName);
-    if (!fileExt && mimeType) {
-      fileExt = getMimeTypeExt(mimeType);
-    }
-    if (Array.isArray(allowExts) && allowExts.length === 0) {
+    let fileExt = posix.extname(fileName);
+    if (allowExts.length === 0) {
       allowExts = this.uploadWhiteList;
     }
-    if (!allowExts.includes(fileExt)) {
-      throw new Error(
-        `上传文件类型不支持，仅支持以下类型：${allowExts.join('、')}`
-      );
+    let hasExt = false;
+    for (const ext of allowExts) {
+      if (ext == fileExt) {
+        hasExt = true;
+        break;
+      }
     }
+
+    if (!hasExt) {
+      return `上传文件类型不支持，仅支持以下类型：${allowExts.join('、')}`;
+    }
+
+    return '';
   }
 
   /**
    * 检查文件允许本地读取
    * @param filePath 文件存放资源路径，URL相对地址
-   * @returns true 正常 false 非法
+   * @returns 错误信息
    */
-  private isAllowRead(filePath: string): boolean {
+  private isAllowRead(filePath: string): string {
     // 禁止目录上跳级别
-    if (filePath.includes('..')) return false;
-
-    // 检查允许下载的文件规则
-    const fileExt = getFileExt(filePath);
-    if (this.uploadWhiteList.includes(fileExt)) {
-      return true;
+    if (filePath.indexOf('..') !== -1) {
+      return '禁止目录上跳级别';
     }
 
-    return false;
+    // 检查允许下载的文件规则
+    const fileExt = posix.extname(filePath);
+    let hasExt = false;
+    for (const str of this.uploadWhiteList) {
+      if (str === fileExt) {
+        hasExt = true;
+        break;
+      }
+    }
+    if (!hasExt) {
+      return `非法下载的文件规则：${this.uploadWhiteList.join('、')}`;
+    }
+    return '';
+  }
+
+  /**
+   * 上传资源文件读取
+   * @param filePath 文件存放资源路径，URL相对地址 如：/upload/common/2023/06/xxx.png
+   * @param headerRange 断点续传范围区间，bytes=0-12131
+   * @return 结果 { fileSize, data, range, chunkSize }
+   */
+  public async readUploadFileStream(
+    filePath: string,
+    headerRange: string
+  ): Promise<[Record<string, any>, string]> {
+    // 检查文件允许访问
+    let err = this.isAllowRead(filePath);
+    if (err) {
+      return [undefined, err];
+    }
+    // 上传资源路径
+    const { prefix, dir } = this.resourceUpload;
+    const fileAsbPath = filePath.replace(prefix, dir);
+
+    // 响应结果
+    const result = {
+      range: '',
+      chunkSize: 0,
+      fileSize: 0,
+      data: null,
+    };
+
+    // 文件大小
+    const fileSize = await getFileSize(fileAsbPath);
+    if (fileSize <= 0) {
+      return [undefined, '文件不存在'];
+    }
+    result.fileSize = fileSize;
+
+    if (headerRange) {
+      const parts = headerRange.replace(/bytes=/, '').split('-');
+      let start = parseInt(parts[0], 10);
+      if (isNaN(start) || start > fileSize) {
+        start = 0;
+      }
+      let end = parseInt(parts[1], 10);
+      if (isNaN(end) || start > fileSize) {
+        end = fileSize - 1;
+      }
+      if (start > end) {
+        start = end;
+      }
+
+      // 分片结果
+      result.range = `bytes ${start}-${end}/${fileSize}`;
+      result.chunkSize = end - start + 1;
+      const [byteArr, errMsg] = await getFileStream(fileAsbPath, start, end);
+      if (errMsg) {
+        return [undefined, errMsg];
+      }
+      result.data = byteArr;
+      return [result, ''];
+    }
+
+    const [byteArr, errMsg] = await getFileStream(fileAsbPath, 0, fileSize);
+    if (errMsg) {
+      return [undefined, errMsg];
+    }
+    result.data = byteArr;
+    return [result, ''];
+  }
+
+  /**
+   * 上传资源文件转存
+   * @param file 上传文件对象
+   * @param subPath 子路径
+   * @param allowExts 允许上传拓展类型（含“.”)，如 ['.png','.jpg']
+   * @returns 文件存放资源路径，URL相对地址
+   */
+  public async transferUploadFile(
+    file: UploadFileInfo,
+    subPath: string,
+    allowExts: string[] = []
+  ): Promise<[string, string]> {
+    // 上传文件检查
+    let err = this.isAllowWrite(file.filename, allowExts);
+    if (err) {
+      return ['', err];
+    }
+    // 上传资源路径
+    const { prefix, dir } = this.resourceUpload;
+    // 新文件名称并组装文件地址
+    const fileName = this.generateFileName(file.filename);
+    const filePath = posix.join(subPath, parseDatePath());
+    const writePathFile = posix.join(dir, filePath, fileName);
+    // 存入新文件路径
+    err = await transferToNewFile(file, writePathFile);
+    if (err) {
+      return ['', err];
+    }
+    const urlPath = posix.join(prefix, filePath, fileName);
+    return [urlPath, ''];
   }
 
   /**
@@ -158,37 +255,22 @@ export class FileService {
    * @returns 文件存放资源路径，URL相对地址
    */
   async transferChunkUploadFile(
-    file: UploadFileInfo<string>,
+    file: UploadFileInfo,
     index: string,
     identifier: string
-  ): Promise<string> {
-    const { filename, mimeType, data } = file;
-    this.isAllowWrite(filename, [], mimeType);
+  ): Promise<[string, string]> {
+    // 上传文件检查
+    let err = this.isAllowWrite(file.filename, []);
+    if (err) {
+      return ['', err];
+    }
+      // 上传资源路径
+      const { prefix, dir } = this.resourceUpload;
     const filePath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
-    const writePath = posix.join(this.resourceUpload.dir, filePath);
-    await transferToNewFile(data, writePath, index);
-    return posix.join(this.resourceUpload.prefix, filePath, index);
-  }
-
-  /**
-   * 上传资源文件转存
-   * @param file 上传文件对象
-   * @param subPath 子路径，默认 UploadSubPathEnum.DEFAULT
-   * @param allowExts 允许上传拓展类型（含“.”)，如 ['.png','.jpg']
-   * @returns 文件存放资源路径，URL相对地址
-   */
-  async transferUploadFile(
-    file: UploadFileInfo<string>,
-    subPath: string,
-    allowExts: string[] = []
-  ): Promise<string> {
-    const { filename, mimeType, data } = file;
-    this.isAllowWrite(filename, allowExts, mimeType);
-    const fileName = this.generateFileName(filename, mimeType);
-    const filePath = posix.join(subPath, parseDatePath());
-    const writePath = posix.join(this.resourceUpload.dir, filePath);
-    await transferToNewFile(data, writePath, fileName);
-    return posix.join(this.resourceUpload.prefix, filePath, fileName);
+    const writePath = posix.join( dir, filePath);
+    await transferToNewFile(file, writePath);
+    const urlPath = posix.join(prefix, filePath, filePath);
+    return [urlPath, ''];
   }
 
   /**
@@ -206,57 +288,6 @@ export class FileService {
       this.resourceUpload.dir
     );
     return await deleteFile(asbPath);
-  }
-
-  /**
-   * 上传资源文件读取
-   * @param filePath 文件存放资源路径，URL相对地址 如：/upload/common/2023/06/xxx.png
-   * @param headerRange 断点续传范围区间，bytes=0-12131
-   * @return object { fileSize, data }
-   */
-  async readUploadFileStream(filePath: string, headerRange?: string) {
-    // 检查文件允许访问
-    if (!this.isAllowRead(filePath)) {
-      throw new Error(`文件 ${filePath} 非法，不允许下载。`);
-    }
-    const fileAsbPath = filePath.replace(
-      this.resourceUpload.prefix,
-      this.resourceUpload.dir
-    );
-
-    // 响应结果
-    const res = {
-      range: '',
-      chunkSize: 0,
-      fileSize: 0,
-      data: null,
-    };
-
-    // 文件大小
-    const fileSize = await getFileSize(fileAsbPath);
-    if (fileSize <= 0) {
-      return res;
-    }
-    res.fileSize = fileSize;
-
-    if (headerRange) {
-      const parts = headerRange.replace(/bytes=/, '').split('-');
-      let start = parseInt(parts[0], 10) || 0;
-      start = Math.min(start, fileSize);
-      let end = parseInt(parts[1], 10) || fileSize - 1;
-      end = Math.min(end, fileSize - 1);
-      if (start > end) {
-        start = end;
-      }
-      // 分片结果
-      res.range = `bytes ${start}-${end}/${fileSize}`;
-      res.chunkSize = end - start + 1;
-      res.data = await getFileStream(fileAsbPath, [start, end]);
-      return res;
-    }
-
-    res.data = await getFileStream(fileAsbPath);
-    return res;
   }
 
   /**
@@ -288,15 +319,15 @@ export class FileService {
   /**
    * 表格读取数据， 只读第一张工作表
    * @param file 上传文件对象
-   * @param indexOrName 工作表，默认值：1，读取第一张工作表
+   * @param sheetName 工作簿名称， 空字符默认Sheet1
    * @return 表格信息对象列表
    */
   async excelReadRecord(
-    file: UploadFileInfo<string>,
-    indexOrName: string | number = 1
+    file: UploadFileInfo,
+    sheetName: string
   ): Promise<Record<string, string>[]> {
-    const { data, filename, mimeType } = file;
-    this.isAllowWrite(filename, ['.xls', '.xlsx'], mimeType);
+    const { data, filename } = file;
+    this.isAllowWrite(filename, ['.xls', '.xlsx']);
     // 保存上传文件
     const savePath = posix.join(
       this.resourceUpload.dir,
@@ -304,10 +335,10 @@ export class FileService {
       parseDatePath()
     );
     await checkDirPathExists(savePath);
-    const fileName = this.generateFileName(filename, mimeType);
-    await transferToNewFile(data, savePath, fileName);
+    // const fileName = this.generateFileName(filename,);
+    await transferToNewFile(file, savePath);
     // 读取数据
-    return await readSheet(data, indexOrName);
+    return await readSheet(data, sheetName);
   }
 
   /**
