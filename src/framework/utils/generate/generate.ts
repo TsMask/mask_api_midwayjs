@@ -7,13 +7,11 @@ import { customAlphabet, nanoid } from 'nanoid';
  * 生成随机Hash
  * 包含数字、小写字母
  * @param size 长度
- * @param prefix 前缀
  * @returns string 不保证长度满足
  */
-export function generateHash(size: number, prefix?: string): string {
+export function generateCode(size: number): string {
   const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
   const nanoid = customAlphabet(alphabet, size);
-  if (prefix) return `${prefix}${nanoid()}`;
   return nanoid();
 }
 
@@ -21,24 +19,22 @@ export function generateHash(size: number, prefix?: string): string {
  * 生成随机字符串
  * 包含数字、大小写字母、下划线、横杠
  * @param size 长度
- * @param prefix 前缀
  * @returns string 不保证长度满足
  */
 export function generateString(size: number, prefix?: string): string {
-  if (prefix) return `${prefix}${nanoid(size)}`;
   return nanoid(size);
 }
 
 /**
  * 随机数 纯数字0-9
  * @param size 长度
- * @returns number
+ * @returns 字符串
  */
-export function generateNumber(size: number): number {
+export function generateNumber(size: number): string {
   let str = '';
   for (let i = 0; i < size; i++) {
     const digit = Math.floor(Math.random() * 10);
     str += digit.toString();
   }
-  return parseInt(str);
+  return str;
 }
