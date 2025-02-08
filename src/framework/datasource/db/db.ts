@@ -2,7 +2,7 @@ import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
 import { DataSource, SelectQueryBuilder } from 'typeorm';
 
-import { parseNumber } from '../../utils/ValueParseUtils';
+import { parseNumber } from '../../utils/parse/parse';
 
 /**动态数据源 */
 @Provide()

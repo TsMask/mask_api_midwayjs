@@ -1,4 +1,4 @@
-import { UploadFileInfo } from '@midwayjs/busboy';
+import { UploadFileInfo } from '@midwayjs/upload';
 import { type Stats } from 'node:fs';
 import {
   constants,
@@ -211,7 +211,7 @@ export async function writeBufferFile(
  * @return 错误信息
  */
 export async function transferToNewFile(
-  file: UploadFileInfo,
+  file: UploadFileInfo<string>,
   dst: string
 ): Promise<string> {
   let err = await checkExists(file.data);

@@ -1,4 +1,4 @@
-import * as ExcelJS from 'exceljs';
+import { Workbook } from 'exceljs';
 
 /**
  * 读取表格数据
@@ -8,10 +8,10 @@ import * as ExcelJS from 'exceljs';
  */
 export async function readSheet(
   filePath: string,
-  sheetName: string 
+  sheetName: string
 ): Promise<Record<string, string>[]> {
   // 读取Excel文件
-  const workbook = new ExcelJS.Workbook();
+  const workbook = new Workbook();
   await workbook.xlsx.readFile(filePath);
   // 获取第一个工作表
   const worksheet = workbook.getWorksheet(sheetName);
@@ -48,7 +48,7 @@ export async function readSheet(
  * @return xlsx文件流
  */
 export async function writeSheet(data: any[], sheetName: string) {
-  const workbook = new ExcelJS.Workbook();
+  const workbook = new Workbook();
   const worksheet = workbook.addWorksheet(sheetName);
 
   // header表头名称用数据key, width设置列宽度，单位厘米

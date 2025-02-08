@@ -1,5 +1,8 @@
+import { posix } from 'node:path';
+
 import { Config, Provide, Singleton } from '@midwayjs/core';
-import { posix } from 'path';
+import { UploadFileInfo } from '@midwayjs/upload';
+
 import { parseDatePath } from '../date/data';
 import { readSheet, writeSheet } from './execl';
 import { generateCode } from '../generate/generate';
@@ -7,7 +10,7 @@ import {
   getDirFileNameList,
   checkDirPathExists,
   deleteFile,
-  getFileStream, 
+  getFileStream,
   transferToNewFile,
   mergeToNewFile,
   getFileSize,
@@ -20,7 +23,6 @@ import {
   UPLOAD_IMPORT,
 } from '../../constants/upload_sub_path';
 import { replace } from '../regular/regular';
-import { UploadFileInfo } from '@midwayjs/busboy';
 
 /**File文件工具验证处理*/
 @Provide()
@@ -183,7 +185,7 @@ export class FileUtil {
    * @returns 文件存放资源路径，URL相对地址
    */
   public async transferUploadFile(
-    file: UploadFileInfo,
+    file: UploadFileInfo<string>,
     subPath: string,
     allowExts: string[] = []
   ): Promise<[string, string]> {
@@ -255,7 +257,7 @@ export class FileUtil {
    * @returns 文件存放资源路径，URL相对地址
    */
   async transferChunkUploadFile(
-    file: UploadFileInfo,
+    file: UploadFileInfo<string>,
     index: string,
     identifier: string
   ): Promise<[string, string]> {
@@ -264,10 +266,10 @@ export class FileUtil {
     if (err) {
       return ['', err];
     }
-      // 上传资源路径
-      const { prefix, dir } = this.resourceUpload;
+    // 上传资源路径
+    const { prefix, dir } = this.resourceUpload;
     const filePath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
-    const writePath = posix.join( dir, filePath);
+    const writePath = posix.join(dir, filePath);
     await transferToNewFile(file, writePath);
     const urlPath = posix.join(prefix, filePath, filePath);
     return [urlPath, ''];
@@ -323,7 +325,7 @@ export class FileUtil {
    * @return 表格信息对象列表
    */
   async excelReadRecord(
-    file: UploadFileInfo,
+    file: UploadFileInfo<string>,
     sheetName: string
   ): Promise<Record<string, string>[]> {
     const { data, filename } = file;
