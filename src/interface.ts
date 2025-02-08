@@ -1,13 +1,4 @@
 import '@midwayjs/core';
-import { TokenInfo } from './framework/utils/token/token_info';
-
-/**扩展 Midway 通用的 Context */
-declare module '@midwayjs/core' {
-  interface Context {
-    /**登录用户身份权限信息 */
-    loginUser: TokenInfo;
-  }
-}
 
 /**扩展 midwayjs/redis 声明自定义脚本命令  */
 declare module '@midwayjs/redis' {
