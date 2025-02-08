@@ -40,10 +40,8 @@ export default (): MidwayConfig => {
       },
     },
 
-    /**文件上传 http://www.midwayjs.org/docs/extensions/upload#配置示例 */
+    /**文件上传 https://midwayjs.org/docs/extensions/upload */
     upload: {
-      /**默认为file，即上传到服务器临时目录，可以配置为 stream */
-      mode: 'file',
       /**最大上传文件大小，默认为 10mb */
       fileSize: '10mb',
       /**文件扩展名白名单 */
@@ -87,7 +85,7 @@ export default (): MidwayConfig => {
       base64: false,
     },
 
-    /**静态文件配置 http://www.midwayjs.org/docs/extensions/static_file */
+    /**静态文件配置 https://midwayjs.org/docs/extensions/static_file */
     staticFile: {
       dirs: {
         // 默认资源，dir目录需要预先创建
@@ -103,7 +101,7 @@ export default (): MidwayConfig => {
       },
     },
 
-    /**cors 跨域 http://www.midwayjs.org/docs/extensions/cross_domain */
+    /**跨域 https://midwayjs.org/docs/extensions/cross_domain */
     cors: {
       // 设置 Access-Control-Allow-Origin 的值，【默认值】会获取请求头上的 origin
       // 也可以配置为一个回调方法，传入的参数为 request，需要返回 origin 值
@@ -133,7 +131,7 @@ export default (): MidwayConfig => {
       exposeHeaders: ['"X-RepeatSubmit-Rest'],
     },
 
-    /**security 安全 http://www.midwayjs.org/docs/extensions/security */
+    /**安全 https://midwayjs.org/docs/extensions/security */
     security: {
       csrf: {
         enable: true,
@@ -163,8 +161,6 @@ export default (): MidwayConfig => {
         value: '1; mode=block',
       },
     },
-    /**跨站脚本XSS过滤-配置白名单 */
-    xssIgnorePaths: ['/system/notice'],
 
     /**JWT 令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
     jwt: {
