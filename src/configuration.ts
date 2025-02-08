@@ -5,13 +5,12 @@ import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';
 import * as staticFile from '@midwayjs/static-file';
 import * as jwt from '@midwayjs/jwt';
-import * as upload from '@midwayjs/upload';
 import * as bull from '@midwayjs/bull';
 import * as crossDomain from '@midwayjs/cross-domain';
 import * as security from '@midwayjs/security';
 import { join } from 'path';
 import { MidwayDecoratorService } from '@midwayjs/core';
-import { checkDirPathExists } from './framework/utils/FileUtils';
+import { checkDirPathExists } from './framework/utils/file/utils';
 import { Middlewares } from './framework/middleware';
 import { MethodDecorators } from './framework/decorator';
 import { ErrorCatchFilters } from './framework/catch';
@@ -23,7 +22,6 @@ import { ErrorCatchFilters } from './framework/catch';
     security, // 安全
     crossDomain, // 跨域
     staticFile, // 静态文件映射
-    upload, // 文件上传
     typeorm, // 数据库ORM
     redis, // 缓存数据Redis
     jwt, // 鉴权和校验Token
