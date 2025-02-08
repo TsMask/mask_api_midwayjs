@@ -4,10 +4,10 @@ import {
   createCustomMethodDecorator,
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
-import { TokenInfo } from '../utils/token/token_info';
+
 import { CACHE_RATE_LIMIT } from '../constants/cache_key';
 import { RedisCache } from '../datasource/redis/redis';
-import { getClientIP } from '../utils/ip2region';
+import { clientIP } from '../ip2region/ip2region';
 import { Resp } from '../resp/api';
 
 /**默认策略全局限流 */
@@ -75,13 +75,13 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
 
       // IP
       if (limitType === LIMIT_IP) {
-        const clientIP = getClientIP(ctx.ip);
-        combinedKey = CACHE_RATE_LIMIT + ':' + `${clientIP}:${classMethod}`;
+        const clientIPStr = clientIP(ctx.ip);
+        combinedKey = CACHE_RATE_LIMIT + ':' + `${clientIPStr}:${classMethod}`;
       }
 
       // 用户
       if (limitType === LIMIT_USER) {
-        const loginUser: TokenInfo = ctx.loginUser;
+        const loginUser = ctx.loginUser;
         if (loginUser && loginUser.userId) {
           combinedKey =
             CACHE_RATE_LIMIT + ':' + `${loginUser.userId}:${classMethod}`;

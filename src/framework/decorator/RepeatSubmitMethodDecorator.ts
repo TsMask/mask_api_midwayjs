@@ -6,8 +6,8 @@ import {
 import { Context } from '@midwayjs/koa';
 import { CACHE_REPEAT_SUBMIT } from '../constants/cache_key';
 import { RedisCache } from '../datasource/redis/redis';
-import { diffSeconds } from '../utils/DateUtils';
-import { getClientIP } from '../utils/ip2region';
+import { diffSeconds } from '../utils/date/data';
+import { clientIP } from '../ip2region/ip2region';
 import { Resp } from '../resp/api';
 
 /**重复参数Redis格式数据类型 */
@@ -54,16 +54,16 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       );
 
       // 获取客户端IP
-      const clientIP = getClientIP(ctx.ip);
+      const clientIPStr = clientIP(ctx.ip);
 
       // 唯一标识（指定key + 客户端IP + 请求地址）
-      const cacheKey = CACHE_REPEAT_SUBMIT +":"+ `${clientIP}:${ctx.path}`;
+      const cacheKey = CACHE_REPEAT_SUBMIT + ':' + `${clientIPStr}:${ctx.path}`;
 
       // 从Redis读取上一次保存的请求时间和参数
       const redisCacheServer: RedisCache = await ctx.requestContext.getAsync(
         RedisCache
       );
-      const rpStr = await redisCacheServer.get(cacheKey);
+      const rpStr = await redisCacheServer.get('', cacheKey);
       if (rpStr) {
         const rpObj: RepeatParamType = JSON.parse(rpStr);
         const compareTime = diffSeconds(Date.now(), rpObj.time);
@@ -79,6 +79,7 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
 
       // 保存请求时间和参数
       await redisCacheServer.setByExpire(
+        '',
         cacheKey,
         JSON.stringify({
           time: Date.now(),

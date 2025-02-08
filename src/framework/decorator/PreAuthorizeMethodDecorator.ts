@@ -9,7 +9,7 @@ import {
   SYS_PERMISSION_SYSTEM,
   SYS_ROLE_SYSTEM_KEY,
 } from '../constants/system';
-import { TokenService } from '../utils/token/token';
+import { TokenUtil } from '../utils/token/token';
 import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
 
 /** 授权限制参数 */
@@ -49,8 +49,8 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       // 装饰器所在的实例上下文
       const ctx: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
 
-      const tokenService: TokenService = await ctx.requestContext.getAsync(
-        TokenService
+      const tokenService: TokenUtil = await ctx.requestContext.getAsync(
+        TokenUtil
       );
 
       // 获取token在请求头标识信息

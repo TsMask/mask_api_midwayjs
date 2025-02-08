@@ -5,11 +5,10 @@ import {
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 
-import { Resp } from '../resp/api';
-import { TokenInfo } from '../utils/token/token_info';
-import { parseSafeContent } from '../utils/ValueParseUtils';
+import { Resp } from '../resp/api'; 
+import { parseSafeContent } from '../utils/parse/parse';
 import { STATUS_NO, STATUS_YES } from '../constants/common';
-import { getClientIP, getRealAddressByIp } from '../utils/ip2region';
+import { clientIP, realAddressByIp } from '../ip2region/ip2region';
 import { SysLogOperate } from '../../modules/system/model/sys_log_operate';
 import { SysLogOperateService } from '../../modules/system/service/sys_log_operate';
 
@@ -105,11 +104,11 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       operLog.operaUrl = ctx.path;
       operLog.operaUrlMethod = ctx.method;
       // 解析ip地址
-      operLog.operaIp = getClientIP(ctx.ip);
-      operLog.operaLocation = await getRealAddressByIp(ctx.ip);
+      operLog.operaIp = clientIP(ctx.ip);
+      operLog.operaLocation = await realAddressByIp(ctx.ip);
 
       // 获取登录用户信息
-      const loginUser: TokenInfo = ctx.loginUser;
+      const loginUser = ctx.loginUser;
       if (loginUser && loginUser.userId) {
         operLog.operaBy = loginUser.user.userName;
       }
