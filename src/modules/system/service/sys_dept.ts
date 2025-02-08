@@ -5,7 +5,7 @@ import {
   sysDeptTreeSelect,
 } from '../model/vo/tree_select';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import { parseNumber } from '../../../framework/utils/ValueParseUtils';
+import { parseNumber } from '../../../framework/utils/parse/parse';
 import { SysRoleDeptRepository } from '../repository/sys_role_dept';
 import { SysDeptRepository } from '../repository/sys_dept';
 import { SysRoleRepository } from '../repository/sys_role';

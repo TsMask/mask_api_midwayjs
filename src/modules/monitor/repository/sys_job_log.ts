@@ -2,7 +2,7 @@ import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult } from 'typeorm';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysJobLog } from '../model/sys_job_log';
-import { parseNumber } from '../../../framework/utils/ValueParseUtils';
+import { parseNumber } from '../../../framework/utils/parse/parse';
 
 /**调度任务日志表 数据层处理 */
 @Provide()

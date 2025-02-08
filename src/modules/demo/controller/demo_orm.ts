@@ -10,7 +10,7 @@ import {
   Query,
   httpError,
 } from '@midwayjs/core';
-import { parseRemoveDuplicatesToArray } from '../../../framework/utils/ValueParseUtils';
+import { parseRemoveDuplicatesToArray } from '../../../framework/utils/parse/parse';
 import { DemoORMService } from '../service/demo_orm';
 import { DemoORM } from '../model/demo_orm';
 import { Resp } from '../../../framework/resp/api';

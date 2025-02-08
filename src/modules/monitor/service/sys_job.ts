@@ -6,7 +6,7 @@ import { SysJobLog } from '../model/sys_job_log';
 import { SysJobRepository } from '../repository/sys_job';
 import { SysJobLogRepository } from '../repository/sys_job_log';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import { FileService } from '../../../framework/service/FileService';
+import { FileService } from '../../../framework/utils/file/file';
 import { SysDictDataService } from '../../system/service/sys_dict_data';
 
 /**调度任务 服务层处理 */

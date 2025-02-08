@@ -16,7 +16,7 @@ import {
 } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/service/ContextService';
+import { ContextService } from '../../../framework/reqctx/context';
 import { SysLogLoginService } from '../service/sys_log_login';
 import { AccountService } from '../../common/service/account';
 

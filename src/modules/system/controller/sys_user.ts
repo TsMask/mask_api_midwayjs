@@ -14,15 +14,9 @@ import {
 import { RuleType, Valid } from '@midwayjs/validate';
 
 import {
-  validEmail,
-  validMobile,
-  validUsername,
-  validPassword,
-} from '../../../framework/utils/RegularUtils';
-import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/ValueParseUtils';
+} from '../../../framework/utils/parse/parse';
 import {
   BUSINESS_TYPE,
   OperateLog,
@@ -31,14 +25,13 @@ import { UploadFileInfo } from '@midwayjs/upload';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
-import { FileService } from '../../../framework/service/FileService';
-import { ContextService } from '../../../framework/service/ContextService';
 import { SysUserService } from '../service/sys_user';
 import { SysRoleService } from '../service/sys_role';
 import { SysPostService } from '../service/sys_post';
 import { SysRole } from '../model/sys_role';
 import { SysUser } from '../model/sys_user';
 import { SysPost } from '../model/sys_post';
+import { validUsername, validPassword, validMobile, validEmail } from '../../../framework/utils/regular/regular';
 
 /**用户信息 控制层处理 */
 @Controller('/system/user')
@@ -54,9 +47,7 @@ export class SysUserController {
 
   @Inject()
   private sysPostService: SysPostService;
-
-  @Inject()
-  private fileService: FileService;
+ 
 
   /**
    * 用户信息列表

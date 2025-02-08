@@ -22,7 +22,7 @@ import {
 import { Resp } from '../../../framework/resp/api';
 import { validHttp } from '../../../framework/utils/RegularUtils';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/service/ContextService';
+import { ContextService } from '../../../framework/reqctx/context';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { SysMenuService } from '../service/sys_menu';
 import { SysMenu } from '../model/sys_menu';

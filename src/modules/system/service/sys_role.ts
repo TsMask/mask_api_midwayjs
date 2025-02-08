@@ -4,7 +4,7 @@ import {
   ROLE_SCOPE_CUSTOM,
   ROLE_SCOPE_DATA,
 } from '../../../framework/constants/role_data_scope';
-import { FileService } from '../../../framework/service/FileService';
+import { FileService } from '../../../framework/utils/file/file';
 import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
 import { SysUserRoleRepository } from '../repository/sys_user_role';
 import { SysRoleDeptRepository } from '../repository/sys_role_dept';

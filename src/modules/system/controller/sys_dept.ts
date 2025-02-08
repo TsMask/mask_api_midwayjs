@@ -18,7 +18,7 @@ import {
 import { Resp } from '../../../framework/resp/api';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/service/ContextService';
+import { ContextService } from '../../../framework/reqctx/context';
 import { SysDeptService } from '../service/sys_dept';
 import { SysDept } from '../model/sys_dept';
 

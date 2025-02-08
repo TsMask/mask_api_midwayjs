@@ -2,7 +2,7 @@ import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult } from 'typeorm';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
-import { parseNumber } from '../../../framework/utils/ValueParseUtils';
+import { parseNumber } from '../../../framework/utils/parse/parse';
 import { SysLogOperate } from '../model/sys_log_operate';
 
 /**操作日志表 数据层处理 */

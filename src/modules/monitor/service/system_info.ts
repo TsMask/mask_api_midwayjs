@@ -21,8 +21,8 @@ import {
   cpus,
   networkInterfaces,
 } from 'os';
-import { parseDateToStr } from '../../../framework/utils/DateUtils';
-import { parseBit } from '../../../framework/utils/ValueParseUtils';
+import { parseDateToStr } from '../../../framework/utils/date/data';
+import { parseBit } from '../../../framework/utils/parse/parse';
 
 /**服务器系统相关信息 服务层处理 */
 @Provide()

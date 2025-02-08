@@ -1,9 +1,9 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/service/FileService';
+import { FileService } from '../../../framework/utils/file/file';
 import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import { parseDateToStr } from '../../../framework/utils/DateUtils';
+import { parseDateToStr } from '../../../framework/utils/date/data';
 import { SysUserRoleRepository } from '../repository/sys_user_role';
 import { SysUserPostRepository } from '../repository/sys_user_post';
 import { SysUserRepository } from '../repository/sys_user';
@@ -15,7 +15,7 @@ import { SysUserPost } from '../model/sys_user_post';
 import { SysRole } from '../model/sys_role';
 import { SysUser } from '../model/sys_user';
 import { SysConfigService } from './sys_config';
-import { parseNumber } from '../../../framework/utils/ValueParseUtils';
+import { parseNumber } from '../../../framework/utils/parse/parse';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 
 /**用户 服务层处理 */

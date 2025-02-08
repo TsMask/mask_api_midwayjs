@@ -6,7 +6,7 @@ import {
 } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/service/ContextService';
+import { ContextService } from '../../../framework/reqctx/context';
 import { SysLogOperateService } from '../service/sys_log_operate';
 
 /**操作日志记录信息 控制层处理 */

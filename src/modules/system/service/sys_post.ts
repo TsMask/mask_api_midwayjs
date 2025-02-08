@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/service/FileService';
+import { FileService } from '../../../framework/utils/file/file';
 import { SysUserPostRepository } from '../repository/sys_user_post';
 import { SysPostRepository } from '../repository/sys_post';
 import { SysPost } from '../model/sys_post';

@@ -1,9 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import {
-  TreeSelect,
-  sysMenuTreeSelect,
-} from '../model/vo/tree_select';
+import { TreeSelect, sysMenuTreeSelect } from '../model/vo/tree_select';
 import {
   MENU_COMPONENT_LAYOUT_BASIC,
   MENU_COMPONENT_LAYOUT_BLANK,
@@ -12,14 +9,14 @@ import {
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
 } from '../../../framework/constants/menu';
-import { ConvertToCamelCase } from '../../../framework/utils/ValueParseUtils';
-import { validHttp } from '../../../framework/utils/RegularUtils';
+import { ConvertToCamelCase } from '../../../framework/utils/parse/parse';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import {  Router, RouterMeta } from '../model/vo/router';
+import { Router, RouterMeta } from '../model/vo/router';
 import { SysMenuRepository } from '../repository/sys_menu';
 import { SysRoleMenuRepository } from '../repository/sys_role_menu';
 import { SysRoleRepository } from '../repository/sys_role';
 import { SysMenu } from '../model/sys_menu';
+import { replace, validHttp } from '../../../framework/utils/regular/regular';
 
 /**菜单 服务层处理 */
 @Provide()
@@ -378,7 +375,7 @@ export class SysMenuService {
 
     // 路径链接 内部跳转
     if (validHttp(routerPath) && sysMenu.frameFlag === STATUS_YES) {
-      routerPath = routerPath.replace(/^http(s)?:\/\/+/, '');
+      routerPath = replace(`/^http(s)?:\/\/+/`, routerPath, '');
       routerPath = Buffer.from(routerPath, 'utf8').toString('base64');
     }
 

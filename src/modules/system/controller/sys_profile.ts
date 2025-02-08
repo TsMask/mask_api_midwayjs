@@ -7,10 +7,10 @@ import {
 } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
 import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
-import { ContextService } from '../../../framework/service/ContextService';
+import { ContextService } from '../../../framework/reqctx/context';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { TokenService } from '../../../framework/utils/token/token';
-import { bcryptCompare } from '../../../framework/utils/CryptoUtils';
+import { bcryptCompare } from '../../../framework/utils/crypto/crypto';
 import { SysPostService } from '../service/sys_post';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';

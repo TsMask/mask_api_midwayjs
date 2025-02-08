@@ -18,10 +18,10 @@ import {
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/ValueParseUtils';
+} from '../../../framework/utils/parse/parse';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/service/ContextService';
+import { ContextService } from '../../../framework/reqctx/context';
 import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';

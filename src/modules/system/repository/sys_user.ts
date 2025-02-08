@@ -4,9 +4,9 @@ import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 import {
   parseBoolean,
   parseNumber,
-} from '../../../framework/utils/ValueParseUtils';
+} from '../../../framework/utils/parse/parse';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
-import { bcryptHash } from '../../../framework/utils/CryptoUtils';
+import { bcryptHash } from '../../../framework/utils/crypto/crypto';
 import { SysUser } from '../model/sys_user';
 
 /**用户表 数据层处理 */

@@ -5,7 +5,7 @@ import {
   BUSINESS_TYPE,
   OperateLog,
 } from '../../../framework/decorator/OperateLogMethodDecorator';
-import { parseRemoveDuplicatesToArray } from '../../../framework/utils/ValueParseUtils';
+import { parseRemoveDuplicatesToArray } from '../../../framework/utils/parse/parse';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
@@ -53,9 +53,16 @@ export class SysUserOnlineController {
     let userOnlines: SysUserOnline[] = [];
     for (const str of arr) {
       if (!str) continue;
-      const loginUser: TokenInfo = JSON.parse(str);
-      const onlineUser = await this.sysUserOnlineService.loginUserToUserOnline(
-        loginUser
+
+      let tokenInfo = new TokenInfo();
+      try {
+        tokenInfo = JSON.parse(str);
+      } catch (error) {
+        continue;
+      }
+
+      const onlineUser = await this.sysUserOnlineService.tokenInfoToUserOnline(
+        tokenInfo
       );
       if (onlineUser.tokenId !== '') {
         userOnlines.push(onlineUser);

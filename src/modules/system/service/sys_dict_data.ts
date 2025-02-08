@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/service/FileService';
+import { FileService } from '../../../framework/utils/file/file';
 import { SysDictData } from '../model/sys_dict_data';
 import { SysDictDataRepository } from '../repository/sys_dict_data';
 import { SysDictTypeService } from './sys_dict_type';

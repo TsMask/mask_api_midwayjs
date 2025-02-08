@@ -1,7 +1,7 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/service/FileService';
-import { parseDateToStr } from '../../../framework/utils/DateUtils';
+import { FileService } from '../../../framework/utils/file/file';
+import { parseDateToStr } from '../../../framework/utils/date/data';
 import { SysJobLogRepository } from '../repository/sys_job_log';
 import { SysDictDataService } from '../../system/service/sys_dict_data';
 import { SysJobLog } from '../model/sys_job_log';

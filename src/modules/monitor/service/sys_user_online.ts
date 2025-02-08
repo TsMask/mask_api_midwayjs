@@ -9,26 +9,26 @@ export class SysUserOnlineService {
   /**
    * 设置在线用户信息
    *
-   * @param loginUser 用户信息
+   * @param tokenInfo 登录用户信息
    * @return 在线用户
    */
-  public async loginUserToUserOnline(
-    loginUser: TokenInfo
+  public async tokenInfoToUserOnline(
+    tokenInfo: TokenInfo
   ): Promise<SysUserOnline> {
-    if (!loginUser || loginUser.userId <= 0) {
+    if (!tokenInfo || tokenInfo.userId <= 0) {
       return new SysUserOnline();
     }
 
     const iten = new SysUserOnline();
-    iten.tokenId = loginUser.uuid;
-    iten.userName = loginUser.user?.userName;
-    iten.loginIp = loginUser.loginIp;
-    iten.loginLocation = loginUser.loginLocation;
-    iten.browser = loginUser.browser;
-    iten.os = loginUser.os;
-    iten.loginTime = loginUser.loginTime;
-    if (loginUser.user && loginUser.user?.deptId > 0) {
-      iten.deptName = loginUser.user?.dept?.deptName;
+    iten.tokenId = tokenInfo.uuid;
+    iten.userName = tokenInfo.user?.userName;
+    iten.loginIp = tokenInfo.loginIp;
+    iten.loginLocation = tokenInfo.loginLocation;
+    iten.browser = tokenInfo.browser;
+    iten.os = tokenInfo.os;
+    iten.loginTime = tokenInfo.loginTime;
+    if (tokenInfo.user && tokenInfo.user?.deptId > 0) {
+      iten.deptName = tokenInfo.user?.dept?.deptName;
     }
     return iten;
   }
