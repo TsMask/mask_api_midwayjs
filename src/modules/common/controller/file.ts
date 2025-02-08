@@ -9,178 +9,203 @@ import {
   Post,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
+import { posix } from 'node:path';
 
 import { Resp } from '../../../framework/resp/api';
-import { ContextService } from '../../../framework/service/ContextService';
-import { FileService } from '../../../framework/service/FileService';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import {
   UPLOAD_COMMON,
   UPLOAD_SUB_PATH,
 } from '../../../framework/constants/upload_sub_path';
+import { Context } from '@midwayjs/koa';
+import { FileUtil } from '../../../framework/utils/file/file';
+import { UploadMiddleware } from '@midwayjs/upload';
+import { RuleType, Valid } from '@midwayjs/validate';
 
-/**
- * 文件操作处理
- */
+/**文件操作 控制层处理*/
 @Controller('/file')
 export class FileController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**File工具 */
   @Inject()
-  private fileService: FileService;
+  private file: FileUtil;
 
-  /**
-   * 下载文件
-   */
+  /**下载文件 */
   @Get('/download/:filePath')
   @PreAuthorize()
-  public async download(@Param('filePath') filePath: string) {
-    if (!filePath) return Resp.errMsg('未知文件资源路径');
-    filePath = Buffer.from(filePath, 'base64').toString('utf-8');
-    const ctx = this.contextService.getContext();
+  public async download(
+    @Valid(RuleType.string().required()) @Param('filePath') filePath: string
+  ) {
+    if (filePath.length < 8) {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: filePath not is base64 string');
+    }
+    // base64解析出地址
+    const routerPath = Buffer.from(filePath, 'base64').toString('utf-8');
 
     // 断点续传
-    const headerRange = ctx.headers.range;
-    const res = await this.fileService.readUploadFileStream(
-      filePath,
+    const headerRange = this.c.headers.range;
+    const [resultMap, errMsg] = await this.file.readUploadFileStream(
+      routerPath,
       headerRange
     );
-    if (!res.data) return Resp.errMsg('找不到文件资源');
-
-    // 设置资源文件名称
-    const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
-    ctx.set(
-      'Content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    ctx.set('Accept-Ranges', 'bytes');
-    ctx.set('Content-Type', 'application/octet-stream');
-
-    if (headerRange) {
-      ctx.set('Content-Range', res.range);
-      ctx.set('Content-Length', `${res.chunkSize}`);
-      ctx.status = 206;
-    } else {
-      ctx.set('Content-Length', `${res.fileSize}`);
-      ctx.status = 200;
+    if (errMsg) {
+      this.c.status = 200;
+      return Resp.errMsg(errMsg);
     }
 
-    ctx.body = res.data;
+    // 设置资源文件名称
+    this.c.set('Accept-Ranges', 'bytes');
+    this.c.set('Content-Type', 'application/octet-stream');
+    this.c.set(
+      'Content-disposition',
+      `attachment;filename=${encodeURIComponent(posix.basename(routerPath))}`
+    );
+
+    if (headerRange) {
+      this.c.set('Content-Range', resultMap.range);
+      this.c.set('Content-Length', `${resultMap.chunkSize}`);
+      this.c.status = 206;
+    } else {
+      this.c.set('Content-Length', `${resultMap.fileSize}`);
+      this.c.status = 200;
+    }
+
+    this.c.body = resultMap.data;
   }
 
-  /**
-   * 上传文件
-   */
-  @Post('/upload')
+  /**上传文件 */
+  @Post('/upload', { middleware: [UploadMiddleware] })
   @PreAuthorize()
   public async upload(
     @Files('file') files: UploadFileInfo<string>[],
     @Fields('subPath') subPath: string
   ) {
-    if (files.length <= 0) {
-      return Resp.err();
+    if (files.length !== 1) {
+      this.c.status = 200;
+      return Resp.errMsg('bind err: field file not upload');
     }
+    const formFile = files[0];
 
     // 子路径需要在指定范围内
     if (subPath && !UPLOAD_SUB_PATH[subPath]) {
-      return Resp.errMsg('subPath不在指定范围内');
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: subPath not in range');
     }
     if (!subPath) {
       subPath = UPLOAD_COMMON;
     }
 
-    const { origin, cleanupRequestFiles } = this.contextService.getContext();
-    const upFilePath = await this.fileService.transferUploadFile(
-      files[0],
+    const [uploadFilePath, err] = await this.file.transferUploadFile(
+      formFile,
       subPath,
       []
     );
-    const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
-    await cleanupRequestFiles();
+    if (err) {
+      this.c.status = 200;
+      return Resp.errMsg(err);
+    }
+
+    await this.c.cleanupRequestFiles();
     return Resp.okData({
-      url: `${origin}${upFilePath}`,
-      fileName: upFilePath,
-      newFileName: upFileName,
-      originalFileName: files[0].filename,
+      url: `//${this.c.host}${uploadFilePath}`,
+      filePath: uploadFilePath,
+      newFileName: posix.basename(uploadFilePath),
+      originalFileName: formFile.filename,
     });
   }
 
-  /**
-   * 切片文件检查
-   */
-  @Post('/chunkCheck')
+  /**切片文件检查 */
+  @Post('/chunk-check')
   @PreAuthorize()
   public async chunkCheck(
-    @Body('identifier') identifier: string,
-    @Body('fileName') fileName: string
+    /**唯一标识 */
+    @Valid(RuleType.string().required()) @Body('identifier') identifier: string,
+    /**文件名 */
+    @Valid(RuleType.string().required()) @Body('fileName') fileName: string
   ) {
-    if (!identifier || !fileName) return Resp.err();
-
-    const uploadedChunks = await this.fileService.chunkCheckFile(
-      identifier,
-      fileName
-    );
-    return Resp.okData(uploadedChunks);
+    // 读取标识目录
+    const [chunks, err] = await this.file.chunkCheckFile(identifier, fileName);
+    if (err) {
+      return Resp.errMsg(err);
+    }
+    return Resp.okData(chunks);
   }
 
-  /**
-   * 切片文件合并
-   */
-  @Post('/chunkMerge')
+  /**切片文件合并 */
+  @Post('/chunk-merge')
   @PreAuthorize()
   public async chunkMerge(
-    @Body('identifier') identifier: string,
-    @Body('fileName') fileName: string,
-    @Body('subPath') subPath: string
+    /**唯一标识 */
+    @Valid(RuleType.string().required()) @Body('identifier') identifier: string,
+    /**文件名 */
+    @Valid(RuleType.string().required()) @Body('fileName') fileName: string,
+    /**子路径类型 */
+    @Valid(RuleType.string()) @Body('subPath') subPath: string
   ) {
-    if (!identifier || !fileName) {
-      return Resp.err();
-    }
-
     // 子路径需要在指定范围内
     if (subPath && !UPLOAD_SUB_PATH[subPath]) {
-      return Resp.errMsg('subPath不在指定范围内');
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: subPath not in range');
     }
     if (!subPath) {
       subPath = UPLOAD_COMMON;
     }
 
-    const upFilePath = await this.fileService.chunkMergeFile(
+    // 切片文件合并
+    const [mergeFilePath, err] = await this.file.chunkMergeFile(
       identifier,
       fileName,
       subPath
     );
-    const { origin } = this.contextService.getContext();
-    const upFileName = upFilePath.substring(upFilePath.lastIndexOf('/') + 1);
+    if (err) {
+      return Resp.errMsg(err);
+    }
+
     return Resp.okData({
-      url: `${origin}${upFilePath}`,
-      fileName: upFilePath,
-      newFileName: upFileName,
+      url: `//${this.c.host}${mergeFilePath}`,
+      fileName: mergeFilePath,
+      newFileName: posix.basename(mergeFilePath),
       originalFileName: fileName,
     });
   }
 
-  /**
-   * 切片文件上传
-   */
-  @Post('/chunkUpload')
+  /**切片文件上传 */
+  @Post('/chunk-upload')
   @PreAuthorize()
   public async chunkUpload(
+    /**上传的文件 */
     @Files('file') files: UploadFileInfo<string>[],
+    /**切片编号 */
     @Fields('index') index: string,
+    /**切片唯一标识 */
     @Fields('identifier') identifier: string
   ) {
-    if (files.length <= 0 || !identifier) return Resp.err();
+    if (index == '' || identifier == '') {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: index and identifier must be set');
+    }
+    // 上传的文件
+    if (files.length !== 1) {
+      this.c.status = 200;
+      return Resp.errMsg('bind err: field file not upload');
+    }
+    const formFile = files[0];
 
-    const upFilePath = await this.fileService.transferChunkUploadFile(
-      files[0],
+    const [chunkFilePath, err] = await this.file.transferChunkUploadFile(
+      formFile,
       index,
       identifier
     );
-    const ctx = this.contextService.getContext();
-    await ctx.cleanupRequestFiles();
-    ctx.status = 206;
-    return Resp.okData(upFilePath);
+    if (err) {
+      this.c.status = 200;
+      return Resp.errMsg(err);
+    }
+    this.c.status = 206;
+    await this.c.cleanupRequestFiles();
+    return Resp.okData(chunkFilePath);
   }
 }

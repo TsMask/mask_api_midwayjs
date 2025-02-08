@@ -5,24 +5,25 @@ import {
   MidwayInformationService,
 } from '@midwayjs/core';
 
+import {
+  LIMIT_IP,
+  RateLimit,
+} from '../../../framework/decorator/RateLimitMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
-import { LIMIT_IP, RateLimit } from '../../../framework/decorator/RateLimitMethodDecorator';
 
-/**
- * 路由主页
- */
+/**路由主页 */
 @Controller('/')
 export class IndexController {
   @Inject()
   private midwayInformationService: MidwayInformationService;
 
+  /**根路由 */
   @Get()
   @RateLimit({ time: 300, count: 60, limitType: LIMIT_IP })
   public async index(): Promise<Resp> {
-    // 读取配置项目名版本
     const pkg = this.midwayInformationService.getPkg();
     return Resp.okMsg(
-      `欢迎使用${pkg.name}后台管理框架，当前版本：${pkg.version}，请通过前端管理地址访问。`
+      `欢迎使用 ${pkg.name} 后台服务，当前版本：${pkg.version}，请通过前台服务地址访问。`
     );
   }
 }

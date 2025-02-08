@@ -1,55 +1,21 @@
 import { Body, Controller, Post } from '@midwayjs/core';
+import { createHash } from 'crypto';
 
-import {
-  cryptoHmac,
-  decryptWxData,
-  encrypyHash,
-} from '../../../framework/utils/CryptoUtils';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 
-/**
- * 通用请求
- */
+/**通用请求 控制层处理 */
 @Controller('/common')
 export class CommonController {
-  /**
-   * 哈希加密
-   */
+  /**哈希编码 */
   @Post('/hash')
   @PreAuthorize()
   public async hash(
     @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
     @Body('str') str: string
   ): Promise<Resp> {
-    return Resp.okData(encrypyHash(str, type));
-  }
-
-  /**
-   * 哈希加盐加密
-   */
-  @Post('/hmac')
-  @PreAuthorize()
-  public async hmac(
-    @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
-    @Body('str') str: string
-  ): Promise<Resp> {
-    return Resp.okData(cryptoHmac(str, '89486', type));
-  }
-
-  /**
-   * 微信数据解密
-   */
-  @Post('/decryptWxData')
-  public async wxData(
-    @Body('encryptedData') encryptedData: string,
-    @Body('key') key: string,
-    @Body('iv') iv: string
-  ) {
-    return decryptWxData({
-      encryptedData,
-      key,
-      iv,
-    });
+    const hash = createHash(type);
+    hash.update(str);
+    return Resp.okData(hash.digest('hex'));
   }
 }
