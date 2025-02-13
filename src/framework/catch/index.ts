@@ -1,6 +1,6 @@
 import { ErrorCatch } from './error_catch';
 import { Forbidden } from './forbidden';
-import { NotFound } from './notfound';
+import { NotFound } from './not_found';
 import { Unauthorized } from './unauthorized';
 
 /**
