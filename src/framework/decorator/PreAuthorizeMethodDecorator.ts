@@ -2,15 +2,17 @@ import {
   JoinPoint,
   REQUEST_OBJ_CTX_KEY,
   createCustomMethodDecorator,
-  httpError,
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
+
 import {
   SYS_PERMISSION_SYSTEM,
   SYS_ROLE_SYSTEM_KEY,
 } from '../constants/system';
 import { TokenUtil } from '../utils/token/token';
-import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
+import { authorization } from '../reqctx/context';
+import { CTX_LOGIN_USER } from '../constants/common';
+import { Resp } from '../resp/api';
 
 /** 授权限制参数 */
 interface AuthOptions {
@@ -31,7 +33,6 @@ export const METHOD_KEY_PRE_AUTHORIZE = 'decorator_method:pre_authorize';
  * 装饰器声明-用户身份授权认证校验
  *
  * @param options 授权限制参数
- * @author TsMask
  */
 export function PreAuthorize(options?: AuthOptions): MethodDecorator {
   return createCustomMethodDecorator(METHOD_KEY_PRE_AUTHORIZE, options);
@@ -47,45 +48,41 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
   return {
     around: async (joinPoint: JoinPoint) => {
       // 装饰器所在的实例上下文
-      const ctx: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
+      const c: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
 
-      const tokenService: TokenUtil = await ctx.requestContext.getAsync(
+      const tokenService: TokenUtil = await c.requestContext.getAsync(
         TokenUtil
       );
 
-      // 获取token在请求头标识信息
-      let headerToken = ctx.get(HEADER_KEY);
-      if (headerToken && headerToken.startsWith(HEADER_PREFIX)) {
-        headerToken = headerToken.replace(HEADER_PREFIX, '');
-      }
-      if (!headerToken) {
-        throw new httpError.UnauthorizedError('无效身份授权');
+      // 获取请求头标识信息
+      const tokenStr = authorization(c);
+      if (tokenStr == '') {
+        return Resp.codeMsg(401, '无效身份授权');
       }
 
       // 验证令牌
-      const claims = await tokenService.verify(headerToken);
+      const claims = await tokenService.verify(tokenStr);
+
       // 获取缓存的用户信息
-      let loginUser = await tokenService.info(claims);
-      if (!loginUser.userId) {
-        throw new httpError.UnauthorizedError('无效身份授权');
+      let info = await tokenService.info(claims);
+      if (info.userId <= 0) {
+        c.status = 401;
+        return Resp.codeMsg(401, '无效身份授权');
       }
-      loginUser = await tokenService.refreshIn(loginUser);
-      ctx.loginUser = loginUser;
+
+      // 检查刷新有效期后存入上下文
+      info = await tokenService.refreshIn(info);
+      c.setAttr(CTX_LOGIN_USER, info);
 
       // 登录用户角色权限校验
       const metadataObj = options.metadata;
       if (metadataObj) {
-        const rolesArr = ctx.loginUser.user.roles.map(item => item.roleKey);
-        const permissionsArr = ctx.loginUser.permissions;
-        const verifyOk = verifyRolePermission(
-          rolesArr,
-          permissionsArr,
-          metadataObj
-        );
+        const roles = info.user.roles.map(item => item.roleKey);
+        const perms = info.permissions;
+        const verifyOk = verifyRolePermission(roles, perms, metadataObj);
         if (!verifyOk) {
-          throw new httpError.ForbiddenError(
-            `无权访问 ${ctx.method} ${ctx.path}`
-          );
+          c.status = 403;
+          return Resp.codeMsg(403, `无权访问 ${c.method} ${c.path}`);
         }
       }
 

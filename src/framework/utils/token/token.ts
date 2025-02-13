@@ -126,24 +126,25 @@ export class TokenUtil {
    * @param token 身份令牌
    * @returns 负荷信息
    */
-  public async verify(token: string): Promise<Record<string, any>> {
+  public async verify(token: string): Promise<[Record<string, any>, string]> {
     try {
       // 判断加密算法是预期的加密算法
       const jwtToken = await this.jwtService.verify(token);
       if (jwtToken) {
-        return jwtToken as Record<string, any>;
+        return [jwtToken as Record<string, any>, ''];
       }
-    } catch (e) {
-      if ('TokenExpiredError' === e.name) {
-        throw new httpError.UnauthorizedError(
-          `用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`
-        );
-      }
-      if ('JsonWebTokenError' === e.name) {
-        throw new httpError.UnauthorizedError('token invalid');
-      }
-      throw new httpError.UnauthorizedError('token valid error');
+    } catch (e) { 
+      // if ('TokenExpiredError' === e.name) {
+      //   throw new httpError.UnauthorizedError(
+      //     `用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`
+      //   );
+      // }
+      // if ('JsonWebTokenError' === e.name) {
+      //   throw new httpError.UnauthorizedError('token invalid');
+      // }
+      return [null, "token invalid"];
     }
+    return [null, "token valid error"];
   }
 
   /**
