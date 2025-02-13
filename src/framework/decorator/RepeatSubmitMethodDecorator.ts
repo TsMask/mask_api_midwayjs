@@ -26,7 +26,6 @@ export const METHOD_KEY_REPEAT_SUBMIT = 'decorator_method:repeat_submit';
  *
  * 小于间隔时间视为重复提交
  * @param interval 间隔时间(单位秒) 默认:5
- * @author TsMask
  */
 export function RepeatSubmit(interval = 5): MethodDecorator {
   return createCustomMethodDecorator(METHOD_KEY_REPEAT_SUBMIT, interval);
@@ -42,35 +41,34 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
   return {
     around: async (joinPoint: JoinPoint) => {
       // 装饰器所在的实例上下文
-      const ctx: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
+      const c: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
       // 提交间隔时间
-      const interval = options.metadata;
+      let interval = options.metadata;
 
       // 提交参数
       const params: Record<string, any> = Object.assign(
         {},
-        ctx.request.body,
-        ctx.request.query
+        c.request.body,
+        c.request.query
       );
 
       // 获取客户端IP
-      const clientIPStr = clientIP(ctx.ip);
+      const clientIPStr = clientIP(c.ip);
 
       // 唯一标识（指定key + 客户端IP + 请求地址）
-      const cacheKey = CACHE_REPEAT_SUBMIT + ':' + `${clientIPStr}:${ctx.path}`;
+      const cacheKey =  `${CACHE_REPEAT_SUBMIT}:${clientIPStr}:${c.path}`;
 
       // 从Redis读取上一次保存的请求时间和参数
-      const redisCacheServer: RedisCache = await ctx.requestContext.getAsync(
+      const redisCacheServer: RedisCache = await c.requestContext.getAsync(
         RedisCache
       );
       const rpStr = await redisCacheServer.get('', cacheKey);
       if (rpStr) {
         const rpObj: RepeatParamType = JSON.parse(rpStr);
         const compareTime = diffSeconds(Date.now(), rpObj.time);
-        const compareParams =
-          JSON.stringify(rpObj.params) === JSON.stringify(params);
+        const compareParams = JSON.stringify(rpObj.params) === JSON.stringify(params);
         // 设置重复提交声明响应头（毫秒）
-        ctx.set('X-RepeatSubmit-Rest', `${Date.now() + compareTime * 1000}`);
+        c.set('X-RepeatSubmit-Rest', `${Date.now() + compareTime * 1000}`);
         // 小于间隔时间 且 参数内容一致
         if (compareTime < interval && compareParams) {
           return Resp.errMsg('不允许重复提交，请稍候再试');
