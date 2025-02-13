@@ -67,7 +67,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       let info = await tokenService.info(claims);
       if (info.userId <= 0) {
         c.status = 401;
-        return Resp.codeMsg(401, '无效身份授权');
+        return Resp.codeMsg(401, 'token valid error');
       }
 
       // 检查刷新有效期后存入上下文

@@ -1,7 +1,5 @@
 import { ErrorCatch } from './error_catch';
-import { Forbidden } from './forbidden';
 import { NotFound } from './not_found';
-import { Unauthorized } from './unauthorized';
 
 /**
  * 异常错误捕获拦截器
@@ -10,7 +8,5 @@ import { Unauthorized } from './unauthorized';
  */
 export const ErrorCatchFilters = [
   NotFound,
-  Forbidden,
-  Unauthorized,
   ErrorCatch,
 ];

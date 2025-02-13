@@ -1,6 +1,7 @@
-import { Config, Inject, Provide, Singleton, httpError } from '@midwayjs/core';
+import { Config, Inject, Provide, Singleton } from '@midwayjs/core';
 import { JwtService } from '@midwayjs/jwt';
 import ms = require('ms');
+
 import { JWT_UUID, JWT_USER_ID, JWT_USER_NAME } from '../../constants/token';
 import { TokenInfo } from './token_info';
 import { RedisCache } from '../../datasource/redis/redis';
@@ -133,18 +134,10 @@ export class TokenUtil {
       if (jwtToken) {
         return [jwtToken as Record<string, any>, ''];
       }
-    } catch (e) { 
-      // if ('TokenExpiredError' === e.name) {
-      //   throw new httpError.UnauthorizedError(
-      //     `用户授权已过期, ${new Date(e.expiredAt).toLocaleString()}`
-      //   );
-      // }
-      // if ('JsonWebTokenError' === e.name) {
-      //   throw new httpError.UnauthorizedError('token invalid');
-      // }
-      return [null, "token invalid"];
+    } catch (e) {
+      return [null, e.name];
     }
-    return [null, "token valid error"];
+    return [null, 'token valid error'];
   }
 
   /**
@@ -163,7 +156,7 @@ export class TokenUtil {
         try {
           return JSON.parse(infoStr) as TokenInfo;
         } catch (err: any) {
-          throw new httpError.UnauthorizedError('token valid error');
+          info.userId = 0;
         }
       }
     }
