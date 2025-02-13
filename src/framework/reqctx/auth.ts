@@ -13,11 +13,11 @@ import { isSystemUser } from './context';
 
 /**
  * 登录用户信息
- * @param ctx 上下文对象
+ * @param c 上下文对象
  * @returns 登录用户信息
  */
-export function loginUser(ctx: Context): [TokenInfo, string] {
-  const value = ctx.getAttr<TokenInfo>(CTX_LOGIN_USER);
+export function loginUser(c: Context): [TokenInfo, string] {
+  const value = c.getAttr<TokenInfo>(CTX_LOGIN_USER);
   if (value && value.uuid) {
     delete value.user.password;
     return [value, ''];
@@ -27,11 +27,11 @@ export function loginUser(ctx: Context): [TokenInfo, string] {
 
 /**
  * 登录用户信息-用户ID
- * @param ctx 上下文对象
+ * @param c 上下文对象
  * @returns 用户ID
  */
-export function loginUserToUserID(ctx: Context): number {
-  const [info, err] = loginUser(ctx);
+export function loginUserToUserID(c: Context): number {
+  const [info, err] = loginUser(c);
   if (err) {
     return 0;
   }
@@ -40,11 +40,11 @@ export function loginUserToUserID(ctx: Context): number {
 
 /**
  * 登录用户信息-用户名称
- * @param ctx 上下文对象
+ * @param c 上下文对象
  * @returns 用户名称
  */
-export function loginUserToUserName(ctx: Context): string {
-  const [info, err] = loginUser(ctx);
+export function loginUserToUserName(c: Context): string {
+  const [info, err] = loginUser(c);
   if (err) {
     return '';
   }
@@ -53,15 +53,15 @@ export function loginUserToUserName(ctx: Context): string {
 
 /**
  * 登录用户信息-包含角色KEY
- * @param ctx 上下文对象
+ * @param c 上下文对象
  * @returns boolen
  */
-export function loginUserByContainRoles(ctx: Context, target: string): boolean {
-  const [info, err] = loginUser(ctx);
+export function loginUserByContainRoles(c: Context, target: string): boolean {
+  const [info, err] = loginUser(c);
   if (err) {
     return false;
   }
-  if (isSystemUser(ctx, info.userId)) {
+  if (isSystemUser(c, info.userId)) {
     return true;
   }
   if (Array.isArray(info.user.roles)) {
@@ -76,15 +76,15 @@ export function loginUserByContainRoles(ctx: Context, target: string): boolean {
 
 /**
  * 登录用户信息-包含权限标识
- * @param ctx 上下文对象
+ * @param c 上下文对象
  * @returns boolen
  */
-export function loginUserByContainPerms(ctx: Context, target: string): boolean {
-  const [info, err] = loginUser(ctx);
+export function loginUserByContainPerms(c: Context, target: string): boolean {
+  const [info, err] = loginUser(c);
   if (err) {
     return false;
   }
-  if (isSystemUser(ctx, info.userId)) {
+  if (isSystemUser(c, info.userId)) {
     return true;
   }
   if (Array.isArray(info.permissions)) {
@@ -99,26 +99,26 @@ export function loginUserByContainPerms(ctx: Context, target: string): boolean {
 
 /**
  * 登录用户信息-角色数据范围过滤SQL字符串
- * @param ctx 上下文对象
+ * @param c 上下文对象
  * @param deptAlias 部门表别名
  * @param userAlias 用户表别名
  * @return SQL字符串 (...)
  */
 export function loginUserToDataScopeSQL(
-  ctx: Context,
+  c: Context,
   deptAlias: string,
   userAlias: string
 ): string {
   let dataScopeSQL = '';
   // 登录用户信息
-  const [info, err] = loginUser(ctx);
+  const [info, err] = loginUser(c);
   if (err) {
     return dataScopeSQL;
   }
   const userInfo = info.user;
 
   // 如果是系统管理员，则不过滤数据
-  if (isSystemUser(ctx, userInfo.userId)) {
+  if (isSystemUser(c, userInfo.userId)) {
     return dataScopeSQL;
   }
   // 无用户角色

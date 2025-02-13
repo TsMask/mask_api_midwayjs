@@ -4,12 +4,13 @@ import { Inject } from '@midwayjs/core';
 /**简单示例 队列任务处理 */
 @Processor('simple')
 export class SimpleProcessor implements IProcessor {
+  /**上下文 */
   @Inject()
-  private ctx: Context;
+  private c: Context;
 
   async execute(options: ProcessorOptions): Promise<ProcessorData> {
-    const log = this.ctx.getLogger();
-    const ctxJob = this.ctx.job;
+    const log = this.c.getLogger();
+    const ctxJob = this.c.job;
 
     // 执行一次得到是直接得到传入的jobId
     // 重复任务得到编码格式的jobId => repeat:编码Jobid:执行时间戳

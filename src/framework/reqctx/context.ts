@@ -4,11 +4,11 @@ import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
 
 /**
  * 解析请求头携带的令牌
- * @param ctx 上下文对象
+ * @param c 上下文对象
  * @returns token字符串
  */
-export function authorization(ctx: Context): string {
-  let authHeader = ctx.get(HEADER_KEY);
+export function authorization(c: Context): string {
+  let authHeader = c.get(HEADER_KEY);
   if (!authHeader) {
     return '';
   }
@@ -22,14 +22,14 @@ export function authorization(ctx: Context): string {
 
 /**
  * 用户是否为系统管理员
- * @param ctx 上下文对象
+ * @param c 上下文对象
  * @param userId 用户ID
  * @returns boolen
  */
-export function isSystemUser(ctx: Context, userId: number): boolean {
+export function isSystemUser(c: Context, userId: number): boolean {
   if (userId <= 0) return false;
   // 从配置中获取系统管理员ID列表
-  const configUser = ctx.app.getConfig('user');
+  const configUser = c.app.getConfig('user');
   if (Array.isArray(configUser.system)) {
     return configUser.system.includes(userId);
   }
