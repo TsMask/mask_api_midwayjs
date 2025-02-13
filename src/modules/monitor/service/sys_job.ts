@@ -6,28 +6,34 @@ import { SysJobLog } from '../model/sys_job_log';
 import { SysJobRepository } from '../repository/sys_job';
 import { SysJobLogRepository } from '../repository/sys_job_log';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import { FileService } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { SysDictDataService } from '../../system/service/sys_dict_data';
 
 /**调度任务 服务层处理 */
 @Provide()
 @Singleton()
 export class SysJobService {
-  @Inject()
-  private bullFramework: Framework;
-
+  /**调度任务数据信息 */
   @Inject()
   private sysJobRepository: SysJobRepository;
 
+  /**调度任务日志数据信息 */
   @Inject()
   private sysJobLogRepository: SysJobLogRepository;
 
+  /**字典类型服务 */
   @Inject()
-  private fileService: FileService;
+  private sysDictTypeService: SysDictDataService;
 
+  /**任务队列 */
   @Inject()
-  private sysDictDataService: SysDictDataService;
+  private bullFramework: Framework;
 
+  /**文件服务 */
+  @Inject()
+  private fileUtil: FileUtil;
+
+  /**初始化 */
   @Init()
   public async init() {
     // 启动时，初始化调度任务
@@ -107,22 +113,23 @@ export class SysJobService {
   /**
    * 批量删除
    * @param jobIds ID数组
-   * @returns 影响记录数
+   * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(jobIds: number[]): Promise<number> {
+  public async deleteByIds(jobIds: number[]): Promise<[number, string]> {
     // 检查是否存在
     const jobs = await this.sysJobRepository.selectByIds(jobIds);
     if (jobs.length <= 0) {
-      throw new Error('没有权限访问调度任务数据！');
+      return [0, '没有权限访问调度任务数据！'];
     }
     if (jobs.length === jobIds.length) {
       // 清除任务
       for (const job of jobs) {
         await this.deleteQueueJob(job);
       }
-      return await this.sysJobRepository.deleteByIds(jobIds);
+      const rows = await this.sysJobRepository.deleteByIds(jobIds);
+      return [rows, ''];
     }
-    return 0;
+    return [0, '删除调度任务信息失败！'];
   }
 
   /**
@@ -355,7 +362,7 @@ export class SysJobService {
    */
   public async exportData(rows: SysJob[], fileName: string) {
     // 读取任务组名字典数据
-    const dictSysJobGroup = await this.sysDictDataService.findByType(
+    const dictSysJobGroup = await this.sysDictTypeService.findByType(
       'sys_job_group'
     );
     // 导出数据组装
@@ -398,6 +405,6 @@ export class SysJobService {
       };
       arr.push(data);
     }
-    return await this.fileService.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.excelWriteRecord(arr, fileName);
   }
 }

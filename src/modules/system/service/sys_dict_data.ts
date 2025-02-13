@@ -1,22 +1,25 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/utils/file/file';
-import { SysDictData } from '../model/sys_dict_data';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { SysDictDataRepository } from '../repository/sys_dict_data';
 import { SysDictTypeService } from './sys_dict_type';
+import { SysDictData } from '../model/sys_dict_data';
 
 /**字典类型数据 服务层处理 */
 @Provide()
 @Singleton()
 export class SysDictDataService {
+  /**字典数据服务 */
   @Inject()
   private sysDictDataRepository: SysDictDataRepository;
 
+  /**字典类型服务 */
   @Inject()
   private sysDictTypeService: SysDictTypeService;
 
+  /**文件服务 */
   @Inject()
-  private fileService: FileService;
+  private fileUtil: FileUtil;
 
   /**
    * 分页查询列表数据
@@ -92,13 +95,13 @@ export class SysDictDataService {
   /**
    * 批量删除信息
    * @param dictIds ID数组
-   * @returns 影响记录数
+   * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(dictIds: number[]): Promise<number> {
+  public async deleteByIds(dictIds: number[]): Promise<[number, string]> {
     // 检查是否存在
     const dicts = await this.sysDictDataRepository.selectByIds(dictIds);
     if (dicts.length <= 0) {
-      throw new Error('没有权限访问字典编码数据！');
+      return [0, '没有权限访问字典编码数据！'];
     }
     if (dicts.length === dictIds.length) {
       for (const v of dicts) {
@@ -106,9 +109,10 @@ export class SysDictDataService {
         await this.sysDictTypeService.cacheClean(v.dictType);
         await this.sysDictTypeService.cacheLoad(v.dictType);
       }
-      return await this.sysDictDataRepository.deleteByIds(dictIds);
+      const rows = await this.sysDictDataRepository.deleteByIds(dictIds);
+      return [rows, ''];
     }
-    return 0;
+    return [0, '删除字典数据信息失败！'];
   }
 
   /**
@@ -179,6 +183,6 @@ export class SysDictDataService {
       };
       dataCells.push(data);
     }
-    return await this.fileService.excelWriteRecord(dataCells, fileName);
+    return await this.fileUtil.excelWriteRecord(dataCells, fileName);
   }
 }

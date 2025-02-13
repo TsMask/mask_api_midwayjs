@@ -10,7 +10,7 @@ import { HEADER_PREFIX } from '../../../framework/constants/token';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { ipaddrLocation, uaOsBrowser } from '../../../framework/reqctx/param';
-import { loginUser } from '../../../framework/reqctx/auth';
+import { loginUser, loginUserToUserID } from '../../../framework/reqctx/auth';
 import { authorization } from '../../../framework/reqctx/context';
 import { GlobalConfig } from '../../../framework/config/config';
 import { TokenUtil } from '../../../framework/utils/token/token';
@@ -43,7 +43,7 @@ export class AccountController {
 
   /**系统登录 */
   @Post('/login')
-  @RateLimit({ time: 300, count: 20, limitType: LIMIT_IP })
+  @RateLimit({ time: 300, count: 20, type: LIMIT_IP })
   public async login(@Body() body: LoginBody): Promise<Resp> {
     // 当前请求信息
     const [ipaddr, location] = await ipaddrLocation(this.c);
@@ -96,7 +96,6 @@ export class AccountController {
       );
     }
 
-    this.c.status = 200;
     return Resp.okData({
       accessToken: tokenStr,
       tokenType: HEADER_PREFIX.trimEnd(),
@@ -109,10 +108,10 @@ export class AccountController {
   @Get('/me')
   @PreAuthorize()
   public async me(): Promise<Resp> {
-    const info = loginUser(this.c);
-    if (!info.uuid) {
+    const [info, err] = loginUser(this.c);
+    if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(40003, 'invalid login user information');
+      return Resp.codeMsg(40003, err);
     }
 
     // 角色权限集合，系统管理员拥有所有权限
@@ -133,26 +132,21 @@ export class AccountController {
   @Get('/router')
   @PreAuthorize()
   public async router(): Promise<Resp> {
-    const info = loginUser(this.c);
-    if (!info.uuid) {
-      this.c.status = 401;
-      return Resp.codeMsg(40003, 'invalid login user information');
-    }
+    const loginUserId = loginUserToUserID(this.c);
 
     // 前端路由，系统管理员拥有所有
-    const isSystemUser = this.config.isSystemUser(info.userId);
+    const isSystemUser = this.config.isSystemUser(loginUserId);
     const buildMenus = await this.accountService.routeMenus(
-      info.userId,
+      loginUserId,
       isSystemUser
     );
 
-    this.c.status = 200;
     return Resp.okData(buildMenus);
   }
 
   /**系统登出 */
   @Post('/logout')
-  @RateLimit({ time: 300, count: 5, limitType: LIMIT_IP })
+  @RateLimit({ time: 300, count: 5, type: LIMIT_IP })
   public async logout(): Promise<Resp> {
     const tokenStr = authorization(this.c);
     if (!tokenStr) {

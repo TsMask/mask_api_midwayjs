@@ -10,6 +10,7 @@ import {
   Query,
 } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
@@ -20,23 +21,23 @@ import {
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
 import { Resp } from '../../../framework/resp/api';
+import { loginUserToUserName } from '../../../framework/reqctx/auth';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/reqctx/context';
 import { SysDictTypeService } from '../service/sys_dict_type';
 import { SysDictType } from '../model/sys_dict_type';
 
 /**字典类型信息 控制层处理 */
 @Controller('/system/dict/type')
 export class SysDictTypeController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**字典类型服务 */
   @Inject()
   private sysDictTypeService: SysDictTypeService;
 
-  /**
-   * 字典类型列表
-   */
+  /**字典类型列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:dict:list'] })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
@@ -44,15 +45,12 @@ export class SysDictTypeController {
     return Resp.okData({ rows, total });
   }
 
-  /**
-   * 字典类型信息
-   */
+  /**字典类型信息 */
   @Get('/:dictId')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
-  public async info(
-    @Valid(RuleType.number().required()) @Param('dictId') dictId: number
-  ) {
+  public async info(@Valid(RuleType.number()) @Param('dictId') dictId: number) {
     if (dictId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: dictId is empty');
     }
 
@@ -63,9 +61,7 @@ export class SysDictTypeController {
     return Resp.err();
   }
 
-  /**
-   * 字典类型新增
-   */
+  /**字典类型新增 */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dict:add'] })
   @OperateLog({
@@ -74,6 +70,7 @@ export class SysDictTypeController {
   })
   public async add(@Body() body: SysDictType): Promise<Resp> {
     if (body.dictId > 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: dictId not is empty');
     }
 
@@ -95,7 +92,7 @@ export class SysDictTypeController {
       return Resp.errMsg(`字典新增【${body.dictName}】失败，字典类型已存在`);
     }
 
-    body.createBy = this.contextService.getUseName();
+    body.createBy = loginUserToUserName(this.c);
     const insertId = await this.sysDictTypeService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -103,9 +100,7 @@ export class SysDictTypeController {
     return Resp.err();
   }
 
-  /**
-   * 字典类型修改
-   */
+  /**字典类型修改 */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
   @OperateLog({
@@ -114,6 +109,7 @@ export class SysDictTypeController {
   })
   public async edit(@Body() body: SysDictType): Promise<Resp> {
     if (body.dictId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: dictId is empty');
     }
 
@@ -145,7 +141,7 @@ export class SysDictTypeController {
     dictType.dictType = body.dictType;
     dictType.statusFlag = body.statusFlag;
     dictType.remark = body.remark;
-    dictType.updateBy = this.contextService.getUseName();
+    dictType.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysDictTypeService.update(dictType);
     if (rows > 0) {
       return Resp.ok();
@@ -153,9 +149,7 @@ export class SysDictTypeController {
     return Resp.err();
   }
 
-  /**
-   * 字典类型删除
-   */
+  /**字典类型删除 */
   @Del('/:dictIds')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperateLog({
@@ -163,22 +157,26 @@ export class SysDictTypeController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string().required()) @Param('dictId') dictId: string
+    @Valid(RuleType.string()) @Param('dictId') dictId: string
   ): Promise<Resp> {
+    if (dictId == '') {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: dataId is empty');
+    }
+
     // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(dictId, ',');
     // 转换成number数组类型
     const ids = uniqueIDs.map(id => parseNumber(id));
-    const rows = await this.sysDictTypeService.deleteByIds(ids);
-    if (rows > 0) {
-      return Resp.okMsg(`删除成功: ${rows}`);
+
+    const [rows, err] = await this.sysDictTypeService.deleteByIds(ids);
+    if (err) {
+      return Resp.errMsg(err);
     }
-    return Resp.err();
+    return Resp.okMsg(`删除成功: ${rows}`);
   }
 
-  /**
-   * 字典类型刷新缓存
-   */
+  /**字典类型刷新缓存 */
   @Put('/refresh')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperateLog({
@@ -191,9 +189,7 @@ export class SysDictTypeController {
     return Resp.ok();
   }
 
-  /**
-   * 字典类型选择框列表
-   */
+  /**字典类型选择框列表 */
   @Get('/options')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   public async options() {
@@ -210,10 +206,8 @@ export class SysDictTypeController {
     return Resp.okData(arr);
   }
 
-  /**
-   * 字典类型列表导出
-   */
-  @Post('/export')
+  /**字典类型列表导出 */
+  @Get('/export')
   @PreAuthorize({ hasPermissions: ['system:dict:export'] })
   @OperateLog({
     title: '字典类型信息',
@@ -222,17 +216,16 @@ export class SysDictTypeController {
   public async export(@Query() query: Record<string, string>) {
     const [rows, total] = await this.sysDictTypeService.findByPage(query);
     if (total === 0) {
-      return Resp.errMsg('导出数据记录为空');
+      return Resp.codeMsg(40016, 'export data record as empty');
     }
 
     // 导出文件名称
     const fileName = `dict_type_export_${rows.length}_${Date.now()}.xlsx`;
-    const ctx = this.contextService.getContext();
-    ctx.set(
+    this.c.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set(
+    this.c.set(
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );

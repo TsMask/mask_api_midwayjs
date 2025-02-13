@@ -4,7 +4,7 @@ import {
   ROLE_SCOPE_CUSTOM,
   ROLE_SCOPE_DATA,
 } from '../../../framework/constants/role_data_scope';
-import { FileService } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
 import { SysUserRoleRepository } from '../repository/sys_user_role';
 import { SysRoleDeptRepository } from '../repository/sys_role_dept';
@@ -19,20 +19,25 @@ import { SysRole } from '../model/sys_role';
 @Provide()
 @Singleton()
 export class SysRoleService {
+  /**角色服务 */
   @Inject()
   private sysRoleRepository: SysRoleRepository;
 
+  /**用户与角色关联服务 */
   @Inject()
   private sysUserRoleRepository: SysUserRoleRepository;
 
+  /**角色与部门关联服务 */
   @Inject()
   private sysRoleDeptRepository: SysRoleDeptRepository;
 
+  /**角色与菜单关联服务 */
   @Inject()
   private sysRoleMenuRepository: SysRoleMenuRepository;
 
+  /**文件服务 */
   @Inject()
-  private fileService: FileService;
+  private fileUtil: FileUtil;
 
   /**
    * 分页查询列表数据
@@ -143,33 +148,34 @@ export class SysRoleService {
   /**
    * 批量删除信息
    * @param configIds ID数组
-   * @returns 影响记录数
+   * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(roleIds: number[]): Promise<number> {
+  public async deleteByIds(roleIds: number[]): Promise<[number, string]> {
     // 检查是否存在
     const roles = await this.sysRoleRepository.selectByIds(roleIds);
     if (roles.length <= 0) {
-      throw new Error('没有权限访问角色数据！');
+      return [0, '没有权限访问角色数据！'];
     }
     for (const role of roles) {
       // 检查是否为内置参数
       if (role.delFlag === '1') {
-        throw new Error(`ID:${role.roleId} 角色信息已经删除！`);
+        return [0, `ID:${role.roleId} 角色信息已经删除！`];
       }
       // 检查分配用户
       const useCount = await this.sysUserRoleRepository.existUserByRoleId(
         role.roleId
       );
       if (useCount > 0) {
-        throw new Error(`【${role.roleName}】已分配给用户,不能删除`);
+        return [0, `【${role.roleName}】已分配给用户,不能删除`];
       }
     }
     if (roles.length === roleIds.length) {
       this.sysRoleMenuRepository.deleteByRoleIds(roleIds); // 删除角色与菜单关联
       this.sysRoleDeptRepository.deleteByRoleIds(roleIds); // 删除角色与部门关联
-      return await this.sysRoleRepository.deleteByIds(roleIds);
+      const rows = await this.sysRoleRepository.deleteByIds(roleIds);
+      return [rows, ''];
     }
-    return 0;
+    return [0, '删除角色信息失败！'];
   }
 
   /**
@@ -320,6 +326,6 @@ export class SysRoleService {
       };
       arr.push(data);
     }
-    return await this.fileService.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.excelWriteRecord(arr, fileName);
   }
 }

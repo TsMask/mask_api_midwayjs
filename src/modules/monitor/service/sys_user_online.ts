@@ -7,7 +7,7 @@ import { SysUserOnline } from '../model/sys_user_online';
 @Singleton()
 export class SysUserOnlineService {
   /**
-   * 设置在线用户信息
+   * 在线用户信息
    *
    * @param tokenInfo 登录用户信息
    * @return 在线用户
@@ -15,7 +15,7 @@ export class SysUserOnlineService {
   public async tokenInfoToUserOnline(
     tokenInfo: TokenInfo
   ): Promise<SysUserOnline> {
-    if (!tokenInfo || tokenInfo.userId <= 0) {
+    if (tokenInfo.userId <= 0) {
       return new SysUserOnline();
     }
 

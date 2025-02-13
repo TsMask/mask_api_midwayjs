@@ -10,6 +10,7 @@ import {
   Query,
 } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   MENU_TYPE_DIR,
@@ -20,28 +21,36 @@ import {
   OperateLog,
 } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
-import { validHttp } from '../../../framework/utils/RegularUtils';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/reqctx/context';
+import {
+  loginUserToUserID,
+  loginUserToUserName,
+} from '../../../framework/reqctx/auth';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { GlobalConfig } from '../../../framework/config/config';
+import { validHttp } from '../../../framework/utils/regular/regular';
 import { SysMenuService } from '../service/sys_menu';
 import { SysMenu } from '../model/sys_menu';
 
 /**菜单信息 控制层处理 */
 @Controller('/system/menu')
 export class SysMenuController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**配置信息 */
+  @Inject()
+  private config: GlobalConfig;
+
+  /**菜单服务 */
   @Inject()
   private sysMenuService: SysMenuService;
 
-  /**
-   * 菜单列表
-   */
+  /**菜单列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
-  async list(
+  public async list(
     @Query('menuName') menuName: string,
     @Query('statusFlag') statusFlag: string
   ): Promise<Resp> {
@@ -49,23 +58,22 @@ export class SysMenuController {
     if (menuName) sysMenu.menuName = menuName;
     if (statusFlag) sysMenu.statusFlag = statusFlag;
 
-    let userId = this.contextService.getUserId();
-    if (this.contextService.isSystemUser(userId)) {
+    let userId = loginUserToUserID(this.c);
+    if (this.config.isSystemUser(userId)) {
       userId = 0;
     }
     const data = await this.sysMenuService.find(sysMenu, userId);
     return Resp.okData(data || []);
   }
 
-  /**
-   * 菜单信息
-   */
+  /**菜单信息 */
   @Get('/:menuId')
   @PreAuthorize({ hasPermissions: ['system:menu:query'] })
-  async info(
-    @Valid(RuleType.number().required()) @Param('menuId') menuId: number
+  public async info(
+    @Valid(RuleType.number()) @Param('menuId') menuId: number
   ): Promise<Resp> {
     if (menuId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: menuId is empty');
     }
     const data = await this.sysMenuService.findById(menuId);
@@ -75,17 +83,16 @@ export class SysMenuController {
     return Resp.err();
   }
 
-  /**
-   * 菜单新增
-   */
+  /**菜单新增 */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:menu:add'] })
   @OperateLog({
     title: '菜单信息',
     businessType: BUSINESS_TYPE.INSERT,
   })
-  async add(@Body() body: SysMenu): Promise<Resp> {
+  public async add(@Body() body: SysMenu): Promise<Resp> {
     if (body.menuId > 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: menuId not is empty');
     }
 
@@ -122,7 +129,7 @@ export class SysMenuController {
       );
     }
 
-    body.createBy = this.contextService.getUseName();
+    body.createBy = loginUserToUserName(this.c);
     const insertId = await this.sysMenuService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -130,17 +137,16 @@ export class SysMenuController {
     return Resp.err();
   }
 
-  /**
-   * 菜单修改
-   */
+  /**菜单修改 */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:menu:edit'] })
   @OperateLog({
     title: '菜单信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async edit(@Body() body: SysMenu): Promise<Resp> {
+  public async edit(@Body() body: SysMenu): Promise<Resp> {
     if (body.menuId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: menuId is empty');
     }
     // 上级菜单不能选自己
@@ -222,7 +228,7 @@ export class SysMenuController {
     menuInfo.perms = body.perms;
     menuInfo.icon = body.icon;
     menuInfo.remark = body.remark;
-    menuInfo.updateBy = this.contextService.getUseName();
+    menuInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysMenuService.update(menuInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -230,19 +236,18 @@ export class SysMenuController {
     return Resp.err();
   }
 
-  /**
-   * 菜单删除
-   */
+  /**菜单删除 */
   @Del('/:menuId')
   @PreAuthorize({ hasPermissions: ['system:menu:remove'] })
   @OperateLog({
     title: '菜单信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(
-    @Valid(RuleType.number().required()) @Param('menuId') menuId: number
+  public async remove(
+    @Valid(RuleType.number()) @Param('menuId') menuId: number
   ): Promise<Resp> {
     if (menuId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: menuId is empty');
     }
 
@@ -271,12 +276,10 @@ export class SysMenuController {
     return Resp.err();
   }
 
-  /**
-   * 菜单树结构列表
-   */
-  @Get('/treeSelect')
+  /**菜单树结构列表 */
+  @Get('/tree')
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
-  async tree(
+  public async tree(
     @Query('menuName') menuName: string,
     @Query('statusFlag') statusFlag: string
   ): Promise<Resp> {
@@ -284,8 +287,8 @@ export class SysMenuController {
     if (menuName) sysMenu.menuName = menuName;
     if (statusFlag) sysMenu.statusFlag = statusFlag;
 
-    let userId = this.contextService.getUserId();
-    if (this.contextService.isSystemUser(userId)) {
+    let userId = loginUserToUserID(this.c);
+    if (this.config.isSystemUser(userId)) {
       userId = 0;
     }
     const trees = await this.sysMenuService.buildTreeSelectByUserId(
@@ -295,25 +298,24 @@ export class SysMenuController {
     return Resp.okData(trees);
   }
 
-  /**
-   * 菜单树结构列表（指定角色）
-   */
+  /**菜单树结构列表（指定角色） */
   @Get('/tree/role/:roleId')
   @PreAuthorize({ hasPermissions: ['system:menu:list'] })
-  async treeRole(
+  public async treeRole(
     @Param('roleId') roleId: number,
     @Query('menuName') menuName: string,
     @Query('statusFlag') statusFlag: string
   ): Promise<Resp> {
     if (roleId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: roleId is empty');
     }
     const sysMenu = new SysMenu();
     if (menuName) sysMenu.menuName = menuName;
     if (statusFlag) sysMenu.statusFlag = statusFlag;
 
-    let userId = this.contextService.getUserId();
-    if (this.contextService.isSystemUser(userId)) {
+    let userId = loginUserToUserID(this.c);
+    if (this.config.isSystemUser(userId)) {
       userId = 0;
     }
     const menuTreeSelect = await this.sysMenuService.buildTreeSelectByUserId(

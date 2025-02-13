@@ -10,51 +10,60 @@ import {
   Query,
 } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
   OperateLog,
 } from '../../../framework/decorator/OperateLogMethodDecorator';
-import { Resp } from '../../../framework/resp/api';
+import {
+  loginUserToDataScopeSQL,
+  loginUserToUserName,
+} from '../../../framework/reqctx/auth';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
+import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/reqctx/context';
 import { SysDeptService } from '../service/sys_dept';
 import { SysDept } from '../model/sys_dept';
 
-/**
- * 部门信息
- *
- * @author TsMask
- */
+/**部门信息 控制层处理 */
 @Controller('/system/dept')
 export class SysDeptController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**部门服务 */
   @Inject()
   private sysDeptService: SysDeptService;
 
-  /**
-   * 部门列表
-   */
+  /**部门列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:dept:list'] })
-  public async list(@Query() sysDept: SysDept): Promise<Resp> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL('sys_dept');
+  public async list(
+    @Valid(RuleType.number()) @Query('deptId') deptId: number,
+    @Valid(RuleType.number()) @Query('parentId') parentId: number,
+    @Valid(RuleType.string()) @Query('deptName') deptName: string,
+    @Valid(RuleType.string()) @Query('statusFlag') statusFlag: string
+  ): Promise<Resp> {
+    const sysDept = new SysDept();
+    sysDept.deptId = deptId;
+    sysDept.parentId = parentId;
+    sysDept.deptName = deptName;
+    sysDept.statusFlag = statusFlag;
+    const dataScopeSQL = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
     const data = await this.sysDeptService.find(sysDept, dataScopeSQL);
     return Resp.okData(data);
   }
 
-  /**
-   * 部门信息
-   */
+  /**部门信息 */
   @Get('/:deptId')
   @PreAuthorize({ hasPermissions: ['system:dept:query'] })
   public async info(
     @Valid(RuleType.number().required()) @Param('deptId') deptId: number
   ): Promise<Resp> {
     if (deptId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: deptId is empty');
     }
 
@@ -65,9 +74,7 @@ export class SysDeptController {
     return Resp.err();
   }
 
-  /**
-   * 部门新增
-   */
+  /**部门新增 */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dept:add'] })
   @OperateLog({
@@ -76,6 +83,7 @@ export class SysDeptController {
   })
   public async add(@Body() body: SysDept): Promise<Resp> {
     if (body.deptId > 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: deptId not is empty');
     }
 
@@ -111,7 +119,7 @@ export class SysDeptController {
       return Resp.errMsg(`部门新增【${body.deptName}】失败，部门名称已存在`);
     }
 
-    body.createBy = this.contextService.getUseName();
+    body.createBy = loginUserToUserName(this.c);
     const insertId = await this.sysDeptService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -119,9 +127,7 @@ export class SysDeptController {
     return Resp.err();
   }
 
-  /**
-   * 部门修改
-   */
+  /**部门修改 */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
   @OperateLog({
@@ -130,6 +136,7 @@ export class SysDeptController {
   })
   public async edit(@Body() body: SysDept): Promise<Resp> {
     if (body.deptId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: deptId is empty');
     }
 
@@ -181,7 +188,7 @@ export class SysDeptController {
     deptInfo.phone = body.phone;
     deptInfo.email = body.email;
     deptInfo.statusFlag = body.statusFlag;
-    deptInfo.updateBy = this.contextService.getUseName();
+    deptInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysDeptService.update(deptInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -189,9 +196,7 @@ export class SysDeptController {
     return Resp.err();
   }
 
-  /**
-   * 部门删除
-   */
+  /**部门删除 */
   @Del('/:deptId')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperateLog({
@@ -199,9 +204,10 @@ export class SysDeptController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.number().required()) @Param('deptId') deptId: number
+    @Valid(RuleType.number()) @Param('deptId') deptId: number
   ): Promise<Resp> {
     if (deptId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: deptId is empty');
     }
 
@@ -230,15 +236,17 @@ export class SysDeptController {
     return Resp.err();
   }
 
-  /**
-   * 部门列表（排除节点）
-   */
+  /**部门列表（排除节点） */
   @Get('/list/exclude/:deptId')
   @PreAuthorize({ hasPermissions: ['system:dept:list'] })
   public async excludeChild(
-    @Valid(RuleType.number().required()) @Param('deptId') deptId: number
+    @Valid(RuleType.number()) @Param('deptId') deptId: number
   ): Promise<Resp> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL('sys_dept');
+    if (deptId <= 0) {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: deptId is empty');
+    }
+    const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
     let data = await this.sysDeptService.find(new SysDept(), dataScopeSQL);
 
     // 过滤排除节点
@@ -255,13 +263,11 @@ export class SysDeptController {
     return Resp.okData(filtered);
   }
 
-  /**
-   * 部门树结构列表
-   */
+  /**部门树结构列表 */
   @Get('/tree')
   @PreAuthorize({ hasPermissions: ['system:dept:list', 'system:user:list'] })
   public async tree(@Query() sysDept: SysDept): Promise<Resp> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL('sys_dept', '');
+    const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
     const data = await this.sysDeptService.buildTreeSelect(
       sysDept,
       dataScopeSQL
@@ -269,19 +275,18 @@ export class SysDeptController {
     return Resp.okData(data);
   }
 
-  /**
-   *  部门树结构列表（指定角色）
-   */
+  /**部门树结构列表（指定角色） */
   @Get('/tree/role/:roleId')
   @PreAuthorize({ hasPermissions: ['system:role:query'] })
   public async treeRole(
     @Valid(RuleType.number().required()) @Param('roleId') roleId: number
   ): Promise<Resp> {
     if (roleId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: roleId is empty');
     }
 
-    const dataScopeSQL = this.contextService.getDataScopeSQL('sys_dept', '');
+    const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
     const deptTreeSelect = await this.sysDeptService.buildTreeSelect(
       new SysDept(),
       dataScopeSQL

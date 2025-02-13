@@ -1,13 +1,4 @@
 import {
-  Inject,
-  Provide,
-  Singleton,
-  MidwayInformationService,
-  App,
-} from '@midwayjs/core';
-import { Application } from '@midwayjs/koa';
-import { diskinfo } from '@dropb/diskinfo';
-import {
   uptime,
   platform,
   version,
@@ -20,7 +11,18 @@ import {
   freemem,
   cpus,
   networkInterfaces,
-} from 'os';
+} from 'node:os';
+
+import {
+  Inject,
+  Provide,
+  Singleton,
+  MidwayInformationService,
+  App,
+} from '@midwayjs/core';
+import { Application } from '@midwayjs/koa';
+import { diskinfo } from '@dropb/diskinfo';
+
 import { parseDateToStr } from '../../../framework/utils/date/data';
 import { parseBit } from '../../../framework/utils/parse/parse';
 
@@ -28,18 +30,16 @@ import { parseBit } from '../../../framework/utils/parse/parse';
 @Provide()
 @Singleton()
 export class SystemInfoService {
+  /**内置的信息服务，提供基础的项目数据 */
   @Inject()
   private midwayInformationService: MidwayInformationService;
 
-  @App()
+  /**主框架中的 app 对象 */
+  @App('koa')
   private app: Application;
 
-  /**
-   * 获取程序项目信息
-   * 
-   * @returns 程序项目信息对象
-   */
-  public projectInfo(): ProjectInfoType {
+  /**程序项目信息 */
+  public projectInfo(): Record<string, string> {
     const pkg = this.midwayInformationService.getPkg();
     return {
       appDir: this.app.getAppDir(),
@@ -49,12 +49,8 @@ export class SystemInfoService {
     };
   }
 
-  /**
-   * 获取系统信息
-   * 
-   * @returns 系统信息对象
-   */
-  public systemInfo(): SystemInfoType {
+  /**系统信息 */
+  public systemInfo(): Record<string, any> {
     const runTime: number = this.app.getAttr('runTime');
     return {
       platform: platform(),
@@ -74,65 +70,58 @@ export class SystemInfoService {
     };
   }
 
-  /**
-   * 获取系统时间信息
-   * 
-   * @returns 系统时间信息对象
-   */
-  public timeInfo(): TimeInfoType {
+  /**系统时间信息 */
+  public timeInfo(): Record<string, string> {
     const now = new Date();
     const t = now.toString().split(' ');
-    return {
-      current: parseDateToStr(now),
-      timezone: t.length >= 7 ? t[5] : '',
-      timezoneName:
-        t.length >= 7
-          ? t.slice(6).join(' ').replace(/\(/g, '').replace(/\)/g, '')
-          : '',
-    };
+    // 获取当前时间
+    const current = parseDateToStr(now);
+    // 获取时区
+    let timezone = '';
+    // 获取时区名称
+    let timezoneName = '';
+    if (t.length >= 7) {
+      timezone = t[5];
+      timezoneName = t.slice(6).join(' ').replace(/\(/g, '').replace(/\)/g, '');
+    }
+    return { current, timezone, timezoneName };
   }
 
-  /**
-   * 获取内存信息
-   * 
-   * @returns 内存信息对象
-   */
-  public memoryInfo(): MemoryInfoType {
+  /**内存信息 */
+  public memoryInfo(): Record<string, string> {
     const memory = process.memoryUsage();
     const total = totalmem();
     const free = freemem();
     return {
-      usage: ((1 - free / total) * 100).toFixed(2),
-      freemem: parseBit(free),
-      totalmem: parseBit(total),
-      rss: parseBit(memory.rss),
-      heapTotal: parseBit(memory.heapTotal),
-      heapUsed: parseBit(memory.heapUsed),
-      external: parseBit(memory.external),
+      usage: ((1 - free / total) * 100).toFixed(2), // 内存利用率
+      freemem: parseBit(free), // 可用内存大小（GB）
+      totalmem: parseBit(total), // 总内存大小（GB）
+      rss: parseBit(memory.rss), // 常驻内存大小（RSS）
+      heapTotal: parseBit(memory.heapTotal), // 堆总大小
+      heapUsed: parseBit(memory.heapUsed), // 堆已使用大小
+      external: parseBit(memory.external), // 外部内存大小（非堆）
     };
   }
 
-  /**
-   * 获取CPU信息
-   * 
-   * @returns CPU信息对象
-   */
-  public cpuInfo(): CPUInfoType {
+  /**CPU信息 */
+  public cpuInfo(): Record<string, any> {
     let model = '-';
     let speed = '-';
     let core = 0;
-    const cpu = cpus();
-    if (cpu.length > 0 && cpu[0]) {
-      core = cpu.length;
-      speed = `${cpu[0].speed}MHz`;
-      model = cpu[0].model.trim();
+    const cpuInfo = cpus();
+    if (cpuInfo.length > 0 && cpuInfo[0]) {
+      core = cpuInfo.length;
+      speed = `${cpuInfo[0].speed}MHz`;
+      model = cpuInfo[0].model.trim();
     }
-    const used = cpu.map(cpuInfo => {
-      const times = cpuInfo.times;
-      const value =
-        times.idle + times.user + times.nice + times.sys + times.irq;
-      return Number((1 - times.idle / value) * 100).toFixed(2);
-    });
+
+    let used: string[] = [];
+    for (const item of cpuInfo) {
+      const v = item.times;
+      const value = v.idle + v.user + v.nice + v.sys + v.irq;
+      used.push(Number((1 - v.idle / value) * 100).toFixed(2));
+    }
+
     return {
       model: model,
       speed: speed,
@@ -141,45 +130,41 @@ export class SystemInfoService {
     };
   }
 
-  /**
-   * 获取网络信息
-   * 
-   * @returns 网络信息对象
-   */
-  public networkInfo(): Record<string, any> {
-    const net = networkInterfaces();
-    return Object.keys(net).reduce((pre, type) => {
-      const netItemList = net[type];
-      let newType = type;
-      if (type[type.length - 1] === '0') {
-        newType = type.slice(0, -1);
-        newType = newType.trim();
+  /**网络信息 */
+  public networkInfo(): Record<string, string> {
+    let ipAdders: Record<string, string> = {};
+    const interfaces = networkInterfaces();
+    for (const v of Object.keys(interfaces)) {
+      let name = v;
+      if (name[name.length - 1] === '0') {
+        name = name.slice(0, -1);
+        name = name.trim();
       }
       // ignore localhost
-      if (newType === 'lo') {
-        return pre;
+      if (
+        name.startsWith('lo') ||
+        name.startsWith('veth') ||
+        name.startsWith('Loopback')
+      ) {
+        continue;
       }
-      // 过滤地址
-      const addrs: string[] = [];
-      for (const item of netItemList) {
-        if (item.family === 'IPv6' && item.address.includes('::')) {
-          addrs.push('IPv6 ' + item.address);
+      let arr: string[] = [];
+      const addrs = interfaces[v];
+      for (const v of addrs) {
+        if (v.family === 'IPv6' && v.address.includes('::')) {
+          arr.push('IPv6 ' + v.address);
         }
-        if (item.family === 'IPv4' && item.address.includes('.')) {
-          addrs.push('IPv4 ' + item.address);
+        if (v.family === 'IPv4' && v.address.includes('.')) {
+          arr.push('IPv4 ' + v.address);
         }
       }
-      pre[newType] = addrs.join(' / ');
-      return pre;
-    }, {});
+      ipAdders[v] = arr.join(' / ');
+    }
+    return ipAdders;
   }
 
-  /**
-   * 获取磁盘信息
-   * 
-   * @returns 磁盘信息列表
-   */
-  public async diskInfo(): Promise<DiskInfoType[]> {
+  /**磁盘信息 */
+  public async diskInfo(): Promise<Record<string, string>[]> {
     const disks = await diskinfo();
     const diskInfos = disks.map(disk => {
       return {

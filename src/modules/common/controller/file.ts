@@ -1,3 +1,5 @@
+import { posix } from 'node:path';
+
 import {
   Body,
   Controller,
@@ -9,15 +11,14 @@ import {
   Post,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
-import { posix } from 'node:path';
+import { Context } from '@midwayjs/koa';
 
-import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import {
   UPLOAD_COMMON,
   UPLOAD_SUB_PATH,
 } from '../../../framework/constants/upload_sub_path';
-import { Context } from '@midwayjs/koa';
+import { Resp } from '../../../framework/resp/api';
+import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { FileUtil } from '../../../framework/utils/file/file';
 import { UploadMiddleware } from '@midwayjs/upload';
 import { RuleType, Valid } from '@midwayjs/validate';
@@ -29,9 +30,9 @@ export class FileController {
   @Inject()
   private c: Context;
 
-  /**File工具 */
+  /**文件服务 */
   @Inject()
-  private file: FileUtil;
+  private fileUtil: FileUtil;
 
   /**下载文件 */
   @Get('/download/:filePath')
@@ -48,12 +49,11 @@ export class FileController {
 
     // 断点续传
     const headerRange = this.c.headers.range;
-    const [resultMap, errMsg] = await this.file.readUploadFileStream(
+    const [resultMap, errMsg] = await this.fileUtil.readUploadFileStream(
       routerPath,
       headerRange
     );
     if (errMsg) {
-      this.c.status = 200;
       return Resp.errMsg(errMsg);
     }
 
@@ -99,13 +99,12 @@ export class FileController {
       subPath = UPLOAD_COMMON;
     }
 
-    const [uploadFilePath, err] = await this.file.transferUploadFile(
+    const [uploadFilePath, err] = await this.fileUtil.transferUploadFile(
       formFile,
       subPath,
       []
     );
     if (err) {
-      this.c.status = 200;
       return Resp.errMsg(err);
     }
 
@@ -128,7 +127,10 @@ export class FileController {
     @Valid(RuleType.string().required()) @Body('fileName') fileName: string
   ) {
     // 读取标识目录
-    const [chunks, err] = await this.file.chunkCheckFile(identifier, fileName);
+    const [chunks, err] = await this.fileUtil.chunkCheckFile(
+      identifier,
+      fileName
+    );
     if (err) {
       return Resp.errMsg(err);
     }
@@ -156,7 +158,7 @@ export class FileController {
     }
 
     // 切片文件合并
-    const [mergeFilePath, err] = await this.file.chunkMergeFile(
+    const [mergeFilePath, err] = await this.fileUtil.chunkMergeFile(
       identifier,
       fileName,
       subPath
@@ -174,7 +176,7 @@ export class FileController {
   }
 
   /**切片文件上传 */
-  @Post('/chunk-upload')
+  @Post('/chunk-upload', { middleware: [UploadMiddleware] })
   @PreAuthorize()
   public async chunkUpload(
     /**上传的文件 */
@@ -190,18 +192,16 @@ export class FileController {
     }
     // 上传的文件
     if (files.length !== 1) {
-      this.c.status = 200;
       return Resp.errMsg('bind err: field file not upload');
     }
     const formFile = files[0];
 
-    const [chunkFilePath, err] = await this.file.transferChunkUploadFile(
+    const [chunkFilePath, err] = await this.fileUtil.transferChunkUploadFile(
       formFile,
       index,
       identifier
     );
     if (err) {
-      this.c.status = 200;
       return Resp.errMsg(err);
     }
     this.c.status = 206;

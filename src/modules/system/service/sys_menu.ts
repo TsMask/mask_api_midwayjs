@@ -1,6 +1,5 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { TreeSelect, sysMenuTreeSelect } from '../model/vo/tree_select';
 import {
   MENU_COMPONENT_LAYOUT_BASIC,
   MENU_COMPONENT_LAYOUT_BLANK,
@@ -9,25 +8,29 @@ import {
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
 } from '../../../framework/constants/menu';
+import { replace, validHttp } from '../../../framework/utils/regular/regular';
 import { ConvertToCamelCase } from '../../../framework/utils/parse/parse';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
+import { TreeSelect, sysMenuTreeSelect } from '../model/vo/tree_select';
 import { Router, RouterMeta } from '../model/vo/router';
 import { SysMenuRepository } from '../repository/sys_menu';
 import { SysRoleMenuRepository } from '../repository/sys_role_menu';
 import { SysRoleRepository } from '../repository/sys_role';
 import { SysMenu } from '../model/sys_menu';
-import { replace, validHttp } from '../../../framework/utils/regular/regular';
 
 /**菜单 服务层处理 */
 @Provide()
 @Singleton()
 export class SysMenuService {
+  /**菜单服务 */
   @Inject()
   private sysMenuRepository: SysMenuRepository;
 
+  /**角色与菜单关联服务 */
   @Inject()
   private sysRoleMenuRepository: SysRoleMenuRepository;
 
+  /**角色服务 */
   @Inject()
   private sysRoleRepository: SysRoleRepository;
 
@@ -77,7 +80,7 @@ export class SysMenuService {
 
   /**
    * 删除信息
-   * @param deptId 部门ID
+   * @param menuId ID
    * @returns 影响记录数
    */
   public async deleteById(menuId: number): Promise<number> {

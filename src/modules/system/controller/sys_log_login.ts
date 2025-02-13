@@ -4,41 +4,43 @@ import {
   Get,
   Param,
   Del,
-  Post,
   Put,
   Query,
 } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
   OperateLog,
 } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
+import { loginUserToDataScopeSQL } from '../../../framework/reqctx/auth';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/reqctx/context';
-import { SysLogLoginService } from '../service/sys_log_login';
 import { AccountService } from '../../common/service/account';
+import { SysLogLoginService } from '../service/sys_log_login';
 
 /**系统登录日志信息 控制层处理 */
 @Controller('/system/log/login')
 export class SysLogLoginController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**系统登录日志服务 */
   @Inject()
   private sysLogLoginService: SysLogLoginService;
 
+  /**账号身份操作服务 */
   @Inject()
   private accountService: AccountService;
 
-  /**
-   * 系统登录日志列表
-   */
+  /**系统登录日志列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:log:login:list'] })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL(
+    const dataScopeSQL = loginUserToDataScopeSQL(
+      this.c,
       'sys_user',
       'sys_user'
     );
@@ -49,9 +51,7 @@ export class SysLogLoginController {
     return Resp.okData({ rows, total });
   }
 
-  /**
-   * 系统登录日志清空
-   */
+  /**系统登录日志清空 */
   @Del('/clean')
   @PreAuthorize({ hasPermissions: ['system:log:login:remove'] })
   @OperateLog({
@@ -63,9 +63,7 @@ export class SysLogLoginController {
     return Resp.okData(rows);
   }
 
-  /**
-   * 系统登录日志账户解锁
-   */
+  /**系统登录日志账户解锁 */
   @Put('/unlock/:userName')
   @PreAuthorize({ hasPermissions: ['system:log:login:unlock'] })
   @OperateLog({
@@ -73,9 +71,10 @@ export class SysLogLoginController {
     businessType: BUSINESS_TYPE.CLEAN,
   })
   public async unlock(
-    @Valid(RuleType.string().required()) @Param('userName') userName: string
+    @Valid(RuleType.string()) @Param('userName') userName: string
   ): Promise<Resp> {
     if (!userName) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: userName is empty');
     }
     const ok = await this.accountService.clearLoginRecordCache(userName);
@@ -85,10 +84,8 @@ export class SysLogLoginController {
     return Resp.err();
   }
 
-  /**
-   * 导出系统登录日志信息
-   */
-  @Post('/export')
+  /**导出系统登录日志信息 */
+  @Get('/export')
   @PreAuthorize({ hasPermissions: ['system:log:login:export'] })
   @OperateLog({
     title: '系统登录信息',
@@ -96,7 +93,8 @@ export class SysLogLoginController {
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
-    const dataScopeSQL = this.contextService.getDataScopeSQL(
+    const dataScopeSQL = loginUserToDataScopeSQL(
+      this.c,
       'sys_user',
       'sys_user'
     );
@@ -110,12 +108,11 @@ export class SysLogLoginController {
 
     // 导出文件名称
     const fileName = `sys_log_login_export_${rows.length}_${Date.now()}.xlsx`;
-    const ctx = this.contextService.getContext();
-    ctx.set(
+    this.c.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set(
+    this.c.set(
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );

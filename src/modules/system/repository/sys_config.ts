@@ -25,7 +25,8 @@ export class SysConfigRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysConfig, 's');
+      .from(SysConfig, 's')
+      .where("s.del_flag = '0'");
     // 查询条件拼接
     if (query.configName) {
       tx.where("s.config_name like concat(:configName, '%')", {
@@ -94,7 +95,8 @@ export class SysConfigRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysConfig, 's');
+      .from(SysConfig, 's')
+      .where("s.del_flag = '0'");
     // 构建查询条件
     if (sysConfig.configName) {
       tx.where("s.config_name like concat(:configName, '%')", {
@@ -155,7 +157,7 @@ export class SysConfigRepository {
       const ms = Date.now().valueOf();
       sysConfig.updateBy = sysConfig.createBy;
       sysConfig.updateTime = ms;
-      sysConfig.createTime =ms;
+      sysConfig.createTime = ms;
     }
     // 执行插入
     const tx: InsertResult = await this.db
@@ -184,6 +186,10 @@ export class SysConfigRepository {
     if (sysConfig.updateBy) {
       sysConfig.updateTime = Date.now().valueOf();
     }
+    delete sysConfig.configId;
+    delete sysConfig.delFlag;
+    delete sysConfig.createBy;
+    delete sysConfig.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')

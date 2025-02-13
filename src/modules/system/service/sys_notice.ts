@@ -7,6 +7,7 @@ import { SysNoticeRepository } from '../repository/sys_notice';
 @Provide()
 @Singleton()
 export class SysNoticeService {
+  /**公告服务 */
   @Inject()
   private sysNoticeRepository: SysNoticeRepository;
 
@@ -58,23 +59,24 @@ export class SysNoticeService {
   /**
    * 批量删除信息
    * @param noticeIds ID数组
-   * @returns 影响记录数
+   * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(noticeIds: number[]): Promise<number> {
+  public async deleteByIds(noticeIds: number[]): Promise<[number, string]> {
     // 检查是否存在
     const notices = await this.sysNoticeRepository.selectByIds(noticeIds);
     if (notices.length <= 0) {
-      throw new Error('没有权限访问公告信息数据！');
+      return [0, '没有权限访问公告信息数据！'];
     }
     for (const notice of notices) {
       // 检查是否为已删除
       if (notice.delFlag == '1') {
-        throw new Error(`ID:${notice.noticeId} 公告信息已经删除！`);
+        return [0, `ID:${notice.noticeId} 公告信息已经删除！`];
       }
     }
     if (notices.length === noticeIds.length) {
-      return await this.sysNoticeRepository.deleteByIds(noticeIds);
+      const rows = await this.sysNoticeRepository.deleteByIds(noticeIds);
+      return [rows, ''];
     }
-    return 0;
+    return [0, '删除公告信息失败！'];
   }
 }

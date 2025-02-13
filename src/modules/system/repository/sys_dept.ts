@@ -60,7 +60,7 @@ export class SysDeptRepository {
   /**
    * 通过ID查询
    *
-   * @param id ID
+   * @param deptId ID
    * @return 信息
    */
   public async selectById(deptId: number): Promise<SysDept> {
@@ -122,6 +122,10 @@ export class SysDeptRepository {
     if (sysDept.updateBy) {
       sysDept.updateTime = Date.now().valueOf();
     }
+    delete sysDept.deptId;
+    delete sysDept.delFlag;
+    delete sysDept.createBy;
+    delete sysDept.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')

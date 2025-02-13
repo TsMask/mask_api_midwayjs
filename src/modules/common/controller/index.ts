@@ -11,7 +11,7 @@ import {
 } from '../../../framework/decorator/RateLimitMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
 
-/**路由主页 */
+/**路由主页 控制层处理 */
 @Controller('/')
 export class IndexController {
   @Inject()
@@ -19,11 +19,10 @@ export class IndexController {
 
   /**根路由 */
   @Get()
-  @RateLimit({ time: 300, count: 60, limitType: LIMIT_IP })
+  @RateLimit({ time: 300, count: 60, type: LIMIT_IP })
   public async index(): Promise<Resp> {
     const pkg = this.midwayInformationService.getPkg();
-    return Resp.okMsg(
-      `欢迎使用 ${pkg.name} 后台服务，当前版本：${pkg.version}，请通过前台服务地址访问。`
-    );
+    const msg = `Name:${pkg.name}, Version:${pkg.version}`;
+    return Resp.okMsg(msg);
   }
 }

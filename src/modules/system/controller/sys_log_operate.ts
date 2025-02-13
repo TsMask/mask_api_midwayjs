@@ -1,30 +1,32 @@
-import { Controller, Inject, Get, Del, Post, Query } from '@midwayjs/core';
+import { Controller, Inject, Get, Del, Query } from '@midwayjs/core';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
   OperateLog,
 } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
+import { loginUserToDataScopeSQL } from '../../../framework/reqctx/auth';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/reqctx/context';
 import { SysLogOperateService } from '../service/sys_log_operate';
 
 /**操作日志记录信息 控制层处理 */
 @Controller('/system/log/operate')
 export class SysLogOperateController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**操作日志服务 */
   @Inject()
   private sysLogOperateService: SysLogOperateService;
 
-  /**
-   * 操作日志列表
-   */
+  /**操作日志列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:log:operate:list'] })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL(
+    const dataScopeSQL = loginUserToDataScopeSQL(
+      this.c,
       'sys_user',
       'sys_user'
     );
@@ -35,9 +37,7 @@ export class SysLogOperateController {
     return Resp.okData({ rows, total });
   }
 
-  /**
-   * 操作日志清空
-   */
+  /**操作日志清空 */
   @Del('/clean')
   @PreAuthorize({ hasPermissions: ['system:log:operate:remove'] })
   @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.CLEAN })
@@ -46,15 +46,14 @@ export class SysLogOperateController {
     return Resp.okData(rows);
   }
 
-  /**
-   * 导出操作日志
-   */
-  @Post('/export')
+  /**导出操作日志 */
+  @Get('/export')
   @PreAuthorize({ hasPermissions: ['system:log:operate:export'] })
   @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.EXPORT })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
-    const dataScopeSQL = this.contextService.getDataScopeSQL(
+    const dataScopeSQL = loginUserToDataScopeSQL(
+      this.c,
       'sys_user',
       'sys_user'
     );
@@ -68,12 +67,11 @@ export class SysLogOperateController {
 
     // 导出文件名称
     const fileName = `sys_log_operate_export_${rows.length}_${Date.now()}.xlsx`;
-    const ctx = this.contextService.getContext();
-    ctx.set(
+    this.c.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set(
+    this.c.set(
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );

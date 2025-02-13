@@ -169,6 +169,10 @@ export class SysMenuRepository {
       sysMenu.perms = '';
     }
 
+    delete sysMenu.menuId;
+    delete sysMenu.delFlag;
+    delete sysMenu.createBy;
+    delete sysMenu.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -282,7 +286,7 @@ export class SysMenuRepository {
     left join sys_role r on r.role_id = ur.role_id
     where m.status = '1' and m.perms != '' and r.status = '1' and ur.user_id = ?`;
 
-    const rows = await this.db.execute(sqlStr, [userId]);
+    const rows = await this.db.execute('', sqlStr, [userId]);
     return rows;
   }
 

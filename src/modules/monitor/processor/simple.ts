@@ -1,11 +1,7 @@
 import { Processor, IProcessor, Context } from '@midwayjs/bull';
 import { Inject } from '@midwayjs/core';
 
-/**
- * 简单示例 队列任务处理
- *
- * @author TsMask
- */
+/**简单示例 队列任务处理 */
 @Processor('simple')
 export class SimpleProcessor implements IProcessor {
   @Inject()
@@ -23,7 +19,7 @@ export class SimpleProcessor implements IProcessor {
 
     const { repeat, sysJob } = options;
 
-    log.info('原始jonId: %s | 当前jobId %s', sysJob.jobId, ctxJob.id);
+    log.info('原始jonId: %d | 当前jobId %s', sysJob.jobId, ctxJob.id);
 
     // 返回结果，用于记录执行结果
     return {

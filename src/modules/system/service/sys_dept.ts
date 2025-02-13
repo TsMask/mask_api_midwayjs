@@ -15,12 +15,15 @@ import { SysDept } from '../model/sys_dept';
 @Provide()
 @Singleton()
 export class SysDeptService {
+  /**部门服务 */
   @Inject()
   private sysDeptRepository: SysDeptRepository;
 
+  /**角色服务 */
   @Inject()
   private sysRoleDeptRepository: SysRoleDeptRepository;
 
+  /**角色与部门关联服务 */
   @Inject()
   private sysRoleRepository: SysRoleRepository;
 

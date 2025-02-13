@@ -2,7 +2,7 @@ import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
 
 import { CACHE_SYS_CONFIG } from '../../../framework/constants/cache_key';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { FileService } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { SysConfigRepository } from '../repository/sys_config';
 import { SysConfig } from '../model/sys_config';
 
@@ -10,15 +10,19 @@ import { SysConfig } from '../model/sys_config';
 @Provide()
 @Singleton()
 export class SysConfigService {
+  /**参数配置表数据 */
   @Inject()
   private sysConfigRepository: SysConfigRepository;
 
+  /**文件服务 */
   @Inject()
-  private fileService: FileService;
+  private fileUtil: FileUtil;
 
+  /**缓存服务 */
   @Inject()
   private redisCache: RedisCache;
 
+  /**初始化 */
   @Init()
   public async init() {
     // 启动时，刷新缓存-参数配置
@@ -82,26 +86,27 @@ export class SysConfigService {
   /**
    * 批量删除信息
    * @param configIds ID数组
-   * @returns 影响记录数
+   * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(configIds: number[]): Promise<number> {
+  public async deleteByIds(configIds: number[]): Promise<[number, string]> {
     // 检查是否存在
     const configs = await this.sysConfigRepository.selectByIds(configIds);
     if (configs.length <= 0) {
-      throw new Error('没有权限访问参数配置数据！');
+      return [0, '没有权限访问参数配置数据！']
     }
     for (const config of configs) {
       // 检查是否为内置参数
       if (config.configType === 'Y') {
-        throw new Error('该配置参数属于内置参数，禁止删除！');
+        return [0, '该配置参数属于内置参数，禁止删除！'];
       }
       // 清除缓存
       this.cacheClean(config.configKey);
     }
     if (configs.length === configIds.length) {
-      return await this.sysConfigRepository.deleteByIds(configIds);
+      const rows = await this.sysConfigRepository.deleteByIds(configIds);
+      return [rows, '']
     }
-    return 0;
+    return [0, '删除参数配置信息失败！'];
   }
 
   /**
@@ -131,7 +136,7 @@ export class SysConfigService {
   public async findValueByKey(configKey: string): Promise<string> {
     const cacheKey = CACHE_SYS_CONFIG + ':' + configKey;
     // 从缓存中读取
-    const cacheValue = await this.redisCache.get(cacheKey);
+    const cacheValue = await this.redisCache.get('', cacheKey);
     if (cacheValue) {
       return cacheValue;
     }
@@ -140,7 +145,7 @@ export class SysConfigService {
       configKey
     );
     if (configValue) {
-      await this.redisCache.set(cacheKey, configValue);
+      await this.redisCache.set('', cacheKey, configValue);
       return configValue;
     }
     return '';
@@ -153,12 +158,12 @@ export class SysConfigService {
    */
   public async cacheLoad(configKey: string): Promise<void> {
     // 查询全部参数
-    if (configKey && configKey == '*') {
+    if (configKey == '*' || configKey == '') {
       const sysConfigs = await this.sysConfigRepository.select(new SysConfig());
       for (const v of sysConfigs) {
         const key = CACHE_SYS_CONFIG + ':' + v.configKey;
-        await this.redisCache.del(key);
-        await this.redisCache.set(key, v.configValue);
+        await this.redisCache.del('', key);
+        await this.redisCache.set('', key, v.configValue);
       }
       return;
     }
@@ -168,8 +173,8 @@ export class SysConfigService {
     );
     if (cacheValue) {
       const key = CACHE_SYS_CONFIG + ':' + configKey;
-      await this.redisCache.del(key);
-      await this.redisCache.set(key, cacheValue);
+      await this.redisCache.del('', key);
+      await this.redisCache.set('', key, cacheValue);
     }
   }
 
@@ -180,8 +185,8 @@ export class SysConfigService {
    */
   public async cacheClean(configKey: string): Promise<boolean> {
     const key = CACHE_SYS_CONFIG + ':' + configKey;
-    const keys = await this.redisCache.getKeys(key);
-    const rows = await this.redisCache.delKeys(keys);
+    const keys = await this.redisCache.getKeys('', key);
+    const rows = await this.redisCache.delKeys('', keys);
     return rows > 0;
   }
 
@@ -209,6 +214,6 @@ export class SysConfigService {
       };
       arr.push(data);
     }
-    return await this.fileService.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.excelWriteRecord(arr, fileName);
   }
 }

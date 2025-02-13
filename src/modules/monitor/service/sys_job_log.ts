@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { parseDateToStr } from '../../../framework/utils/date/data';
 import { SysJobLogRepository } from '../repository/sys_job_log';
 import { SysDictDataService } from '../../system/service/sys_dict_data';
@@ -10,14 +10,17 @@ import { SysJobLog } from '../model/sys_job_log';
 @Provide()
 @Singleton()
 export class SysJobLogService {
+  /**调度任务日志数据信息 */
   @Inject()
   private sysJobLogRepository: SysJobLogRepository;
 
-  @Inject()
-  private fileService: FileService;
-
+  /**字典类型服务 */
   @Inject()
   private sysDictDataService: SysDictDataService;
+
+  /**文件服务 */
+  @Inject()
+  private fileUtil: FileUtil;
 
   /**
    * 分页查询
@@ -104,6 +107,6 @@ export class SysJobLogService {
       };
       arr.push(data);
     }
-    return await this.fileService.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.excelWriteRecord(arr, fileName);
   }
 }

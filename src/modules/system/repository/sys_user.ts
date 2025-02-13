@@ -6,8 +6,8 @@ import {
   parseNumber,
 } from '../../../framework/utils/parse/parse';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
-import { bcryptHash } from '../../../framework/utils/crypto/crypto';
 import { SysUser } from '../model/sys_user';
+import { bcryptHash } from '../../../framework/utils/crypto/bcrypt';
 
 /**用户表 数据层处理 */
 @Provide()
@@ -219,6 +219,10 @@ export class SysUserRepository {
       const password = await bcryptHash(sysUser.password);
       sysUser.password = password;
     }
+    delete sysUser.userId;
+    delete sysUser.delFlag;
+    delete sysUser.createBy;
+    delete sysUser.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')

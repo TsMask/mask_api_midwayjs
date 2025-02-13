@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { SysUserPostRepository } from '../repository/sys_user_post';
 import { SysPostRepository } from '../repository/sys_post';
 import { SysPost } from '../model/sys_post';
@@ -9,14 +9,17 @@ import { SysPost } from '../model/sys_post';
 @Provide()
 @Singleton()
 export class SysPostService {
+  /**岗位服务 */
   @Inject()
   private sysPostRepository: SysPostRepository;
 
+  /**用户与岗位关联服务 */
   @Inject()
   private sysUserPostRepository: SysUserPostRepository;
 
+  /**文件服务 */
   @Inject()
-  private fileService: FileService;
+  private fileUtil: FileUtil;
 
   /**
    * 分页查询列表数据
@@ -74,26 +77,27 @@ export class SysPostService {
   /**
    * 批量删除信息
    * @param postIds ID数组
-   * @returns 影响记录数
+   * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(postIds: number[]): Promise<number> {
+  public async deleteByIds(postIds: number[]): Promise<[number, string]> {
     // 检查是否存在
     const posts = await this.sysPostRepository.selectByIds(postIds);
     if (posts.length < 0) {
-      throw new Error('没有权限访问岗位数据！');
+      return [0, '没有权限访问岗位数据！']
     }
     for (const post of posts) {
       const useCount = await this.sysUserPostRepository.existUserByPostId(
         post.postId
       );
       if (useCount > 0) {
-        throw new Error(`【${post.postName}】已分配给用户,不能删除`);
+        return [0, `【${post.postName}】已分配给用户,不能删除`]
       }
     }
     if (posts.length == postIds.length) {
-      return await this.sysPostRepository.deleteByIds(postIds);
+      const rows = await this.sysPostRepository.deleteByIds(postIds);
+      return [rows, '']
     }
-    return 0;
+    return [0, '删除岗位信息失败！'];
   }
 
   /**
@@ -167,6 +171,6 @@ export class SysPostService {
       };
       arr.push(data);
     }
-    return await this.fileService.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.excelWriteRecord(arr, fileName);
   }
 }

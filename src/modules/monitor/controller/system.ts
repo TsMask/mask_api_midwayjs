@@ -7,6 +7,7 @@ import { SystemInfoService } from '../service/system_info';
 /**服务器监控信息 控制层处理 */
 @Controller('/monitor/system')
 export class SystemInfoController {
+  /**在线用户服务 */
   @Inject()
   private systemInfoService: SystemInfoService;
 

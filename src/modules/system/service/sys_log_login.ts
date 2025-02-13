@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { parseDateToStr } from '../../../framework/utils/date/data';
 import { SysLogLoginRepository } from '../repository/sys_log_login';
 import { SysLogLogin } from '../model/sys_log_login';
@@ -9,11 +9,13 @@ import { SysLogLogin } from '../model/sys_log_login';
 @Provide()
 @Singleton()
 export class SysLogLoginService {
+  /**系统登录日志信息 */
   @Inject()
   private sysLogLoginRepository: SysLogLoginRepository;
 
+  /**文件服务 */
   @Inject()
-  private fileService: FileService;
+  private fileUtil: FileUtil;
 
   /**
    * 分页查询列表数据
@@ -91,6 +93,6 @@ export class SysLogLoginService {
       };
       arr.push(data);
     }
-    return await this.fileService.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.excelWriteRecord(arr, fileName);
   }
 }

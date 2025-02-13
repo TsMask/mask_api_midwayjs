@@ -1,5 +1,7 @@
+import { createHash } from 'node:crypto';
+
 import { Body, Controller, Post } from '@midwayjs/core';
-import { createHash } from 'crypto';
+import { RuleType, Valid } from '@midwayjs/validate';
 
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
@@ -11,8 +13,10 @@ export class CommonController {
   @Post('/hash')
   @PreAuthorize()
   public async hash(
-    @Body('type') type: 'sha1' | 'sha256' | 'sha512' | 'md5',
-    @Body('str') str: string
+    @Valid(RuleType.string().required())
+    @Body('type')
+    type: 'sha1' | 'sha256' | 'sha512' | 'md5',
+    @Valid(RuleType.string().required()) @Body('str') str: string
   ): Promise<Resp> {
     const hash = createHash(type);
     hash.update(str);

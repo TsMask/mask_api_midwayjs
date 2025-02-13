@@ -1,10 +1,10 @@
 import { Rule, RuleType } from '@midwayjs/validate';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-/**定时任务调度日志表 */
+/**调度任务调度日志表 */
 @Entity('sys_job_log')
 export class SysJobLog {
-  /**日志序号 */
+  /**任务日志ID */
   @Rule(RuleType.number())
   @PrimaryGeneratedColumn('rowid', { name: 'log_id' })
   logId: number;

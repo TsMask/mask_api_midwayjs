@@ -189,6 +189,10 @@ export class SysNoticeRepository {
     if (sysNotice.updateBy) {
       sysNotice.updateTime = Date.now().valueOf();
     }
+    delete sysNotice.noticeId;
+    delete sysNotice.delFlag;
+    delete sysNotice.createBy;
+    delete sysNotice.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')

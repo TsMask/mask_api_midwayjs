@@ -10,6 +10,7 @@ import {
   Query,
 } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
@@ -24,21 +25,22 @@ import {
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { Resp } from '../../../framework/resp/api';
-import { SysJob } from '../model/sys_job';
+import { loginUserToUserName } from '../../../framework/reqctx/auth';
 import { SysJobService } from '../service/sys_job';
+import { SysJob } from '../model/sys_job';
 
 /**调度任务信息 控制层处理*/
 @Controller('/monitor/job')
 export class SysJobController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**调度任务服务 */
   @Inject()
   private sysJobService: SysJobService;
 
-  /**
-   * 调度任务列表
-   */
+  /**调度任务列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['monitor:job:list'] })
   async list(@Query() query: Record<string, string>): Promise<Resp> {
@@ -46,21 +48,24 @@ export class SysJobController {
     return Resp.okData({ rows, total });
   }
 
-  /**
-   * 调度任务信息
-   */
+  /**调度任务信息 */
   @Get('/:jobId')
   @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
   async info(
-    @Valid(RuleType.number().required()) @Param('jobId') jobId: number
+    @Valid(RuleType.number()) @Param('jobId') jobId: number
   ): Promise<Resp> {
-    const data = await this.sysJobService.findById(jobId);
-    return Resp.okData(data);
+    if (jobId <= 0) {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: jobId not is empty');
+    }
+    const jobInfo = await this.sysJobService.findById(jobId);
+    if (jobInfo.jobId == jobId) {
+      return Resp.okData(jobInfo);
+    }
+    return Resp.err();
   }
 
-  /**
-   * 调度任务新增
-   */
+  /**调度任务新增 */
   @Post()
   @PreAuthorize({ hasPermissions: ['monitor:job:add'] })
   @OperateLog({
@@ -68,7 +73,8 @@ export class SysJobController {
     businessType: BUSINESS_TYPE.INSERT,
   })
   public async add(@Body() body: SysJob): Promise<Resp> {
-    if (body.jobId === undefined || body.jobId > 0) {
+    if (body.jobId > 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: jobId not is empty');
     }
 
@@ -103,7 +109,7 @@ export class SysJobController {
       );
     }
 
-    body.createBy = this.contextService.getUseName();
+    body.createBy = loginUserToUserName(this.c);
     const insertId = await this.sysJobService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -111,9 +117,7 @@ export class SysJobController {
     return Resp.err();
   }
 
-  /**
-   * 调度任务修改
-   */
+  /**调度任务修改 */
   @Put()
   @PreAuthorize({ hasPermissions: ['monitor:job:edit'] })
   @OperateLog({
@@ -121,7 +125,8 @@ export class SysJobController {
     businessType: BUSINESS_TYPE.UPDATE,
   })
   public async edit(@Body() body: SysJob): Promise<Resp> {
-    if (body.jobId === undefined || body.jobId <= 0) {
+    if (body.jobId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: jobId is empty');
     }
 
@@ -172,7 +177,7 @@ export class SysJobController {
     jobInfo.statusFlag = body.statusFlag;
     jobInfo.saveLog = body.saveLog;
     jobInfo.remark = body.remark;
-    jobInfo.updateBy = this.contextService.getUseName();
+    jobInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysJobService.update(jobInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -180,32 +185,34 @@ export class SysJobController {
     return Resp.err();
   }
 
-  /**
-   * 调度任务删除
-   */
+  /**调度任务删除 */
   @Del('/:jobId')
   @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
   @OperateLog({
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.DELETE,
   })
-  async remove(
-    @Valid(RuleType.string().required()) @Param('jobId') jobId: string
+  public async remove(
+    @Valid(RuleType.string()) @Param('jobId') jobId: string
   ): Promise<Resp> {
+    if (jobId == '') {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: jobId is empty');
+    }
+
     // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(jobId, ',');
     // 转换成number数组类型
-    const jobIds = uniqueIDs.map(id => parseNumber(id));
-    const rows = await this.sysJobService.deleteByIds(jobIds);
-    if (rows > 0) {
-      return Resp.okMsg(`删除成功: ${rows}`);
+    const ids = uniqueIDs.map(id => parseNumber(id));
+
+    const [rows, err] = await this.sysJobService.deleteByIds(ids);
+    if (err) {
+      return Resp.errMsg(err);
     }
-    return Resp.err();
+    return Resp.okMsg(`删除成功: ${rows}`);
   }
 
-  /**
-   * 调度任务修改状态
-   */
+  /**调度任务修改状态 */
   @Put('/status')
   @RepeatSubmit(5)
   @PreAuthorize({ hasPermissions: ['monitor:job:status'] })
@@ -213,15 +220,15 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async status(
+  public async status(
     @Valid(RuleType.number().required()) @Body('jobId') jobId: number,
     @Valid(
       RuleType.string()
         .required()
         .pattern(/^[01]$/)
     )
-    @Body('status')
-    status: string
+    @Body('statusFlag')
+    statusFlag: string
   ): Promise<Resp> {
     // 检查是否存在
     const jobInfo = await this.sysJobService.findById(jobId);
@@ -229,11 +236,11 @@ export class SysJobController {
       return Resp.errMsg('没有权限访问调度任务数据！');
     }
     // 与旧值相等不变更
-    if (jobInfo.statusFlag === status) {
+    if (jobInfo.statusFlag === statusFlag) {
       return Resp.errMsg('变更状态与旧值相等！');
     }
-    jobInfo.statusFlag = status;
-    jobInfo.updateBy = this.contextService.getUseName();
+    jobInfo.statusFlag = statusFlag;
+    jobInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysJobService.update(jobInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -241,9 +248,7 @@ export class SysJobController {
     return Resp.err();
   }
 
-  /**
-   * 调度任务立即执行一次
-   */
+  /**调度任务立即执行一次 */
   @Put('/run/:jobId')
   @RepeatSubmit(10)
   @PreAuthorize({ hasPermissions: ['monitor:job:status'] })
@@ -251,9 +256,14 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async run(
-    @Valid(RuleType.number().required()) @Param('jobId') jobId: number
+  public async run(
+    @Valid(RuleType.number()) @Param('jobId') jobId: number
   ): Promise<Resp> {
+    if (jobId <= 0) {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: jobId is empty');
+    }
+
     // 检查是否存在
     const jobInfo = await this.sysJobService.findById(jobId);
     if (jobInfo.jobId !== jobId) {
@@ -267,9 +277,7 @@ export class SysJobController {
     return Resp.err();
   }
 
-  /**
-   * 调度任务重置刷新队列
-   */
+  /**调度任务重置刷新队列 */
   @Put('/reset')
   @RepeatSubmit(5)
   @PreAuthorize({ hasPermissions: ['monitor:job:status'] })
@@ -277,7 +285,7 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.CLEAN,
   })
-  async reset(): Promise<Resp> {
+  public async reset(): Promise<Resp> {
     await this.sysJobService.reset();
     return Resp.ok();
   }
@@ -300,12 +308,11 @@ export class SysJobController {
 
     // 导出文件名称
     const fileName = `job_export_${rows.length}_${Date.now()}.xlsx`;
-    const ctx = this.contextService.getContext();
-    ctx.set(
+    this.c.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set(
+    this.c.set(
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );

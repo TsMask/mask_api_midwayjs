@@ -10,6 +10,7 @@ import {
   Query,
 } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
@@ -20,23 +21,23 @@ import {
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
 import { Resp } from '../../../framework/resp/api';
+import { loginUserToUserName } from '../../../framework/reqctx/auth';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/reqctx/context';
 import { SysPostService } from '../service/sys_post';
 import { SysPost } from '../model/sys_post';
 
 /**岗位信息 控制层处理*/
 @Controller('/system/post')
 export class SysPostController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**岗位服务 */
   @Inject()
   private sysPostService: SysPostService;
 
-  /**
-   * 岗位列表
-   */
+  /**岗位列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:post:list'] })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
@@ -44,15 +45,14 @@ export class SysPostController {
     return Resp.okData({ rows, total });
   }
 
-  /**
-   * 岗位信息
-   */
+  /**岗位信息 */
   @Get('/:postId')
   @PreAuthorize({ hasPermissions: ['system:post:query'] })
   public async info(
-    @Valid(RuleType.number().required()) @Param('postId') postId: number
+    @Valid(RuleType.number()) @Param('postId') postId: number
   ): Promise<Resp> {
     if (postId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: postId is empty');
     }
     const data = await this.sysPostService.findById(postId);
@@ -62,9 +62,7 @@ export class SysPostController {
     return Resp.err();
   }
 
-  /**
-   * 岗位新增
-   */
+  /**岗位新增 */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:post:add'] })
   @OperateLog({
@@ -73,6 +71,7 @@ export class SysPostController {
   })
   public async add(@Body() body: SysPost): Promise<Resp> {
     if (body.postId > 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: postId not is empty');
     }
     // 检查名称唯一
@@ -92,7 +91,7 @@ export class SysPostController {
       return Resp.errMsg(`岗位新增【${body.postName}】失败，岗位编码已存在`);
     }
 
-    body.createBy = this.contextService.getUseName();
+    body.createBy = loginUserToUserName(this.c);
     const insertId = await this.sysPostService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -100,9 +99,7 @@ export class SysPostController {
     return Resp.err();
   }
 
-  /**
-   * 岗位修改
-   */
+  /**岗位修改 */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:post:edit'] })
   @OperateLog({
@@ -111,6 +108,7 @@ export class SysPostController {
   })
   public async edit(@Body() body: SysPost): Promise<Resp> {
     if (body.postId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: postId is empty');
     }
 
@@ -143,7 +141,7 @@ export class SysPostController {
     postInfo.postSort = body.postSort;
     postInfo.statusFlag = body.statusFlag;
     postInfo.remark = body.remark;
-    postInfo.updateBy = this.contextService.getUseName();
+    postInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysPostService.update(postInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -151,9 +149,7 @@ export class SysPostController {
     return Resp.err();
   }
 
-  /**
-   * 岗位删除
-   */
+  /**岗位删除 */
   @Del('/:postId')
   @PreAuthorize({ hasPermissions: ['system:post:remove'] })
   @OperateLog({
@@ -161,23 +157,27 @@ export class SysPostController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string().required()) @Param('postId') postId: string
+    @Valid(RuleType.string()) @Param('postId') postId: string
   ): Promise<Resp> {
+    if (postId == '') {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: postId is empty');
+    }
+
     // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(postId, ',');
     // 转换成number数组类型
     const ids = uniqueIDs.map(id => parseNumber(id));
-    const rows = await this.sysPostService.deleteByIds(ids);
-    if (rows > 0) {
-      return Resp.okMsg(`删除成功: ${rows}`);
+
+    const [rows, err] = await this.sysPostService.deleteByIds(ids);
+    if (err) {
+      return Resp.errMsg(err);
     }
-    return Resp.err();
+    return Resp.okMsg(`删除成功: ${rows}`);
   }
 
-  /**
-   * 导出岗位信息
-   */
-  @Post('/export')
+  /**导出岗位信息 */
+  @Get('/export')
   @PreAuthorize({ hasPermissions: ['system:post:export'] })
   @OperateLog({
     title: '岗位信息',
@@ -192,12 +192,11 @@ export class SysPostController {
 
     // 导出文件名称
     const fileName = `post_export_${rows.length}_${Date.now()}.xlsx`;
-    const ctx = this.contextService.getContext();
-    ctx.set(
+    this.c.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set(
+    this.c.set(
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );

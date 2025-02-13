@@ -3,7 +3,7 @@ import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
 import { STATUS_YES } from '../../../framework/constants/common';
 import { CACHE_SYS_DICT } from '../../../framework/constants/cache_key';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { FileService } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { SysDictTypeRepository } from '../repository/sys_dict_type';
 import { SysDictDataRepository } from '../repository/sys_dict_data';
 import { SysDictData } from '../model/sys_dict_data';
@@ -13,18 +13,23 @@ import { SysDictType } from '../model/sys_dict_type';
 @Provide()
 @Singleton()
 export class SysDictTypeService {
+  /**字典类型服务 */
   @Inject()
   private sysDictTypeRepository: SysDictTypeRepository;
 
+  /**字典数据服务 */
   @Inject()
   private sysDictDataRepository: SysDictDataRepository;
 
+  /**文件服务 */
   @Inject()
-  private fileService: FileService;
+  private fileUtil: FileUtil;
 
+  /**缓存服务 */
   @Inject()
   private redisCache: RedisCache;
 
+  /**初始化 */
   @Init()
   public async init() {
     // 启动时，刷新缓存-字典类型数据
@@ -117,13 +122,13 @@ export class SysDictTypeService {
   /**
    * 批量删除信息
    * @param dictIds ID数组
-   * @returns 影响记录数
+   * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(dictIds: number[]): Promise<number> {
+  public async deleteByIds(dictIds: number[]): Promise<[number, string]> {
     // 检查是否存在
     const arr = await this.sysDictTypeRepository.selectByIds(dictIds);
     if (arr.length <= 0) {
-      throw new Error('没有权限访问字典类型数据！');
+      return [0, '没有权限访问字典类型数据！'];
     }
     for (const v of arr) {
       // 字典类型下级含有数据
@@ -131,15 +136,16 @@ export class SysDictTypeService {
         v.dictType
       );
       if (useCount > 0) {
-        throw new Error(`【${v.dictName}】存在字典数据,不能删除`);
+        return [0, `【${v.dictName}】存在字典数据,不能删除`];
       }
       // 清除缓存
       this.cacheClean(v.dictType);
     }
     if (arr.length === dictIds.length) {
-      return await this.sysDictTypeRepository.deleteByIds(dictIds);
+      const rows = await this.sysDictTypeRepository.deleteByIds(dictIds);
+      return [rows, ''];
     }
-    return 0;
+    return [0, '删除字典数据信息失败！'];
   }
 
   /**
@@ -188,7 +194,7 @@ export class SysDictTypeService {
   public async findDataByType(dictType: string): Promise<SysDictData[]> {
     let data: SysDictData[] = [];
     const key = CACHE_SYS_DICT + ':' + dictType;
-    const jsonStr = await this.redisCache.get(key);
+    const jsonStr = await this.redisCache.get('', key);
     if (jsonStr.length > 7) {
       data = JSON.parse(jsonStr);
     } else {
@@ -197,8 +203,8 @@ export class SysDictTypeService {
       sysDictData.dictType = dictType;
       data = await this.sysDictDataRepository.select(sysDictData);
       if (data.length > 0) {
-        await this.redisCache.del(key);
-        await this.redisCache.set(key, JSON.stringify(data));
+        await this.redisCache.del('', key);
+        await this.redisCache.set('', key, JSON.stringify(data));
       }
     }
     return data;
@@ -238,8 +244,8 @@ export class SysDictTypeService {
     // 放入缓存
     for (const [k, v] of m) {
       const key = CACHE_SYS_DICT + ':' + k;
-      await this.redisCache.del(key);
-      await this.redisCache.set(key, JSON.stringify(v));
+      await this.redisCache.del('', key);
+      await this.redisCache.set('', key, JSON.stringify(v));
     }
   }
 
@@ -250,8 +256,8 @@ export class SysDictTypeService {
    */
   public async cacheClean(dictType: string): Promise<boolean> {
     const key = CACHE_SYS_DICT + ':' + dictType;
-    const keys = await this.redisCache.getKeys(key);
-    const rows = await this.redisCache.delKeys(keys);
+    const keys = await this.redisCache.getKeys('',key);
+    const rows = await this.redisCache.delKeys('',keys);
     return rows > 0;
   }
 
@@ -277,6 +283,6 @@ export class SysDictTypeService {
       };
       arr.push(data);
     }
-    return await this.fileService.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.excelWriteRecord(arr, fileName);
   }
 }

@@ -1,92 +1,109 @@
 import { Body, Controller, Get, Inject, Put } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
   OperateLog,
 } from '../../../framework/decorator/OperateLogMethodDecorator';
+import {
+  validEmail,
+  validMobile,
+} from '../../../framework/utils/regular/regular';
 import { Resp } from '../../../framework/resp/api';
-import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
-import { ContextService } from '../../../framework/reqctx/context';
+import { loginUser } from '../../../framework/reqctx/auth';
+import { bcryptCompare } from '../../../framework/utils/crypto/bcrypt';
+import { TokenUtil } from '../../../framework/utils/token/token';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { TokenService } from '../../../framework/utils/token/token';
-import { bcryptCompare } from '../../../framework/utils/crypto/crypto';
 import { SysPostService } from '../service/sys_post';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';
-import { SysUser } from '../model/sys_user';
 
 /**个人信息 控制层处理 */
 @Controller('/system/user/profile')
 export class SysProfileController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**用户服务 */
   @Inject()
   private sysUserService: SysUserService;
 
+  /**角色服务 */
   @Inject()
   private sysRoleService: SysRoleService;
 
+  /**岗位服务 */
   @Inject()
   private sysPostService: SysPostService;
 
+  /**Token工具 */
   @Inject()
-  private tokenService: TokenService;
+  private token: TokenUtil;
 
-  /**
-   * 个人信息
-   */
+  /**个人信息 */
   @Get()
   @PreAuthorize()
   public async info(): Promise<Resp> {
-    const loginUser = this.contextService.getSysUser();
-    delete loginUser.password;
+    const [info, err] = loginUser(this.c);
+    if (err) {
+      this.c.status = 401;
+      return Resp.codeMsg(40003, err);
+    }
 
     // 查询用户所属角色组
     const roleGroup: string[] = [];
-    const roles = await this.sysRoleService.findByUserId(loginUser.userId);
+    const roles = await this.sysRoleService.findByUserId(info.userId);
     for (const role of roles) {
       roleGroup.push(role.roleName);
     }
 
     // 查询用户所属岗位组
     const postGroup: string[] = [];
-    const posts = await this.sysPostService.findByUserId(loginUser.userId);
+    const posts = await this.sysPostService.findByUserId(info.userId);
     for (const post of posts) {
       postGroup.push(post.postName);
     }
 
     return Resp.okData({
-      user: loginUser,
+      user: info.user,
       roleGroup: [...new Set(roleGroup)],
       postGroup: [...new Set(postGroup)],
     });
   }
 
-  /**
-   * 个人信息修改
-   */
+  /**个人信息修改 */
   @Put()
   @PreAuthorize()
   @OperateLog({
     title: '个人信息',
     businessType: BUSINESS_TYPE.UPDATE,
   })
-  async updateProfile(@Body() body: SysUser): Promise<Resp> {
-    if (!body.nickName || !body.sex) {
+  public async updateProfile(
+    @Valid(RuleType.string().required()) @Body('nickName') nickName: string,
+    @Valid(RuleType.string().pattern(/^[012]$/)) @Body('sex') sex: string,
+    @Valid(RuleType.string()) @Body('phone') phone: string,
+    @Valid(RuleType.string()) @Body('email') email: string,
+    @Valid(RuleType.string()) @Body('avatar') avatar: string
+  ): Promise<Resp> {
+    if (nickName == '' || sex == '') {
       return Resp.codeMsg(40010, 'bind err: nickName or sex not is empty');
     }
 
     // 登录用户信息
-    const loginUser = this.contextService.getLoginUser();
-    const userId = loginUser.userId;
+    const [info, err] = loginUser(this.c);
+    if (err) {
+      this.c.status = 401;
+      return Resp.codeMsg(40003, err);
+    }
+    const userId = info.userId;
 
     // 检查手机号码格式并判断是否唯一
-    if (body.phone) {
-      if (validMobile(body.phone)) {
+    if (phone != '') {
+      if (validMobile(phone)) {
         const uniquePhone = await this.sysUserService.checkUniqueByPhone(
-          body.phone,
+          phone,
           userId
         );
         if (!uniquePhone) {
@@ -98,10 +115,10 @@ export class SysProfileController {
     }
 
     // 检查邮箱格式并判断是否唯一
-    if (body.email) {
-      if (validEmail(body.email)) {
+    if (email) {
+      if (validEmail(email)) {
         const uniqueEmail = await this.sysUserService.checkUniqueByEmail(
-          body.email,
+          email,
           userId
         );
         if (!uniqueEmail) {
@@ -119,27 +136,25 @@ export class SysProfileController {
     }
 
     // 用户基本资料
-    userInfo.nickName = body.nickName;
-    userInfo.phone = body.phone;
-    userInfo.email = body.email;
-    userInfo.sex = body.sex;
-    userInfo.avatar = body.avatar;
+    userInfo.nickName = nickName;
+    userInfo.phone = phone;
+    userInfo.email = email;
+    userInfo.sex = sex;
+    userInfo.avatar = avatar;
     userInfo.password = ''; // 密码不更新
     userInfo.updateBy = userInfo.userName;
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
       // 更新缓存用户信息
-      loginUser.user = userInfo;
+      info.user = userInfo;
       // 刷新令牌信息
-      await this.tokenService.cache(loginUser);
+      await this.token.cache(info);
       return Resp.ok();
     }
     return Resp.errMsg('修改个人信息异常');
   }
 
-  /**
-   * 个人重置密码
-   */
+  /**个人重置密码 */
   @Put('/password')
   @PreAuthorize()
   @OperateLog({
@@ -147,18 +162,22 @@ export class SysProfileController {
     businessType: BUSINESS_TYPE.UPDATE,
   })
   public async updatePassword(
-    @Valid(RuleType.number().required())
+    @Valid(RuleType.string().required())
     @Body('oldPassword')
     oldPassword: string,
-    @Valid(RuleType.number().required())
+    @Valid(RuleType.string().required())
     @Body('newPassword')
     newPassword: string
   ): Promise<Resp> {
     if (!oldPassword || !newPassword) return Resp.err();
 
     // 登录用户信息
-    const loginUser = this.contextService.getLoginUser();
-    const userId = loginUser.userId;
+    const [info, err] = loginUser(this.c);
+    if (err) {
+      this.c.status = 401;
+      return Resp.codeMsg(40003, err);
+    }
+    const userId = info.userId;
 
     // 查询当前登录用户信息得到密码值
     const userInfo = await this.sysUserService.findById(userId);
@@ -177,8 +196,8 @@ export class SysProfileController {
     }
 
     // 修改新密码
-    userInfo.updateBy = userInfo.userName;
     userInfo.password = newPassword;
+    userInfo.updateBy = userInfo.userName;
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
       return Resp.ok();

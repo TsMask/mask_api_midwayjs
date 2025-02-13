@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Del,
-  Fields,
-  Files,
   Get,
   Inject,
   Param,
@@ -12,17 +10,31 @@ import {
   Query,
 } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
+import {
+  validUsername,
+  validPassword,
+  validMobile,
+  validEmail,
+} from '../../../framework/utils/regular/regular';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
 import {
+  loginUserToDataScopeSQL,
+  loginUserToUserID,
+  loginUserToUserName,
+} from '../../../framework/reqctx/auth';
+import {
   BUSINESS_TYPE,
   OperateLog,
 } from '../../../framework/decorator/OperateLogMethodDecorator';
-import { UploadFileInfo } from '@midwayjs/upload';
 import { Resp } from '../../../framework/resp/api';
+import { GlobalConfig } from '../../../framework/config/config';
+import { FileUtil } from '../../../framework/utils/file/file';
+import { readSheet } from '../../../framework/utils/file/execl';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { SysUserService } from '../service/sys_user';
@@ -31,31 +43,40 @@ import { SysPostService } from '../service/sys_post';
 import { SysRole } from '../model/sys_role';
 import { SysUser } from '../model/sys_user';
 import { SysPost } from '../model/sys_post';
-import { validUsername, validPassword, validMobile, validEmail } from '../../../framework/utils/regular/regular';
 
 /**用户信息 控制层处理 */
 @Controller('/system/user')
 export class SysUserController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**配置信息 */
+  @Inject()
+  private config: GlobalConfig;
+
+  /**文件服务 */
+  @Inject()
+  private fileUtil: FileUtil;
+
+  /**用户服务 */
   @Inject()
   private sysUserService: SysUserService;
 
+  /**角色服务 */
   @Inject()
   private sysRoleService: SysRoleService;
 
+  /**岗位服务 */
   @Inject()
   private sysPostService: SysPostService;
- 
 
-  /**
-   * 用户信息列表
-   */
+  /**用户信息列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:user:list'] })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
-    const dataScopeSQL = this.contextService.getDataScopeSQL(
+    const dataScopeSQL = loginUserToDataScopeSQL(
+      this.c,
       'sys_user',
       'sys_user'
     );
@@ -66,15 +87,14 @@ export class SysUserController {
     return Resp.okData({ rows, total });
   }
 
-  /**
-   * 用户信息详情
-   */
+  /**用户信息详情 */
   @Get('/:userId')
   @PreAuthorize({ hasPermissions: ['system:user:query'] })
   public async info(
-    @Valid(RuleType.number().required()) @Param('userId') userId: number
+    @Valid(RuleType.number()) @Param('userId') userId: number
   ): Promise<Resp> {
     if (userId < 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: userId is empty');
     }
 
@@ -117,9 +137,7 @@ export class SysUserController {
     });
   }
 
-  /**
-   * 用户信息新增
-   */
+  /**用户信息新增 */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:user:add'] })
   @OperateLog({
@@ -128,6 +146,7 @@ export class SysUserController {
   })
   public async add(@Body() body: SysUser): Promise<Resp> {
     if (body.userId > 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: userId not is empty');
     }
     if (!validUsername(body.userName)) {
@@ -197,7 +216,7 @@ export class SysUserController {
     sysUser.roleIds = body.roleIds; // 角色ID组
     sysUser.postIds = body.postIds; // 岗位ID组
     sysUser.avatar = body.avatar;
-    sysUser.createBy = this.contextService.getUseName();
+    sysUser.createBy = loginUserToUserName(this.c);
     const insertId = await this.sysUserService.insert(sysUser);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -205,9 +224,7 @@ export class SysUserController {
     return Resp.err();
   }
 
-  /**
-   * 用户信息修改
-   */
+  /**用户信息修改 */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
   @OperateLog({
@@ -216,11 +233,12 @@ export class SysUserController {
   })
   public async edit(@Body() body: SysUser): Promise<Resp> {
     if (body.userId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: userId is empty');
     }
 
     // 检查是否系统管理员用户
-    if (this.contextService.isSystemUser(body.userId)) {
+    if (this.config.isSystemUser(body.userId)) {
       return Resp.errMsg('不允许操作系统管理员用户');
     }
 
@@ -281,8 +299,8 @@ export class SysUserController {
     userInfo.deptId = body.deptId;
     userInfo.roleIds = body.roleIds;
     userInfo.postIds = body.postIds;
-    userInfo.password = ''; // 忽略登录时间
-    userInfo.updateBy = this.contextService.getUseName();
+    userInfo.password = ''; // 忽略修改密码
+    userInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysUserService.updateUserAndRolePost(userInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -290,9 +308,7 @@ export class SysUserController {
     return Resp.err();
   }
 
-  /**
-   * 用户信息删除
-   */
+  /**用户信息删除 */
   @Del('/:userId')
   @PreAuthorize({ hasPermissions: ['system:user:remove'] })
   @OperateLog({
@@ -300,35 +316,37 @@ export class SysUserController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string().required()) @Param('userId') userId: string
+    @Valid(RuleType.string()) @Param('userId') userId: string
   ): Promise<Resp> {
+    if (userId == '') {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: userId is empty');
+    }
+
     // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(userId, ',');
     // 转换成number数组类型
     const ids = uniqueIDs.map(id => parseNumber(id));
-    if (ids.length <= 0) return Resp.err();
 
     // 检查是否管理员用户
-    const loginUserId = this.contextService.getUserId();
+    const loginUserId = loginUserToUserID(this.c);
     for (const id of ids) {
       if (id === loginUserId) {
         return Resp.errMsg('当前用户不能删除');
       }
-      if (this.contextService.isSystemUser(id)) {
+      if (this.config.isSystemUser(id)) {
         return Resp.errMsg('不允许操作管理员用户');
       }
     }
 
-    const rows = await this.sysUserService.deleteByIds(ids);
-    if (rows > 0) {
-      return Resp.okMsg(`删除成功: ${rows}`);
+    const [rows, err] = await this.sysUserService.deleteByIds(ids);
+    if (err) {
+      return Resp.errMsg(err);
     }
-    return Resp.err();
+    return Resp.okMsg(`删除成功: ${rows}`);
   }
 
-  /**
-   * 用户密码修改
-   */
+  /**用户密码修改 */
   @Put('/password')
   @PreAuthorize({ hasPermissions: ['system:user:resetPwd'] })
   @OperateLog({
@@ -340,7 +358,7 @@ export class SysUserController {
     @Valid(RuleType.string().required()) @Body('password') password: string
   ): Promise<Resp> {
     // 检查是否系统管理员用户
-    if (this.contextService.isSystemUser(userId)) {
+    if (this.config.isSystemUser(userId)) {
       return Resp.errMsg('不允许操作系统管理员用户');
     }
 
@@ -357,7 +375,7 @@ export class SysUserController {
     }
 
     userInfo.password = password;
-    userInfo.updateBy = this.contextService.getUseName();
+    userInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -365,9 +383,7 @@ export class SysUserController {
     return Resp.err();
   }
 
-  /**
-   * 用户状态修改
-   */
+  /**用户状态修改 */
   @Put('/status')
   @RepeatSubmit()
   @PreAuthorize({ hasPermissions: ['system:user:edit'] })
@@ -380,7 +396,7 @@ export class SysUserController {
     @Valid(RuleType.string().required()) @Body('statusFlag') statusFlag: string
   ): Promise<Resp> {
     // 检查是否系统管理员用户
-    if (this.contextService.isSystemUser(userId)) {
+    if (this.config.isSystemUser(userId)) {
       return Resp.errMsg('不允许操作系统管理员用户');
     }
     // 检查是否存在
@@ -396,7 +412,7 @@ export class SysUserController {
 
     userInfo.statusFlag = statusFlag;
     userInfo.password = ''; // 密码不更新
-    userInfo.updateBy = this.contextService.getUseName();
+    userInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -404,10 +420,8 @@ export class SysUserController {
     return Resp.err();
   }
 
-  /**
-   * 用户信息列表导出
-   */
-  @Post('/export')
+  /**用户信息列表导出 */
+  @Get('/export')
   @PreAuthorize({ hasPermissions: ['system:user:export'] })
   @OperateLog({
     title: '用户信息',
@@ -415,7 +429,11 @@ export class SysUserController {
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
-    const dataScopeSQL = this.contextService.getDataScopeSQL('d', 'u');
+    const dataScopeSQL = loginUserToDataScopeSQL(
+      this.c,
+      'sys_user',
+      'sys_user'
+    );
     const [rows, total] = await this.sysUserService.findByPage(
       query,
       dataScopeSQL
@@ -426,42 +444,42 @@ export class SysUserController {
 
     // 导出文件名称
     const fileName = `user_export_${rows.length}_${Date.now()}.xlsx`;
-    const ctx = this.contextService.getContext();
-    ctx.set(
+    this.c.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set(
+    this.c.set(
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
     return await this.sysUserService.exportData(rows, fileName);
   }
 
-  /**
-   * 用户信息列表导入模板下载
-   */
+  /**用户信息列表导入模板下载 */
   @Get('/import/template')
   @PreAuthorize({ hasPermissions: ['system:user:import'] })
   public async template() {
-    const ctx = this.contextService.getContext();
     const fileName = `user_import_template_${Date.now()}.xlsx`;
-    ctx.set(
+    this.c.set(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set(
+    this.c.set(
       'Content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
-    return await this.fileService.readAssetsFileStream(
+
+    const [fileData, err] = await this.fileUtil.readAssetsFileStream(
       'template/excel/user_import_template.xlsx'
     );
+    if (err) {
+      this.c.status = 400;
+      return 'failed to read file';
+    }
+    return fileData;
   }
 
-  /**
-   * 用户信息列表导入
-   */
+  /**用户信息列表导入 */
   @Post('/import')
   @PreAuthorize({ hasPermissions: ['system:user:import'] })
   @OperateLog({
@@ -469,18 +487,18 @@ export class SysUserController {
     businessType: BUSINESS_TYPE.IMPORT,
   })
   public async import(
-    @Files('file') filePath: UploadFileInfo<string>[],
-    @Fields('update') update: boolean
-  ) {
-    if (filePath.length <= 0) return Resp.err();
+    @Valid(RuleType.string().required()) @Body('filePath') filePath: string,
+    @Valid(RuleType.boolean().required()) @Body('update') update: boolean
+  ): Promise<Resp> {
+    // 表格文件绝对地址
+    const fileAbsPath = this.fileUtil.parseUploadFileAbsPath(filePath);
     // 读取表格数据
-    const rows = await this.fileService.excelReadRecord(filePath[0]);
+    const rows = await readSheet(fileAbsPath, '');
     if (rows.length <= 0) {
       return Resp.errMsg('导入用户数据不能为空！');
     }
-
     // 获取操作人名称
-    const operaName = this.contextService.getUseName();
+    const operaName = loginUserToUserName(this.c);
     // 导入数据
     const message = await this.sysUserService.importData(
       rows,

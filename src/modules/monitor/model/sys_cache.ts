@@ -18,7 +18,7 @@ export class SysCache {
    * @param cacheKey 缓存键名
    */
   public newNames(cacheName: string, cacheKey: string) {
-    this.cacheName = cacheKey.substring(0, cacheKey.length - 1);
+    this.cacheName = cacheKey;
     this.cacheKey = '';
     this.cacheValue = '';
     this.remark = cacheName;
@@ -47,7 +47,7 @@ export class SysCache {
   public newValue(cacheName: string, cacheKey: string, cacheValue: string) {
     this.cacheName = cacheName;
     this.cacheKey = cacheKey;
-    this.cacheValue = cacheValue || '';
+    this.cacheValue = cacheValue;
     this.remark = '';
     return this;
   }

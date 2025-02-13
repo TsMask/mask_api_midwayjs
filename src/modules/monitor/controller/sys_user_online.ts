@@ -1,5 +1,6 @@
 import { Controller, Del, Get, Inject, Param, Query } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
@@ -17,11 +18,17 @@ import { SysUserOnlineService } from '../service/sys_user_online';
 /**在线用户信息 控制层处理 */
 @Controller('/monitor/user-online')
 export class SysUserOnlineController {
+  /**上下文 */
   @Inject()
-  private sysUserOnlineService: SysUserOnlineService;
+  private c: Context;
 
+  /**缓存服务 */
   @Inject()
   private redisCache: RedisCache;
+
+  /**在线用户服务 */
+  @Inject()
+  private sysUserOnlineService: SysUserOnlineService;
 
   /**
    * 在线用户列表
@@ -114,9 +121,12 @@ export class SysUserOnlineController {
     businessType: BUSINESS_TYPE.FORCE,
   })
   public async fogout(
-    @Valid(RuleType.string().required()) @Param('tokenId') tokenId: string
+    @Valid(RuleType.string()) @Param('tokenId') tokenId: string
   ): Promise<Resp> {
-    if (tokenId.indexOf('*') > 0) return Resp.err();
+    if (tokenId === '' || tokenId.indexOf('*') >= 0) {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: tokenId is empty');
+    }
 
     // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(tokenId, ',');

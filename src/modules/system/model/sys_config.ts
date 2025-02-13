@@ -29,6 +29,11 @@ export class SysConfig {
   @Column({ name: 'config_type' })
   configType: string;
 
+  /**删除标志（0代表存在 1代表删除） */
+  @Rule(RuleType.string().pattern(/^[01]$/))
+  @Column({ name: 'del_flag' })
+  delFlag: string;
+
   /**创建者 */
   @Rule(RuleType.string())
   @Column({ name: 'create_by' })

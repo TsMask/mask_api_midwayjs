@@ -33,7 +33,7 @@ export class RegisterController {
 
   /**账号注册 */
   @Post('/register')
-  @RateLimit({ time: 300, count: 20, limitType: LIMIT_IP })
+  @RateLimit({ time: 300, count: 20, type: LIMIT_IP })
   public async register(@Body() body: RegisterBody): Promise<Resp> {
     // 当前请求信息
     const [ipaddr, location] = await ipaddrLocation(this.c);
@@ -59,17 +59,14 @@ export class RegisterController {
 
     // 判断必传参数
     if (!validUsername(body.username)) {
-      this.c.status = 200;
       return Resp.errMsg('用户账号只能包含大写小写字母，数字，且不少于4位');
     }
     if (!validPassword(body.password)) {
-      this.c.status = 200;
       return Resp.errMsg(
         '登录密码至少包含大小写字母、数字、特殊符号，且不少于6位'
       );
     }
     if (body.password != body.confirmPassword) {
-      this.c.status = 200;
       return Resp.errMsg('用户确认输入密码不一致');
     }
 
@@ -86,10 +83,8 @@ export class RegisterController {
         os,
         browser,
       ]);
-      this.c.status = 200;
       return Resp.okData('注册成功');
     }
-    this.c.status = 200;
     return Resp.errMsg(err);
   }
 }

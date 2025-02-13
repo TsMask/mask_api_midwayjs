@@ -184,6 +184,10 @@ export class SysDictTypeRepository {
     if (sysDictType.updateBy) {
       sysDictType.updateTime = Date.now().valueOf();
     }
+    delete sysDictType.dictId;
+    delete sysDictType.delFlag;
+    delete sysDictType.createBy;
+    delete sysDictType.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')

@@ -10,6 +10,7 @@ import {
   Query,
 } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
+import { Context } from '@midwayjs/koa';
 
 import {
   BUSINESS_TYPE,
@@ -20,8 +21,8 @@ import {
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
 import { Resp } from '../../../framework/resp/api';
+import { loginUserToUserName } from '../../../framework/reqctx/auth';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { ContextService } from '../../../framework/reqctx/context';
 import { SysDictTypeService } from '../service/sys_dict_type';
 import { SysDictDataService } from '../service/sys_dict_data';
 import { SysDictData } from '../model/sys_dict_data';
@@ -29,18 +30,19 @@ import { SysDictData } from '../model/sys_dict_data';
 /**字典类型对应的字典数据信息 控制层处理 */
 @Controller('/system/dict/data')
 export class SysDictDataController {
+  /**上下文 */
   @Inject()
-  private contextService: ContextService;
+  private c: Context;
 
+  /**字典数据服务 */
   @Inject()
   private sysDictDataService: SysDictDataService;
 
+  /**字典类型服务 */
   @Inject()
   private sysDictTypeService: SysDictTypeService;
 
-  /**
-   * 字典数据列表
-   */
+  /**字典数据列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['system:dict:list'] })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
@@ -48,15 +50,14 @@ export class SysDictDataController {
     return Resp.okData({ rows, total });
   }
 
-  /**
-   * 字典数据详情
-   */
+  /**字典数据详情 */
   @Get('/:dataId')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   public async info(
-    @Valid(RuleType.number().required()) @Param('dataId') dataId: number
+    @Valid(RuleType.number()) @Param('dataId') dataId: number
   ): Promise<Resp> {
     if (dataId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: deptId is empty');
     }
     const data = await this.sysDictDataService.findById(dataId);
@@ -66,9 +67,7 @@ export class SysDictDataController {
     return Resp.err();
   }
 
-  /**
-   * 字典数据新增
-   */
+  /**字典数据新增 */
   @Post()
   @PreAuthorize({ hasPermissions: ['system:dict:add'] })
   @OperateLog({
@@ -77,6 +76,7 @@ export class SysDictDataController {
   })
   public async add(@Body() body: SysDictData): Promise<Resp> {
     if (body.dataId > 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: dataId not is empty');
     }
 
@@ -110,7 +110,7 @@ export class SysDictDataController {
       );
     }
 
-    body.createBy = this.contextService.getUseName();
+    body.createBy = loginUserToUserName(this.c);
     const insertId = await this.sysDictDataService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -118,9 +118,7 @@ export class SysDictDataController {
     return Resp.err();
   }
 
-  /**
-   * 字典数据修改
-   */
+  /**字典类型修改 */
   @Put()
   @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
   @OperateLog({
@@ -129,6 +127,7 @@ export class SysDictDataController {
   })
   public async edit(@Body() body: SysDictData): Promise<Resp> {
     if (body.dataId <= 0) {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: dataId is empty');
     }
 
@@ -176,7 +175,7 @@ export class SysDictDataController {
     dictData.tagType = body.tagType;
     dictData.statusFlag = body.statusFlag;
     dictData.remark = body.remark;
-    dictData.updateBy = this.contextService.getUseName();
+    dictData.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysDictDataService.update(dictData);
     if (rows > 0) {
       return Resp.ok();
@@ -184,9 +183,7 @@ export class SysDictDataController {
     return Resp.err();
   }
 
-  /**
-   * 字典数据删除
-   */
+  /**字典数据删除 */
   @Del('/:dataId')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperateLog({
@@ -194,38 +191,41 @@ export class SysDictDataController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string().required()) @Param('dataId') dataId: string
+    @Valid(RuleType.string()) @Param('dataId') dataId: string
   ): Promise<Resp> {
+    if (dataId == '') {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: dataId is empty');
+    }
+
     // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(dataId, ',');
     // 转换成number数组类型
     const ids = uniqueIDs.map(id => parseNumber(id));
-    const rows = await this.sysDictDataService.deleteByIds(ids);
-    if (rows > 0) {
-      return Resp.okMsg(`删除成功: ${rows}`);
+
+    const [rows, err] = await this.sysDictDataService.deleteByIds(ids);
+    if (err) {
+      return Resp.errMsg(err);
     }
-    return Resp.err();
+    return Resp.okMsg(`删除成功: ${rows}`);
   }
 
-  /**
-   * 字典数据列表（指定字典类型）
-   */
+  /**字典数据列表（指定字典类型） */
   @Get('/type/:dictType')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   public async dictType(
-    @Valid(RuleType.string().required()) @Param('dictType') dictType: string
+    @Valid(RuleType.string()) @Param('dictType') dictType: string
   ): Promise<Resp> {
-    if (!dictType) {
+    if (dictType == '') {
+      this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: dictType is empty');
     }
     const data = await this.sysDictDataService.findByType(dictType);
     return Resp.okData(data);
   }
 
-  /**
-   * 字典数据列表导出
-   */
-  @Post('/export')
+  /**字典数据列表导出 */
+  @Get('/export')
   @PreAuthorize({ hasPermissions: ['system:dict:export'] })
   @OperateLog({
     title: '字典数据信息',
@@ -234,17 +234,16 @@ export class SysDictDataController {
   public async export(@Query() query: Record<string, string>) {
     const [rows, total] = await this.sysDictDataService.findByPage(query);
     if (total === 0) {
-      return Resp.errMsg('导出数据记录为空');
+      return Resp.codeMsg(40016, 'export data record as empty');
     }
 
     // 导出文件名称
     const fileName = `dict_data_export_${rows.length}_${Date.now()}.xlsx`;
-    const ctx = this.contextService.getContext();
-    ctx.set(
+    this.c.set(
       'content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     );
-    ctx.set(
+    this.c.set(
       'content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );

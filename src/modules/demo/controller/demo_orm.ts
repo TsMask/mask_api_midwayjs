@@ -8,21 +8,29 @@ import {
   Post,
   Put,
   Query,
-  httpError,
 } from '@midwayjs/core';
-import { parseRemoveDuplicatesToArray } from '../../../framework/utils/parse/parse';
+import { Context } from '@midwayjs/koa';
+
+import {
+  parseNumber,
+  parseRemoveDuplicatesToArray,
+} from '../../../framework/utils/parse/parse';
+import { Resp } from '../../../framework/resp/api';
 import { DemoORMService } from '../service/demo_orm';
 import { DemoORM } from '../model/demo_orm';
-import { Resp } from '../../../framework/resp/api';
 
 /**
  * 演示-TypeORM基本使用
  *
  * 更多功能需要查阅 https://midwayjs.org/docs/extensions/orm
- * @author TsMask
  */
 @Controller('/demo/orm')
 export class DemoORMController {
+  /**上下文 */
+  @Inject()
+  private c: Context;
+
+  /**测试ORM信息服务 */
   @Inject()
   private demoORMService: DemoORMService;
 
@@ -60,8 +68,10 @@ export class DemoORMController {
   @Get('/:id')
   async info(@Param('id') id: number): Promise<Resp> {
     if (id <= 0) {
-      throw new httpError.BadRequestError('bind err: id is empty');
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: id is empty');
     }
+
     const data = await this.demoORMService.findById(id);
     if (data.id === id) {
       return Resp.okData(data);
@@ -75,7 +85,8 @@ export class DemoORMController {
   @Post()
   async add(@Body() demoORM: DemoORM): Promise<Resp> {
     if (demoORM.id > 0) {
-      throw new httpError.BadRequestError('bind err: id is not empty');
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: id not is empty');
     }
     const insertId = await this.demoORMService.insert(demoORM);
     if (insertId > 0) {
@@ -89,8 +100,9 @@ export class DemoORMController {
    */
   @Put()
   async update(@Body() demoORM: DemoORM): Promise<Resp> {
-    if (demoORM.id <= 0) {
-      throw new httpError.BadRequestError('bind err: id is empty');
+    if (demoORM.id > 0) {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: id is empty');
     }
     const rowsAffected = await this.demoORMService.update(demoORM);
     if (rowsAffected > 0) {
@@ -104,12 +116,16 @@ export class DemoORMController {
    */
   @Del('/:id')
   async remove(@Param('id') id: string): Promise<Resp> {
-    const arr = parseRemoveDuplicatesToArray(id);
-    if (id === '' || arr.length <= 0) {
-      throw new httpError.BadRequestError('bind err: id is empty');
+    if (id == '') {
+      this.c.status = 400;
+      return Resp.codeMsg(40010, 'bind err: id is empty');
     }
-    // 转换成Number数组类型
-    const ids = arr.map(id => Number(id));
+
+    // 处理字符转id数组后去重
+    const uniqueIDs = parseRemoveDuplicatesToArray(id, ',');
+    // 转换成number数组类型
+    const ids = uniqueIDs.map(id => parseNumber(id));
+
     const rowsAffected = await this.demoORMService.deleteByIds(ids);
     if (rowsAffected > 0) {
       return Resp.okMsg(`删除成功：${rowsAffected}`);

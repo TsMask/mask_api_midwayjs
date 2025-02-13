@@ -193,6 +193,10 @@ export class SysRoleRepository {
     if (sysRole.updateBy) {
       sysRole.updateTime = Date.now().valueOf();
     }
+    delete sysRole.roleId;
+    delete sysRole.delFlag;
+    delete sysRole.createBy;
+    delete sysRole.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -269,7 +273,7 @@ export class SysRoleRepository {
     left join sys_role r on r.role_id = ur.role_id 
     where u.del_flag = '0' AND ur.user_id = ?`;
 
-    const rows = await this.db.execute(sqlStr, [userId]);
+    const rows = await this.db.execute('', sqlStr, [userId]);
     return rows;
   }
 }

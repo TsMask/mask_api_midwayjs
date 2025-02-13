@@ -1,50 +1,61 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileService } from '../../../framework/utils/file/file';
+import {
+  validEmail,
+  validMobile,
+} from '../../../framework/utils/regular/regular';
 import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
+import { FileUtil } from '../../../framework/utils/file/file';
 import { parseDateToStr } from '../../../framework/utils/date/data';
+import { parseNumber } from '../../../framework/utils/parse/parse';
 import { SysUserRoleRepository } from '../repository/sys_user_role';
 import { SysUserPostRepository } from '../repository/sys_user_post';
 import { SysUserRepository } from '../repository/sys_user';
 import { SysDeptRepository } from '../repository/sys_dept';
 import { SysRoleRepository } from '../repository/sys_role';
 import { SysDictTypeService } from './sys_dict_type';
+import { SysConfigService } from './sys_config';
 import { SysUserRole } from '../model/sys_user_role';
 import { SysUserPost } from '../model/sys_user_post';
 import { SysRole } from '../model/sys_role';
 import { SysUser } from '../model/sys_user';
-import { SysConfigService } from './sys_config';
-import { parseNumber } from '../../../framework/utils/parse/parse';
-import { validEmail, validMobile } from '../../../framework/utils/RegularUtils';
 
 /**用户 服务层处理 */
 @Provide()
 @Singleton()
 export class SysUserService {
+  /**用户服务 */
   @Inject()
   private sysUserRepository: SysUserRepository;
 
-  @Inject()
-  private sysDeptRepository: SysDeptRepository;
-
+  /**角色服务 */
   @Inject()
   private sysRoleRepository: SysRoleRepository;
 
+  /**部门服务 */
+  @Inject()
+  private sysDeptRepository: SysDeptRepository;
+
+  /**用户与角色服务 */
   @Inject()
   private sysUserRoleRepository: SysUserRoleRepository;
 
+  /**用户与岗位服务 */
   @Inject()
   private sysUserPostRepository: SysUserPostRepository;
 
+  /**字典类型服务 */
   @Inject()
   private sysDictTypeService: SysDictTypeService;
 
+  /**参数配置服务 */
   @Inject()
   private sysConfigService: SysConfigService;
 
+  /**文件服务 */
   @Inject()
-  private fileService: FileService;
+  private fileUtil: FileUtil;
 
   /**
    * 分页查询列表数据
@@ -221,20 +232,21 @@ export class SysUserService {
   /**
    * 批量删除信息
    * @param userIds ID数组
-   * @returns 影响记录数
+   * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(userIds: number[]): Promise<number> {
+  public async deleteByIds(userIds: number[]): Promise<[number, string]> {
     // 检查是否存在
     const users = await this.sysUserRepository.selectByIds(userIds);
     if (users.length <= 0) {
-      throw new Error('没有权限访问用户数据！');
+      return [0, '没有权限访问用户数据！'];
     }
     if (users.length == userIds.length) {
       await this.sysUserRoleRepository.deleteByUserIds(userIds); // 删除用户与角色关联
       await this.sysUserPostRepository.deleteByUserIds(userIds); // 删除用户与岗位关联
-      return await this.sysUserRepository.deleteByIds(userIds);
+      const rows = await this.sysUserRepository.deleteByIds(userIds);
+      return [rows, ''];
     }
-    return 0;
+    return [0, '删除用户信息失败！'];
   }
 
   /**
@@ -398,7 +410,7 @@ export class SysUserService {
       };
       arr.push(data);
     }
-    return await this.fileService.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.excelWriteRecord(arr, fileName);
   }
 
   /**

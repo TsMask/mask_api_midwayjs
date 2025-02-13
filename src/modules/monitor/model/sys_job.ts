@@ -1,7 +1,7 @@
 import { Rule, RuleType } from '@midwayjs/validate';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-/**定时任务调度表 */
+/**调度任务调度表 */
 @Entity('sys_job')
 export class SysJob {
   /**任务ID */

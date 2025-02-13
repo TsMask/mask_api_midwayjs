@@ -159,6 +159,10 @@ export class SysPostRepository {
     if (sysPost.updateBy) {
       sysPost.updateTime = Date.now().valueOf();
     }
+    delete sysPost.postId;
+    delete sysPost.delFlag;
+    delete sysPost.createBy;
+    delete sysPost.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')

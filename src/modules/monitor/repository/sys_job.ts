@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysJob } from '../model/sys_job';
 

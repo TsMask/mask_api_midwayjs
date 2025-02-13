@@ -141,15 +141,14 @@ export class AccountService {
 
   /**
    * 更新登录时间和IP
-   * @param loginUser 登录用户信息对象
+   * @param tokenInfo 登录用户信息对象
    * @returns 记录完成
    */
-  public async updateLoginDateAndIP(loginUser: TokenInfo): Promise<boolean> {
-    const sysUser = loginUser.user;
-    const user = await this.sysUserService.findById(sysUser.userId);
-    user.password = '';
-    user.loginIp = sysUser.loginIp;
-    user.loginTime = sysUser.loginTime;
+  public async updateLoginDateAndIP(tokenInfo: TokenInfo): Promise<boolean> {
+    const user = await this.sysUserService.findById(tokenInfo.userId);
+    user.password = ''; // 密码不更新
+    user.loginIp = tokenInfo.loginIp;
+    user.loginTime = tokenInfo.loginTime;
     const rows = await this.sysUserService.update(user);
     return rows > 0;
   }
