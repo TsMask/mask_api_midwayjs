@@ -1,4 +1,11 @@
-import { Configuration, App, Inject } from '@midwayjs/core';
+import { posix } from 'node:path';
+
+import {
+  Configuration,
+  App,
+  Inject,
+  MidwayDecoratorService,
+} from '@midwayjs/core';
 import * as koa from '@midwayjs/koa';
 import * as validate from '@midwayjs/validate';
 import * as typeorm from '@midwayjs/typeorm';
@@ -8,11 +15,10 @@ import * as jwt from '@midwayjs/jwt';
 import * as bull from '@midwayjs/bull';
 import * as crossDomain from '@midwayjs/cross-domain';
 import * as security from '@midwayjs/security';
-import { join } from 'path';
-import { MidwayDecoratorService } from '@midwayjs/core';
+
 import { checkDirPathExists } from './framework/utils/file/utils';
-import { Middlewares } from './framework/middleware';
 import { MethodDecorators } from './framework/decorator';
+import { Middlewares } from './framework/middleware';
 import { ErrorCatchFilters } from './framework/catch';
 
 @Configuration({
@@ -27,7 +33,7 @@ import { ErrorCatchFilters } from './framework/catch';
     jwt, // 鉴权和校验Token
     bull, // 任务队列Bull
   ],
-  importConfigs: [join(__dirname, './config')],
+  importConfigs: [posix.join(__dirname, './config')],
 })
 export class MainConfiguration {
   @App('koa')

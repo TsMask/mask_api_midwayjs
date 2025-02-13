@@ -1,5 +1,5 @@
+import { resolve } from 'node:path';
 import { MidwayConfig } from '@midwayjs/core';
-import { resolve } from 'path';
 
 export default (): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级

@@ -69,6 +69,7 @@ export class FileUtil {
     if (allowExts.length === 0) {
       allowExts = this.uploadWhiteList;
     }
+
     let hasExt = false;
     for (const ext of allowExts) {
       if (ext == fileExt) {
@@ -76,7 +77,6 @@ export class FileUtil {
         break;
       }
     }
-
     if (!hasExt) {
       return `上传文件类型不支持，仅支持以下类型：${allowExts.join('、')}`;
     }
@@ -295,7 +295,7 @@ export class FileUtil {
   /**
    * 内部文件读取 assets 目录
    * @param asserPath 内部文件相对地址，如：/template/excel/xxx.xlsx
-   * @return 文件读取流
+   * @return [文件读取流, 错误信息]
    */
   async readAssetsFileStream(asserPath: string) {
     // 检查文件允许访问
