@@ -16,12 +16,13 @@ import { isSystemUser } from './context';
  * @param ctx 上下文对象
  * @returns 登录用户信息
  */
-export function loginUser(ctx: Context): TokenInfo {
+export function loginUser(ctx: Context): [TokenInfo, string] {
   const value = ctx.getAttr<TokenInfo>(CTX_LOGIN_USER);
   if (value && value.uuid) {
-    return value;
+    delete value.user.password;
+    return [value, ''];
   }
-  return new TokenInfo();
+  return [new TokenInfo(), 'invalid login user information'];
 }
 
 /**
@@ -30,11 +31,11 @@ export function loginUser(ctx: Context): TokenInfo {
  * @returns 用户ID
  */
 export function loginUserToUserID(ctx: Context): number {
-  const info = loginUser(ctx);
-  if (info.uuid) {
-    return info.userId;
+  const [info, err] = loginUser(ctx);
+  if (err) {
+    return 0;
   }
-  return 0;
+  return info.userId;
 }
 
 /**
@@ -43,11 +44,11 @@ export function loginUserToUserID(ctx: Context): number {
  * @returns 用户名称
  */
 export function loginUserToUserName(ctx: Context): string {
-  const info = loginUser(ctx);
-  if (info.uuid) {
-    return info.user.userName;
+  const [info, err] = loginUser(ctx);
+  if (err) {
+    return '';
   }
-  return '';
+  return info.user.userName;
 }
 
 /**
@@ -56,16 +57,17 @@ export function loginUserToUserName(ctx: Context): string {
  * @returns boolen
  */
 export function loginUserByContainRoles(ctx: Context, target: string): boolean {
-  const info = loginUser(ctx);
-  if (info.uuid) {
-    if (isSystemUser(ctx, info.userId)) {
-      return true;
-    }
-    if (Array.isArray(info.user.roles)) {
-      for (const item of info.user.roles) {
-        if (item.roleKey === target) {
-          return true;
-        }
+  const [info, err] = loginUser(ctx);
+  if (err) {
+    return false;
+  }
+  if (isSystemUser(ctx, info.userId)) {
+    return true;
+  }
+  if (Array.isArray(info.user.roles)) {
+    for (const item of info.user.roles) {
+      if (item.roleKey === target) {
+        return true;
       }
     }
   }
@@ -78,16 +80,17 @@ export function loginUserByContainRoles(ctx: Context, target: string): boolean {
  * @returns boolen
  */
 export function loginUserByContainPerms(ctx: Context, target: string): boolean {
-  const info = loginUser(ctx);
-  if (info.uuid) {
-    if (isSystemUser(ctx, info.userId)) {
-      return true;
-    }
-    if (Array.isArray(info.permissions)) {
-      for (const str of info.permissions) {
-        if (str === target) {
-          return true;
-        }
+  const [info, err] = loginUser(ctx);
+  if (err) {
+    return false;
+  }
+  if (isSystemUser(ctx, info.userId)) {
+    return true;
+  }
+  if (Array.isArray(info.permissions)) {
+    for (const str of info.permissions) {
+      if (str === target) {
+        return true;
       }
     }
   }
@@ -108,8 +111,8 @@ export function loginUserToDataScopeSQL(
 ): string {
   let dataScopeSQL = '';
   // 登录用户信息
-  const info = loginUser(ctx);
-  if (!info.uuid) {
+  const [info, err] = loginUser(ctx);
+  if (err) {
     return dataScopeSQL;
   }
   const userInfo = info.user;
