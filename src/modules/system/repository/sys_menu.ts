@@ -350,21 +350,24 @@ export class SysMenuRepository {
 
     // 管理员全部菜单
     if (userId == 0) {
-      tx.where("menu_type in (:menuType) and status_flag = '1'", {
-        menuType: [MENU_TYPE_DIR, MENU_TYPE_MENU],
+      tx.where("s.menu_type in (:v) and s.status_flag = '1'", {
+        v: [MENU_TYPE_DIR, MENU_TYPE_MENU],
       });
     } else {
       // 用户ID权限
       tx.where(
-        `menu_type in (:menuType) and status_flag = '1' 
+        `s.menu_type in (:v) and s.status_flag = '1' 
         and menu_id in (
         select menu_id from sys_role_menu where role_id in (
         select role_id from sys_user_role where user_id = :userId
         ))`,
-        { menuType: [MENU_TYPE_DIR, MENU_TYPE_MENU], userId }
+        { v: [MENU_TYPE_DIR, MENU_TYPE_MENU], userId }
       );
     }
     // 查询数据
-    return await tx.getMany();
+    return await tx
+      .orderBy('s.parent_id', 'ASC')
+      .orderBy('s.menu_sort', 'ASC')
+      .getMany();
   }
 }
