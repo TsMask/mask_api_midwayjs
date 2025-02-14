@@ -48,7 +48,7 @@ insert into sys_dept values(109,  102, '0,100,102',  '财务部门',   2, 'MASK'
 drop table if exists sys_user;
 create table sys_user (
   user_id           bigint          not null auto_increment    comment '用户ID',
-  dept_id           bigint          default null               comment '部门ID',
+  dept_id           bigint          default 0                  comment '部门ID',
   user_name         varchar(32)     not null                   comment '用户账号',
   email             varchar(64)     default ''                 comment '用户邮箱',
   phone             varchar(32)     default ''                 comment '手机号码',
@@ -189,6 +189,9 @@ insert into sys_menu values(115,  '在线用户', 2,   4,   'online',           
 insert into sys_menu values(116,  '调度任务', 2,   5,   'job',                                  'monitor/job/index',        '1', '1', 'M', '1', '1', 'monitor:job:list',        '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '调度任务菜单');
 insert into sys_menu values(117,  '调度日志', 2,   6,   'job/inline/log/:jobId',                'monitor/job/log',          '1', '0', 'M', '0', '1', 'monitor:job:log',         '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '调度日志内嵌隐藏菜单');
 insert into sys_menu values(118,  '系统接口', 3,   1,   'swagger',                              'tool/swagger/index',       '1', '1', 'M', '1', '1', 'monitor:swagger:list',    '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '系统接口菜单');
+insert into sys_menu values(119,  '文件上传', 3,   2,   'tool',                                 'tool/upload/index',        '1', '1', 'M', '1', '1', 'monitor:upload',          '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '文件上传菜单');
+insert into sys_menu values(120,  '生成构建', 3,   3,   'build',                                'tool/build/index',         '1', '1', 'M', '1', '1', 'monitor:build',           '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '文件上传菜单');
+
 -- 三级菜单
 insert into sys_menu values(500,  '操作日志', 111, 1,   'operate',                              'system/log/operate/index',    '1', '0', 'M', '1', '1', 'system:log:operate:list',    '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '操作日志菜单');
 insert into sys_menu values(501,  '登录日志', 111, 2,   'login',                                'system/log/login/index',      '1', '0', 'M', '1', '1', 'system:log:login:list',      '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '登录日志菜单');
@@ -335,17 +338,14 @@ insert into sys_role_menu values (2, 1019);
 insert into sys_role_menu values (2, 1020);
 insert into sys_role_menu values (2, 1021);
 insert into sys_role_menu values (2, 1022);
-insert into sys_role_menu values (2, 1023);
 insert into sys_role_menu values (2, 1024);
 insert into sys_role_menu values (2, 1025);
 insert into sys_role_menu values (2, 1026);
 insert into sys_role_menu values (2, 1027);
-insert into sys_role_menu values (2, 1028);
 insert into sys_role_menu values (2, 1029);
 insert into sys_role_menu values (2, 1030);
 insert into sys_role_menu values (2, 1031);
 insert into sys_role_menu values (2, 1032);
-insert into sys_role_menu values (2, 1033);
 insert into sys_role_menu values (2, 1034);
 insert into sys_role_menu values (2, 1035);
 insert into sys_role_menu values (2, 1036);
