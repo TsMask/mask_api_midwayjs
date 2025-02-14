@@ -159,6 +159,7 @@ export class SysRoleController {
     roleInfo.menuCheckStrictly = body.menuCheckStrictly;
     roleInfo.deptCheckStrictly = body.deptCheckStrictly;
     roleInfo.statusFlag = body.statusFlag;
+    roleInfo.remark = body.remark;
     roleInfo.updateBy = loginUserToUserName(this.c);
     roleInfo.menuIds = body.menuIds;
     roleInfo.deptIds = body.deptIds;

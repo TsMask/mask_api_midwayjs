@@ -56,9 +56,9 @@ export class SysConfigController {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: configId is empty');
     }
-    const configInfo = await this.sysConfigService.findById(configId);
-    if (configInfo.configId === configId) {
-      return Resp.okData(configInfo);
+    const data = await this.sysConfigService.findById(configId);
+    if (data.configId === configId) {
+      return Resp.okData(data);
     }
     return Resp.err();
   }

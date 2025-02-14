@@ -27,20 +27,18 @@ export class SysJobRepository {
       .from(SysJob, 's');
     // 查询条件拼接
     if (query.jobName) {
-      tx.where("s.job_name like concat(:jobName, '%')", {
-        jobName: query.jobName,
-      });
+      tx.where("s.job_name like concat(:v, '%')", { v: query.jobName });
     }
     if (query.jobGroup) {
-      tx.where('s.job_group = :jobGroup', { jobGroup: query.jobGroup });
+      tx.where('s.job_group = :v', { v: query.jobGroup });
     }
     if (query.invokeTarget) {
-      tx.where("s.invoke_target like concat(:invokeTarget, '%')", {
-        invokeTarget: query.invokeTarget,
+      tx.where("s.invoke_target like concat(:v, '%')", {
+        v: query.invokeTarget,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.where('s.status_flag = :v', { v: query.statusFlag });
     }
 
     // 查询结果
@@ -77,22 +75,18 @@ export class SysJobRepository {
       .from(SysJob, 's');
     // 构建查询条件
     if (sysJob.jobName) {
-      tx.where("s.job_name like concat(:jobName, '%')", {
-        jobName: sysJob.jobName,
-      });
+      tx.where("s.job_name like concat(:v, '%')", { v: sysJob.jobName });
     }
     if (sysJob.jobGroup) {
-      tx.where('s.job_group = :jobGroup', { jobGroup: sysJob.jobGroup });
+      tx.where('s.job_group = :v', { v: sysJob.jobGroup });
     }
     if (sysJob.invokeTarget) {
-      tx.where("s.invoke_target like concat(:invokeTarget, '%')", {
-        invokeTarget: sysJob.invokeTarget,
+      tx.where("s.invoke_target like concat(:v, '%')", {
+        v: sysJob.invokeTarget,
       });
     }
     if (sysJob.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
-        statusFlag: sysJob.statusFlag,
-      });
+      tx.where('s.status_flag = :v', { v: sysJob.statusFlag });
     }
     // 查询数据
     return await tx.getMany();
@@ -114,7 +108,7 @@ export class SysJobRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysJob, 's')
-      .where('s.job_id in (:jobIds)', { jobIds })
+      .where('s.job_id in (:v)', { v: jobIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -168,7 +162,7 @@ export class SysJobRepository {
       .createQueryBuilder()
       .update(SysJob)
       .set(sysJob)
-      .where('jobId = :jobId', { jobId: sysJob.jobId })
+      .where('jobId = :v', { v: sysJob.jobId })
       .execute();
     return tx.affected;
   }
@@ -186,18 +180,18 @@ export class SysJobRepository {
       .queryBuilder('')
       .delete()
       .from(SysJob)
-      .where('jobId in (:jobIds)', { jobIds })
+      .where('jobId in (:v)', { v: jobIds })
       .execute();
     return tx.affected;
   }
 
   /**
-   * 校验调度任务是否唯一
+   * 校验信息是否唯一
    *
    * @param sysJob 调度任务信息
    * @return 调度任务id
    */
-  public async checkUniqueJob(sysJob: SysJob): Promise<number> {
+  public async checkUnique(sysJob: SysJob): Promise<number> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
@@ -205,10 +199,10 @@ export class SysJobRepository {
       .from(SysJob, 's');
     // 查询条件拼接
     if (sysJob.jobName) {
-      tx.where('s.job_name = :jobName', { jobName: sysJob.jobName });
+      tx.where('s.job_name = :v', { v: sysJob.jobName });
     }
     if (sysJob.jobGroup) {
-      tx.where('s.job_group = :jobGroup', { jobGroup: sysJob.jobGroup });
+      tx.where('s.job_group = :v', { v: sysJob.jobGroup });
     }
     // 查询数据
     const item = await tx.getOne();

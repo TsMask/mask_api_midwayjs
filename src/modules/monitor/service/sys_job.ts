@@ -147,7 +147,7 @@ export class SysJobService {
     const sysJob = new SysJob();
     sysJob.jobName = jobName;
     sysJob.jobGroup = jobGroup;
-    const uniqueId = await this.sysJobRepository.checkUniqueJob(sysJob);
+    const uniqueId = await this.sysJobRepository.checkUnique(sysJob);
     if (uniqueId === jobId) {
       return true;
     }
