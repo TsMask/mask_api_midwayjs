@@ -14,6 +14,7 @@ import { Resp } from '../../../framework/resp/api';
 /**路由主页 控制层处理 */
 @Controller('/')
 export class IndexController {
+  /**内置的信息服务，提供基础的项目数据 */
   @Inject()
   private midwayInformationService: MidwayInformationService;
 
@@ -22,7 +23,9 @@ export class IndexController {
   @RateLimit({ time: 300, count: 60, type: LIMIT_IP })
   public async index(): Promise<Resp> {
     const pkg = this.midwayInformationService.getPkg();
-    const msg = `Name:${pkg.name}, Version:${pkg.version}`;
-    return Resp.okMsg(msg);
+    return Resp.okData({
+      name: pkg.name,
+      version: pkg.version,
+    });
   }
 }
