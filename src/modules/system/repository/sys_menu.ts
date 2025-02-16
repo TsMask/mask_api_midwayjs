@@ -95,7 +95,7 @@ export class SysMenuRepository {
    */
   public async insert(sysMenu: SysMenu): Promise<number> {
     sysMenu.delFlag = '0';
-    if (sysMenu.menuId <= 0) {
+    if (sysMenu.menuId > 0) {
       return 0;
     }
     if (!sysMenu.icon) {
