@@ -1,5 +1,3 @@
-import { UploadFileInfo } from '@midwayjs/upload';
-import { type Stats } from 'node:fs';
 import {
   constants,
   open,
@@ -13,7 +11,10 @@ import {
   rmdir,
   type FileHandle,
 } from 'node:fs/promises';
+import type { Stats } from 'node:fs';
 import { posix } from 'node:path';
+
+import { UploadFileInfo } from '@midwayjs/upload';
 
 /**
  * 读取文件大小
@@ -43,7 +44,7 @@ export async function checkExists(filePath: string): Promise<string> {
     await access(filePath, constants.F_OK);
     return '';
   } catch (error) {
-    console.error(`Failed access "${filePath}": ${error.message}`);
+    console.error(`failed access "${filePath}": ${error.message}`);
     return error.message;
   }
 }
@@ -57,7 +58,9 @@ export async function checkDirPathExists(dirPath: string): Promise<string> {
     await access(dirPath, constants.F_OK);
     return '';
   } catch (error) {
-    console.error(`Failed access to mkdir "${dirPath}": ${error.message}`);
+    console.error(
+      `failed access not exist to mkdir "${dirPath}": ${error.message}`
+    );
     await mkdir(dirPath, { recursive: true });
     return error.message;
   }
@@ -81,7 +84,7 @@ export async function deleteFile(absPath: string): Promise<boolean> {
       return true;
     }
   } catch (error) {
-    console.error(`Failed delete "${absPath}": ${error.message}`);
+    console.error(`failed delete "${absPath}": ${error.message}`);
   }
   return false;
 }
@@ -132,8 +135,6 @@ export async function getFileStream(
   }
 }
 
- 
-
 /**
  * 获取文件目录下所有文件名称，不含目录名称
  * @param filePath 文件路径
@@ -151,33 +152,9 @@ export async function getDirFileNameList(dirPath: string): Promise<string[]> {
     }
     return fileNames;
   } catch (error) {
-    console.error(`Failed opendir "${dirPath}": ${error.message}`);
+    console.error(`failed opendir "${dirPath}": ${error.message}`);
   }
   return [];
-}
-
-/**
- * 二进制文件流获取文件类型
- *
- * @param buf 二进制文件流
- * @return 文件类型后缀（含“.”）
- */
-export function getBufferFileExtendName(buf: Buffer): string {
-  const header = buf.subarray(0, 10);
-  const headers = [
-    { header: [71, 73, 70, 56, 55, 97], ext: '.gif' },
-    { header: [71, 73, 70, 56, 57, 97], ext: '.gif' },
-    { header: [255, 216, 255, 224], ext: '.jpg' },
-    { header: [255, 216, 255, 225], ext: '.jpg' },
-    { header: [66, 77], ext: '.bmp' },
-    { header: [137, 80, 78, 71], ext: '.png' },
-  ];
-  for (const h of headers) {
-    if (header.every((value, index) => value === h.header[index])) {
-      return h.ext;
-    }
-  }
-  return '.png';
 }
 
 /**
@@ -198,7 +175,7 @@ export async function writeBufferFile(
   try {
     await writeFile(filePath, buf.toString());
   } catch (error) {
-    console.error(`Failed write file "${filePath}": ${error.message}`);
+    console.error(`failed write file "${filePath}": ${error.message}`);
   }
   return filePath;
 }
@@ -230,7 +207,7 @@ export async function transferToNewFile(
     await writeFile(dst, data.toString());
     return '';
   } catch (error) {
-    console.error(`Failed transfer file "${dst}": ${error.message}`);
+    console.error(`failed transfer file "${dst}": ${error.message}`);
     return error.message;
   }
 }
@@ -271,7 +248,7 @@ export async function mergeToNewFile(
     // 写入新文件
     await writeFile(newFilePath, Buffer.concat(fileBuffers).toString());
   } catch (error) {
-    console.error(`Failed merge file "${newFilePath}": ${error.message}`);
+    console.error(`failed merge file "${newFilePath}": ${error.message}`);
   } finally {
     await deleteFile(dirPath);
   }
