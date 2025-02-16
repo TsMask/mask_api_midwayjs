@@ -55,9 +55,9 @@ export class SysJobLogController {
       return Resp.codeMsg(40010, 'bind err: logId is empty');
     }
 
-    const jobLogInfo = await this.sysJobLogService.findById(logId);
-    if (jobLogInfo.logId === logId) {
-      return Resp.okData(jobLogInfo);
+    const data = await this.sysJobLogService.findById(logId);
+    if (data.logId === logId) {
+      return Resp.okData(data);
     }
     return Resp.err();
   }

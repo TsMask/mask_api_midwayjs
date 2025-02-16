@@ -242,15 +242,6 @@ export class SysUserController {
       return Resp.errMsg('不允许操作系统管理员用户');
     }
 
-    // 检查用户登录账号是否唯一
-    const uniqueUserName = await this.sysUserService.checkUniqueByUserName(
-      body.userName,
-      body.userId
-    );
-    if (!uniqueUserName) {
-      return Resp.errMsg(`修改用户【${body.userName}】失败，登录账号已存在`);
-    }
-
     // 检查是否存在
     const userInfo = await this.sysUserService.findById(body.userId);
     if (userInfo.userId != body.userId) {
@@ -266,12 +257,12 @@ export class SysUserController {
         );
         if (!uniquePhone) {
           return Resp.errMsg(
-            `修改用户【${body.userName}】失败，手机号码已存在`
+            `修改用户【${userInfo.userName}】失败，手机号码已存在`
           );
         }
       } else {
         return Resp.errMsg(
-          `修改用户【${body.userName}】失败，手机号码格式错误`
+          `修改用户【${userInfo.userName}】失败，手机号码格式错误`
         );
       }
     }
@@ -284,10 +275,14 @@ export class SysUserController {
           body.userId
         );
         if (!uniqueEmail) {
-          return Resp.errMsg(`修改用户【${body.userName}】失败，邮箱已存在`);
+          return Resp.errMsg(
+            `修改用户【${userInfo.userName}】失败，邮箱已存在`
+          );
         }
       } else {
-        return Resp.errMsg(`修改用户【${body.userName}】失败，邮箱格式错误`);
+        return Resp.errMsg(
+          `修改用户【${userInfo.userName}】失败，邮箱格式错误`
+        );
       }
     }
 
