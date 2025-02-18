@@ -12,7 +12,7 @@ export class ReportMiddleware implements IMiddleware<Context, NextFunction> {
 
       // 计算请求处理时间，并打印日志
       const duration = Date.now() - c.startTime;
-      c.logger.info('\n访问接口: %s %s\n总耗时: %d', c.path, duration);
+      c.logger.info('\n访问接口: %s \n总耗时: %dms', c.path, duration);
 
       return res;
     };

@@ -1,4 +1,4 @@
-import { ReportMiddleware } from './ReportMiddleware';
+import { ReportMiddleware } from './report';
 
 /**
  * 中间件
