@@ -31,7 +31,7 @@ import { SysConfig } from '../model/sys_config';
 @Controller('/system/config')
 export class SysConfigController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**参数配置服务 */

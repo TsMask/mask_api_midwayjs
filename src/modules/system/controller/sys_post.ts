@@ -30,7 +30,7 @@ import { SysPost } from '../model/sys_post';
 @Controller('/system/post')
 export class SysPostController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**岗位服务 */

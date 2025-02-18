@@ -30,7 +30,7 @@ import { SysNotice } from '../model/sys_notice';
 @Controller('/system/notice')
 export class SysNoticeController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**公告服务 */

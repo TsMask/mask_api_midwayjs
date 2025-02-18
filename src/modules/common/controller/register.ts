@@ -20,7 +20,7 @@ import { RegisterBody } from '../model/register_body';
 @Controller()
 export class RegisterController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**账号注册操作服务 */

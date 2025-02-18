@@ -24,7 +24,7 @@ import { SysLogLoginService } from '../service/sys_log_login';
 @Controller('/system/log/login')
 export class SysLogLoginController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**系统登录日志服务 */

@@ -30,7 +30,7 @@ import { SysDept } from '../model/sys_dept';
 @Controller('/system/dept')
 export class SysDeptController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**部门服务 */

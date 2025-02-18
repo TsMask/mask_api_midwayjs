@@ -33,7 +33,7 @@ import { SysJob } from '../model/sys_job';
 @Controller('/monitor/job')
 export class SysJobController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**调度任务服务 */
@@ -43,7 +43,7 @@ export class SysJobController {
   /**调度任务列表 */
   @Get('/list')
   @PreAuthorize({ hasPermissions: ['monitor:job:list'] })
-  async list(@Query() query: Record<string, string>): Promise<Resp> {
+  public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysJobService.findByPage(query);
     return Resp.okData({ rows, total });
   }
@@ -51,7 +51,7 @@ export class SysJobController {
   /**调度任务信息 */
   @Get('/:jobId')
   @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
-  async info(
+  public async info(
     @Valid(RuleType.number()) @Param('jobId') jobId: number
   ): Promise<Resp> {
     if (jobId <= 0) {
@@ -299,7 +299,7 @@ export class SysJobController {
     title: '调度任务信息',
     businessType: BUSINESS_TYPE.EXPORT,
   })
-  async export(@Query() query: Record<string, string>) {
+  public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
     const [rows, total] = await this.sysJobService.findByPage(query);
     if (total === 0) {

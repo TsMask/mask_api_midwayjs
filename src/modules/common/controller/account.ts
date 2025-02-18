@@ -22,7 +22,7 @@ import { LoginBody } from '../model/login_body';
 @Controller()
 export class AccountController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**Token工具 */

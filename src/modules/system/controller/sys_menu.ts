@@ -36,7 +36,7 @@ import { SysMenu } from '../model/sys_menu';
 @Controller('/system/menu')
 export class SysMenuController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**配置信息 */

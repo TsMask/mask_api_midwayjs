@@ -19,7 +19,7 @@ import { SysUserOnlineService } from '../service/sys_user_online';
 @Controller('/monitor/user-online')
 export class SysUserOnlineController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**缓存服务 */

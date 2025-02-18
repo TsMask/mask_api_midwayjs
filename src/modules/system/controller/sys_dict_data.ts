@@ -31,7 +31,7 @@ import { SysDictData } from '../model/sys_dict_data';
 @Controller('/system/dict/data')
 export class SysDictDataController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**字典数据服务 */

@@ -48,7 +48,7 @@ import { SysPost } from '../model/sys_post';
 @Controller('/system/user')
 export class SysUserController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**配置信息 */

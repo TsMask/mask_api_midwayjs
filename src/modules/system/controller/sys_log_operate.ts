@@ -14,7 +14,7 @@ import { SysLogOperateService } from '../service/sys_log_operate';
 @Controller('/system/log/operate')
 export class SysLogOperateController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**操作日志服务 */

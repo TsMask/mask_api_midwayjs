@@ -5,7 +5,7 @@ import { Inject } from '@midwayjs/core';
 @Processor('simple')
 export class SimpleProcessor implements IProcessor {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   async execute(options: ProcessorOptions): Promise<ProcessorData> {

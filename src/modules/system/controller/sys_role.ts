@@ -35,7 +35,7 @@ import { SysRole } from '../model/sys_role';
 @Controller('/system/role')
 export class SysRoleController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**角色服务 */

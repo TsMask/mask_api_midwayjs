@@ -19,7 +19,7 @@ import { SysJobLogService } from '../service/sys_job_log';
 @Controller('/monitor/jobLog')
 export class SysJobLogController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**调度任务服务 */

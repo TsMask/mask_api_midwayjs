@@ -23,7 +23,7 @@ import { SysUserService } from '../service/sys_user';
 @Controller('/system/user/profile')
 export class SysProfileController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**用户服务 */

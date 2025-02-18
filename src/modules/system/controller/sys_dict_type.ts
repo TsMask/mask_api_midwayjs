@@ -30,7 +30,7 @@ import { SysDictType } from '../model/sys_dict_type';
 @Controller('/system/dict/type')
 export class SysDictTypeController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**字典类型服务 */
