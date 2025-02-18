@@ -20,14 +20,13 @@ import {
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { FileUtil } from '../../../framework/utils/file/file';
-import { UploadMiddleware } from '@midwayjs/upload';
 import { RuleType, Valid } from '@midwayjs/validate';
 
 /**文件操作 控制层处理*/
 @Controller('/file')
 export class FileController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**文件服务 */
@@ -78,7 +77,7 @@ export class FileController {
   }
 
   /**上传文件 */
-  @Post('/upload', { middleware: [UploadMiddleware] })
+  @Post('/upload')
   @PreAuthorize()
   public async upload(
     @Files('file') files: UploadFileInfo<string>[],
@@ -176,7 +175,7 @@ export class FileController {
   }
 
   /**切片文件上传 */
-  @Post('/chunk-upload', { middleware: [UploadMiddleware] })
+  @Post('/chunk-upload')
   @PreAuthorize()
   public async chunkUpload(
     /**上传的文件 */
