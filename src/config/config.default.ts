@@ -1,4 +1,4 @@
-import { resolve } from 'node:path';
+import { resolve, posix } from 'node:path';
 import { MidwayConfig } from '@midwayjs/core';
 
 export default (): MidwayConfig => {
@@ -31,10 +31,10 @@ export default (): MidwayConfig => {
         level: 'warn',
         transports: {
           file: {
-            dir: `${filePath}/logs`,
+            dir: posix.join(filePath, '/logs'),
           },
           error: {
-            dir: `${filePath}/logs`,
+            dir: posix.join(filePath, '/logs'),
           },
         },
       },
@@ -78,7 +78,7 @@ export default (): MidwayConfig => {
         '.rmvb',
       ],
       /**上传的文件临时存储路径 */
-      tmpdir: `${filePath}/temp`,
+      tmpdir: posix.join(filePath, '/temp'),
       /**上传的文件在临时目录中多久之后自动删除，默认为 5 分钟 */
       cleanTimeout: 5 * 60 * 1000,
       /**设置原始body是否是base64格式，默认为false，一般用于腾讯云的兼容 */
@@ -91,12 +91,12 @@ export default (): MidwayConfig => {
         // 默认资源，dir目录需要预先创建
         default: {
           prefix: '/static',
-          dir: `${filePath}/static`,
+          dir: posix.join(filePath, '/static'),
         },
         // 文件上传资源目录映射
         upload: {
           prefix: '/upload',
-          dir: `${filePath}/upload`,
+          dir: posix.join(filePath, '/upload'),
         },
       },
     },
