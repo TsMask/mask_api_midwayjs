@@ -6,7 +6,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysConfig {
   /**参数主键 */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'config_id' })
+  @PrimaryGeneratedColumn({ name: 'config_id' })
   configId: number;
 
   /**参数名称 */

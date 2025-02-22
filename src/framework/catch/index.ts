@@ -6,7 +6,4 @@ import { NotFound } from './not_found';
  *
  * 请尽可能使用标准的抛出错误的形式，方便拦截器做处理。
  */
-export const ErrorCatchFilters = [
-  NotFound,
-  ErrorCatch,
-];
+export const ErrorCatchFilters = [NotFound, ErrorCatch];

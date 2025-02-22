@@ -148,7 +148,7 @@ export class SysConfigController {
   public async remove(
     @Valid(RuleType.string()) @Param('configId') configId: string
   ) {
-    if (configId == '') {
+    if (configId === '') {
       return Resp.codeMsg(40010, 'bind err: configId is empty');
     }
 

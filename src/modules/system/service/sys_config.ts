@@ -92,7 +92,7 @@ export class SysConfigService {
     // 检查是否存在
     const configs = await this.sysConfigRepository.selectByIds(configIds);
     if (configs.length <= 0) {
-      return [0, '没有权限访问参数配置数据！']
+      return [0, '没有权限访问参数配置数据！'];
     }
     for (const config of configs) {
       // 检查是否为内置参数
@@ -104,7 +104,7 @@ export class SysConfigService {
     }
     if (configs.length === configIds.length) {
       const rows = await this.sysConfigRepository.deleteByIds(configIds);
-      return [rows, '']
+      return [rows, ''];
     }
     return [0, '删除参数配置信息失败！'];
   }
@@ -158,7 +158,7 @@ export class SysConfigService {
    */
   public async cacheLoad(configKey: string): Promise<void> {
     // 查询全部参数
-    if (configKey == '*' || configKey == '') {
+    if (configKey === '*' || configKey === '') {
       const sysConfigs = await this.sysConfigRepository.select(new SysConfig());
       for (const v of sysConfigs) {
         const key = CACHE_SYS_CONFIG + ':' + v.configKey;

@@ -98,7 +98,7 @@ export class SysNoticeController {
 
     // 检查是否存在
     const noticeInfo = await this.sysNoticeService.findById(body.noticeId);
-    if (noticeInfo.noticeId != body.noticeId) {
+    if (noticeInfo.noticeId !== body.noticeId) {
       return Resp.errMsg('没有权限访问公告信息数据！');
     }
 
@@ -125,11 +125,11 @@ export class SysNoticeController {
   public async remove(
     @Valid(RuleType.number()) @Param('noticeId') noticeId: string
   ): Promise<Resp> {
-    if (noticeId == '') {
+    if (noticeId === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: noticeId is empty');
     }
-    
+
     // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(noticeId, ',');
     // 转换成number数组类型

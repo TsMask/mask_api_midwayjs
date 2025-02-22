@@ -6,7 +6,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysLogOperate {
   /**操作ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'id' })
+  @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
   /**模块标题 */

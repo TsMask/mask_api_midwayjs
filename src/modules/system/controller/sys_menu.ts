@@ -77,7 +77,7 @@ export class SysMenuController {
       return Resp.codeMsg(40010, 'bind err: menuId is empty');
     }
     const data = await this.sysMenuService.findById(menuId);
-    if (data.menuId == menuId) {
+    if (data.menuId === menuId) {
       return Resp.okData(data);
     }
     return Resp.err();
@@ -157,13 +157,13 @@ export class SysMenuController {
     }
     // 检查数据是否存在
     const menuInfo = await this.sysMenuService.findById(body.menuId);
-    if (menuInfo.menuId != body.menuId) {
+    if (menuInfo.menuId !== body.menuId) {
       return Resp.errMsg('没有权限访问菜单数据');
     }
     // 父级ID不为0是要检查
     if (body.parentId > 0) {
       const menuParent = await this.sysMenuService.findById(body.parentId);
-      if (menuParent.menuId != body.parentId) {
+      if (menuParent.menuId !== body.parentId) {
         return Resp.errMsg('没有权限访问菜单数据');
       }
       // 禁用菜单时检查父菜单是否使用

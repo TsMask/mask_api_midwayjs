@@ -129,10 +129,10 @@ export class SysMenuService {
     sysMenu.menuName = menuName;
     sysMenu.parentId = parentId;
     const uniqueId = await this.sysMenuRepository.checkUnique(sysMenu);
-    if (uniqueId == menuId) {
+    if (uniqueId === menuId) {
       return true;
     }
-    return uniqueId == 0;
+    return uniqueId === 0;
   }
 
   /**
@@ -151,10 +151,10 @@ export class SysMenuService {
     sysMenu.menuPath = menuPath;
     sysMenu.parentId = parentId;
     const uniqueId = await this.sysMenuRepository.checkUnique(sysMenu);
-    if (uniqueId == menuId) {
+    if (uniqueId === menuId) {
       return true;
     }
-    return uniqueId == 0;
+    return uniqueId === 0;
   }
 
   /**
@@ -175,10 +175,10 @@ export class SysMenuService {
     const roles = await this.sysRoleRepository.selectByIds([roleId]);
     if (roles.length > 0) {
       const role = roles[0];
-      if (role.roleId == roleId) {
+      if (role.roleId === roleId) {
         return await this.sysMenuRepository.selectByRoleId(
           role.roleId,
-          role.menuCheckStrictly == '1'
+          role.menuCheckStrictly === '1'
         );
       }
     }
@@ -378,7 +378,7 @@ export class SysMenuService {
 
     // 路径链接 内部跳转
     if (validHttp(routerPath) && sysMenu.frameFlag === STATUS_YES) {
-      routerPath = replace(`/^http(s)?:\/\/+/`, routerPath, '');
+      routerPath = replace('/^http(s)?://+/', routerPath, '');
       routerPath = Buffer.from(routerPath, 'utf8').toString('base64');
     }
 

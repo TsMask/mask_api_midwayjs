@@ -139,7 +139,7 @@ export class SysDictDataController {
 
     // 检查字典编码是否存在
     const dictData = await this.sysDictDataService.findById(body.dataId);
-    if (dictData.dataId != body.dataId) {
+    if (dictData.dataId !== body.dataId) {
       return Resp.errMsg('没有权限访问字典编码数据！');
     }
 
@@ -193,7 +193,7 @@ export class SysDictDataController {
   public async remove(
     @Valid(RuleType.string()) @Param('dataId') dataId: string
   ): Promise<Resp> {
-    if (dataId == '') {
+    if (dataId === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: dataId is empty');
     }
@@ -216,7 +216,7 @@ export class SysDictDataController {
   public async dictType(
     @Valid(RuleType.string()) @Param('dictType') dictType: string
   ): Promise<Resp> {
-    if (dictType == '') {
+    if (dictType === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: dictType is empty');
     }

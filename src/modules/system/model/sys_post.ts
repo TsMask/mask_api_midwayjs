@@ -6,7 +6,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysPost {
   /**岗位ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'post_id' })
+  @PrimaryGeneratedColumn({ name: 'post_id' })
   postId: number;
 
   /**岗位编码 */

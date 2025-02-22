@@ -2,9 +2,9 @@
 
 // 读取xdb工具包
 import { loadContentFromFile, newWithBuffer } from './binding';
-import { posix } from 'node:path';
+import { resolve } from 'node:path';
 // 指定ip2region数据文件路径
-const dbPath = posix.join(__dirname, '../../assets/ip2region.xdb');
+const dbPath = resolve(__dirname, '../../assets/ip2region.xdb');
 // 读取文件Buffer缓存
 const ip2regionBuffer = loadContentFromFile(dbPath);
 // 检索实例

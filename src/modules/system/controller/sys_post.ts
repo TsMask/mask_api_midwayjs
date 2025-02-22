@@ -159,7 +159,7 @@ export class SysPostController {
   public async remove(
     @Valid(RuleType.string()) @Param('postId') postId: string
   ): Promise<Resp> {
-    if (postId == '') {
+    if (postId === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: postId is empty');
     }

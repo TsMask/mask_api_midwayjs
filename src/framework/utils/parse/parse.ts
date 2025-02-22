@@ -298,7 +298,7 @@ export function parseRemoveDuplicates(arr: string[]): string[] {
  */
 export function parseRemoveDuplicatesToArray(
   keyStr: string,
-  sep: string = ','
+  sep = ','
 ): string[] {
   let arr: string[] = [];
   if (keyStr === '') {

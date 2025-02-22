@@ -83,19 +83,19 @@ export class SysPostService {
     // 检查是否存在
     const posts = await this.sysPostRepository.selectByIds(postIds);
     if (posts.length < 0) {
-      return [0, '没有权限访问岗位数据！']
+      return [0, '没有权限访问岗位数据！'];
     }
     for (const post of posts) {
       const useCount = await this.sysUserPostRepository.existUserByPostId(
         post.postId
       );
       if (useCount > 0) {
-        return [0, `【${post.postName}】已分配给用户,不能删除`]
+        return [0, `【${post.postName}】已分配给用户,不能删除`];
       }
     }
-    if (posts.length == postIds.length) {
+    if (posts.length === postIds.length) {
       const rows = await this.sysPostRepository.deleteByIds(postIds);
-      return [rows, '']
+      return [rows, ''];
     }
     return [0, '删除岗位信息失败！'];
   }
@@ -113,10 +113,10 @@ export class SysPostService {
     const sysPost = new SysPost();
     sysPost.postName = postName;
     const uniqueId = await this.sysPostRepository.checkUnique(sysPost);
-    if (uniqueId == postId) {
+    if (uniqueId === postId) {
       return true;
     }
-    return uniqueId == 0;
+    return uniqueId === 0;
   }
 
   /**
@@ -132,10 +132,10 @@ export class SysPostService {
     const sysPost = new SysPost();
     sysPost.postCode = postCode;
     const uniqueId = await this.sysPostRepository.checkUnique(sysPost);
-    if (uniqueId == postId) {
+    if (uniqueId === postId) {
       return true;
     }
-    return uniqueId == 0;
+    return uniqueId === 0;
   }
 
   /**
@@ -159,7 +159,7 @@ export class SysPostService {
     for (const row of rows) {
       // 状态
       let statusValue = '停用';
-      if (row.statusFlag == '1') {
+      if (row.statusFlag === '1') {
         statusValue = '正常';
       }
       const data = {

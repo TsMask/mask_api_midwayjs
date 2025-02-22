@@ -6,7 +6,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysMenu {
   /**菜单ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'menu_id' })
+  @PrimaryGeneratedColumn({ name: 'menu_id' })
   menuId: number;
 
   /**菜单名称 */

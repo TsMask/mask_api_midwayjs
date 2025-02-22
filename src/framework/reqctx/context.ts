@@ -8,7 +8,7 @@ import { HEADER_KEY, HEADER_PREFIX } from '../constants/token';
  * @returns token字符串
  */
 export function authorization(c: Context): string {
-  let authHeader = c.get(HEADER_KEY);
+  const authHeader = c.get(HEADER_KEY);
   if (!authHeader) {
     return '';
   }

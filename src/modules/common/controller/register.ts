@@ -66,7 +66,7 @@ export class RegisterController {
         '登录密码至少包含大小写字母、数字、特殊符号，且不少于6位'
       );
     }
-    if (body.password != body.confirmPassword) {
+    if (body.password !== body.confirmPassword) {
       return Resp.errMsg('用户确认输入密码不一致');
     }
 

@@ -108,7 +108,11 @@ export class SysDictTypeService {
     // 同字典类型被修改时，同步更新修改
     const oldDictType = arr[0].DictType;
     const rows = await this.sysDictTypeRepository.update(sysDictType);
-    if (rows > 0 && oldDictType != '' && oldDictType != sysDictType.dictType) {
+    if (
+      rows > 0 &&
+      oldDictType !== '' &&
+      oldDictType !== sysDictType.dictType
+    ) {
       this.sysDictDataRepository.updateDataByDictType(
         oldDictType,
         sysDictType.dictType
@@ -221,12 +225,12 @@ export class SysDictTypeService {
     sysDictData.statusFlag = STATUS_YES;
 
     // 指定字典类型
-    if (dictType == '*' || dictType == '') {
+    if (dictType === '*' || dictType === '') {
       sysDictData.dictType = '';
     }
 
     const arr = await this.sysDictDataRepository.select(sysDictData);
-    if (arr.length == 0) {
+    if (arr.length === 0) {
       return;
     }
 
@@ -256,8 +260,8 @@ export class SysDictTypeService {
    */
   public async cacheClean(dictType: string): Promise<boolean> {
     const key = CACHE_SYS_DICT + ':' + dictType;
-    const keys = await this.redisCache.getKeys('',key);
-    const rows = await this.redisCache.delKeys('',keys);
+    const keys = await this.redisCache.getKeys('', key);
+    const rows = await this.redisCache.delKeys('', keys);
     return rows > 0;
   }
 
@@ -272,7 +276,7 @@ export class SysDictTypeService {
     const arr: Record<string, any>[] = [];
     for (const row of rows) {
       let statusValue = '停用';
-      if (row.statusFlag == '1') {
+      if (row.statusFlag === '1') {
         statusValue = '正常';
       }
       const data = {

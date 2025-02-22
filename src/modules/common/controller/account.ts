@@ -152,7 +152,7 @@ export class AccountController {
     if (!tokenStr) {
       // 存在token时记录退出信息
       const userName = await this.token.remove(tokenStr);
-      if (userName != '') {
+      if (userName !== '') {
         // 当前请求信息
         const [ipaddr, location] = await ipaddrLocation(this.c);
         const [os, browser] = await uaOsBrowser(this.c);

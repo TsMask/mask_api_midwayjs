@@ -185,7 +185,7 @@ export class FileController {
     /**切片唯一标识 */
     @Fields('identifier') identifier: string
   ) {
-    if (index == '' || identifier == '') {
+    if (index === '' || identifier === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: index and identifier must be set');
     }

@@ -97,7 +97,7 @@ export function OpLerateLogSave(options: { metadata: Options }) {
 
       // 获取登录用户信息
       const userName = loginUserToUserName(c);
-      if (userName == '') {
+      if (userName === '') {
         c.status = 401;
         return Resp.codeMsg(401, '无效身份授权');
       }
@@ -132,11 +132,11 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       }
 
       // 执行原方法
-      const res = await joinPoint.proceed(...joinPoint.args);
+      const res: Resp = await joinPoint.proceed(...joinPoint.args);
 
       // 响应状态
       const status = res.code;
-      if (status == 200) {
+      if (status === Resp.CODE_SUCCESS) {
         operLog.statusFlag = STATUS_YES;
       } else {
         operLog.statusFlag = STATUS_NO;

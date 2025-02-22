@@ -72,7 +72,7 @@ export class SysJobLogController {
   public async remove(
     @Valid(RuleType.string()) @Param('logId') logId: string
   ): Promise<Resp> {
-    if (logId == '') {
+    if (logId === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: logId is empty');
     }

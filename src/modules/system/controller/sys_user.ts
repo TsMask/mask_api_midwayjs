@@ -116,7 +116,7 @@ export class SysUserController {
 
     // 检查用户是否存在
     const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.userId != userId) {
+    if (userInfo.userId !== userId) {
       return Resp.errMsg('没有权限访问用户数据');
     }
     delete userInfo.password;
@@ -244,7 +244,7 @@ export class SysUserController {
 
     // 检查是否存在
     const userInfo = await this.sysUserService.findById(body.userId);
-    if (userInfo.userId != body.userId) {
+    if (userInfo.userId !== body.userId) {
       return Resp.errMsg('没有权限访问用户数据！');
     }
 
@@ -313,7 +313,7 @@ export class SysUserController {
   public async remove(
     @Valid(RuleType.string()) @Param('userId') userId: string
   ): Promise<Resp> {
-    if (userId == '') {
+    if (userId === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: userId is empty');
     }
@@ -365,7 +365,7 @@ export class SysUserController {
 
     // 检查是否存在
     const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.userId != userId) {
+    if (userInfo.userId !== userId) {
       return Resp.errMsg('没有权限访问用户数据！');
     }
 
@@ -396,7 +396,7 @@ export class SysUserController {
     }
     // 检查是否存在
     const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.userId != userId) {
+    if (userInfo.userId !== userId) {
       return Resp.errMsg('没有权限访问用户数据！');
     }
 

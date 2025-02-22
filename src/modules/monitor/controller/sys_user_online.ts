@@ -57,7 +57,7 @@ export class SysUserOnlineController {
     }
 
     // 遍历字符串信息解析组合可用对象
-    let userOnlines: SysUserOnline[] = [];
+    const userOnlines: SysUserOnline[] = [];
     for (const str of arr) {
       if (!str) continue;
 

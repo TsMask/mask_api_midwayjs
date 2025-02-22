@@ -180,7 +180,7 @@ export class SysRoleController {
   public async remove(
     @Valid(RuleType.string()) @Param('roleId') roleId: string
   ): Promise<Resp> {
-    if (roleId == '') {
+    if (roleId === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: roleId is empty');
     }

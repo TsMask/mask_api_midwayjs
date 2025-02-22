@@ -109,14 +109,14 @@ export class SysMenuRepository {
     }
 
     // 根据菜单类型重置参数
-    if (sysMenu.menuType == MENU_TYPE_BUTTON) {
+    if (sysMenu.menuType === MENU_TYPE_BUTTON) {
       sysMenu.component = '';
       sysMenu.frameFlag = '1';
       sysMenu.cacheFlag = '1';
       sysMenu.visibleFlag = '1';
       sysMenu.menuPath = '';
       sysMenu.icon = '#';
-    } else if (sysMenu.menuType == MENU_TYPE_DIR) {
+    } else if (sysMenu.menuType === MENU_TYPE_DIR) {
       sysMenu.component = '';
       sysMenu.frameFlag = '1';
       sysMenu.cacheFlag = '1';
@@ -155,14 +155,14 @@ export class SysMenuRepository {
     }
 
     // 根据菜单类型重置参数
-    if (sysMenu.menuType == MENU_TYPE_BUTTON) {
+    if (sysMenu.menuType === MENU_TYPE_BUTTON) {
       sysMenu.component = '';
       sysMenu.frameFlag = '1';
       sysMenu.cacheFlag = '1';
       sysMenu.visibleFlag = '1';
       sysMenu.menuPath = '';
       sysMenu.icon = '#';
-    } else if (sysMenu.menuType == MENU_TYPE_DIR) {
+    } else if (sysMenu.menuType === MENU_TYPE_DIR) {
       sysMenu.component = '';
       sysMenu.frameFlag = '1';
       sysMenu.cacheFlag = '1';
@@ -262,7 +262,7 @@ export class SysMenuRepository {
     // 构建查询条件
     tx.where('s.parent_id = :menuId', { menuId });
     if (statusFlag) {
-      tx.where('s.status_flag = :statusFlag', { statusFlag });
+      tx.where('s.status_flag = :statusFlag', { statusFlag: statusFlag });
       tx.where('s.menu_type in (:menuType)', {
         menuType: [MENU_TYPE_DIR, MENU_TYPE_MENU],
       });
@@ -280,14 +280,30 @@ export class SysMenuRepository {
     if (userId <= 0) {
       return [];
     }
-    const sqlStr = `select distinct m.perms from sys_menu m 
-    left join sys_role_menu rm on m.menu_id = rm.menu_id 
-    left join sys_user_role ur on rm.role_id = ur.role_id 
-    left join sys_role r on r.role_id = ur.role_id
-    where m.status = '1' and m.perms != '' and r.status = '1' and ur.user_id = ?`;
+    // const sqlStr = `select distinct m.perms from sys_menu m
+    // left join sys_role_menu rm on m.menu_id = rm.menu_id
+    // left join sys_user_role ur on rm.role_id = ur.role_id
+    // left join sys_role r on r.role_id = ur.role_id
+    // where m.status_flag = '1' and m.perms != '' and r.status_flag = '1' and ur.user_id = ?`;
 
-    const rows = await this.db.execute('', sqlStr, [userId]);
-    return rows;
+    const rows = await this.db
+      .queryBuilder('')
+      .createQueryBuilder()
+      .select('m.perms')
+      .from(SysMenu, 'm')
+      .leftJoin('sys_role_menu', 'rm', 'rm.menu_id = m.menu_id')
+      .leftJoin('sys_user_role', 'ur', 'rm.role_id = ur.role_id')
+      .leftJoin(
+        'sys_role',
+        'r',
+        "r.role_id = ur.role_id and r.status_flag = '1'"
+      )
+      .where("m.status_flag = '1' AND m.perms != '' AND ur.user_id = :userId", {
+        userId,
+      })
+      .distinct(true)
+      .getMany();
+    return rows.map(v => v.perms);
   }
 
   /**
@@ -349,19 +365,19 @@ export class SysMenuRepository {
       .where("s.del_flag = '0'");
 
     // 管理员全部菜单
-    if (userId == 0) {
-      tx.where("s.menu_type in (:v) and s.status_flag = '1'", {
-        v: [MENU_TYPE_DIR, MENU_TYPE_MENU],
+    if (userId === 0) {
+      tx.where("s.menu_type in (:menuType) and s.status_flag = '1'", {
+        menuType: [MENU_TYPE_DIR, MENU_TYPE_MENU],
       });
     } else {
       // 用户ID权限
       tx.where(
-        `s.menu_type in (:v) and s.status_flag = '1' 
+        `s.menu_type in (:menuType) and s.status_flag = '1' 
         and menu_id in (
         select menu_id from sys_role_menu where role_id in (
         select role_id from sys_user_role where user_id = :userId
         ))`,
-        { v: [MENU_TYPE_DIR, MENU_TYPE_MENU], userId }
+        { menuType: [MENU_TYPE_DIR, MENU_TYPE_MENU], userId }
       );
     }
     // 查询数据

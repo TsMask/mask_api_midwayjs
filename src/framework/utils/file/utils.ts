@@ -44,7 +44,7 @@ export async function checkExists(filePath: string): Promise<string> {
     await access(filePath, constants.F_OK);
     return '';
   } catch (error) {
-    console.error(`failed access "${filePath}": ${error.message}`);
+    console.error(`failed access error: ${error.message}`);
     return error.message;
   }
 }
@@ -58,9 +58,7 @@ export async function checkDirPathExists(dirPath: string): Promise<string> {
     await access(dirPath, constants.F_OK);
     return '';
   } catch (error) {
-    console.error(
-      `failed access not exist to mkdir "${dirPath}": ${error.message}`
-    );
+    console.error(`failed access error: ${error.message}`);
     await mkdir(dirPath, { recursive: true });
     return error.message;
   }
@@ -98,8 +96,8 @@ export async function deleteFile(absPath: string): Promise<boolean> {
  */
 export async function getFileStream(
   filePath: string,
-  startOffset: number = 0,
-  endOffset: number = -1
+  startOffset = 0,
+  endOffset = -1
 ): Promise<[Buffer, string]> {
   let fd: FileHandle = null;
   try {

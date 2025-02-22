@@ -8,7 +8,7 @@ import { SysRole } from './sys_role';
 export class SysUser {
   /**用户ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'user_id' })
+  @PrimaryGeneratedColumn({ name: 'user_id' })
   userId: number;
 
   /**部门ID */

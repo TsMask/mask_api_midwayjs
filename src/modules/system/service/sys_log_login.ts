@@ -53,7 +53,7 @@ export class SysLogLoginService {
     sysLogLogin.msg = msg;
     const insertId = await this.sysLogLoginRepository.insert(sysLogLogin);
     if (insertId > 0) {
-      await insertId;
+      return insertId;
     }
     return 0;
   }
@@ -77,7 +77,7 @@ export class SysLogLoginService {
     const arr: Record<string, any>[] = [];
     for (const row of rows) {
       let statusValue = '停用';
-      if (row.statusFlag == '1') {
+      if (row.statusFlag === '1') {
         statusValue = '正常';
       }
       const data = {

@@ -371,7 +371,7 @@ export class SysJobService {
       // 任务组名
       let sysJobGroup = '';
       for (const v of dictSysJobGroup) {
-        if (item.jobGroup == v.dataValue) {
+        if (item.jobGroup === v.dataValue) {
           sysJobGroup = v.dataLabel;
           break;
         }
@@ -383,7 +383,7 @@ export class SysJobService {
         misfirePolicy = '执行一次';
       }
       let concurrent = '禁止';
-      if (item.concurrent == '1') {
+      if (item.concurrent === '1') {
         concurrent = '允许';
       }
       // 状态

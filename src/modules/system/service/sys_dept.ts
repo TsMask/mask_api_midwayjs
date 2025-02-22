@@ -1,9 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import {
-  TreeSelect,
-  sysDeptTreeSelect,
-} from '../model/vo/tree_select';
+import { TreeSelect, sysDeptTreeSelect } from '../model/vo/tree_select';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { parseNumber } from '../../../framework/utils/parse/parse';
 import { SysRoleDeptRepository } from '../repository/sys_role_dept';
@@ -70,21 +67,21 @@ export class SysDeptService {
     );
     // 上级与当前部门祖级列表更新
     if (
-      parentDept.deptId == sysDept.parentId &&
-      dept.deptId == sysDept.deptId
+      parentDept.deptId === sysDept.parentId &&
+      dept.deptId === sysDept.deptId
     ) {
       const newAncestors = `${parentDept.ancestors},${parentDept.deptId}`;
       const oldAncestors = dept.ancestors;
       // 祖级列表不一致时更新
-      if (newAncestors != oldAncestors) {
+      if (newAncestors !== oldAncestors) {
         dept.ancestors = newAncestors;
         await this.updateDeptChildren(dept.deptId, newAncestors, oldAncestors);
       }
     }
     // 如果该部门是启用状态，则启用该部门的所有上级部门
     if (
-      sysDept.statusFlag == STATUS_YES &&
-      parentDept.statusFlag == STATUS_NO
+      sysDept.statusFlag === STATUS_YES &&
+      parentDept.statusFlag === STATUS_NO
     ) {
       await this.updateDeptStatusNormal(sysDept.ancestors);
     }
@@ -150,10 +147,10 @@ export class SysDeptService {
     const roles = await this.sysRoleRepository.selectByIds([roleId]);
     if (roles.length > 0) {
       const role = roles[0];
-      if (role.roleId == roleId) {
+      if (role.roleId === roleId) {
         return await this.sysDeptRepository.selectDeptIdsByRoleId(
           role.roleId,
-          role.deptCheckStrictly == '1'
+          role.deptCheckStrictly === '1'
         );
       }
     }
@@ -194,10 +191,10 @@ export class SysDeptService {
     sysDept.deptName = deptName;
     sysDept.parentId = parentId;
     const uniqueId = await this.sysDeptRepository.checkUnique(sysDept);
-    if (uniqueId == deptId) {
+    if (uniqueId === deptId) {
       return true;
     }
-    return uniqueId == 0;
+    return uniqueId === 0;
   }
 
   /**

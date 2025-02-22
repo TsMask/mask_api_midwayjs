@@ -58,10 +58,10 @@ export class SysLogOperateService {
     const arr: Record<string, any>[] = [];
     for (const row of rows) {
       // 业务类型
-      let businessType = '';
+      const businessType = '';
       // 状态
       let statusValue = '停用';
-      if (row.statusFlag == '1') {
+      if (row.statusFlag === '1') {
         statusValue = '正常';
       }
       const data = {

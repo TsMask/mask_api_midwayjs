@@ -6,7 +6,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysDept {
   /**部门ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'dept_id' })
+  @PrimaryGeneratedColumn({ name: 'dept_id' })
   deptId: number;
 
   /**父部门ID */

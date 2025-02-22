@@ -76,7 +76,7 @@ export class SysRoleRepository {
     }
 
     // 查询结果
-    let total: number = 0;
+    let total = 0;
     let rows: SysRole[] = [];
 
     // 查询数量为0直接返回
@@ -266,14 +266,16 @@ export class SysRoleRepository {
     if (userId <= 0) {
       return [];
     }
-    const sqlStr = `select 
-    distinct r.role_id, r.role_name, r.role_key, r.role_sort, r.data_scope, r.menu_check_strictly, r.dept_check_strictly, r.status_flag, r.del_flag, r.create_time, r.remark 
-    from sys_user_role ur 
-    left join sys_user u on u.user_id = ur.user_id 
-    left join sys_role r on r.role_id = ur.role_id 
-    where u.del_flag = '0' AND ur.user_id = ?`;
-
-    const rows = await this.db.execute('', sqlStr, [userId]);
+    const rows = await this.db
+      .queryBuilder('')
+      .createQueryBuilder()
+      .from(SysRole, 'r')
+      .select('r.*')
+      .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.role_id')
+      .leftJoin('sys_user', 'u', 'u.user_id = ur.user_id')
+      .where("u.del_flag = '0' AND ur.user_id = userId", { userId })
+      .distinct(true)
+      .getMany();
     return rows;
   }
 }

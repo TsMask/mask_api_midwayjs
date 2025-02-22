@@ -65,7 +65,7 @@ export class SysConfigRepository {
     }
 
     // 查询结果
-    let total: number = 0;
+    let total = 0;
     let rows: SysConfig[] = [];
 
     // 查询数量为0直接返回

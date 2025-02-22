@@ -146,7 +146,7 @@ export class TokenUtil {
    * @returns 身份信息
    */
   public async info(claims: Record<string, any>): Promise<TokenInfo> {
-    let info = new TokenInfo();
+    const info = new TokenInfo();
     const uuid = claims[JWT_UUID];
     const tokenKey = CACHE_LOGIN_TOKEN + ':' + uuid;
     const hasKey = await this.redis.has('', tokenKey);

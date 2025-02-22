@@ -21,7 +21,7 @@ export function generateCode(size: number): string {
  * @param size 长度
  * @returns string 不保证长度满足
  */
-export function generateString(size: number, prefix?: string): string {
+export function generateString(size: number): string {
   return nanoid(size);
 }
 

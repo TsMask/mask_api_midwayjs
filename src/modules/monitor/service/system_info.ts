@@ -115,7 +115,7 @@ export class SystemInfoService {
       model = cpuInfo[0].model.trim();
     }
 
-    let used: string[] = [];
+    const used: string[] = [];
     for (const item of cpuInfo) {
       const v = item.times;
       const value = v.idle + v.user + v.nice + v.sys + v.irq;
@@ -132,7 +132,7 @@ export class SystemInfoService {
 
   /**网络信息 */
   public networkInfo(): Record<string, string> {
-    let ipAdders: Record<string, string> = {};
+    const ipAdders: Record<string, string> = {};
     const interfaces = networkInterfaces();
     for (const v of Object.keys(interfaces)) {
       let name = v;
@@ -148,7 +148,7 @@ export class SystemInfoService {
       ) {
         continue;
       }
-      let arr: string[] = [];
+      const arr: string[] = [];
       const addrs = interfaces[v];
       for (const v of addrs) {
         if (v.family === 'IPv6' && v.address.includes('::')) {

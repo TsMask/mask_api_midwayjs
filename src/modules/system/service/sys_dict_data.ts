@@ -131,10 +131,10 @@ export class SysDictDataService {
     sysDictData.dictType = dictType;
     sysDictData.dataLabel = dataLabel;
     const uniqueId = await this.sysDictDataRepository.checkUnique(sysDictData);
-    if (uniqueId == dataId) {
+    if (uniqueId === dataId) {
       return true;
     }
-    return uniqueId == 0;
+    return uniqueId === 0;
   }
 
   /**
@@ -153,10 +153,10 @@ export class SysDictDataService {
     sysDictData.dictType = dictType;
     sysDictData.dataValue = dataValue;
     const uniqueId = await this.sysDictDataRepository.checkUnique(sysDictData);
-    if (uniqueId == dataId) {
+    if (uniqueId === dataId) {
       return true;
     }
-    return uniqueId == 0;
+    return uniqueId === 0;
   }
 
   /**
@@ -170,7 +170,7 @@ export class SysDictDataService {
     const dataCells: Record<string, any>[] = [];
     for (const row of rows) {
       let statusValue = '停用';
-      if (row.statusFlag == '1') {
+      if (row.statusFlag === '1') {
         statusValue = '正常';
       }
       const data = {

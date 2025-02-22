@@ -6,7 +6,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysLogLogin {
   /**登录ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'id' })
+  @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
   /**用户账号 */

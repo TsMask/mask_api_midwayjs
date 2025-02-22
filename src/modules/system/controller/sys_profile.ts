@@ -87,7 +87,7 @@ export class SysProfileController {
     @Valid(RuleType.string()) @Body('email') email: string,
     @Valid(RuleType.string()) @Body('avatar') avatar: string
   ): Promise<Resp> {
-    if (nickName == '' || sex == '') {
+    if (nickName === '' || sex === '') {
       return Resp.codeMsg(40010, 'bind err: nickName or sex not is empty');
     }
 
@@ -100,7 +100,7 @@ export class SysProfileController {
     const userId = info.userId;
 
     // 检查手机号码格式并判断是否唯一
-    if (phone != '') {
+    if (phone !== '') {
       if (validMobile(phone)) {
         const uniquePhone = await this.sysUserService.checkUniqueByPhone(
           phone,

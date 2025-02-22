@@ -102,16 +102,16 @@ export class AccountService {
 
     // 查询用户登录账号
     const sysUser = await this.sysUserService.findByUserName(username);
-    if (sysUser.userName != username) {
+    if (sysUser.userName !== username) {
       return [tokenInfo, 'user does not exist or password is incorrect'];
     }
-    if (sysUser.delFlag == STATUS_YES) {
+    if (sysUser.delFlag === STATUS_YES) {
       return [
         tokenInfo,
         'sorry, your account has been deleted. Sorry, your account has been deleted',
       ];
     }
-    if (sysUser.statusFlag == STATUS_NO) {
+    if (sysUser.statusFlag === STATUS_NO) {
       return [tokenInfo, 'sorry, your account has been disabled'];
     }
 
@@ -171,11 +171,11 @@ export class AccountService {
   /**
    * 密码重试次数
    * @param username 登录用户名
-   * @returns boolean
+   * @returns [retryKey, retryCount, lockTime, err]
    */
   public async passwordRetryCount(
     username: string
-  ): Promise<[string, string, number, string]> {
+  ): Promise<[string, number, number, string]> {
     // 验证登录次数和错误锁定时间
     const maxRetryCount: number = this.config.get(
       'user.password.maxRetryCount'
@@ -191,9 +191,9 @@ export class AccountService {
     const retryCountInt = parseNumber(retryCount);
     if (retryCountInt >= maxRetryCount) {
       const msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;
-      return [retryKey, retryCount, lockTime, msg];
+      return [retryKey, retryCountInt, lockTime, msg];
     }
-    return [retryKey, retryCount, lockTime, ''];
+    return [retryKey, retryCountInt, lockTime, ''];
   }
 
   /**

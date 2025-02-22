@@ -149,14 +149,14 @@ export class SysDeptController {
 
     // 检查数据是否存在
     const deptInfo = await this.sysDeptService.findById(body.deptId);
-    if (deptInfo.deptId != body.deptId) {
+    if (deptInfo.deptId !== body.deptId) {
       return Resp.errMsg('没有权限访问部门数据！');
     }
 
     // 父级ID不为0是要检查
     if (body.parentId > 0) {
       const deptParent = await this.sysDeptService.findById(body.parentId);
-      if (deptParent.deptId != body.parentId) {
+      if (deptParent.deptId !== body.parentId) {
         return Resp.errMsg('没有权限访问部门数据！');
       }
     }
@@ -172,7 +172,7 @@ export class SysDeptController {
     }
 
     // 上级停用需要检查下级是否有在使用
-    if (body.statusFlag == STATUS_NO) {
+    if (body.statusFlag === STATUS_NO) {
       const hasChild = await this.sysDeptService.existChildrenByDeptId(
         body.deptId
       );
@@ -247,12 +247,12 @@ export class SysDeptController {
       return Resp.codeMsg(40010, 'bind err: deptId is empty');
     }
     const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
-    let data = await this.sysDeptService.find(new SysDept(), dataScopeSQL);
+    const data = await this.sysDeptService.find(new SysDept(), dataScopeSQL);
 
     // 过滤排除节点
     const filtered: SysDept[] = [];
     for (const dept of data) {
-      if (dept.deptId == deptId) {
+      if (dept.deptId === deptId) {
         continue;
       }
       // 如果当前部门的ancestors不包含要排除的deptId，则添加到filtered中

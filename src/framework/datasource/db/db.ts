@@ -41,7 +41,7 @@ export class DynamicDataSource {
    * @param parameters 预编译?参数
    * @returns 查询结果或异常错误
    */
-  public execute(
+  public execute<T>(
     source: string,
     sql: string,
     parameters?: any[]
@@ -50,7 +50,7 @@ export class DynamicDataSource {
     // 使用正则表达式替换连续的空白字符为单个空格
     sql = sql.replace(/\s+/g, ' ');
     // 查询结果
-    return db.query(sql, parameters);
+    return db.query<T>(sql, parameters);
   }
 
   /**

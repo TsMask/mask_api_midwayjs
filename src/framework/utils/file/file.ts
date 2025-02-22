@@ -45,7 +45,7 @@ export class FileUtil {
     const fileExt = posix.extname(fileName);
     // 替换掉后缀和特殊字符保留文件名
     let newFileName = replace(fileExt, fileName, '');
-    newFileName = replace(`/[<>:"\\|?*]+/g`, newFileName, '');
+    newFileName = replace('/[<>:"\\|?*]+/g', newFileName, '');
     newFileName = newFileName.trim();
     return `${newFileName}_${generateCode(6)}${fileExt}`;
   }
@@ -65,14 +65,14 @@ export class FileUtil {
     }
 
     // 判断文件拓展是否为允许的拓展类型
-    let fileExt = posix.extname(fileName);
+    const fileExt = posix.extname(fileName);
     if (allowExts.length === 0) {
       allowExts = this.uploadWhiteList;
     }
 
     let hasExt = false;
     for (const ext of allowExts) {
-      if (ext == fileExt) {
+      if (ext === fileExt) {
         hasExt = true;
         break;
       }
@@ -121,7 +121,7 @@ export class FileUtil {
     headerRange: string
   ): Promise<[Record<string, any>, string]> {
     // 检查文件允许访问
-    let err = this.isAllowRead(filePath);
+    const err = this.isAllowRead(filePath);
     if (err) {
       return [undefined, err];
     }
@@ -262,7 +262,7 @@ export class FileUtil {
     identifier: string
   ): Promise<[string, string]> {
     // 上传文件检查
-    let err = this.isAllowWrite(file.filename, []);
+    const err = this.isAllowWrite(file.filename, []);
     if (err) {
       return ['', err];
     }

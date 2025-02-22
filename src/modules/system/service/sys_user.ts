@@ -163,7 +163,7 @@ export class SysUserService {
     const arr: SysUserRole[] = [];
     for (const roleId of roleIds) {
       // 系统管理员角色禁止操作，只能通过配置指定用户ID分配
-      if (roleId <= 0 || roleId == SYS_ROLE_SYSTEM_ID) {
+      if (roleId <= 0 || roleId === SYS_ROLE_SYSTEM_ID) {
         continue;
       }
       const sysUserRole = new SysUserRole();
@@ -240,7 +240,7 @@ export class SysUserService {
     if (users.length <= 0) {
       return [0, '没有权限访问用户数据！'];
     }
-    if (users.length == userIds.length) {
+    if (users.length === userIds.length) {
       await this.sysUserRoleRepository.deleteByUserIds(userIds); // 删除用户与角色关联
       await this.sysUserPostRepository.deleteByUserIds(userIds); // 删除用户与岗位关联
       const rows = await this.sysUserRepository.deleteByIds(userIds);
@@ -313,7 +313,7 @@ export class SysUserService {
    */
   public async findByUserName(userName: string): Promise<SysUser> {
     const userinfo = await this.sysUserRepository.selectByUserName(userName);
-    if (userinfo.userName != userName) {
+    if (userinfo.userName !== userName) {
       return userinfo;
     }
     // 部门
@@ -384,14 +384,14 @@ export class SysUserService {
       // 用户性别
       let sysUserSex = '';
       for (const v of dictSysUserSex) {
-        if (row.sex == v.dataValue) {
+        if (row.sex === v.dataValue) {
           sysUserSex = v.dataLabel;
           break;
         }
       }
       // 账号状态
       let statusValue = '停用';
-      if (row.statusFlag == STATUS_YES) {
+      if (row.statusFlag === STATUS_YES) {
         statusValue = '正常';
       }
       const data = {

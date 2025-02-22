@@ -35,9 +35,7 @@ export class SysUserRepository {
       .where("s.del_flag = '0'");
     // 查询条件拼接
     if (query.userId) {
-      tx.where('s.user_id = :userId', {
-        userId: query.userId,
-      });
+      tx.where('s.user_id = :userId', { userId: query.userId });
     }
     if (query.userName) {
       tx.where("s.user_name like concat(:userName, '%')", {
@@ -45,14 +43,10 @@ export class SysUserRepository {
       });
     }
     if (query.phone) {
-      tx.where("s.phone like concat(:phone, '%')", {
-        phone: query.phone,
-      });
+      tx.where("s.phone like concat(:phone, '%')", { phone: query.phone });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
-      });
+      tx.where('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
@@ -89,7 +83,7 @@ export class SysUserRepository {
     }
 
     // 查询结果
-    let total: number = 0;
+    let total = 0;
     let rows: SysUser[] = [];
 
     // 查询数量为0直接返回
@@ -218,11 +212,17 @@ export class SysUserRepository {
     if (sysUser.password) {
       const password = await bcryptHash(sysUser.password);
       sysUser.password = password;
+    } else {
+      delete sysUser.password;
     }
-    delete sysUser.userId;
     delete sysUser.delFlag;
     delete sysUser.createBy;
     delete sysUser.createTime;
+    delete sysUser.dept;
+    delete sysUser.roles;
+    delete sysUser.roleId;
+    delete sysUser.roleIds;
+    delete sysUser.postIds;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -304,7 +304,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .where("s.user_name = :configKey and s.del_flag = '0'", { userName })
+      .where("s.user_name = :userName and s.del_flag = '0'", { userName })
       .getOne();
     if (!item) {
       return new SysUser();
@@ -373,7 +373,7 @@ export class SysUserRepository {
     }
 
     // 查询结果
-    let total: number = 0;
+    let total = 0;
     let rows: SysUser[] = [];
 
     // 查询数量为0直接返回

@@ -112,7 +112,7 @@ export class RedisCache {
     const keys: string[] = [];
     // 游标
     let cursor = '0';
-    let count = 100;
+    const count = 100;
     // 循环遍历获取匹配的键
     for (;;) {
       // 使用 SCAN 命令获取匹配的键
@@ -144,7 +144,7 @@ export class RedisCache {
       return [];
     }
     const rdb = await this.rdb(source);
-    let v = await rdb.mget(keys);
+    const v = await rdb.mget(keys);
     if (Array.isArray(v) && v.length > 0) {
       return v;
     }

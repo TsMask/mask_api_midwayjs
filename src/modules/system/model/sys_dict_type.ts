@@ -6,7 +6,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysDictType {
   /**字典ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'dict_id' })
+  @PrimaryGeneratedColumn({ name: 'dict_id' })
   dictId: number;
 
   /**字典名称 */

@@ -238,7 +238,7 @@ export class SysRoleService {
       await this.sysRoleDeptRepository.deleteByRoleIds([sysRole.roleId]);
       // 新增角色和部门信息
       if (
-        sysRole.dataScope == ROLE_SCOPE_CUSTOM &&
+        sysRole.dataScope === ROLE_SCOPE_CUSTOM &&
         sysRole.deptIds.length > 0
       ) {
         const arr: SysRoleDept[] = [];
@@ -313,7 +313,7 @@ export class SysRoleService {
       }
       // 角色状态
       let statusValue = '停用';
-      if (row.statusFlag == '1') {
+      if (row.statusFlag === '1') {
         statusValue = '正常';
       }
       const data = {

@@ -59,7 +59,7 @@ export class SysJobController {
       return Resp.codeMsg(40010, 'bind err: jobId not is empty');
     }
     const jobInfo = await this.sysJobService.findById(jobId);
-    if (jobInfo.jobId == jobId) {
+    if (jobInfo.jobId === jobId) {
       return Resp.okData(jobInfo);
     }
     return Resp.err();
@@ -163,7 +163,7 @@ export class SysJobController {
 
     // 检查是否存在
     const jobInfo = await this.sysJobService.findById(body.jobId);
-    if (jobInfo.jobId != body.jobId) {
+    if (jobInfo.jobId !== body.jobId) {
       return Resp.errMsg('没有权限访问调度任务数据！');
     }
 
@@ -195,7 +195,7 @@ export class SysJobController {
   public async remove(
     @Valid(RuleType.string()) @Param('jobId') jobId: string
   ): Promise<Resp> {
-    if (jobId == '') {
+    if (jobId === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: jobId is empty');
     }

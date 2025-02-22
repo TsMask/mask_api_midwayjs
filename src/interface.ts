@@ -2,7 +2,7 @@ import '@midwayjs/core';
 
 /**扩展 midwayjs/redis 声明自定义脚本命令  */
 declare module '@midwayjs/redis' {
-  interface Redis  {
+  interface Redis {
     /**
      * 限流Lua命令
      * @param key 限流缓存key

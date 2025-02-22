@@ -56,7 +56,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
 
       // 获取请求头标识信息
       const tokenStr = authorization(c);
-      if (tokenStr == '') {
+      if (tokenStr === '') {
         return Resp.codeMsg(401, '无效身份授权');
       }
 

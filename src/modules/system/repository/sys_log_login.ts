@@ -72,7 +72,7 @@ export class SysLogLoginRepository {
     }
 
     // 查询结果
-    let total: number = 0;
+    let total = 0;
     let rows: SysLogLogin[] = [];
 
     // 查询数量为0直接返回

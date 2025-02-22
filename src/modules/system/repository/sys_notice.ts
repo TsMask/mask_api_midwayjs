@@ -68,7 +68,7 @@ export class SysNoticeRepository {
     }
 
     // 查询结果
-    let total: number = 0;
+    let total = 0;
     let rows: SysNotice[] = [];
 
     // 查询数量为0直接返回
