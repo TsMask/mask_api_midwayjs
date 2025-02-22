@@ -27,27 +27,23 @@ import { DemoORM } from '../model/demo_orm';
 @Controller('/demo/orm')
 export class DemoORMController {
   /**上下文 */
-  @Inject()
+  @Inject('ctx')
   private c: Context;
 
   /**测试ORM信息服务 */
   @Inject()
   private demoORMService: DemoORMService;
 
-  /**
-   * 列表分页
-   */
+  /**列表分页 */
   @Get('/list')
-  async list(@Query() query: Record<string, string>): Promise<Resp> {
+  public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.demoORMService.findByPage(query);
     return Resp.okData({ rows, total });
   }
 
-  /**
-   * 列表无分页
-   */
+  /**列表无分页 */
   @Get('/all')
-  async all(
+  public async all(
     @Query('title') title: string,
     @Query('statusFlag') statusFlag: string
   ): Promise<Resp> {
@@ -55,16 +51,14 @@ export class DemoORMController {
     if (title !== '') {
       demoORM.title = title;
     }
-    if (statusFlag != '') {
+    if (statusFlag !== '') {
       demoORM.statusFlag = statusFlag;
     }
     const data = await this.demoORMService.find(demoORM);
     return Resp.okData(data);
   }
 
-  /**
-   * 信息
-   */
+  /**信息 */
   @Get('/:id')
   async info(@Param('id') id: number): Promise<Resp> {
     if (id <= 0) {
@@ -79,11 +73,9 @@ export class DemoORMController {
     return Resp.err();
   }
 
-  /**
-   * 新增
-   */
+  /**新增 */
   @Post()
-  async add(@Body() demoORM: DemoORM): Promise<Resp> {
+  public async add(@Body() demoORM: DemoORM): Promise<Resp> {
     if (demoORM.id > 0) {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: id not is empty');
@@ -99,8 +91,8 @@ export class DemoORMController {
    * 更新
    */
   @Put()
-  async update(@Body() demoORM: DemoORM): Promise<Resp> {
-    if (demoORM.id > 0) {
+  public async update(@Body() demoORM: DemoORM): Promise<Resp> {
+    if (demoORM.id <= 0) {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: id is empty');
     }
@@ -111,12 +103,10 @@ export class DemoORMController {
     return Resp.err();
   }
 
-  /**
-   * 删除
-   */
+  /**删除 */
   @Del('/:id')
-  async remove(@Param('id') id: string): Promise<Resp> {
-    if (id == '') {
+  public async remove(@Param('id') id: string): Promise<Resp> {
+    if (id === '') {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: id is empty');
     }
@@ -133,11 +123,9 @@ export class DemoORMController {
     return Resp.err();
   }
 
-  /**
-   * 清空
-   */
+  /**清空 */
   @Del('/clean')
-  async clean(): Promise<Resp> {
+  public async clean(): Promise<Resp> {
     const rows = await this.demoORMService.clean();
     return Resp.okData(rows);
   }

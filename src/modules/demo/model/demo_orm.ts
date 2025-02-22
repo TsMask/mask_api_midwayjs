@@ -10,7 +10,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class DemoORM {
   /**测试ID */
   @Rule(RuleType.number())
-  @PrimaryGeneratedColumn('rowid', { name: 'id' })
+  @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
   /**测试标题 */

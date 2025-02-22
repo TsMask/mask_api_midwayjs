@@ -34,7 +34,7 @@ export class DemoORMService {
     }
 
     // 查询结果
-    let total: number = 0;
+    let total = 0;
     let rows: DemoORM[] = [];
 
     // 查询数量为0直接返回
@@ -69,6 +69,11 @@ export class DemoORMService {
     if (demoORM.title) {
       tx.where('d.title = :title', { title: demoORM.title });
     }
+    if (demoORM.statusFlag) {
+      tx.where('d.status_flag = :statusFlag', {
+        statusFlag: demoORM.statusFlag,
+      });
+    }
     // 查询数据
     return await tx.getMany();
   }
@@ -89,7 +94,7 @@ export class DemoORMService {
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd')
-      .where('d.id = :id', { id: id })
+      .where('d.id = :id', { id })
       .getOne();
     if (!item) {
       return new DemoORM();
@@ -100,20 +105,20 @@ export class DemoORMService {
   /**
    * 新增
    *
-   * @param demoORM 信息
+   * @param param 信息
    * @return ID
    */
-  public async insert(demoORM: DemoORM): Promise<number> {
-    demoORM.createBy = 'system';
-    demoORM.createTime = Date.now().valueOf();
-    demoORM.updateBy = demoORM.createBy;
-    demoORM.updateTime = demoORM.createTime;
+  public async insert(param: DemoORM): Promise<number> {
+    param.createBy = 'system';
+    param.createTime = Date.now().valueOf();
+    param.updateBy = param.createBy;
+    param.updateTime = param.createTime;
     // 执行插入
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()
       .into(DemoORM)
-      .values(demoORM)
+      .values(param)
       .execute();
     const raw: ResultSetHeader = tx.raw;
     if (raw.insertId > 0) {
@@ -125,11 +130,11 @@ export class DemoORMService {
   /**
    * 更新
    *
-   * @param demoORM 信息
+   * @param param 信息
    * @return 影响记录数
    */
-  public async update(demoORM: DemoORM): Promise<number> {
-    if (demoORM.id <= 0) {
+  public async update(param: DemoORM): Promise<number> {
+    if (param.id <= 0) {
       return 0;
     }
     const item = await this.db
@@ -137,16 +142,16 @@ export class DemoORMService {
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd')
-      .where('d.id = :id', { id: demoORM.id })
+      .where('d.id = :id', { id: param.id })
       .getOne();
     if (!item) return 0;
 
     // 只改某些属性
     const setColumns = {
-      title: demoORM.title,
-      ormType: demoORM.ormType,
-      statusFlag: demoORM.statusFlag,
-      remark: demoORM.remark,
+      title: param.title,
+      ormType: param.ormType,
+      statusFlag: param.statusFlag,
+      remark: param.remark,
       updateBy: 'system',
       updateTime: Date.now().valueOf(),
     };
@@ -174,7 +179,7 @@ export class DemoORMService {
       .queryBuilder('')
       .delete()
       .from(DemoORM)
-      .where('id in (:ids)', { ids: ids })
+      .where('id in (:ids)', { ids })
       .execute();
     return tx.affected;
   }
