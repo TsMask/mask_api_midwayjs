@@ -162,17 +162,17 @@ export default (): MidwayConfig => {
       },
     },
 
-    /**JWT 令牌配置 http://www.midwayjs.org/docs/extensions/jwt */
+    /**JWT 令牌配置 */
     jwt: {
-      /**令牌算法 */
+      /**令牌算法 HS256 HS384 HS512 */
       algorithm: 'HS512',
       /**令牌密钥 */
-      secret: 'abcdefghijklmnopqrstuvwxyz', // fs.readFileSync('xxxxx.key')
+      secret: 'abcdefghijklmnopqrstuvwxyz',
       /**令牌有效期（默认120分钟） */
-      expiresIn: '120m', // https://github.com/vercel/ms
+      expiresIn: 120,
+      /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
+      refreshIn: 20,
     },
-    /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
-    jwtRefreshIn: '20m', // https://github.com/vercel/ms
 
     /**TypeORM 数据源 https://midwayjs.org/docs/extensions/orm */
     typeorm: {
