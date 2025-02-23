@@ -16,7 +16,7 @@ import { SysJobService } from '../service/sys_job';
 import { SysJobLogService } from '../service/sys_job_log';
 
 /**调度任务日志信息 控制层处理 */
-@Controller('/monitor/jobLog')
+@Controller('/monitor/job/log')
 export class SysJobLogController {
   /**上下文 */
   @Inject('ctx')
