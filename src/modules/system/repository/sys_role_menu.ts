@@ -25,7 +25,7 @@ export class SysRoleMenuRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRoleMenu, 's')
-      .where('s.menu_id = :menuId', { menuId })
+      .andWhere('s.menu_id = :menuId', { menuId })
       .getCount();
     return count;
   }
@@ -43,7 +43,7 @@ export class SysRoleMenuRepository {
       .queryBuilder('')
       .delete()
       .from(SysRoleMenu)
-      .where('role_id int (:roleIds)', { roleIds })
+      .andWhere('role_id int (:roleIds)', { roleIds })
       .execute();
     return tx.affected;
   }
@@ -61,7 +61,7 @@ export class SysRoleMenuRepository {
       .queryBuilder('')
       .delete()
       .from(SysRoleMenu)
-      .where('menu_id int (:menuIds)', { menuIds })
+      .andWhere('menu_id int (:menuIds)', { menuIds })
       .execute();
     return tx.affected;
   }

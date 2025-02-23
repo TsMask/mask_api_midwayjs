@@ -25,7 +25,7 @@ export class SysUserPostRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUserPost, 's')
-      .where('s.post_id = :postId', { postId })
+      .andWhere('s.post_id = :postId', { postId })
       .getCount();
     return count;
   }
@@ -43,7 +43,7 @@ export class SysUserPostRepository {
       .queryBuilder('')
       .delete()
       .from(SysUserPost)
-      .where('user_id int (:userIds)', { userIds })
+      .andWhere('user_id int (:userIds)', { userIds })
       .execute();
     return tx.affected;
   }

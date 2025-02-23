@@ -26,41 +26,41 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictType, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.dictName) {
-      tx.where("s.dict_name like concat(:dictName, '%')", {
+      tx.andWhere("s.dict_name like concat(:dictName, '%')", {
         dictName: query.dictName,
       });
     }
     if (query.dictType) {
-      tx.where("s.dict_type like concat(:dictType, '%')", {
+      tx.andWhere("s.dict_type like concat(:dictType, '%')", {
         dictType: query.dictType,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: query.statusFlag,
       });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(`${query.beginTime}000`),
         });
       } else if (`${query.beginTime}`.length === 13) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(query.beginTime),
         });
       }
     }
     if (query.endTime) {
       if (`${query.endTime}`.length === 10) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(`${query.endTime}000`),
         });
       } else if (`${query.endTime}`.length === 13) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(query.endTime),
         });
       }
@@ -98,20 +98,20 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictType, 's')
-      .where("s,del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysDictType.dictName) {
-      tx.where("s.dict_name like concat(:dictName, '%')", {
+      tx.andWhere("s.dict_name like concat(:dictName, '%')", {
         dictName: sysDictType.dictName,
       });
     }
     if (sysDictType.dictType) {
-      tx.where("s.dict_type like concat(:dictType, '%')", {
+      tx.andWhere("s.dict_type like concat(:dictType, '%')", {
         dictType: sysDictType.dictType,
       });
     }
     if (sysDictType.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysDictType.statusFlag,
       });
     }
@@ -135,7 +135,7 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictType, 's')
-      .where("s.dict_id in (:dictIds) and s.del_flag = '0'", { dictIds })
+      .andWhere("s.dict_id in (:dictIds) and s.del_flag = '0'", { dictIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -194,7 +194,7 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .update(SysDictType)
       .set(sysDictType)
-      .where('dict_id = :dictId', { dictId: sysDictType.dictId })
+      .andWhere('dict_id = :dictId', { dictId: sysDictType.dictId })
       .execute();
     return tx.affected;
   }
@@ -212,7 +212,7 @@ export class SysDictTypeRepository {
       .queryBuilder('')
       .update(SysDictType)
       .set({ delFlag: '1' })
-      .where('dict_id in (:dictIds)', { dictIds })
+      .andWhere('dict_id in (:dictIds)', { dictIds })
       .execute();
     return tx.affected;
   }
@@ -228,15 +228,15 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .select('s.dict_id')
       .from(SysDictType, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (sysDictType.dictName) {
-      tx.where('s.dict_name = :dictName', {
+      tx.andWhere('s.dict_name = :dictName', {
         dictName: sysDictType.dictName,
       });
     }
     if (sysDictType.dictType) {
-      tx.where('s.dict_type = :dictType', {
+      tx.andWhere('s.dict_type = :dictType', {
         dictType: sysDictType.dictType,
       });
     }
@@ -262,9 +262,10 @@ export class SysDictTypeRepository {
     const item = await this.db
       .queryBuilder('')
       .createQueryBuilder()
+      .select('s')
       .from(SysDictType, 's')
-      .where("s.del_flag = '0'")
-      .where('s.dict_type = :dictType', { dictType })
+      .andWhere("s.del_flag = '0'")
+      .andWhere('s.dict_type = :dictType', { dictType })
       .getOne();
     if (!item) {
       return new SysDictType();

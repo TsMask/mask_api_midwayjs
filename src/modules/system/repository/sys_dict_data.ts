@@ -25,20 +25,20 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.dictType) {
-      tx.where('s.dict_type = :dictType', {
+      tx.andWhere('s.dict_type = :dictType', {
         dictType: query.dictType,
       });
     }
     if (query.dataLabel) {
-      tx.where("s.data_label like concat(:dataLabel, '%')", {
+      tx.andWhere("s.data_label like concat(:dataLabel, '%')", {
         dataLabel: query.dataLabel,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: query.statusFlag,
       });
     }
@@ -75,20 +75,20 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
-      .where("s,del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysDictData.dataLabel) {
-      tx.where("s.data_label like concat(:dataLabel, '%')", {
+      tx.andWhere("s.data_label like concat(:dataLabel, '%')", {
         dataLabel: sysDictData.dataLabel,
       });
     }
     if (sysDictData.dictType) {
-      tx.where('s.dict_type = :dictType', {
+      tx.andWhere('s.dict_type = :dictType', {
         dictType: sysDictData.dictType,
       });
     }
     if (sysDictData.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysDictData.statusFlag,
       });
     }
@@ -112,7 +112,7 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
-      .where("s.data_id in (:dataIds) and s.del_flag = '0'", { dataIds })
+      .andWhere("s.data_id in (:dataIds) and s.del_flag = '0'", { dataIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -171,7 +171,7 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .update(SysDictData)
       .set(sysDictData)
-      .where('data_id = :dataId', { dataId: sysDictData.dataId })
+      .andWhere('data_id = :dataId', { dataId: sysDictData.dataId })
       .execute();
     return tx.affected;
   }
@@ -189,7 +189,7 @@ export class SysDictDataRepository {
       .queryBuilder('')
       .update(SysDictData)
       .set({ delFlag: '1' })
-      .where('data_id in (:dataIds)', { dataIds })
+      .andWhere('data_id in (:dataIds)', { dataIds })
       .execute();
     return tx.affected;
   }
@@ -205,20 +205,20 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .select('s.data_id')
       .from(SysDictData, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (sysDictData.dictType) {
-      tx.where('s.dict_type = :dictType', {
+      tx.andWhere('s.dict_type = :dictType', {
         dictType: sysDictData.dictType,
       });
     }
     if (sysDictData.dataLabel) {
-      tx.where('s.data_label = :dataLabel', {
+      tx.andWhere('s.data_label = :dataLabel', {
         dataLabel: sysDictData.dataLabel,
       });
     }
     if (sysDictData.dataValue) {
-      tx.where('s.data_value = :dataValue', {
+      tx.andWhere('s.data_value = :dataValue', {
         dataValue: sysDictData.dataValue,
       });
     }
@@ -244,9 +244,10 @@ export class SysDictDataRepository {
     const count = await this.db
       .queryBuilder('')
       .createQueryBuilder()
+      .select('s')
       .from(SysDictData, 's')
-      .where("s.del_flag = '0'")
-      .where('s.dict_type = :dictType', { dictType })
+      .andWhere("s.del_flag = '0'")
+      .andWhere('s.dict_type = :dictType', { dictType })
       .getCount();
     return count;
   }
@@ -271,7 +272,7 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .update(SysDictData)
       .set({ dictType: newDictType })
-      .where('dict_type = :oldDictType', { oldDictType })
+      .andWhere('dict_type = :oldDictType', { oldDictType })
       .execute();
     return tx.affected;
   }

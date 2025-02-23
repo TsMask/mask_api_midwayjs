@@ -24,7 +24,7 @@ export class SysRoleDeptRepository {
       .queryBuilder('')
       .delete()
       .from(SysRoleDept)
-      .where('role_id int (:roleIds)', { roleIds })
+      .andWhere('role_id int (:roleIds)', { roleIds })
       .execute();
     return tx.affected;
   }
@@ -42,7 +42,7 @@ export class SysRoleDeptRepository {
       .queryBuilder('')
       .delete()
       .from(SysRoleDept)
-      .where('dept_id int (:deptIds)', { deptIds })
+      .andWhere('dept_id int (:deptIds)', { deptIds })
       .execute();
     return tx.affected;
   }

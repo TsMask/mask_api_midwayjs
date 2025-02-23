@@ -28,37 +28,37 @@ export class SysJobLogRepository {
       .from(SysJobLog, 's');
     // 查询条件拼接
     if (query.jobName) {
-      tx.where('s.job_name = :jobName', { jobName: query.jobName });
+      tx.andWhere('s.job_name = :jobName', { jobName: query.jobName });
     }
     if (query.jobGroup) {
-      tx.where('s.job_group = :jobGroup', { jobGroup: query.jobGroup });
+      tx.andWhere('s.job_group = :jobGroup', { jobGroup: query.jobGroup });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
     }
     if (query.invokeTarget) {
-      tx.where("s.invoke_target like concat(:invokeTarget, '%')", {
+      tx.andWhere("s.invoke_target like concat(:invokeTarget, '%')", {
         invokeTarget: query.invokeTarget,
       });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(`${query.beginTime}000`),
         });
       } else if (`${query.beginTime}`.length === 13) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(query.beginTime),
         });
       }
     }
     if (query.endTime) {
       if (`${query.endTime}`.length === 10) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(`${query.endTime}000`),
         });
       } else if (`${query.endTime}`.length === 13) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(query.endTime),
         });
       }
@@ -98,20 +98,20 @@ export class SysJobLogRepository {
       .from(SysJobLog, 's');
     // 构建查询条件
     if (sysJobLog.jobName) {
-      tx.where("s.job_name like concat(:jobName, '%')", {
+      tx.andWhere("s.job_name like concat(:jobName, '%')", {
         jobName: sysJobLog.jobName,
       });
     }
     if (sysJobLog.jobGroup) {
-      tx.where('s.job_group = :jobGroup', { jobGroup: sysJobLog.jobGroup });
+      tx.andWhere('s.job_group = :jobGroup', { jobGroup: sysJobLog.jobGroup });
     }
     if (sysJobLog.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysJobLog.statusFlag,
       });
     }
     if (sysJobLog.invokeTarget) {
-      tx.where("s.invoke_target like concat(:invokeTarget, '%')", {
+      tx.andWhere("s.invoke_target like concat(:invokeTarget, '%')", {
         invokeTarget: sysJobLog.invokeTarget,
       });
     }
@@ -135,7 +135,7 @@ export class SysJobLogRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysJobLog, 's')
-      .where('s.log_id = :logId', { logId })
+      .andWhere('s.log_id = :logId', { logId })
       .getOne();
     if (!item) {
       return new SysJobLog();
@@ -177,7 +177,7 @@ export class SysJobLogRepository {
       .queryBuilder('')
       .delete()
       .from(SysJobLog)
-      .where('log_id in (:logIds)', { logIds: logIds })
+      .andWhere('log_id in (:logIds)', { logIds: logIds })
       .execute();
     return tx.affected;
   }

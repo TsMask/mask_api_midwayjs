@@ -25,20 +25,20 @@ export class SysPostRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysPost, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.postCode) {
-      tx.where("s.post_code like concat(:postCode, '%')", {
+      tx.andWhere("s.post_code like concat(:postCode, '%')", {
         postCode: query.postCode,
       });
     }
     if (query.postName) {
-      tx.where("s.post_name like concat(:postName, '%')", {
+      tx.andWhere("s.post_name like concat(:postName, '%')", {
         postName: query.postName,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
     }
 
     // 查询结果
@@ -73,20 +73,20 @@ export class SysPostRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysPost, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysPost.postCode) {
-      tx.where("s.post_code like concat(:postCode, '%')", {
+      tx.andWhere("s.post_code like concat(:postCode, '%')", {
         postCode: sysPost.postCode,
       });
     }
     if (sysPost.postName) {
-      tx.where("s.post_name like concat(:postName, '%')", {
+      tx.andWhere("s.post_name like concat(:postName, '%')", {
         postName: sysPost.postName,
       });
     }
     if (sysPost.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysPost.statusFlag,
       });
     }
@@ -110,7 +110,7 @@ export class SysPostRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysPost, 's')
-      .where("s.post_id in (:postIds) and s.del_flag = '0'", { postIds })
+      .andWhere("s.post_id in (:postIds) and s.del_flag = '0'", { postIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -169,7 +169,7 @@ export class SysPostRepository {
       .createQueryBuilder()
       .update(SysPost)
       .set(sysPost)
-      .where('post_id = :postId', { postId: sysPost.postId })
+      .andWhere('post_id = :postId', { postId: sysPost.postId })
       .execute();
     return tx.affected;
   }
@@ -187,7 +187,7 @@ export class SysPostRepository {
       .queryBuilder('')
       .update(SysPost)
       .set({ delFlag: '1' })
-      .where('post_id in (:postIds)', { postIds })
+      .andWhere('post_id in (:postIds)', { postIds })
       .execute();
     return tx.affected;
   }
@@ -203,15 +203,15 @@ export class SysPostRepository {
       .createQueryBuilder()
       .select('s.post_id')
       .from(SysPost, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (sysPost.postName) {
-      tx.where('s.post_name = :postName', {
+      tx.andWhere('s.post_name = :postName', {
         postName: sysPost.postName,
       });
     }
     if (sysPost.postCode) {
-      tx.where('s.post_code = :postCode', {
+      tx.andWhere('s.post_code = :postCode', {
         postCode: sysPost.postCode,
       });
     }
@@ -236,9 +236,9 @@ export class SysPostRepository {
     const rows = await this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.config_value')
+      .select('s')
       .from(SysPost, 's')
-      .where(
+      .andWhere(
         's.post_id in (select post_id from sys_user_post  where user_id = :userId)',
         { userId }
       )

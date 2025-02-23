@@ -30,45 +30,45 @@ export class SysLogLoginRepository {
       .from(SysLogLogin, 's');
     // 查询条件拼接
     if (query.loginIp) {
-      tx.where("s.login_ip like concat(:loginIp, '%')", {
+      tx.andWhere("s.login_ip like concat(:loginIp, '%')", {
         loginIp: query.loginIp,
       });
     }
     if (query.userName) {
-      tx.where("s.user_name like concat(:userName, '%')", {
+      tx.andWhere("s.user_name like concat(:userName, '%')", {
         userName: query.userName,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: query.statusFlag,
       });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(`${query.beginTime}000`),
         });
       } else if (`${query.beginTime}`.length === 13) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(query.beginTime),
         });
       }
     }
     if (query.endTime) {
       if (`${query.endTime}`.length === 10) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(`${query.endTime}000`),
         });
       } else if (`${query.endTime}`.length === 13) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(query.endTime),
         });
       }
     }
     if (dataScopeSQL) {
       dataScopeSQL = `select distinct user_name from sys_user where ${dataScopeSQL}`;
-      tx.where(`s.user_name in ( ${dataScopeSQL} )`);
+      tx.andWhere(`s.user_name in ( ${dataScopeSQL} )`);
     }
 
     // 查询结果

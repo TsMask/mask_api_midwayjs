@@ -32,46 +32,48 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.userId) {
-      tx.where('s.user_id = :userId', { userId: query.userId });
+      tx.andWhere('s.user_id = :userId', { userId: query.userId });
     }
     if (query.userName) {
-      tx.where("s.user_name like concat(:userName, '%')", {
+      tx.andWhere("s.user_name like concat(:userName, '%')", {
         userName: query.userName,
       });
     }
     if (query.phone) {
-      tx.where("s.phone like concat(:phone, '%')", { phone: query.phone });
+      tx.andWhere("s.phone like concat(:phone, '%')", { phone: query.phone });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('s.status_flag = :statusFlag', {
+        statusFlag: query.statusFlag,
+      });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
-        tx.where('s.login_time >= :beginTime', {
+        tx.andWhere('s.login_time >= :beginTime', {
           beginTime: parseNumber(`${query.beginTime}000`),
         });
       } else if (`${query.beginTime}`.length === 13) {
-        tx.where('s.login_time >= :beginTime', {
+        tx.andWhere('s.login_time >= :beginTime', {
           beginTime: parseNumber(query.beginTime),
         });
       }
     }
     if (query.endTime) {
       if (`${query.endTime}`.length === 10) {
-        tx.where('s.login_time <= :endTime', {
+        tx.andWhere('s.login_time <= :endTime', {
           endTime: parseNumber(`${query.endTime}000`),
         });
       } else if (`${query.endTime}`.length === 13) {
-        tx.where('s.login_time <= :endTime', {
+        tx.andWhere('s.login_time <= :endTime', {
           endTime: parseNumber(query.endTime),
         });
       }
     }
     if (query.deptId) {
-      tx.where(
+      tx.andWhere(
         `(s.dept_id = :deptId or s.dept_id in ( 
         select t.dept_id from sys_dept t where find_in_set(:deptId, ancestors) 
         ))`,
@@ -79,7 +81,7 @@ export class SysUserRepository {
       );
     }
     if (dataScopeSQL) {
-      tx.where(dataScopeSQL);
+      tx.andWhere(dataScopeSQL);
     }
 
     // 查询结果
@@ -114,25 +116,25 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysUser.userName) {
-      tx.where("s.user_name like concat(:userName, '%')", {
+      tx.andWhere("s.user_name like concat(:userName, '%')", {
         userName: sysUser.userName,
       });
     }
     if (sysUser.phone) {
-      tx.where("s.phone like concat(:phone, '%')", {
+      tx.andWhere("s.phone like concat(:phone, '%')", {
         phone: sysUser.phone,
       });
     }
     if (sysUser.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysUser.statusFlag,
       });
     }
     if (sysUser.userId) {
-      tx.where('s.user_id = :userId', {
+      tx.andWhere('s.user_id = :userId', {
         userId: sysUser.userId,
       });
     }
@@ -156,7 +158,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .where("s.user_id in (:userIds) and s.del_flag = '0'", { userIds })
+      .andWhere("s.user_id in (:userIds) and s.del_flag = '0'", { userIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -229,7 +231,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .update(SysUser)
       .set(sysUser)
-      .where('user_id = :userId', { userId: sysUser.userId })
+      .andWhere('user_id = :userId', { userId: sysUser.userId })
       .execute();
     return tx.affected;
   }
@@ -247,7 +249,7 @@ export class SysUserRepository {
       .queryBuilder('')
       .update(SysUser)
       .set({ delFlag: '1' })
-      .where('user_id in (:userIds)', { userIds })
+      .andWhere('user_id in (:userIds)', { userIds })
       .execute();
     return tx.affected;
   }
@@ -263,20 +265,20 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s.user_id')
       .from(SysUser, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (sysUser.userName) {
-      tx.where('s.user_name = :userName', {
+      tx.andWhere('s.user_name = :userName', {
         userName: sysUser.userName,
       });
     }
     if (sysUser.phone) {
-      tx.where('s.phone = :phone', {
+      tx.andWhere('s.phone = :phone', {
         phone: sysUser.phone,
       });
     }
     if (sysUser.email) {
-      tx.where('s.email = :email', {
+      tx.andWhere('s.email = :email', {
         email: sysUser.email,
       });
     }
@@ -304,7 +306,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .where("s.user_name = :userName and s.del_flag = '0'", { userName })
+      .andWhere("s.user_name = :userName and s.del_flag = '0'", { userName })
       .getOne();
     if (!item) {
       return new SysUser();
@@ -328,20 +330,20 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.userName) {
-      tx.where("s.user_name like concat(:userName, '%')", {
+      tx.andWhere("s.user_name like concat(:userName, '%')", {
         userName: query.userName,
       });
     }
     if (query.phone) {
-      tx.where("s.phone like concat(:phone, '%')", {
+      tx.andWhere("s.phone like concat(:phone, '%')", {
         phone: query.phone,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: query.statusFlag,
       });
     }
@@ -349,7 +351,7 @@ export class SysUserRepository {
     if (query.deptId) {
       const auth = parseBoolean(query.auth);
       if (auth) {
-        tx.where(
+        tx.andWhere(
           `s.user_id in (
             select distinct u.user_id from sys_user u 
             inner join sys_user_role ur on u.user_id = ur.user_id 
@@ -358,7 +360,7 @@ export class SysUserRepository {
           { roleId: query.deptId }
         );
       } else {
-        tx.where(
+        tx.andWhere(
           `s.user_id not in (
             select distinct u.user_id from sys_user u 
             inner join sys_user_role ur on u.user_id = ur.user_id 
@@ -369,7 +371,7 @@ export class SysUserRepository {
       }
     }
     if (dataScopeSQL) {
-      tx.where(dataScopeSQL);
+      tx.andWhere(dataScopeSQL);
     }
 
     // 查询结果

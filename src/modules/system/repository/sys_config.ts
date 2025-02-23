@@ -26,39 +26,39 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.configName) {
-      tx.where("s.config_name like concat(:configName, '%')", {
+      tx.andWhere("s.config_name like concat(:configName, '%')", {
         configName: query.configName,
       });
     }
     if (query.configType) {
-      tx.where('s.config_type = :configType', { configType: query.configType });
+      tx.andWhere('s.config_type = :configType', { configType: query.configType });
     }
     if (query.configKey) {
-      tx.where("s.config_key like concat(:configKey, '%')", {
+      tx.andWhere("s.config_key like concat(:configKey, '%')", {
         configKey: query.configKey,
       });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(`${query.beginTime}000`),
         });
       } else if (`${query.beginTime}`.length === 13) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(query.beginTime),
         });
       }
     }
     if (query.endTime) {
       if (`${query.endTime}`.length === 10) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(`${query.endTime}000`),
         });
       } else if (`${query.endTime}`.length === 13) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(query.endTime),
         });
       }
@@ -96,25 +96,25 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysConfig.configName) {
-      tx.where("s.config_name like concat(:configName, '%')", {
+      tx.andWhere("s.config_name like concat(:configName, '%')", {
         configName: sysConfig.configName,
       });
     }
     if (sysConfig.configType) {
-      tx.where('s.config_type = :configType', {
+      tx.andWhere('s.config_type = :configType', {
         configType: sysConfig.configType,
       });
     }
     if (sysConfig.configKey) {
-      tx.where("s.config_key like concat(:configKey, '%')", {
+      tx.andWhere("s.config_key like concat(:configKey, '%')", {
         configKey: sysConfig.configKey,
       });
     }
     if (sysConfig.createTime) {
-      tx.where('s.create_time = :createTime', {
+      tx.andWhere('s.create_time = :createTime', {
         createTime: sysConfig.createTime,
       });
     }
@@ -138,7 +138,7 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's')
-      .where("s.config_id in (:configIds) and s.del_flag = '0'", { configIds })
+      .andWhere("s.config_id in (:configIds) and s.del_flag = '0'", { configIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -196,7 +196,7 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .update(SysConfig)
       .set(sysConfig)
-      .where('config_id = :configId', { configId: sysConfig.configId })
+      .andWhere('config_id = :configId', { configId: sysConfig.configId })
       .execute();
     return tx.affected;
   }
@@ -214,7 +214,7 @@ export class SysConfigRepository {
       .queryBuilder('')
       .update(SysConfig)
       .set({ delFlag: '1' })
-      .where('config_id in (:configIds)', { configIds })
+      .andWhere('config_id in (:configIds)', { configIds })
       .execute();
     return tx.affected;
   }
@@ -230,15 +230,15 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .select('s.config_id')
       .from(SysConfig, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (sysConfig.configType) {
-      tx.where('s.config_type = :configType', {
+      tx.andWhere('s.config_type = :configType', {
         configType: sysConfig.configType,
       });
     }
     if (sysConfig.configKey) {
-      tx.where('s.config_key = :configKey', {
+      tx.andWhere('s.config_key = :configKey', {
         configKey: sysConfig.configKey,
       });
     }
@@ -264,7 +264,7 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .select('s.config_value')
       .from(SysConfig, 's')
-      .where("s.config_key = :configKey and s.del_flag = '0'", { configKey })
+      .andWhere("s.config_key = :configKey and s.del_flag = '0'", { configKey })
       .getOne();
     if (!item) {
       return '';

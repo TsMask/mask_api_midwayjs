@@ -25,7 +25,7 @@ export class SysUserRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUserRole, 's')
-      .where('s.role_id = :roleId', { roleId })
+      .andWhere('s.role_id = :roleId', { roleId })
       .getCount();
     return count;
   }
@@ -43,7 +43,7 @@ export class SysUserRoleRepository {
       .queryBuilder('')
       .delete()
       .from(SysUserRole)
-      .where('user_id int (:userIds)', { userIds })
+      .andWhere('user_id int (:userIds)', { userIds })
       .execute();
     return tx.affected;
   }
@@ -65,8 +65,8 @@ export class SysUserRoleRepository {
       .queryBuilder('')
       .delete()
       .from(SysUserRole)
-      .where('role_id = :roleId', { roleId })
-      .where('user_id int (:userIds)', { userIds })
+      .andWhere('role_id = :roleId', { roleId })
+      .andWhere('user_id int (:userIds)', { userIds })
       .execute();
     return tx.affected;
   }

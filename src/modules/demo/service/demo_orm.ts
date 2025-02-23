@@ -27,10 +27,10 @@ export class DemoORMService {
       .from(DemoORM, 'd');
     // 查询条件拼接
     if (query.title) {
-      tx.where('d.title = :title', { title: query.title });
+      tx.andWhere('d.title = :title', { title: query.title });
     }
     if (query.statusFlag) {
-      tx.where('d.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('d.status_flag = :statusFlag', { statusFlag: query.statusFlag });
     }
 
     // 查询结果
@@ -56,22 +56,22 @@ export class DemoORMService {
   /**
    * 查询集合
    *
-   * @param demoORM 信息
+   * @param param 信息
    * @return 列表
    */
-  public async find(demoORM: DemoORM): Promise<DemoORM[]> {
+  public async find(param: DemoORM): Promise<DemoORM[]> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd');
     // 构建查询条件
-    if (demoORM.title) {
-      tx.where('d.title = :title', { title: demoORM.title });
+    if (param.title) {
+      tx.andWhere('d.title = :title', { title: param.title });
     }
-    if (demoORM.statusFlag) {
-      tx.where('d.status_flag = :statusFlag', {
-        statusFlag: demoORM.statusFlag,
+    if (param.statusFlag) {
+      tx.andWhere('d.status_flag = :statusFlag', {
+        statusFlag: param.statusFlag,
       });
     }
     // 查询数据
@@ -94,7 +94,7 @@ export class DemoORMService {
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd')
-      .where('d.id = :id', { id })
+      .andWhere('d.id = :id', { id })
       .getOne();
     if (!item) {
       return new DemoORM();
@@ -142,7 +142,7 @@ export class DemoORMService {
       .createQueryBuilder()
       .select('d')
       .from(DemoORM, 'd')
-      .where('d.id = :id', { id: param.id })
+      .andWhere('d.id = :id', { id: param.id })
       .getOne();
     if (!item) return 0;
 
@@ -161,7 +161,7 @@ export class DemoORMService {
       .createQueryBuilder()
       .update(DemoORM)
       .set(setColumns)
-      .where('id = :id', { id: item.id })
+      .andWhere('id = :id', { id: item.id })
       .execute();
     return tx.affected;
   }
@@ -179,7 +179,7 @@ export class DemoORMService {
       .queryBuilder('')
       .delete()
       .from(DemoORM)
-      .where('id in (:ids)', { ids })
+      .andWhere('id in (:ids)', { ids })
       .execute();
     return tx.affected;
   }

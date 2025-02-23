@@ -28,30 +28,30 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDept, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysDept.deptId) {
-      tx.where('s.dept_id = :deptId', {
+      tx.andWhere('s.dept_id = :deptId', {
         deptId: sysDept.deptId,
       });
     }
     if (sysDept.parentId) {
-      tx.where('s.parent_id = :parentId', {
+      tx.andWhere('s.parent_id = :parentId', {
         parentId: sysDept.parentId,
       });
     }
     if (sysDept.deptName) {
-      tx.where("s.dept_name like concat(:deptName, '%')", {
+      tx.andWhere("s.dept_name like concat(:deptName, '%')", {
         deptName: sysDept.deptName,
       });
     }
     if (sysDept.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysDept.statusFlag,
       });
     }
     if (dataScopeSQL) {
-      tx.where(dataScopeSQL);
+      tx.andWhere(dataScopeSQL);
     }
     // 查询数据
     return await tx.getMany();
@@ -73,7 +73,7 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDept, 's')
-      .where("s.dept_id = :deptId and s.del_flag = '0'", { deptId })
+      .andWhere("s.dept_id = :deptId and s.del_flag = '0'", { deptId })
       .getOne();
     if (!item) {
       return new SysDept();
@@ -132,7 +132,7 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .update(SysDept)
       .set(sysDept)
-      .where('dept_id = :deptId', { deptId: sysDept.deptId })
+      .andWhere('dept_id = :deptId', { deptId: sysDept.deptId })
       .execute();
     return tx.affected;
   }
@@ -150,7 +150,7 @@ export class SysDeptRepository {
       .queryBuilder('')
       .update(SysDept)
       .set({ delFlag: '1' })
-      .where('dept_id = :deptId', { deptId })
+      .andWhere('dept_id = :deptId', { deptId })
       .execute();
     return tx.affected;
   }
@@ -166,15 +166,15 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .select('s.dept_id')
       .from(SysDept, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (sysDept.deptName) {
-      tx.where('s.dept_name = :deptName', {
+      tx.andWhere('s.dept_name = :deptName', {
         deptName: sysDept.deptName,
       });
     }
     if (sysDept.parentId) {
-      tx.where('s.parent_id = :parentId', {
+      tx.andWhere('s.parent_id = :parentId', {
         parentId: sysDept.parentId,
       });
     }
@@ -200,9 +200,10 @@ export class SysDeptRepository {
     const count = await this.db
       .queryBuilder('')
       .createQueryBuilder()
+      .select('s')
       .from(SysDept, 's')
-      .where("s.del_flag = '0' and s.status_flag = '1'")
-      .where('s.parent_id = :deptId', { deptId })
+      .andWhere("s.del_flag = '0' and s.status_flag = '1'")
+      .andWhere('s.parent_id = :deptId', { deptId })
       .getCount();
     return count;
   }
@@ -221,9 +222,10 @@ export class SysDeptRepository {
     const count = await this.db
       .queryBuilder('')
       .createQueryBuilder()
+      .select('s')
       .from(SysUser, 's')
-      .where("s.del_flag = '0'")
-      .where('s.dept_id = :deptId', { deptId })
+      .andWhere("s.del_flag = '0'")
+      .andWhere('s.dept_id = :deptId', { deptId })
       .getCount();
     return count;
   }
@@ -245,15 +247,17 @@ export class SysDeptRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
+      .distinctOn(['s.dept_id'])
+      .select('s.dept_id')
       .from(SysDept, 's')
-      .where("s.del_flag = '0'")
-      .where(
+      .andWhere("s.del_flag = '0'")
+      .andWhere(
         's.dept_id in (SELECT DISTINCT dept_id FROM sys_role_dept WHERE role_id = :roleId)',
         { roleId }
       );
     // 父子互相关联显示，取所有子节点
     if (deptCheckStrictly) {
-      tx.where(
+      tx.andWhere(
         `s.dept_id not in (
         SELECT d.parent_id FROM sys_dept d 
         INNER JOIN sys_role_dept rd ON rd.dept_id = d.dept_id 
@@ -263,10 +267,7 @@ export class SysDeptRepository {
       );
     }
     // 查询数据
-    const rows = await tx
-      .distinctOn(['s.dept_id'])
-      .select('s.dept_id')
-      .getMany();
+    const rows = await tx.getMany();
     return rows.map(v => v.deptId);
   }
 
@@ -282,8 +283,8 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDept, 's')
-      .where("s.del_flag = '0'")
-      .where('find_in_set(:deptId, s.ancestors)', { deptId })
+      .andWhere("s.del_flag = '0'")
+      .andWhere('find_in_set(:deptId, s.ancestors)', { deptId })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -307,7 +308,7 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .update(SysDept)
       .set("status_flag = '1'")
-      .where('dept_id in (:deptIds)', { deptIds })
+      .andWhere('dept_id in (:deptIds)', { deptIds })
       .execute();
     return tx.affected;
   }
@@ -337,7 +338,7 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .update(SysDept)
       .set(`ancestors = ${casesValues}`)
-      .where('dept_id in (:deptIds)', { deptIds })
+      .andWhere('dept_id in (:deptIds)', { deptIds })
       .execute();
     return tx.affected;
   }

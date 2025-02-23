@@ -26,47 +26,47 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.roleName) {
-      tx.where("s.role_name like concat(:roleName, '%')", {
+      tx.andWhere("s.role_name like concat(:roleName, '%')", {
         roleName: query.roleName,
       });
     }
     if (query.roleKey) {
-      tx.where("s.role_key like concat(:roleKey, '%')", {
+      tx.andWhere("s.role_key like concat(:roleKey, '%')", {
         roleKey: query.roleKey,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: query.statusFlag,
       });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(`${query.beginTime}000`),
         });
       } else if (`${query.beginTime}`.length === 13) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(query.beginTime),
         });
       }
     }
     if (query.endTime) {
       if (`${query.endTime}`.length === 10) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(`${query.endTime}000`),
         });
       } else if (`${query.endTime}`.length === 13) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(query.endTime),
         });
       }
     }
     if (query.deptId) {
-      tx.where(
+      tx.andWhere(
         `s.role_id in ( 
         select distinct role_id from sys_role_dept where sys_role_dept.dept_id IN ( 
         SELECT dept_id FROM sys_dept WHERE dept_id = :deptId or find_in_set(:deptId , ancestors ) 
@@ -107,20 +107,20 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysRole.roleKey) {
-      tx.where("s.role_key like concat(:roleKey, '%')", {
+      tx.andWhere("s.role_key like concat(:roleKey, '%')", {
         roleKey: sysRole.roleKey,
       });
     }
     if (sysRole.roleName) {
-      tx.where("s.role_name like concat(:roleName, '%')", {
+      tx.andWhere("s.role_name like concat(:roleName, '%')", {
         roleName: sysRole.roleName,
       });
     }
     if (sysRole.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysRole.statusFlag,
       });
     }
@@ -144,7 +144,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .where("s.role_id in (:roleIds) and s.del_flag = '0'", { roleIds })
+      .andWhere("s.role_id in (:roleIds) and s.del_flag = '0'", { roleIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -203,7 +203,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .update(SysRole)
       .set(sysRole)
-      .where('role_id = :roleId', { roleId: sysRole.roleId })
+      .andWhere('role_id = :roleId', { roleId: sysRole.roleId })
       .execute();
     return tx.affected;
   }
@@ -221,7 +221,7 @@ export class SysRoleRepository {
       .queryBuilder('')
       .update(SysRole)
       .set({ delFlag: '1' })
-      .where('role_id in (:roleIds)', { roleIds })
+      .andWhere('role_id in (:roleIds)', { roleIds })
       .execute();
     return tx.affected;
   }
@@ -237,15 +237,15 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s.role_id')
       .from(SysRole, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (sysRole.roleName) {
-      tx.where('s.role_name = :roleName', {
+      tx.andWhere('s.role_name = :roleName', {
         roleName: sysRole.roleName,
       });
     }
     if (sysRole.roleKey) {
-      tx.where('s.role_key = :roleKey', {
+      tx.andWhere('s.role_key = :roleKey', {
         roleKey: sysRole.roleKey,
       });
     }
@@ -269,12 +269,12 @@ export class SysRoleRepository {
     const rows = await this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .from(SysRole, 'r')
+      .distinct(true)
       .select('r.*')
+      .from(SysRole, 'r')
       .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.role_id')
       .leftJoin('sys_user', 'u', 'u.user_id = ur.user_id')
-      .where("u.del_flag = '0' AND ur.user_id = userId", { userId })
-      .distinct(true)
+      .andWhere("u.del_flag = '0' AND ur.user_id = :userId", { userId })
       .getMany();
     return rows;
   }

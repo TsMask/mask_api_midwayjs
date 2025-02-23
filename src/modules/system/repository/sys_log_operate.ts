@@ -30,55 +30,55 @@ export class SysLogOperateRepository {
       .from(SysLogOperate, 's');
     // 查询条件拼接
     if (query.title) {
-      tx.where("s.title like concat(:title, '%')", {
+      tx.andWhere("s.title like concat(:title, '%')", {
         title: query.title,
       });
     }
     if (query.businessType) {
-      tx.where('s.business_type = :businessType', {
+      tx.andWhere('s.business_type = :businessType', {
         businessType: query.businessType,
       });
     }
     if (query.operaBy) {
-      tx.where("s.opera_by like concat(:operaBy, '%')", {
+      tx.andWhere("s.opera_by like concat(:operaBy, '%')", {
         operaBy: query.operaBy,
       });
     }
     if (query.operaIp) {
-      tx.where("s.opera_ip like concat(:operaIp, '%')", {
+      tx.andWhere("s.opera_ip like concat(:operaIp, '%')", {
         operaIp: query.operaIp,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: query.statusFlag,
       });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
-        tx.where('s.opera_time >= :beginTime', {
+        tx.andWhere('s.opera_time >= :beginTime', {
           beginTime: parseNumber(`${query.beginTime}000`),
         });
       } else if (`${query.beginTime}`.length === 13) {
-        tx.where('s.opera_time >= :beginTime', {
+        tx.andWhere('s.opera_time >= :beginTime', {
           beginTime: parseNumber(query.beginTime),
         });
       }
     }
     if (query.endTime) {
       if (`${query.endTime}`.length === 10) {
-        tx.where('s.opera_time <= :endTime', {
+        tx.andWhere('s.opera_time <= :endTime', {
           endTime: parseNumber(`${query.endTime}000`),
         });
       } else if (`${query.endTime}`.length === 13) {
-        tx.where('s.opera_time <= :endTime', {
+        tx.andWhere('s.opera_time <= :endTime', {
           endTime: parseNumber(query.endTime),
         });
       }
     }
     if (dataScopeSQL) {
       dataScopeSQL = `select distinct user_name from sys_user where ${dataScopeSQL}`;
-      tx.where(`s.opera_by in ( ${dataScopeSQL} )`);
+      tx.andWhere(`s.opera_by in ( ${dataScopeSQL} )`);
     }
 
     // 查询结果

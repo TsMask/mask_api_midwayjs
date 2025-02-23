@@ -29,26 +29,26 @@ export class SysMenuRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysMenu, 's')
-      .where("s,del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysMenu.menuName) {
-      tx.where("s.menu_name like concat(:menuName, '%')", {
+      tx.andWhere("s.menu_name like concat(:menuName, '%')", {
         menuName: sysMenu.menuName,
       });
     }
     if (sysMenu.visibleFlag) {
-      tx.where('s.visible_flag = :visibleFlag', {
+      tx.andWhere('s.visible_flag = :visibleFlag', {
         visibleFlag: sysMenu.visibleFlag,
       });
     }
     if (sysMenu.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysMenu.statusFlag,
       });
     }
     // 个人菜单
     if (userId > 0) {
-      tx.where(
+      tx.andWhere(
         `s.menu_id in (
         select menu_id from sys_role_menu where role_id in (
         select role_id from sys_user_role where user_id = :userId 
@@ -58,8 +58,8 @@ export class SysMenuRepository {
     }
     // 查询数据
     return await tx
-      .orderBy('s.parent_id', 'ASC')
-      .orderBy('s.menu_sort', 'ASC')
+      .addOrderBy('s.parent_id', 'ASC')
+      .addOrderBy('s.menu_sort', 'ASC')
       .getMany();
   }
 
@@ -79,7 +79,7 @@ export class SysMenuRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysMenu, 's')
-      .where("s.menu_id in (:menuIds) and s.del_flag = '0'", { menuIds })
+      .andWhere("s.menu_id in (:menuIds) and s.del_flag = '0'", { menuIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -179,7 +179,7 @@ export class SysMenuRepository {
       .createQueryBuilder()
       .update(SysMenu)
       .set(sysMenu)
-      .where('menu_id = :menuId', { menuId: sysMenu.menuId })
+      .andWhere('menu_id = :menuId', { menuId: sysMenu.menuId })
       .execute();
     return tx.affected;
   }
@@ -197,7 +197,7 @@ export class SysMenuRepository {
       .queryBuilder('')
       .update(SysMenu)
       .set({ delFlag: '1' })
-      .where('menu_id = :menuId', { menuId })
+      .andWhere('menu_id = :menuId', { menuId })
       .execute();
     return tx.affected;
   }
@@ -213,20 +213,20 @@ export class SysMenuRepository {
       .createQueryBuilder()
       .select('s.menu_id')
       .from(SysMenu, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (sysMenu.parentId) {
-      tx.where('s.parent_id = :parentId', {
+      tx.andWhere('s.parent_id = :parentId', {
         parentId: sysMenu.parentId,
       });
     }
     if (sysMenu.menuName) {
-      tx.where('s.menu_name = :menuName', {
+      tx.andWhere('s.menu_name = :menuName', {
         menuName: sysMenu.menuName,
       });
     }
     if (sysMenu.menuPath) {
-      tx.where('s.menu_path = :menuPath', {
+      tx.andWhere('s.menu_path = :menuPath', {
         menuPath: sysMenu.menuPath,
       });
     }
@@ -256,14 +256,15 @@ export class SysMenuRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
+      .select('s')
       .from(SysMenu, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
 
     // 构建查询条件
-    tx.where('s.parent_id = :menuId', { menuId });
+    tx.andWhere('s.parent_id = :menuId', { menuId });
     if (statusFlag) {
-      tx.where('s.status_flag = :statusFlag', { statusFlag: statusFlag });
-      tx.where('s.menu_type in (:menuType)', {
+      tx.andWhere('s.status_flag = :statusFlag', { statusFlag: statusFlag });
+      tx.andWhere('s.menu_type in (:menuType)', {
         menuType: [MENU_TYPE_DIR, MENU_TYPE_MENU],
       });
     }
@@ -280,12 +281,6 @@ export class SysMenuRepository {
     if (userId <= 0) {
       return [];
     }
-    // const sqlStr = `select distinct m.perms from sys_menu m
-    // left join sys_role_menu rm on m.menu_id = rm.menu_id
-    // left join sys_user_role ur on rm.role_id = ur.role_id
-    // left join sys_role r on r.role_id = ur.role_id
-    // where m.status_flag = '1' and m.perms != '' and r.status_flag = '1' and ur.user_id = ?`;
-
     const rows = await this.db
       .queryBuilder('')
       .createQueryBuilder()
@@ -298,9 +293,12 @@ export class SysMenuRepository {
         'r',
         "r.role_id = ur.role_id and r.status_flag = '1'"
       )
-      .where("m.status_flag = '1' AND m.perms != '' AND ur.user_id = :userId", {
-        userId,
-      })
+      .andWhere(
+        "m.status_flag = '1' AND m.perms != '' AND ur.user_id = :userId",
+        {
+          userId,
+        }
+      )
       .distinct(true)
       .getMany();
     return rows.map(v => v.perms);
@@ -323,15 +321,17 @@ export class SysMenuRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
+      .distinctOn(['s.menu_id'])
+      .select('s.menu_id')
       .from(SysMenu, 's')
-      .where("s.del_flag = '0'")
-      .where(
+      .andWhere("s.del_flag = '0'")
+      .andWhere(
         'menu_id in (select menu_id from sys_role_menu where role_id = :roleId)',
         { roleId }
       );
     // 父子互相关联显示，取所有子节点
     if (menuCheckStrictly) {
-      tx.where(
+      tx.andWhere(
         `s.menu_id not in (
             select m.parent_id from sys_menu m 
             inner join sys_role_menu rm on m.menu_id = rm.menu_id 
@@ -341,10 +341,7 @@ export class SysMenuRepository {
       );
     }
     // 查询数据
-    const rows = await tx
-      .distinctOn(['s.menu_id'])
-      .select('s.menu_id')
-      .getMany();
+    const rows = await tx.getMany();
     return rows.map(v => v.menuId);
   }
 
@@ -355,23 +352,24 @@ export class SysMenuRepository {
    * @return 数量
    */
   public async selectTreeByUserId(userId: number): Promise<SysMenu[]> {
-    if (userId <= 0) {
+    if (userId < 0) {
       return [];
     }
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
+      .select('s')
       .from(SysMenu, 's')
-      .where("s.del_flag = '0'");
+      .andWhere("s.del_flag = '0'");
 
     // 管理员全部菜单
     if (userId === 0) {
-      tx.where("s.menu_type in (:menuType) and s.status_flag = '1'", {
+      tx.andWhere("s.menu_type in (:menuType) and s.status_flag = '1'", {
         menuType: [MENU_TYPE_DIR, MENU_TYPE_MENU],
       });
     } else {
       // 用户ID权限
-      tx.where(
+      tx.andWhere(
         `s.menu_type in (:menuType) and s.status_flag = '1' 
         and menu_id in (
         select menu_id from sys_role_menu where role_id in (
@@ -382,8 +380,8 @@ export class SysMenuRepository {
     }
     // 查询数据
     return await tx
-      .orderBy('s.parent_id', 'ASC')
-      .orderBy('s.menu_sort', 'ASC')
+      .addOrderBy('s.parent_id', 'ASC')
+      .addOrderBy('s.menu_sort', 'ASC')
       .getMany();
   }
 }

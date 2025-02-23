@@ -26,42 +26,42 @@ export class SysNoticeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysNotice, 's')
-      .where("del_flag = '0'");
+      .andWhere("del_flag = '0'");
     // 查询条件拼接
     if (query.noticeTitle) {
-      tx.where("s.notice_title like concat(:noticeTitle, '%')", {
+      tx.andWhere("s.notice_title like concat(:noticeTitle, '%')", {
         noticeTitle: query.noticeTitle,
       });
     }
     if (query.noticeType) {
-      tx.where('s.notice_type = :noticeType', { noticeType: query.noticeType });
+      tx.andWhere('s.notice_type = :noticeType', { noticeType: query.noticeType });
     }
     if (query.createBy) {
-      tx.where("s.create_by like concat(:createBy, '%')", {
+      tx.andWhere("s.create_by like concat(:createBy, '%')", {
         createBy: query.createBy,
       });
     }
     if (query.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(`${query.beginTime}000`),
         });
       } else if (`${query.beginTime}`.length === 13) {
-        tx.where('s.create_time >= :beginTime', {
+        tx.andWhere('s.create_time >= :beginTime', {
           beginTime: parseNumber(query.beginTime),
         });
       }
     }
     if (query.endTime) {
       if (`${query.endTime}`.length === 10) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(`${query.endTime}000`),
         });
       } else if (`${query.endTime}`.length === 13) {
-        tx.where('s.create_time <= :endTime', {
+        tx.andWhere('s.create_time <= :endTime', {
           endTime: parseNumber(query.endTime),
         });
       }
@@ -101,22 +101,22 @@ export class SysNoticeRepository {
       .from(SysNotice, 's');
     // 构建查询条件
     if (sysNotice.noticeTitle) {
-      tx.where("s.notice_title like concat(:noticeTitle, '%')", {
+      tx.andWhere("s.notice_title like concat(:noticeTitle, '%')", {
         noticeTitle: sysNotice.noticeTitle,
       });
     }
     if (sysNotice.noticeType) {
-      tx.where('s.notice_type = :noticeType', {
+      tx.andWhere('s.notice_type = :noticeType', {
         noticeType: sysNotice.noticeType,
       });
     }
     if (sysNotice.createBy) {
-      tx.where("s.create_by like concat(:createBy, '%')", {
+      tx.andWhere("s.create_by like concat(:createBy, '%')", {
         createBy: sysNotice.createBy,
       });
     }
     if (sysNotice.statusFlag) {
-      tx.where('s.status_flag = :statusFlag', {
+      tx.andWhere('s.status_flag = :statusFlag', {
         statusFlag: sysNotice.statusFlag,
       });
     }
@@ -140,7 +140,7 @@ export class SysNoticeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysNotice, 's')
-      .where("s.notice_id in (:noticeIds) and s.del_flag = '0'", { noticeIds })
+      .andWhere("s.notice_id in (:noticeIds) and s.del_flag = '0'", { noticeIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -199,7 +199,7 @@ export class SysNoticeRepository {
       .createQueryBuilder()
       .update(SysNotice)
       .set(sysNotice)
-      .where('notice_id = :noticeId', { noticeId: sysNotice.noticeId })
+      .andWhere('notice_id = :noticeId', { noticeId: sysNotice.noticeId })
       .execute();
     return tx.affected;
   }
@@ -217,7 +217,7 @@ export class SysNoticeRepository {
       .queryBuilder('')
       .update(SysNotice)
       .set({ delFlag: '1' })
-      .where('notice_id in (:noticeIds)', { noticeIds })
+      .andWhere('notice_id in (:noticeIds)', { noticeIds })
       .execute();
     return tx.affected;
   }
