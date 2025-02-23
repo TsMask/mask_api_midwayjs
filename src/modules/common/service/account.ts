@@ -74,7 +74,7 @@ export class AccountService {
       return 'captcha expire';
     }
     await this.redis.del('', verifyKey);
-    if (captcha !== code) {
+    if (captcha !== code.toLowerCase()) {
       return 'captcha error';
     }
     return '';

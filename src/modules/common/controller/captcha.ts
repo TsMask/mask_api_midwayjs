@@ -83,7 +83,7 @@ export class CaptchaController {
       await this.redisCache.setByExpire(
         '',
         verifyKey,
-        answer,
+        answer.toLowerCase(),
         CAPTCHA_EXPIRATION
       );
     }
