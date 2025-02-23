@@ -159,7 +159,7 @@ export class RedisCache {
    */
   public async get(source: string, key: string): Promise<string> {
     const rdb = await this.rdb(source);
-    return await rdb.get(key);
+    return await rdb.get(key) ?? '';
   }
 
   /**
