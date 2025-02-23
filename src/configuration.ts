@@ -12,7 +12,6 @@ import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';
 import * as upload from '@midwayjs/upload';
 import * as staticFile from '@midwayjs/static-file';
-import * as jwt from '@midwayjs/jwt';
 import * as bull from '@midwayjs/bull';
 import * as crossDomain from '@midwayjs/cross-domain';
 import * as security from '@midwayjs/security';
@@ -32,7 +31,6 @@ import { ErrorCatchFilters } from './framework/catch';
     staticFile, // 静态文件映射
     typeorm, // 数据库ORM
     redis, // 缓存数据Redis
-    jwt, // 鉴权和校验Token
     bull, // 任务队列Bull
   ],
   importConfigs: [posix.join(__dirname, './config')],

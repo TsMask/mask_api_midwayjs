@@ -61,7 +61,10 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       }
 
       // 验证令牌
-      const claims = await tokenService.verify(tokenStr);
+      const [claims, err] = await tokenService.verify(tokenStr);
+      if (err) {
+        return Resp.codeMsg(401, err);
+      }
 
       // 获取缓存的用户信息
       let info = await tokenService.info(claims);

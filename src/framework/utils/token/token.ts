@@ -1,49 +1,43 @@
-import { Config, Inject, Provide, Singleton } from '@midwayjs/core';
-import { JwtService } from '@midwayjs/jwt';
-import ms = require('ms');
+import { Inject, Provide, Singleton } from '@midwayjs/core';
+import { sign, Algorithm, verify } from 'jsonwebtoken';
 
 import { JWT_UUID, JWT_USER_ID, JWT_USER_NAME } from '../../constants/token';
 import { TokenInfo } from './token_info';
 import { RedisCache } from '../../datasource/redis/redis';
 import { CACHE_LOGIN_TOKEN } from '../../constants/cache_key';
 import { generateCode } from '../generate/generate';
+import { GlobalConfig } from '../../config/config';
 
 /**Token工具验证处理 */
 @Provide()
 @Singleton()
 export class TokenUtil {
+  /**缓存服务 */
   @Inject()
-  private jwtService: JwtService;
+  private redisCache: RedisCache;
 
+  /**配置信息 */
   @Inject()
-  private redis: RedisCache;
-
-  /**从本地配置获取jwt过期时间信息 */
-  @Config('jwt.expiresIn')
-  private jwtExpiresIn: string;
-
-  /**从本地配置获取token有效期内自动刷新信息 */
-  @Config('jwtRefreshIn')
-  private jwtRefreshIn: string;
+  private config: GlobalConfig;
 
   /**
    * 清除登录用户信息UUID
-   * @param token 身份令牌
+   * @param userName 用户账号
    */
   public async remove(token: string): Promise<string> {
-    const claims = await this.verify(token);
-    if (claims) {
-      // 清除缓存KEY
-      const uuid = claims[JWT_UUID];
-      const tokenKey = CACHE_LOGIN_TOKEN + ':' + uuid;
-      const hasTokenkey = await this.redis.has('', tokenKey);
-      if (hasTokenkey > 0) {
-        await this.redis.del('', tokenKey);
-      }
-      // 判断可用登录信息返回用户账号
-      return claims[JWT_USER_NAME];
+    const [claims, err] = await this.verify(token);
+    if (err) {
+      return '';
     }
-    return null;
+    // 清除缓存KEY
+    const uuid = claims[JWT_UUID];
+    const tokenKey = CACHE_LOGIN_TOKEN + ':' + uuid;
+    const hasTokenkey = await this.redisCache.has('', tokenKey);
+    if (hasTokenkey > 0) {
+      await this.redisCache.del('', tokenKey);
+    }
+    // 判断可用登录信息返回用户账号
+    return claims[JWT_USER_NAME];
   }
 
   /**
@@ -57,8 +51,8 @@ export class TokenUtil {
     ilobArgs: string[]
   ): Promise<[TokenInfo, string]> {
     // 生成用户唯一tokne32位
-    const uuid = generateCode(32);
-    tokenInfo.uuid = uuid;
+    tokenInfo.uuid = generateCode(32);
+    tokenInfo.loginTime = Date.now();
 
     // 设置请求用户登录客户端
     tokenInfo.loginIp = ilobArgs[0];
@@ -73,13 +67,28 @@ export class TokenUtil {
     // 设置用户令牌有效期并存入缓存
     tokenInfo = await this.cache(tokenInfo);
 
-    // 生成令牌负荷uuid标识
-    const tokenStr = await this.jwtService.sign({
-      [JWT_UUID]: uuid,
+    // 令牌算法 HS256 HS384 HS512
+    const algorithm: string = this.config.get('jwt.algorithm');
+    let method: Algorithm = undefined;
+    switch (algorithm) {
+      case 'HS512':
+        method = 'HS512';
+      case 'HS384':
+        method = 'HS384';
+      case 'HS256':
+      default:
+        method = 'HS256';
+    }
+    // 生成令牌负荷绑定uuid标识
+    const jwtToken = {
+      [JWT_UUID]: tokenInfo.uuid,
       [JWT_USER_ID]: tokenInfo.userId,
       [JWT_USER_NAME]: tokenInfo.user.userName,
-      ait: tokenInfo.loginTime,
-    });
+      iat: tokenInfo.loginTime,
+    };
+    // 生成令牌设置密钥
+    const secret: string = this.config.get('jwt.secret');
+    const tokenStr = sign(jwtToken, secret, { algorithm: method });
     return [tokenInfo, tokenStr];
   }
 
@@ -90,14 +99,15 @@ export class TokenUtil {
    */
   public async cache(tokenInfo: TokenInfo): Promise<TokenInfo> {
     // 计算配置的有效期
-    const expTimestamp: number = ms(`${this.jwtExpiresIn}`);
+    const expTime: number = this.config.get('jwt.expiresIn');
+    const expTimestamp: number = expTime * 60 * 1000;
     const iatTimestamp = Date.now();
     tokenInfo.loginTime = iatTimestamp;
     tokenInfo.expireTime = iatTimestamp + expTimestamp;
     tokenInfo.user.password = '';
     // 登录信息标识缓存
     const tokenKey = CACHE_LOGIN_TOKEN + ':' + tokenInfo.uuid;
-    await this.redis.setByExpire(
+    await this.redisCache.setByExpire(
       '',
       tokenKey,
       JSON.stringify(tokenInfo),
@@ -111,8 +121,9 @@ export class TokenUtil {
    * @param tokenInfo 登录用户信息对象
    * @returns 登录令牌
    */
-  async refreshIn(tokenInfo: TokenInfo): Promise<TokenInfo> {
-    const refreshTimestamp = ms(`${this.jwtRefreshIn}`);
+  public async refreshIn(tokenInfo: TokenInfo): Promise<TokenInfo> {
+    const refreshTime: number = this.config.get('jwt.refreshIn');
+    const refreshTimestamp = refreshTime * 60 * 1000;
     // 相差不足xx分钟，自动刷新缓存
     const expireTime = tokenInfo.expireTime;
     const currentTime = Date.now();
@@ -130,12 +141,14 @@ export class TokenUtil {
   public async verify(token: string): Promise<[Record<string, any>, string]> {
     try {
       // 判断加密算法是预期的加密算法
-      const jwtToken = await this.jwtService.verify(token);
+      const secret: string = this.config.get('jwt.secret');
+      const jwtToken = verify(token, secret);
       if (jwtToken) {
         return [jwtToken as Record<string, any>, ''];
       }
     } catch (e) {
-      return [null, e.name];
+      console.error(e.name, '=>', e.message);
+      return [null, 'token invalid'];
     }
     return [null, 'token valid error'];
   }
@@ -147,16 +160,17 @@ export class TokenUtil {
    */
   public async info(claims: Record<string, any>): Promise<TokenInfo> {
     const info = new TokenInfo();
+    info.userId = 0;
     const uuid = claims[JWT_UUID];
     const tokenKey = CACHE_LOGIN_TOKEN + ':' + uuid;
-    const hasKey = await this.redis.has('', tokenKey);
+    const hasKey = await this.redisCache.has('', tokenKey);
     if (hasKey > 0) {
-      const infoStr = await this.redis.get('', tokenKey);
+      const infoStr = await this.redisCache.get('', tokenKey);
       if (infoStr) {
         try {
           return JSON.parse(infoStr) as TokenInfo;
-        } catch (err: any) {
-          info.userId = 0;
+        } catch (e) {
+         console.error(e.name, 'parse =>', e.message);
         }
       }
     }

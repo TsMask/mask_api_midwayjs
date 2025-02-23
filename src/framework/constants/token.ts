@@ -1,7 +1,7 @@
 // 令牌常量信息
 
 /**令牌-请求头标识前缀 */
-export const HEADER_PREFIX = 'Bearer ';
+export const HEADER_PREFIX = 'Bearer';
 
 /**令牌-请求头标识 */
 export const HEADER_KEY = 'Authorization';
