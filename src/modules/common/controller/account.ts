@@ -98,7 +98,7 @@ export class AccountController {
 
     return Resp.okData({
       accessToken: tokenStr,
-      tokenType: HEADER_PREFIX.trimEnd(),
+      tokenType: HEADER_PREFIX,
       expiresIn: (info.expireTime - info.loginTime) / 1000,
       userId: info.userId,
     });
@@ -149,7 +149,7 @@ export class AccountController {
   @RateLimit({ time: 300, count: 5, type: LIMIT_IP })
   public async logout(): Promise<Resp> {
     const tokenStr = authorization(this.c);
-    if (!tokenStr) {
+    if (tokenStr) {
       // 存在token时记录退出信息
       const userName = await this.token.remove(tokenStr);
       if (userName !== '') {
