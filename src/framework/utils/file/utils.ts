@@ -58,9 +58,14 @@ export async function checkDirPathExists(dirPath: string): Promise<string> {
     await access(dirPath, constants.F_OK);
     return '';
   } catch (error) {
-    console.error(`failed access error: ${error.message}`);
-    await mkdir(dirPath, { recursive: true });
-    return error.message;
+    try {
+      await mkdir(posix.dirname(dirPath), { recursive: true });
+      console.warn(`failed access to mkdir error: ${error.message}`);
+      return '';
+    } catch (e) {
+      console.error(`failed mkdir error: ${e.message}`);
+      return error.message;
+    }
   }
 }
 
@@ -136,10 +141,12 @@ export async function getFileStream(
 /**
  * 获取文件目录下所有文件名称，不含目录名称
  * @param filePath 文件路径
- * @return 目录下文件名称
+ * @return [文件名称列表, 错误信息]
  */
-export async function getDirFileNameList(dirPath: string): Promise<string[]> {
-  if (!dirPath) return [];
+export async function getDirFileNameList(
+  dirPath: string
+): Promise<[string[], string]> {
+  if (!dirPath) return [[], 'failed dir path'];
   try {
     const dir = await opendir(dirPath);
     const fileNames: string[] = [];
@@ -148,11 +155,11 @@ export async function getDirFileNameList(dirPath: string): Promise<string[]> {
         fileNames.push(dirent.name);
       }
     }
-    return fileNames;
+    return [fileNames, ''];
   } catch (error) {
     console.error(`failed opendir "${dirPath}": ${error.message}`);
+    return [[], error.message];
   }
-  return [];
 }
 
 /**
@@ -171,7 +178,7 @@ export async function writeBufferFile(
   const filePath = posix.join(writeDirPath, fileName);
   // 写入到新路径文件
   try {
-    await writeFile(filePath, buf.toString());
+    await writeFile(filePath, buf);
   } catch (error) {
     console.error(`failed write file "${filePath}": ${error.message}`);
   }
@@ -202,7 +209,7 @@ export async function transferToNewFile(
   try {
     // 读取文件转移到新路径文件
     const data = await readFile(file.data);
-    await writeFile(dst, data.toString());
+    await writeFile(dst, data);
     return '';
   } catch (error) {
     console.error(`failed transfer file "${dst}": ${error.message}`);
@@ -221,15 +228,22 @@ export async function mergeToNewFile(
   dirPath: string,
   writePath: string,
   fileName: string
-): Promise<void> {
+): Promise<string> {
   // 读取目录下所有文件并排序，注意文件名称是否数值
-  const fileNameList = await getDirFileNameList(dirPath);
-  if (fileNameList.length <= 0) {
-    throw new Error('读取合并目标文件失败');
+  let [fileNameList, err] = await getDirFileNameList(dirPath);
+  if (err) {
+    return err;
   }
+  if (fileNameList.length <= 0) {
+    return '读取合并目标文件失败';
+  }
+
   fileNameList.sort((a, b) => parseInt(a) - parseInt(b));
 
-  await checkDirPathExists(writePath);
+  err = await checkDirPathExists(writePath);
+  if (err) {
+    return err;
+  }
 
   // 读取文件转移到新路径文件
   const newFilePath = posix.join(writePath, fileName);
@@ -244,9 +258,11 @@ export async function mergeToNewFile(
       await deleteFile(chunkPath);
     }
     // 写入新文件
-    await writeFile(newFilePath, Buffer.concat(fileBuffers).toString());
+    await writeFile(newFilePath, Buffer.concat(fileBuffers));
+    return '';
   } catch (error) {
     console.error(`failed merge file "${newFilePath}": ${error.message}`);
+    return error.message;
   } finally {
     await deleteFile(dirPath);
   }

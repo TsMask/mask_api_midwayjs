@@ -1,11 +1,8 @@
 import { posix } from 'node:path';
 
-import { Config, Provide, Singleton } from '@midwayjs/core';
+import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
 
-import { parseDatePath } from '../date/data';
-import { readSheet, writeSheet } from './execl';
-import { generateCode } from '../generate/generate';
 import {
   getDirFileNameList,
   checkDirPathExists,
@@ -23,18 +20,18 @@ import {
   UPLOAD_IMPORT,
 } from '../../constants/upload_sub_path';
 import { replace } from '../regular/regular';
+import { parseDatePath } from '../date/data';
+import { readSheet, writeSheet } from './execl';
+import { generateCode } from '../generate/generate';
+import { GlobalConfig } from '../../config/config';
 
 /**File文件工具验证处理*/
 @Provide()
 @Singleton()
 export class FileUtil {
-  /**文件上传路径 */
-  @Config('staticFile.dirs.upload')
-  private resourceUpload: { prefix: string; dir: string };
-
-  /**文件上传扩展名白名单 */
-  @Config('upload.whitelist')
-  private uploadWhiteList: string[];
+  /**配置信息 */
+  @Inject()
+  private config: GlobalConfig;
 
   /**
    * 生成文件名称
@@ -67,7 +64,7 @@ export class FileUtil {
     // 判断文件拓展是否为允许的拓展类型
     const fileExt = posix.extname(fileName);
     if (allowExts.length === 0) {
-      allowExts = this.uploadWhiteList;
+      allowExts = this.config.get<string[]>('upload.whitelist');
     }
 
     let hasExt = false;
@@ -94,18 +91,18 @@ export class FileUtil {
     if (filePath.indexOf('..') !== -1) {
       return '禁止目录上跳级别';
     }
-
+    const uploadWhiteList = this.config.get<string[]>('upload.whitelist');
     // 检查允许下载的文件规则
     const fileExt = posix.extname(filePath);
     let hasExt = false;
-    for (const str of this.uploadWhiteList) {
+    for (const str of uploadWhiteList) {
       if (str === fileExt) {
         hasExt = true;
         break;
       }
     }
     if (!hasExt) {
-      return `非法下载的文件规则：${this.uploadWhiteList.join('、')}`;
+      return `非法下载的文件规则：${uploadWhiteList.join('、')}`;
     }
     return '';
   }
@@ -126,7 +123,9 @@ export class FileUtil {
       return [undefined, err];
     }
     // 上传资源路径
-    const { prefix, dir } = this.resourceUpload;
+    const { prefix, dir } = this.config.get<Record<string, string>>(
+      'staticFile.dirs.upload'
+    );
     const fileAsbPath = filePath.replace(prefix, dir);
 
     // 响应结果
@@ -182,7 +181,7 @@ export class FileUtil {
    * @param file 上传文件对象
    * @param subPath 子路径
    * @param allowExts 允许上传拓展类型（含“.”)，如 ['.png','.jpg']
-   * @returns 文件存放资源路径，URL相对地址
+   * @returns [文件存放资源路径，URL相对地址, 错误信息]
    */
   public async transferUploadFile(
     file: UploadFileInfo<string>,
@@ -195,7 +194,9 @@ export class FileUtil {
       return ['', err];
     }
     // 上传资源路径
-    const { prefix, dir } = this.resourceUpload;
+    const { prefix, dir } = this.config.get<Record<string, string>>(
+      'staticFile.dirs.upload'
+    );
     // 新文件名称并组装文件地址
     const fileName = this.generateFileName(file.filename);
     const filePath = posix.join(subPath, parseDatePath());
@@ -213,15 +214,19 @@ export class FileUtil {
    * 上传资源切片文件检查
    * @param identifier 切片文件目录标识符
    * @param originalFileName 原始文件名称，如logo.png
-   * @returns 文件存放资源路径
+   * @returns [文件列表, 错误信息]
    */
   async chunkCheckFile(
     identifier: string,
     originalFileName: string
-  ): Promise<string[]> {
-    this.isAllowWrite(originalFileName, []);
+  ): Promise<[string[], string]> {
+    const err = this.isAllowWrite(originalFileName, []);
+    if (err) {
+      return [[], err];
+    }
+    const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
     const dirPath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
-    const readPath = posix.join(this.resourceUpload.dir, dirPath);
+    const readPath = posix.join(uploadDir, dirPath);
     return await getDirFileNameList(readPath);
   }
 
@@ -236,17 +241,28 @@ export class FileUtil {
     identifier: string,
     originalFileName: string,
     subPath: string = UPLOAD_DEFAULT
-  ): Promise<string> {
-    this.isAllowWrite(originalFileName, []);
+  ): Promise<[string, string]> {
+    let err = this.isAllowWrite(originalFileName, []);
+    if (err) {
+      return ['', err];
+    }
+    // 上传资源路径
+    const { prefix, dir } = this.config.get<Record<string, string>>(
+      'staticFile.dirs.upload'
+    );
     // 切片存放目录
     const dirPath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
-    const readPath = posix.join(this.resourceUpload.dir, dirPath);
+    const readPath = posix.join(dir, dirPath);
     // 组合存放文件路径
     const fileName = this.generateFileName(originalFileName);
     const filePath = posix.join(subPath, parseDatePath());
-    const writePath = posix.join(this.resourceUpload.dir, filePath);
-    await mergeToNewFile(readPath, writePath, fileName);
-    return posix.join(this.resourceUpload.prefix, filePath, fileName);
+    const writePath = posix.join(dir, filePath);
+    const errMsg = await mergeToNewFile(readPath, writePath, fileName);
+    if (errMsg) {
+      return ['', errMsg];
+    }
+    const urlPath = posix.join(prefix, filePath, fileName);
+    return [urlPath, ''];
   }
 
   /**
@@ -267,11 +283,13 @@ export class FileUtil {
       return ['', err];
     }
     // 上传资源路径
-    const { prefix, dir } = this.resourceUpload;
+    const { prefix, dir } = this.config.get<Record<string, string>>(
+      'staticFile.dirs.upload'
+    );
     const filePath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
-    const writePath = posix.join(dir, filePath);
+    const writePath = posix.join(dir, filePath, index);
     await transferToNewFile(file, writePath);
-    const urlPath = posix.join(prefix, filePath, filePath);
+    const urlPath = posix.join(prefix, filePath, index);
     return [urlPath, ''];
   }
 
@@ -280,16 +298,21 @@ export class FileUtil {
    * @param filePath 文件存放资源路径，URL相对地址
    * @return true 删除正常 false 删除失败
    */
-  async deleteUploadFile(filePath: string): Promise<boolean> {
+  async deleteUploadFile(filePath: string): Promise<string> {
     // 检查文件允许访问
     if (!this.isAllowRead(filePath)) {
-      throw new Error(`文件 ${filePath} 非法，不允许删除。`);
+      return `文件 ${filePath} 非法，不允许删除。`;
     }
-    const asbPath = filePath.replace(
-      this.resourceUpload.prefix,
-      this.resourceUpload.dir
+    // 上传资源路径
+    const { prefix, dir } = this.config.get<Record<string, string>>(
+      'staticFile.dirs.upload'
     );
-    return await deleteFile(asbPath);
+    const asbPath = filePath.replace(prefix, dir);
+    const ok = await deleteFile(asbPath);
+    if (!ok) {
+      return `文件 ${filePath} 删除失败。`;
+    }
+    return '';
   }
 
   /**
@@ -312,10 +335,11 @@ export class FileUtil {
    * @return 绝对路径
    */
   parseUploadFileAbsPath(filePath: string): string {
-    return filePath.replace(
-      this.resourceUpload.prefix,
-      this.resourceUpload.dir
+    // 上传资源路径
+    const { prefix, dir } = this.config.get<Record<string, string>>(
+      'staticFile.dirs.upload'
     );
+    return filePath.replace(prefix, dir);
   }
 
   /**
@@ -330,12 +354,9 @@ export class FileUtil {
   ): Promise<Record<string, string>[]> {
     const { data, filename } = file;
     this.isAllowWrite(filename, ['.xls', '.xlsx']);
+    const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
     // 保存上传文件
-    const savePath = posix.join(
-      this.resourceUpload.dir,
-      UPLOAD_IMPORT,
-      parseDatePath()
-    );
+    const savePath = posix.join(uploadDir, UPLOAD_IMPORT, parseDatePath());
     await checkDirPathExists(savePath);
     // const fileName = this.generateFileName(filename,);
     await transferToNewFile(file, savePath);
@@ -352,14 +373,11 @@ export class FileUtil {
    */
   async excelWriteRecord(data: any[], fileName: string, sheetName = 'Sheet1') {
     const sheetBuffer = await writeSheet(data, sheetName);
-
+    // 上传资源路径
+    const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
     // 保存文件
     if (fileName) {
-      const savePath = posix.join(
-        this.resourceUpload.dir,
-        UPLOAD_EXPORT,
-        parseDatePath()
-      );
+      const savePath = posix.join(uploadDir, UPLOAD_EXPORT, parseDatePath());
       await checkDirPathExists(savePath);
       await writeBufferFile(Buffer.from(sheetBuffer), savePath, fileName);
     }

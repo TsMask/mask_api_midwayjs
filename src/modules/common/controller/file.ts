@@ -90,7 +90,8 @@ export class FileController {
     const formFile = files[0];
 
     // 子路径需要在指定范围内
-    if (subPath && !UPLOAD_SUB_PATH[subPath]) {
+    const ok = UPLOAD_SUB_PATH[subPath];
+    if (subPath && !ok) {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: subPath not in range');
     }
@@ -148,7 +149,8 @@ export class FileController {
     @Valid(RuleType.string()) @Body('subPath') subPath: string
   ) {
     // 子路径需要在指定范围内
-    if (subPath && !UPLOAD_SUB_PATH[subPath]) {
+    const ok = UPLOAD_SUB_PATH[subPath];
+    if (subPath && !ok) {
       this.c.status = 400;
       return Resp.codeMsg(40010, 'bind err: subPath not in range');
     }

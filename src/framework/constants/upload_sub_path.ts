@@ -17,11 +17,11 @@ export const UPLOAD_CHUNK = 'chunk';
 
 /**子路径类型映射 */
 export const UPLOAD_SUB_PATH = {
-  UPLOAD_DEFAULT: '默认',
-  UPLOAD_AVATAR: '头像',
-  UPLOAD_IMPORT: '导入',
-  UPLOAD_EXPORT: '导出',
-  UPLOAD_COMMON: '通用上传',
-  UPLOAD_DOWNLOAD: '下载',
-  UPLOAD_CHUNK: '切片',
+  [UPLOAD_DEFAULT]: '默认',
+  [UPLOAD_AVATAR]: '头像',
+  [UPLOAD_IMPORT]: '导入',
+  [UPLOAD_EXPORT]: '导出',
+  [UPLOAD_COMMON]: '通用上传',
+  [UPLOAD_DOWNLOAD]: '下载',
+  [UPLOAD_CHUNK]: '切片',
 };
