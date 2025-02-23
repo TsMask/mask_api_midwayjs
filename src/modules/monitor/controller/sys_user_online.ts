@@ -40,7 +40,7 @@ export class SysUserOnlineController {
     @Query('userName') userName: string
   ): Promise<Resp> {
     // 获取所有在线用户key
-    const keys = await this.redisCache.get('', `${CACHE_LOGIN_TOKEN}:*`);
+    const keys = await this.redisCache.getKeys('', `${CACHE_LOGIN_TOKEN}:*`);
 
     // 分批获取
     const arr: string[] = [];
@@ -50,7 +50,7 @@ export class SysUserOnlineController {
         end = keys.length;
       }
       const chunk = keys.slice(i, end);
-      const values = await this.redisCache.getBatch('', [chunk]);
+      const values = await this.redisCache.getBatch('', chunk);
       if (values.length > 0) {
         arr.push(...values);
       }
@@ -105,7 +105,7 @@ export class SysUserOnlineController {
       (a, b) => b.loginTime - a.loginTime
     );
 
-    return Resp.ok({
+    return Resp.okData({
       total: filteredUserOnline.length,
       rows: filteredUserOnline,
     });

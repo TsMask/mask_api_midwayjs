@@ -13,9 +13,9 @@ export class GlobalConfig {
    * @param key 配置项的key值
    * @returns 配置项的值
    */
-  public get(key: string): any {
+  public get<T>(key: string): T {
     try {
-      return this.app.getConfig(key);
+      return this.app.getConfig(key) as T;
     } catch (e) {
       throw new Error(`获取配置信息异常, ${e.message}.`);
     }
@@ -46,9 +46,9 @@ export class GlobalConfig {
   public isSystemUser(userId: number): boolean {
     if (userId <= 0) return false;
     // 从配置中获取系统管理员ID列表
-    const configUser = this.get('user');
-    if (Array.isArray(configUser.system)) {
-      return configUser.system.includes(userId);
+    const arr = this.get<number[]>('user.system');
+    if (Array.isArray(arr)) {
+      return arr.includes(userId);
     }
     return false;
   }
