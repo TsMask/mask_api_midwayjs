@@ -46,7 +46,7 @@ export class SysMenu {
 
   /**菜单类型（D目录 M菜单 A访问权限） */
   @Rule(RuleType.string().pattern(/^[DMA]$/))
-  @Column({ name: 'cache_flag' })
+  @Column({ name: 'menu_type' })
   menuType: string;
 
   /**是否显示（0隐藏 1显示） */
