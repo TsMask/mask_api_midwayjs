@@ -22,16 +22,13 @@ export function sysMenuTreeSelect(sysMenu: SysMenu): TreeSelect {
   const t = new TreeSelect();
   t.id = sysMenu.menuId;
   t.label = sysMenu.menuName;
-
-  if (sysMenu.children.length > 0) {
+  t.children = [];
+  if (Array.isArray(sysMenu.children) && sysMenu.children.length > 0) {
     for (const menu of sysMenu.children) {
       const child = sysMenuTreeSelect(menu);
       t.children.push(child);
     }
-  } else {
-    t.children = [];
   }
-
   return t;
 }
 
@@ -44,15 +41,12 @@ export function sysDeptTreeSelect(sysDept: SysDept): TreeSelect {
   const t = new TreeSelect();
   t.id = sysDept.deptId;
   t.label = sysDept.deptName;
-
-  if (sysDept.children.length > 0) {
+  t.children = [];
+  if (Array.isArray(sysDept.children) && sysDept.children.length > 0) {
     for (const dept of sysDept.children) {
       const child = sysDeptTreeSelect(dept);
       t.children.push(child);
     }
-  } else {
-    t.children = [];
   }
-
   return t;
 }
