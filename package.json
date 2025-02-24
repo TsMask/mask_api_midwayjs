@@ -1,7 +1,7 @@
 {
   "name": "mask_api_midwayjs",
   "private": true,
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "🎉 基于 Midwayjs 的管理系统后端接口服务",
   "author": "TsMask",
   "repository": {
