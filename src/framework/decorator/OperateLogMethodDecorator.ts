@@ -89,7 +89,7 @@ export function OpLerateLogSave(options: { metadata: Options }) {
 
       // 函数名
       const className = joinPoint.target.constructor.name;
-      const funcName = `${className}.${joinPoint.methodName}()`;
+      const funcName = `${className}.${joinPoint.methodName}`;
 
       // 解析ip地址
       const ipaddr = clientIP(c.ip);
@@ -145,9 +145,9 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       // 是否需要保存response，参数和值
       if (metadataObj.isSaveResponseData) {
         const contentDisposition = c.get('Content-Disposition');
-        const contentType = c.get('Content-Type');
+        const contentType = c.get('Content-Type') || 'application/json; charset=utf-8';
         const content = contentType + contentDisposition;
-        const msg = `{"status":"${status}","size":"${c.length}","content-type":"${content}"}`;
+        const msg = `{"status":"${status}","size":"${JSON.stringify(res).length}","content-type":"${content}"}`;
         operLog.operaMsg = msg;
       }
 

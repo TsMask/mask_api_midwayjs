@@ -75,7 +75,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
 
       // 获取执行函数名称
       const className = joinPoint.target.constructor.name;
-      const classMethod = `${className}.${joinPoint.methodName}()`;
+      const classMethod = `${className}.${joinPoint.methodName}`;
       // 生成限流key
       let limitKey = CACHE_RATE_LIMIT + ':' + classMethod;
 
