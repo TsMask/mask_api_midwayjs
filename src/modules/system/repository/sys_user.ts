@@ -100,7 +100,7 @@ export class SysUserRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    rows = await tx.orderBy('s.uesr_id', 'DESC').getMany();
+    rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
     return [rows, total];
   }
 
@@ -139,7 +139,7 @@ export class SysUserRepository {
       });
     }
     // 查询数据
-    return await tx.orderBy('s.login_time', 'DESC').getMany();
+    return await tx.addOrderBy('s.login_time', 'DESC').getMany();
   }
 
   /**
@@ -217,20 +217,21 @@ export class SysUserRepository {
     } else {
       delete sysUser.password;
     }
-    delete sysUser.delFlag;
-    delete sysUser.createBy;
-    delete sysUser.createTime;
-    delete sysUser.dept;
-    delete sysUser.roles;
-    delete sysUser.roleId;
-    delete sysUser.roleIds;
-    delete sysUser.postIds;
+    const data = Object.assign({}, sysUser);
+    delete data.delFlag;
+    delete data.createBy;
+    delete data.createTime;
+    delete data.dept;
+    delete data.roles;
+    delete data.roleId;
+    delete data.roleIds;
+    delete data.postIds;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysUser)
-      .set(sysUser)
+      .set(data)
       .andWhere('user_id = :userId', { userId: sysUser.userId })
       .execute();
     return tx.affected;
@@ -348,7 +349,7 @@ export class SysUserRepository {
       });
     }
     // 分配角色的用户
-    if (query.deptId) {
+    if (query.roleId) {
       const auth = parseBoolean(query.auth);
       if (auth) {
         tx.andWhere(
@@ -357,7 +358,7 @@ export class SysUserRepository {
             inner join sys_user_role ur on u.user_id = ur.user_id 
             and ur.role_id = :roleId
           )`,
-          { roleId: query.deptId }
+          { roleId: query.roleId }
         );
       } else {
         tx.andWhere(
@@ -366,7 +367,7 @@ export class SysUserRepository {
             inner join sys_user_role ur on u.user_id = ur.user_id 
             and ur.role_id = :roleId
           )`,
-          { roleId: query.deptId }
+          { roleId: query.roleId }
         );
       }
     }
@@ -390,7 +391,7 @@ export class SysUserRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    rows = await tx.orderBy('s.uesr_id', 'DESC').getMany();
+    rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
     return [rows, total];
   }
 }

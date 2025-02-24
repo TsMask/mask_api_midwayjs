@@ -488,7 +488,10 @@ export class SysUserController {
     // 表格文件绝对地址
     const fileAbsPath = this.fileUtil.parseUploadFileAbsPath(filePath);
     // 读取表格数据
-    const rows = await readSheet(fileAbsPath, '');
+    const [rows, err] = await readSheet(fileAbsPath);
+    if (err) {
+      return Resp.errMsg(err);
+    }
     if (rows.length <= 0) {
       return Resp.errMsg('导入用户数据不能为空！');
     }

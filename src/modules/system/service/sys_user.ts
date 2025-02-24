@@ -73,6 +73,9 @@ export class SysUserService {
     );
     for (let i = 0; i < rows.length; i++) {
       const v = rows[i];
+      delete rows[i].password;
+      delete rows[i].delFlag;
+      delete rows[i].postIds;
       // 部门
       const deptInfo = await this.sysDeptRepository.selectById(v.deptId);
       rows[i].dept = deptInfo;
@@ -312,16 +315,16 @@ export class SysUserService {
    * @returns 结果
    */
   public async findByUserName(userName: string): Promise<SysUser> {
-    const userinfo = await this.sysUserRepository.selectByUserName(userName);
-    if (userinfo.userName !== userName) {
-      return userinfo;
+    const userInfo = await this.sysUserRepository.selectByUserName(userName);
+    if (userInfo.userName !== userName) {
+      return userInfo;
     }
     // 部门
-    const deptInfo = await this.sysDeptRepository.selectById(userinfo.deptId);
-    userinfo.dept = deptInfo;
+    const deptInfo = await this.sysDeptRepository.selectById(userInfo.deptId);
+    userInfo.dept = deptInfo;
     // 角色
     const roleArr = await this.sysRoleRepository.selectByUserId(
-      userinfo.userId
+      userInfo.userId
     );
     const roles: SysRole[] = [];
     const roleIds: number[] = [];
@@ -329,9 +332,9 @@ export class SysUserService {
       roles.push(role);
       roleIds.push(role.roleId);
     }
-    userinfo.roles = roles;
-    userinfo.roleIds = roleIds;
-    return userinfo;
+    userInfo.roles = roles;
+    userInfo.roleIds = roleIds;
+    return userInfo;
   }
 
   /**
@@ -350,6 +353,9 @@ export class SysUserService {
     );
     for (let i = 0; i < rows.length; i++) {
       const v = rows[i];
+      delete rows[i].password;
+      delete rows[i].delFlag;
+      delete rows[i].postIds;
       // 部门
       const deptInfo = await this.sysDeptRepository.selectById(v.deptId);
       rows[i].dept = deptInfo;
@@ -396,8 +402,8 @@ export class SysUserService {
       }
       const data = {
         用户编号: row.userId,
-        登录名称: row.userName,
-        用户名称: row.nickName,
+        登录账号: row.userName,
+        用户昵称: row.nickName,
         用户邮箱: row.email,
         手机号码: row.phone,
         用户性别: sysUserSex,
@@ -439,7 +445,7 @@ export class SysUserService {
     let failureNum = 0;
     const successMsgArr: string[] = [];
     const failureMsgArr: string[] = [];
-    const mustItemArr = ['登录名称', '用户名称'];
+    const mustItemArr = ['登录账号', '用户昵称'];
     for (const item of rows) {
       // 检查必填列
       const ownItem = mustItemArr.every(m => Object.keys(item).includes(m));
@@ -467,15 +473,17 @@ export class SysUserService {
       }
 
       // 验证是否存在这个用户
-      const newSysUser = await this.findByUserName(item['登录名称']);
+      const newSysUser = await this.findByUserName(item['登录账号']);
       newSysUser.password = initPassword;
-      newSysUser.userName = item['登录名称'];
-      newSysUser.nickName = item['用户名称'];
+      newSysUser.userName = item['登录账号'];
+      newSysUser.nickName = item['用户昵称'];
       newSysUser.phone = item['手机号码'];
       newSysUser.email = item['用户邮箱'];
       newSysUser.statusFlag = sysUserStatus;
       newSysUser.sex = sysUserSex;
       newSysUser.deptId = sysUserDeptId;
+      newSysUser.roleIds = [];
+      newSysUser.postIds = [];
 
       // 行用户编号
       const rowNo = item['用户编号'];
@@ -522,15 +530,15 @@ export class SysUserService {
         }
       }
 
-      if (newSysUser.userId <= 0) {
+      if (!newSysUser.userId) {
         newSysUser.createBy = operaName;
         const insertId = await this.insert(newSysUser);
         if (insertId > 0) {
-          const msg = `用户编号：${rowNo} 登录名称：${newSysUser.userName} 导入成功`;
+          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.userName} 导入成功`;
           successNum++;
           successMsgArr.push(msg);
         } else {
-          const msg = `用户编号：${rowNo} 登录名称：${newSysUser.userName} 导入失败`;
+          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.userName} 导入失败`;
           failureNum++;
           failureMsgArr.push(msg);
         }
@@ -543,11 +551,11 @@ export class SysUserService {
         newSysUser.updateBy = operaName;
         const rows = await this.update(newSysUser);
         if (rows > 0) {
-          const msg = `用户编号：${rowNo} 登录名称：${newSysUser.userName} 更新成功`;
+          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.userName} 更新成功`;
           successNum++;
           successMsgArr.push(msg);
         } else {
-          const msg = `用户编号：${rowNo} 登录名称：${newSysUser.userName} 更新失败`;
+          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.userName} 更新失败`;
           failureNum++;
           failureMsgArr.push(msg);
         }
