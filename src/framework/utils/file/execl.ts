@@ -4,17 +4,20 @@ import { Workbook } from 'exceljs';
  * 读取表格数据
  * @param filePath 文件路径
  * @param sheetName 工作簿名称， 空字符默认Sheet1
- * @return 表格对象列表
+ * @return [表格列表, 错误信息]
  */
 export async function readSheet(
   filePath: string,
-  sheetName: string
-): Promise<Record<string, string>[]> {
+  sheetName: string = 'Sheet1'
+): Promise<[Record<string, string>[], string]> {
   // 读取Excel文件
   const workbook = new Workbook();
   await workbook.xlsx.readFile(filePath);
-  // 获取第一个工作表
+  // 获取工作表
   const worksheet = workbook.getWorksheet(sheetName);
+  if (!worksheet) {
+     return [[], `Sheet "${sheetName}" not found`];
+  }
   // 获取表头行
   const headerRow = worksheet.getRow(1);
   // 获取表头列数
@@ -29,16 +32,16 @@ export async function readSheet(
     // 遍历当前数据行的每一列
     for (let j = 1; j <= headerColumnCount; j++) {
       // 获取当前列的表头名称
-      const headerName = headerRow.getCell(j).value?.toString();
+      const headerName = headerRow.getCell(j).value?.toString() || `${j}`;
       // 获取当前列的数据值
-      const cellValue = dataRow.getCell(j).value;
+      const cellValue = dataRow.getCell(j).value?.toString() || '';
       // 将当前列的数据值添加到当前数据对象中
-      rowData[headerName || `${j}`] = cellValue;
+      rowData[headerName] = cellValue;
     }
     // 将当前行的数据存储到data数组中
     rowDataArr.push(rowData);
   }
-  return rowDataArr;
+  return [rowDataArr, ''];
 }
 
 /**

@@ -37,7 +37,7 @@ export async function getFileSize(filePath: string): Promise<number> {
 /**
  * 判断文件是否存在
  * @param filePath 文件路径
- * @return 布尔结果 true/false
+ * @return 错误信息，空字符串表示文件存在
  */
 export async function checkExists(filePath: string): Promise<string> {
   try {
@@ -52,6 +52,7 @@ export async function checkExists(filePath: string): Promise<string> {
 /**
  * 判断文件夹是否存在，不存在则创建
  * @param dirPath 文件路径目录
+ * @return 错误信息，空字符串表示文件夹存在
  */
 export async function checkDirPathExists(dirPath: string): Promise<string> {
   try {
@@ -113,20 +114,18 @@ export async function getFileStream(
     const fileSize = fileInfo.size;
 
     // 确保起始和结束偏移量在文件范围内
-    if (startOffset > fileSize || startOffset === 0) {
-      startOffset = 0;
-    }
-    if (endOffset >= fileSize || endOffset <= 0) {
-      endOffset = fileSize - 1;
-    }
+    startOffset = Math.max(0, Math.min(startOffset, fileSize - 1));
+    endOffset = Math.min(
+      endOffset < 0 ? fileSize - 1 : endOffset,
+      fileSize - 1
+    );
 
     // 计算切片的大小
     const chunkSize = endOffset - startOffset + 1;
 
     // 创建一个缓冲区来存储读取的数据
     const buffer = Buffer.alloc(chunkSize);
-    const uint8Array = new Uint8Array(buffer);
-    await fd.read(uint8Array, 0, chunkSize, startOffset);
+    await fd.read(buffer, 0, chunkSize, startOffset);
     return [buffer, ''];
   } catch (error) {
     console.error(`failed ${filePath} err: ${error.message}`);

@@ -1,4 +1,4 @@
-import { posix } from 'node:path';
+import { resolve, posix } from 'node:path';
 
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
@@ -58,7 +58,7 @@ export class FileUtil {
     const DEFAULT_FILE_NAME_LENGTH = 100;
     // 判断上传文件名称长度
     if (fileName.length > DEFAULT_FILE_NAME_LENGTH) {
-      throw new Error(`上传文件名称长度限制最长为 ${DEFAULT_FILE_NAME_LENGTH}`);
+      return `上传文件名称长度限制最长为 ${DEFAULT_FILE_NAME_LENGTH}`;
     }
 
     // 判断文件拓展是否为允许的拓展类型
@@ -189,7 +189,7 @@ export class FileUtil {
     allowExts: string[] = []
   ): Promise<[string, string]> {
     // 上传文件检查
-    let err = this.isAllowWrite(file.filename, allowExts);
+    const err = this.isAllowWrite(file.filename, allowExts);
     if (err) {
       return ['', err];
     }
@@ -202,9 +202,9 @@ export class FileUtil {
     const filePath = posix.join(subPath, parseDatePath());
     const writePathFile = posix.join(dir, filePath, fileName);
     // 存入新文件路径
-    err = await transferToNewFile(file, writePathFile);
-    if (err) {
-      return ['', err];
+    const errMsg = await transferToNewFile(file, writePathFile);
+    if (errMsg) {
+      return ['', errMsg];
     }
     const urlPath = posix.join(prefix, filePath, fileName);
     return [urlPath, ''];
@@ -242,7 +242,7 @@ export class FileUtil {
     originalFileName: string,
     subPath: string = UPLOAD_DEFAULT
   ): Promise<[string, string]> {
-    let err = this.isAllowWrite(originalFileName, []);
+    const err = this.isAllowWrite(originalFileName, []);
     if (err) {
       return ['', err];
     }
@@ -296,12 +296,13 @@ export class FileUtil {
   /**
    * 上传资源文件删除
    * @param filePath 文件存放资源路径，URL相对地址
-   * @return true 删除正常 false 删除失败
+   * @return 错误信息
    */
   async deleteUploadFile(filePath: string): Promise<string> {
     // 检查文件允许访问
-    if (!this.isAllowRead(filePath)) {
-      return `文件 ${filePath} 非法，不允许删除。`;
+    const err = this.isAllowRead(filePath);
+    if (err) {
+      return err;
     }
     // 上传资源路径
     const { prefix, dir } = this.config.get<Record<string, string>>(
@@ -320,12 +321,13 @@ export class FileUtil {
    * @param asserPath 内部文件相对地址，如：/template/excel/xxx.xlsx
    * @return [文件读取流, 错误信息]
    */
-  async readAssetsFileStream(asserPath: string) {
+  async readAssetsFileStream(asserPath: string): Promise<[Buffer, string]> {
     // 检查文件允许访问
-    if (!this.isAllowRead(asserPath)) {
-      throw new Error(`内部文件 ${asserPath} 非法，不允许读取。`);
+    const err = this.isAllowRead(asserPath);
+    if (err) {
+      return [undefined, err];
     }
-    const absPath = posix.join('assets', asserPath);
+    const absPath = resolve(__dirname, '../../../assets', asserPath);
     return await getFileStream(absPath);
   }
 
@@ -334,7 +336,7 @@ export class FileUtil {
    * @param filePath 上传文件路径
    * @return 绝对路径
    */
-  parseUploadFileAbsPath(filePath: string): string {
+  public parseUploadFileAbsPath(filePath: string): string {
     // 上传资源路径
     const { prefix, dir } = this.config.get<Record<string, string>>(
       'staticFile.dirs.upload'
@@ -351,15 +353,24 @@ export class FileUtil {
   async excelReadRecord(
     file: UploadFileInfo<string>,
     sheetName: string
-  ): Promise<Record<string, string>[]> {
+  ): Promise<[Record<string, string>[], string]> {
     const { data, filename } = file;
-    this.isAllowWrite(filename, ['.xls', '.xlsx']);
+    let err = this.isAllowWrite(filename, ['.xls', '.xlsx']);
+    if (err) {
+      return [undefined, err];
+    }
     const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
     // 保存上传文件
     const savePath = posix.join(uploadDir, UPLOAD_IMPORT, parseDatePath());
-    await checkDirPathExists(savePath);
-    // const fileName = this.generateFileName(filename,);
-    await transferToNewFile(file, savePath);
+    err = await checkDirPathExists(savePath);
+    if (err) {
+      return [undefined, err];
+    }
+    const fileName = this.generateFileName(filename);
+    err = await transferToNewFile(file, posix.join(savePath, fileName));
+    if (err) {
+      return [undefined, err];
+    }
     // 读取数据
     return await readSheet(data, sheetName);
   }
