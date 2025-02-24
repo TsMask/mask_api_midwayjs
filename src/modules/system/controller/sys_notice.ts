@@ -123,7 +123,7 @@ export class SysNoticeController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.number()) @Param('noticeId') noticeId: string
+    @Valid(RuleType.string()) @Param('noticeId') noticeId: string
   ): Promise<Resp> {
     if (noticeId === '') {
       this.c.status = 400;

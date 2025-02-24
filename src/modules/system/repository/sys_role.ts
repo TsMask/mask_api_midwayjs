@@ -91,7 +91,7 @@ export class SysRoleRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    rows = await tx.orderBy('s.role_sort', 'ASC').getMany();
+    rows = await tx.addOrderBy('s.role_sort', 'ASC').getMany();
     return [rows, total];
   }
 
@@ -125,7 +125,7 @@ export class SysRoleRepository {
       });
     }
     // 查询数据
-    return await tx.orderBy('s.role_sort', 'ASC').getMany();
+    return await tx.addOrderBy('s.role_sort', 'ASC').getMany();
   }
 
   /**
@@ -193,16 +193,19 @@ export class SysRoleRepository {
     if (sysRole.updateBy) {
       sysRole.updateTime = Date.now().valueOf();
     }
-    delete sysRole.roleId;
-    delete sysRole.delFlag;
-    delete sysRole.createBy;
-    delete sysRole.createTime;
+    const data = Object.assign({}, sysRole);
+    delete data.roleId;
+    delete data.delFlag;
+    delete data.createBy;
+    delete data.createTime;
+    delete data.deptIds;
+    delete data.menuIds;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysRole)
-      .set(sysRole)
+      .set(data)
       .andWhere('role_id = :roleId', { roleId: sysRole.roleId })
       .execute();
     return tx.affected;
@@ -270,7 +273,7 @@ export class SysRoleRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .distinct(true)
-      .select('r.*')
+      .select('r')
       .from(SysRole, 'r')
       .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.role_id')
       .leftJoin('sys_user', 'u', 'u.user_id = ur.user_id')

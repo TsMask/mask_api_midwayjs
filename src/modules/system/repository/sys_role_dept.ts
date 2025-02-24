@@ -24,7 +24,7 @@ export class SysRoleDeptRepository {
       .queryBuilder('')
       .delete()
       .from(SysRoleDept)
-      .andWhere('role_id int (:roleIds)', { roleIds })
+      .andWhere('role_id in (:roleIds)', { roleIds })
       .execute();
     return tx.affected;
   }
@@ -42,7 +42,7 @@ export class SysRoleDeptRepository {
       .queryBuilder('')
       .delete()
       .from(SysRoleDept)
-      .andWhere('dept_id int (:deptIds)', { deptIds })
+      .andWhere('dept_id in (:deptIds)', { deptIds })
       .execute();
     return tx.affected;
   }
@@ -63,7 +63,7 @@ export class SysRoleDeptRepository {
       .values(sysRoleDepts)
       .execute();
     const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
+    if (raw.affectedRows > 0) {
       return raw.affectedRows;
     }
     return 0;

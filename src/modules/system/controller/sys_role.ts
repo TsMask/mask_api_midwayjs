@@ -222,7 +222,7 @@ export class SysRoleController {
 
     // 检查是否存在
     const role = await this.sysRoleService.findById(roleId);
-    if (!role) {
+    if (role.roleId !== roleId) {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
@@ -275,7 +275,7 @@ export class SysRoleController {
     }
     // 检查是否存在
     const roleInfo = await this.sysRoleService.findById(roleId);
-    if (!roleInfo) {
+    if (roleInfo.roleId !== roleId) {
       return Resp.errMsg('没有权限访问角色数据！');
     }
     // 更新数据权限

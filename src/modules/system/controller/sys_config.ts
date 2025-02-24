@@ -110,7 +110,7 @@ export class SysConfigController {
 
     // 检查是否存在
     const configInfo = await this.sysConfigService.findById(body.configId);
-    if (!configInfo) {
+    if (configInfo.configId !== body.configId) {
       return Resp.errMsg('没有权限访问参数配置数据！');
     }
 

@@ -43,7 +43,7 @@ export class SysUserRoleRepository {
       .queryBuilder('')
       .delete()
       .from(SysUserRole)
-      .andWhere('user_id int (:userIds)', { userIds })
+      .andWhere('user_id in (:userIds)', { userIds })
       .execute();
     return tx.affected;
   }
@@ -66,7 +66,7 @@ export class SysUserRoleRepository {
       .delete()
       .from(SysUserRole)
       .andWhere('role_id = :roleId', { roleId })
-      .andWhere('user_id int (:userIds)', { userIds })
+      .andWhere('user_id in (:userIds)', { userIds })
       .execute();
     return tx.affected;
   }
@@ -87,7 +87,7 @@ export class SysUserRoleRepository {
       .values(sysUserRoles)
       .execute();
     const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
+    if (raw.affectedRows > 0) {
       return raw.affectedRows;
     }
     return 0;

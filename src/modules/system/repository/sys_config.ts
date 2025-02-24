@@ -34,7 +34,9 @@ export class SysConfigRepository {
       });
     }
     if (query.configType) {
-      tx.andWhere('s.config_type = :configType', { configType: query.configType });
+      tx.andWhere('s.config_type = :configType', {
+        configType: query.configType,
+      });
     }
     if (query.configKey) {
       tx.andWhere("s.config_key like concat(:configKey, '%')", {
@@ -138,7 +140,9 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's')
-      .andWhere("s.config_id in (:configIds) and s.del_flag = '0'", { configIds })
+      .andWhere("s.config_id in (:configIds) and s.del_flag = '0'", {
+        configIds,
+      })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -186,16 +190,17 @@ export class SysConfigRepository {
     if (sysConfig.updateBy) {
       sysConfig.updateTime = Date.now().valueOf();
     }
-    delete sysConfig.configId;
-    delete sysConfig.delFlag;
-    delete sysConfig.createBy;
-    delete sysConfig.createTime;
+    const data = Object.assign({}, sysConfig);
+    delete data.configId;
+    delete data.delFlag;
+    delete data.createBy;
+    delete data.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysConfig)
-      .set(sysConfig)
+      .set(data)
       .andWhere('config_id = :configId', { configId: sysConfig.configId })
       .execute();
     return tx.affected;

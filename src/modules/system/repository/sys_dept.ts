@@ -122,16 +122,17 @@ export class SysDeptRepository {
     if (sysDept.updateBy) {
       sysDept.updateTime = Date.now().valueOf();
     }
-    delete sysDept.deptId;
-    delete sysDept.delFlag;
-    delete sysDept.createBy;
-    delete sysDept.createTime;
+    const data = Object.assign({}, sysDept);
+    delete data.deptId;
+    delete data.delFlag;
+    delete data.createBy;
+    delete data.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysDept)
-      .set(sysDept)
+      .set(data)
       .andWhere('dept_id = :deptId', { deptId: sysDept.deptId })
       .execute();
     return tx.affected;

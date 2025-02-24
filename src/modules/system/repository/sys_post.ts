@@ -57,7 +57,7 @@ export class SysPostRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    rows = await tx.orderBy('s.post_sort', 'ASC').getMany();
+    rows = await tx.addOrderBy('s.post_sort', 'ASC').getMany();
     return [rows, total];
   }
 
@@ -159,16 +159,17 @@ export class SysPostRepository {
     if (sysPost.updateBy) {
       sysPost.updateTime = Date.now().valueOf();
     }
-    delete sysPost.postId;
-    delete sysPost.delFlag;
-    delete sysPost.createBy;
-    delete sysPost.createTime;
+    const data = Object.assign({}, sysPost);
+    delete data.postId;
+    delete data.delFlag;
+    delete data.createBy;
+    delete data.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysPost)
-      .set(sysPost)
+      .set(data)
       .andWhere('post_id = :postId', { postId: sysPost.postId })
       .execute();
     return tx.affected;
@@ -242,7 +243,7 @@ export class SysPostRepository {
         's.post_id in (select post_id from sys_user_post  where user_id = :userId)',
         { userId }
       )
-      .orderBy('s.post_id', 'ASC')
+      .addOrderBy('s.post_id', 'ASC')
       .getMany();
     if (rows.length > 0) {
       return rows;

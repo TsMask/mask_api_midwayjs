@@ -168,17 +168,17 @@ export class SysMenuRepository {
       sysMenu.cacheFlag = '1';
       sysMenu.perms = '';
     }
-
-    delete sysMenu.menuId;
-    delete sysMenu.delFlag;
-    delete sysMenu.createBy;
-    delete sysMenu.createTime;
+    const data = Object.assign({}, sysMenu);
+    delete data.menuId;
+    delete data.delFlag;
+    delete data.createBy;
+    delete data.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysMenu)
-      .set(sysMenu)
+      .set(data)
       .andWhere('menu_id = :menuId', { menuId: sysMenu.menuId })
       .execute();
     return tx.affected;

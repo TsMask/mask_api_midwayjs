@@ -43,7 +43,7 @@ export class SysRoleMenuRepository {
       .queryBuilder('')
       .delete()
       .from(SysRoleMenu)
-      .andWhere('role_id int (:roleIds)', { roleIds })
+      .andWhere('role_id in (:roleIds)', { roleIds })
       .execute();
     return tx.affected;
   }
@@ -61,7 +61,7 @@ export class SysRoleMenuRepository {
       .queryBuilder('')
       .delete()
       .from(SysRoleMenu)
-      .andWhere('menu_id int (:menuIds)', { menuIds })
+      .andWhere('menu_id in (:menuIds)', { menuIds })
       .execute();
     return tx.affected;
   }
@@ -82,7 +82,7 @@ export class SysRoleMenuRepository {
       .values(sysRoleMenus)
       .execute();
     const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
+    if (raw.affectedRows > 0) {
       return raw.affectedRows;
     }
     return 0;

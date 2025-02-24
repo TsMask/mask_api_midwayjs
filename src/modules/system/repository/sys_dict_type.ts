@@ -184,16 +184,17 @@ export class SysDictTypeRepository {
     if (sysDictType.updateBy) {
       sysDictType.updateTime = Date.now().valueOf();
     }
-    delete sysDictType.dictId;
-    delete sysDictType.delFlag;
-    delete sysDictType.createBy;
-    delete sysDictType.createTime;
+    const data = Object.assign({}, sysDictType);
+    delete data.dictId;
+    delete data.delFlag;
+    delete data.createBy;
+    delete data.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysDictType)
-      .set(sysDictType)
+      .set(data)
       .andWhere('dict_id = :dictId', { dictId: sysDictType.dictId })
       .execute();
     return tx.affected;

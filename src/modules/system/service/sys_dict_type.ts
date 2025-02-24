@@ -101,12 +101,12 @@ export class SysDictTypeService {
    * @returns 影响记录数
    */
   public async update(sysDictType: SysDictType): Promise<number> {
-    const arr = await this.sysDictTypeRepository.update(sysDictType);
-    if (arr === 0) {
+    const arr = await this.sysDictTypeRepository.selectByIds([sysDictType.dictId]);
+    if (arr.length === 0) {
       return 0;
     }
     // 同字典类型被修改时，同步更新修改
-    const oldDictType = arr[0].DictType;
+    const oldDictType = arr[0].dictType;
     const rows = await this.sysDictTypeRepository.update(sysDictType);
     if (
       rows > 0 &&

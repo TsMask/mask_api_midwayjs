@@ -87,7 +87,7 @@ export class SysLogLoginRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    rows = await tx.orderBy('s.id', 'DESC').getMany();
+    rows = await tx.addOrderBy('s.id', 'DESC').getMany();
     return [rows, total];
   }
 

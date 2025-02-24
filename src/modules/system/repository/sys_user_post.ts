@@ -43,7 +43,7 @@ export class SysUserPostRepository {
       .queryBuilder('')
       .delete()
       .from(SysUserPost)
-      .andWhere('user_id int (:userIds)', { userIds })
+      .andWhere('user_id in (:userIds)', { userIds })
       .execute();
     return tx.affected;
   }
@@ -64,7 +64,7 @@ export class SysUserPostRepository {
       .values(sysUserPosts)
       .execute();
     const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
+    if (raw.affectedRows > 0) {
       return raw.affectedRows;
     }
     return 0;

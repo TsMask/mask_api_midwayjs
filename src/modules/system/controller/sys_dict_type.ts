@@ -115,7 +115,7 @@ export class SysDictTypeController {
 
     // 检查数据是否存在
     const dictType = await this.sysDictTypeService.findById(body.dictId);
-    if (!dictType) {
+    if (dictType.dictId !== body.dictId) {
       return Resp.errMsg('没有权限访问字典类型数据！');
     }
 
@@ -150,7 +150,7 @@ export class SysDictTypeController {
   }
 
   /**字典类型删除 */
-  @Del('/:dictIds')
+  @Del('/:dictId')
   @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
   @OperateLog({
     title: '字典类型信息',

@@ -93,7 +93,7 @@ export class SysDictDataRepository {
       });
     }
     // 查询数据
-    return await tx.orderBy('s.data_sort', 'ASC').getMany();
+    return await tx.addOrderBy('s.data_sort', 'ASC').getMany();
   }
 
   /**
@@ -161,16 +161,17 @@ export class SysDictDataRepository {
     if (sysDictData.updateBy) {
       sysDictData.updateTime = Date.now().valueOf();
     }
-    delete sysDictData.dataId;
-    delete sysDictData.delFlag;
-    delete sysDictData.createBy;
-    delete sysDictData.createTime;
+    const data = Object.assign({}, sysDictData);
+    delete data.dataId;
+    delete data.delFlag;
+    delete data.createBy;
+    delete data.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysDictData)
-      .set(sysDictData)
+      .set(data)
       .andWhere('data_id = :dataId', { dataId: sysDictData.dataId })
       .execute();
     return tx.affected;

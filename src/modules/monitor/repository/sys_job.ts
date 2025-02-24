@@ -40,7 +40,9 @@ export class SysJobRepository {
       });
     }
     if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('s.status_flag = :statusFlag', {
+        statusFlag: query.statusFlag,
+      });
     }
 
     // 查询结果
@@ -77,7 +79,9 @@ export class SysJobRepository {
       .from(SysJob, 's');
     // 构建查询条件
     if (sysJob.jobName) {
-      tx.andWhere("s.job_name like concat(:jobName, '%')", { v: sysJob.jobName });
+      tx.andWhere("s.job_name like concat(:jobName, '%')", {
+        v: sysJob.jobName,
+      });
     }
     if (sysJob.jobGroup) {
       tx.andWhere('s.job_group = :jobGroup', { jobGroup: sysJob.jobGroup });
@@ -160,12 +164,16 @@ export class SysJobRepository {
     if (sysJob.updateBy) {
       sysJob.updateTime = Date.now().valueOf();
     }
+    const data = Object.assign({}, sysJob);
+    delete data.jobId;
+    delete data.createBy;
+    delete data.createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysJob)
-      .set(sysJob)
+      .set(data)
       .andWhere('jobId = :jobId', { jobId: sysJob.jobId })
       .execute();
     return tx.affected;

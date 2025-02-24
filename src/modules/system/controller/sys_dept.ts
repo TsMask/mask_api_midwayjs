@@ -44,7 +44,9 @@ export class SysDeptController {
     @Valid(RuleType.number()) @Query('deptId') deptId: number,
     @Valid(RuleType.number()) @Query('parentId') parentId: number,
     @Valid(RuleType.string()) @Query('deptName') deptName: string,
-    @Valid(RuleType.string()) @Query('statusFlag') statusFlag: string
+    @Valid(RuleType.string().pattern(/^[01]$/))
+    @Query('statusFlag')
+    statusFlag: string
   ): Promise<Resp> {
     const sysDept = new SysDept();
     sysDept.deptId = deptId;
@@ -213,7 +215,7 @@ export class SysDeptController {
 
     // 检查数据是否存在
     const dept = await this.sysDeptService.findById(deptId);
-    if (dept.deptId === deptId) {
+    if (dept.deptId !== deptId) {
       return Resp.errMsg('没有权限访问部门数据！');
     }
 
@@ -266,7 +268,19 @@ export class SysDeptController {
   /**部门树结构列表 */
   @Get('/tree')
   @PreAuthorize({ hasPermissions: ['system:dept:list', 'system:user:list'] })
-  public async tree(@Query() sysDept: SysDept): Promise<Resp> {
+  public async tree(
+    @Valid(RuleType.number()) @Query('deptId') deptId: number,
+    @Valid(RuleType.number()) @Query('parentId') parentId: number,
+    @Valid(RuleType.string()) @Query('deptName') deptName: string,
+    @Valid(RuleType.string().pattern(/^[01]$/))
+    @Query('statusFlag')
+    statusFlag: string
+  ): Promise<Resp> {
+    const sysDept = new SysDept();
+    sysDept.deptId = deptId;
+    sysDept.parentId = parentId;
+    sysDept.deptName = deptName;
+    sysDept.statusFlag = statusFlag;
     const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
     const data = await this.sysDeptService.buildTreeSelect(
       sysDept,
