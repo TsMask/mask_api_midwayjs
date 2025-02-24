@@ -64,7 +64,7 @@ create table sys_user (
   create_time       bigint          default 0                  comment '创建时间',
   update_by         varchar(64)     default ''                 comment '更新者',
   update_time       bigint          default 0                  comment '更新时间',
-  remark            varchar(200)    default null               comment '备注',
+  remark            varchar(200)    default ''                 comment '备注',
   primary key (user_id)
 ) engine=innodb auto_increment=100 comment='用户信息表';
 
@@ -457,7 +457,7 @@ create table sys_dict_data
   create_time      bigint          default 0                  comment '创建时间',
   update_by        varchar(64)     default ''                 comment '更新者',
   update_time      bigint          default 0                  comment '更新时间',
-  remark           varchar(200)    default null               comment '备注',
+  remark           varchar(200)    default ''                 comment '备注',
   primary key (data_id)
 ) engine=innodb auto_increment=100 comment='字典数据表';
 
@@ -508,7 +508,7 @@ create table sys_config (
   create_time       bigint          default 0                  comment '创建时间',
   update_by         varchar(64)     default ''                 comment '更新者',
   update_time       bigint          default 0                  comment '更新时间',
-  remark            varchar(200)    default null               comment '备注',
+  remark            varchar(200)    default ''                 comment '备注',
   primary key (config_id)
 ) engine=innodb auto_increment=50 comment='参数配置表';
 
