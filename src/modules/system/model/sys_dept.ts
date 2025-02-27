@@ -5,17 +5,17 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('sys_dept')
 export class SysDept {
   /**部门ID */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @PrimaryGeneratedColumn({ name: 'dept_id' })
   deptId: number;
 
   /**父部门ID */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'parent_id' })
   parentId: number;
 
   /**祖级列表 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({
     type: 'varchar',
     name: 'ancestors',
@@ -28,22 +28,22 @@ export class SysDept {
   deptName: string;
 
   /**显示顺序 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'dept_sort' })
   deptSort: number;
 
   /**负责人 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'leader' })
   leader: string;
 
   /**联系电话 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'phone' })
   phone: string;
 
   /**邮箱 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'email' })
   email: string;
 
@@ -58,22 +58,22 @@ export class SysDept {
   delFlag: string;
 
   /**创建者 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'create_by' })
   createBy: string;
 
   /**创建时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'create_time' })
   createTime: number;
 
   /**更新者 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'update_by' })
   updateBy: string;
 
   /**更新时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'update_time' })
   updateTime: number;
 

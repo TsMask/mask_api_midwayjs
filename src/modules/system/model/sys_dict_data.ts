@@ -5,7 +5,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('sys_dict_data')
 export class SysDictData {
   /**数据ID */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @PrimaryGeneratedColumn({ name: 'data_id' })
   dataId: number;
 
@@ -25,17 +25,17 @@ export class SysDictData {
   dataValue: string;
 
   /**数据排序 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'data_sort' })
   dataSort: number;
 
   /**样式属性（样式扩展） */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'tag_class' })
   tagClass: string;
 
   /**标签类型（预设颜色） */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'tag_type' })
   tagType: string;
 
@@ -50,27 +50,27 @@ export class SysDictData {
   delFlag: string;
 
   /**创建者 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'create_by' })
   createBy: string;
 
   /**创建时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'create_time' })
   createTime: number;
 
   /**更新者 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'update_by' })
   updateBy: string;
 
   /**更新时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'update_time' })
   updateTime: number;
 
   /**备注 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({
     length: 200,
     name: 'remark',

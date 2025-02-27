@@ -5,7 +5,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('sys_config')
 export class SysConfig {
   /**参数主键 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @PrimaryGeneratedColumn({ name: 'config_id' })
   configId: number;
 
@@ -35,27 +35,27 @@ export class SysConfig {
   delFlag: string;
 
   /**创建者 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'create_by' })
   createBy: string;
 
   /**创建时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'create_time' })
   createTime: number;
 
   /**更新者 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'update_by' })
   updateBy: string;
 
   /**更新时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'update_time' })
   updateTime: number;
 
   /**备注 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({
     length: 200,
     name: 'remark',

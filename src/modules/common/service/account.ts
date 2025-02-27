@@ -207,7 +207,7 @@ export class AccountService {
     isSystemUser: boolean
   ): Promise<[string[], string[]]> {
     if (isSystemUser) {
-      return [[SYS_PERMISSION_SYSTEM], [SYS_ROLE_SYSTEM_KEY]];
+      return [[SYS_ROLE_SYSTEM_KEY], [SYS_PERMISSION_SYSTEM]];
     }
     // 角色key
     const roleGroup: string[] = [];

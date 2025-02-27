@@ -5,7 +5,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('sys_job_log')
 export class SysJobLog {
   /**任务日志ID */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @PrimaryGeneratedColumn({ name: 'log_id' })
   logId: number;
 
@@ -28,12 +28,12 @@ export class SysJobLog {
   invokeTarget: string;
 
   /**调用目标传入参数 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'target_params' })
   targetParams: string;
 
   /**日志信息 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({
     length: 500,
     name: 'job_msg',
@@ -46,12 +46,12 @@ export class SysJobLog {
   statusFlag: string;
 
   /**创建时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'create_time' })
   createTime: number;
 
   /**消耗时间（毫秒） */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'cost_time' })
   costTime: number;
 }

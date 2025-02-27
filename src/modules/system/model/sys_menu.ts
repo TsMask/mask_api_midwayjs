@@ -5,7 +5,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('sys_menu')
 export class SysMenu {
   /**菜单ID */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @PrimaryGeneratedColumn({ name: 'menu_id' })
   menuId: number;
 
@@ -15,22 +15,22 @@ export class SysMenu {
   menuName: string;
 
   /**父菜单ID 默认0 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'parent_id' })
   parentId: number;
 
   /**显示顺序 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'menu_sort' })
   menuSort: number;
 
   /**路由地址 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'menu_path' })
   menuPath: string;
 
   /**组件路径 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'component' })
   component: string;
 
@@ -44,7 +44,7 @@ export class SysMenu {
   @Column({ name: 'cache_flag' })
   cacheFlag: string;
 
-  /**菜单类型（D目录 M菜单 A访问权限） */
+  /**菜单类型（D目录 M菜单 A权限） */
   @Rule(RuleType.string().pattern(/^[DMA]$/))
   @Column({ name: 'menu_type' })
   menuType: string;
@@ -60,12 +60,12 @@ export class SysMenu {
   statusFlag: string;
 
   /**权限标识 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'perms' })
   perms: string;
 
   /**菜单图标（#无图标） */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'icon' })
   icon: string;
 
@@ -75,27 +75,27 @@ export class SysMenu {
   delFlag: string;
 
   /**创建者 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'create_by' })
   createBy: string;
 
   /**创建时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'create_time' })
   createTime: number;
 
   /**更新者 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({ name: 'update_by' })
   updateBy: string;
 
   /**更新时间 */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @Column({ name: 'update_time' })
   updateTime: number;
 
   /**备注 */
-  @Rule(RuleType.string())
+  @Rule(RuleType.string().allow(''))
   @Column({
     length: 200,
     name: 'remark',

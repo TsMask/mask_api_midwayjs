@@ -5,12 +5,12 @@ import { PrimaryColumn, Entity } from 'typeorm';
 @Entity('sys_user_post')
 export class SysUserPost {
   /**用户ID */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @PrimaryColumn({ name: 'user_id' })
   userId: number;
 
   /**岗位ID */
-  @Rule(RuleType.number())
+  @Rule(RuleType.number().allow(0))
   @PrimaryColumn({ name: 'post_id' })
   postId: number;
 }
