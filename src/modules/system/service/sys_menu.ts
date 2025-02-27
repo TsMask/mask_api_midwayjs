@@ -282,7 +282,7 @@ export class SysMenuService {
       router.component = this.getComponent(item);
       router.meta = this.getRouteMeta(item);
       router.children = [];
-      router.redirect = "";
+      router.redirect = '';
 
       // 子项菜单 目录类型 非路径链接
       const cMenus = item.children;

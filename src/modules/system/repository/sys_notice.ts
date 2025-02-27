@@ -34,7 +34,9 @@ export class SysNoticeRepository {
       });
     }
     if (query.noticeType) {
-      tx.andWhere('s.notice_type = :noticeType', { noticeType: query.noticeType });
+      tx.andWhere('s.notice_type = :noticeType', {
+        noticeType: query.noticeType,
+      });
     }
     if (query.createBy) {
       tx.andWhere("s.create_by like concat(:createBy, '%')", {
@@ -42,7 +44,9 @@ export class SysNoticeRepository {
       });
     }
     if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('s.status_flag = :statusFlag', {
+        statusFlag: query.statusFlag,
+      });
     }
     if (query.beginTime) {
       if (`${query.beginTime}`.length === 10) {
@@ -140,7 +144,9 @@ export class SysNoticeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysNotice, 's')
-      .andWhere("s.notice_id in (:noticeIds) and s.del_flag = '0'", { noticeIds })
+      .andWhere("s.notice_id in (:noticeIds) and s.del_flag = '0'", {
+        noticeIds,
+      })
       .getMany();
     if (rows.length > 0) {
       return rows;

@@ -34,7 +34,9 @@ export class SysJobLogRepository {
       tx.andWhere('s.job_group = :jobGroup', { jobGroup: query.jobGroup });
     }
     if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('s.status_flag = :statusFlag', {
+        statusFlag: query.statusFlag,
+      });
     }
     if (query.invokeTarget) {
       tx.andWhere("s.invoke_target like concat(:invokeTarget, '%')", {

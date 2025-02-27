@@ -101,7 +101,9 @@ export class SysDictTypeService {
    * @returns 影响记录数
    */
   public async update(sysDictType: SysDictType): Promise<number> {
-    const arr = await this.sysDictTypeRepository.selectByIds([sysDictType.dictId]);
+    const arr = await this.sysDictTypeRepository.selectByIds([
+      sysDictType.dictId,
+    ]);
     if (arr.length === 0) {
       return 0;
     }

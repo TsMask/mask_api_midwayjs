@@ -2,7 +2,7 @@ import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 
 import {
-  MENU_TYPE_BUTTON,
+  MENU_TYPE_AUTH,
   MENU_TYPE_DIR,
   MENU_TYPE_MENU,
 } from '../../../framework/constants/menu';
@@ -109,7 +109,7 @@ export class SysMenuRepository {
     }
 
     // 根据菜单类型重置参数
-    if (sysMenu.menuType === MENU_TYPE_BUTTON) {
+    if (sysMenu.menuType === MENU_TYPE_AUTH) {
       sysMenu.component = '';
       sysMenu.frameFlag = '1';
       sysMenu.cacheFlag = '1';
@@ -155,7 +155,7 @@ export class SysMenuRepository {
     }
 
     // 根据菜单类型重置参数
-    if (sysMenu.menuType === MENU_TYPE_BUTTON) {
+    if (sysMenu.menuType === MENU_TYPE_AUTH) {
       sysMenu.component = '';
       sysMenu.frameFlag = '1';
       sysMenu.cacheFlag = '1';

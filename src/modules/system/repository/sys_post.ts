@@ -38,7 +38,9 @@ export class SysPostRepository {
       });
     }
     if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('s.status_flag = :statusFlag', {
+        statusFlag: query.statusFlag,
+      });
     }
 
     // 查询结果

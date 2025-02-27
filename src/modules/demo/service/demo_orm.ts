@@ -30,7 +30,9 @@ export class DemoORMService {
       tx.andWhere('d.title = :title', { title: query.title });
     }
     if (query.statusFlag) {
-      tx.andWhere('d.status_flag = :statusFlag', { statusFlag: query.statusFlag });
+      tx.andWhere('d.status_flag = :statusFlag', {
+        statusFlag: query.statusFlag,
+      });
     }
 
     // 查询结果
