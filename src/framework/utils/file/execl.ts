@@ -8,7 +8,7 @@ import { Workbook } from 'exceljs';
  */
 export async function readSheet(
   filePath: string,
-  sheetName: string = 'Sheet1'
+  sheetName = 'Sheet1'
 ): Promise<[Record<string, string>[], string]> {
   // 读取Excel文件
   const workbook = new Workbook();
@@ -16,7 +16,7 @@ export async function readSheet(
   // 获取工作表
   const worksheet = workbook.getWorksheet(sheetName);
   if (!worksheet) {
-     return [[], `Sheet "${sheetName}" not found`];
+    return [[], `Sheet "${sheetName}" not found`];
   }
   // 获取表头行
   const headerRow = worksheet.getRow(1);

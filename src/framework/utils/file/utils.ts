@@ -222,6 +222,7 @@ export async function transferToNewFile(
  * @param dirPath 读取要合并文件的目录
  * @param writePath 写入路径
  * @param fileName 文件名称
+ * @return 错误信息
  */
 export async function mergeToNewFile(
   dirPath: string,
@@ -229,7 +230,7 @@ export async function mergeToNewFile(
   fileName: string
 ): Promise<string> {
   // 读取目录下所有文件并排序，注意文件名称是否数值
-  let [fileNameList, err] = await getDirFileNameList(dirPath);
+  const [fileNameList, err] = await getDirFileNameList(dirPath);
   if (err) {
     return err;
   }
@@ -239,9 +240,9 @@ export async function mergeToNewFile(
 
   fileNameList.sort((a, b) => parseInt(a) - parseInt(b));
 
-  err = await checkDirPathExists(writePath);
-  if (err) {
-    return err;
+  const errMsg = await checkDirPathExists(writePath);
+  if (errMsg) {
+    return errMsg;
   }
 
   // 读取文件转移到新路径文件

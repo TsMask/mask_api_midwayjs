@@ -145,9 +145,12 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       // 是否需要保存response，参数和值
       if (metadataObj.isSaveResponseData) {
         const contentDisposition = c.get('Content-Disposition');
-        const contentType = c.get('Content-Type') || 'application/json; charset=utf-8';
+        const contentType =
+          c.get('Content-Type') || 'application/json; charset=utf-8';
         const content = contentType + contentDisposition;
-        const msg = `{"status":"${status}","size":"${JSON.stringify(res).length}","content-type":"${content}"}`;
+        const msg = `{"status":"${status}","size":"${
+          JSON.stringify(res).length
+        }","content-type":"${content}"}`;
         operLog.operaMsg = msg;
       }
 

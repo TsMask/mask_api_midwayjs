@@ -73,8 +73,10 @@ export class TokenUtil {
     switch (algorithm) {
       case 'HS512':
         method = 'HS512';
+        break;
       case 'HS384':
         method = 'HS384';
+        break;
       case 'HS256':
       default:
         method = 'HS256';
@@ -170,7 +172,7 @@ export class TokenUtil {
         try {
           return JSON.parse(infoStr) as TokenInfo;
         } catch (e) {
-         console.error(e.name, 'parse =>', e.message);
+          console.error(e.name, 'parse =>', e.message);
         }
       }
     }
