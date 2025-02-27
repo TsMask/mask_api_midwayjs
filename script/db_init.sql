@@ -148,7 +148,7 @@ create table sys_menu (
   component         varchar(255)    default ''                 comment '组件路径',
   frame_flag        varchar(1)      default '1'                comment '内部跳转标记（0否 1是）',
   cache_flag        varchar(1)      default '0'                comment '缓存标记（0不缓存 1缓存）',
-  menu_type         varchar(1)      not null                   comment '菜单类型（D目录 M菜单 A访问权限）',
+  menu_type         varchar(1)      not null                   comment '菜单类型（D目录 M菜单 A权限）',
   visible_flag      varchar(1)      default '0'                comment '是否显示（0隐藏 1显示）',
   status_flag       varchar(1)      default '0'                comment '菜单状态（0停用 1正常）',
   perms             varchar(128)    default ''                 comment '权限标识',
