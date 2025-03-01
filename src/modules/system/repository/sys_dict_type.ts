@@ -227,7 +227,7 @@ export class SysDictTypeRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.dict_id')
+      .select('s')
       .from(SysDictType, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接

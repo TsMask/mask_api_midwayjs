@@ -264,7 +264,7 @@ export class SysUserRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.user_id')
+      .select('s')
       .from(SysUser, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接

@@ -165,7 +165,7 @@ export class SysDeptRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.dept_id')
+      .select('s')
       .from(SysDept, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
@@ -249,7 +249,7 @@ export class SysDeptRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .distinctOn(['s.dept_id'])
-      .select('s.dept_id')
+      .select('s')
       .from(SysDept, 's')
       .andWhere("s.del_flag = '0'")
       .andWhere(

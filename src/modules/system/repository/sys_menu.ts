@@ -211,7 +211,7 @@ export class SysMenuRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.menu_id')
+      .select('s')
       .from(SysMenu, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
@@ -281,10 +281,11 @@ export class SysMenuRepository {
     if (userId <= 0) {
       return [];
     }
-    const rows = await this.db
+    const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('m.perms')
+      .distinct(true)
+      .select('m')
       .from(SysMenu, 'm')
       .leftJoin('sys_role_menu', 'rm', 'rm.menu_id = m.menu_id')
       .leftJoin('sys_user_role', 'ur', 'rm.role_id = ur.role_id')
@@ -298,9 +299,9 @@ export class SysMenuRepository {
         {
           userId,
         }
-      )
-      .distinct(true)
-      .getMany();
+      );
+
+    const rows = await tx.getMany();
     return rows.map(v => v.perms);
   }
 
@@ -321,12 +322,12 @@ export class SysMenuRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .distinctOn(['s.menu_id'])
-      .select('s.menu_id')
+      .distinct(true)
+      .select('s')
       .from(SysMenu, 's')
       .andWhere("s.del_flag = '0'")
       .andWhere(
-        'menu_id in (select menu_id from sys_role_menu where role_id = :roleId)',
+        's.menu_id in (select menu_id from sys_role_menu where role_id = :roleId)',
         { roleId }
       );
     // 父子互相关联显示，取所有子节点

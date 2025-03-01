@@ -204,7 +204,7 @@ export class SysPostRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.post_id')
+      .select('s')
       .from(SysPost, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接

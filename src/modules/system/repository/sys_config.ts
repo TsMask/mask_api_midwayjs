@@ -233,7 +233,7 @@ export class SysConfigRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.config_id')
+      .select('s')
       .from(SysConfig, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
@@ -267,7 +267,7 @@ export class SysConfigRepository {
     const item = await this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.config_value')
+      .select('s')
       .from(SysConfig, 's')
       .andWhere("s.config_key = :configKey and s.del_flag = '0'", { configKey })
       .getOne();

@@ -207,7 +207,7 @@ export class SysJobRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.job_id')
+      .select('s')
       .from(SysJob, 's');
     // 查询条件拼接
     if (sysJob.jobName) {

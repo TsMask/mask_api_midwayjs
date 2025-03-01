@@ -238,7 +238,7 @@ export class SysRoleRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.role_id')
+      .select('s')
       .from(SysRole, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
