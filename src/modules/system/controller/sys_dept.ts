@@ -269,9 +269,9 @@ export class SysDeptController {
   @Get('/tree')
   @PreAuthorize({ hasPermissions: ['system:dept:list', 'system:user:list'] })
   public async tree(
-    @Valid(RuleType.number()) @Query('deptId') deptId: number,
-    @Valid(RuleType.number()) @Query('parentId') parentId: number,
-    @Valid(RuleType.string()) @Query('deptName') deptName: string,
+    @Valid(RuleType.number().allow(0)) @Query('deptId') deptId: number,
+    @Valid(RuleType.number().allow(0)) @Query('parentId') parentId: number,
+    @Valid(RuleType.string().allow('')) @Query('deptName') deptName: string,
     @Valid(RuleType.string().pattern(/^[01]$/))
     @Query('statusFlag')
     statusFlag: string

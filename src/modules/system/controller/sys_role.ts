@@ -178,7 +178,7 @@ export class SysRoleController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string()) @Param('roleId') roleId: string
+    @Valid(RuleType.string().allow('')) @Param('roleId') roleId: string
   ): Promise<Resp> {
     if (roleId === '') {
       this.c.status = 400;

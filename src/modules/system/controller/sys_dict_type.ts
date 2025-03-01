@@ -157,7 +157,7 @@ export class SysDictTypeController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string()) @Param('dictId') dictId: string
+    @Valid(RuleType.string().allow('')) @Param('dictId') dictId: string
   ): Promise<Resp> {
     if (dictId === '') {
       this.c.status = 400;

@@ -83,9 +83,9 @@ export class SysProfileController {
   public async updateProfile(
     @Valid(RuleType.string().required()) @Body('nickName') nickName: string,
     @Valid(RuleType.string().pattern(/^[012]$/)) @Body('sex') sex: string,
-    @Valid(RuleType.string()) @Body('phone') phone: string,
-    @Valid(RuleType.string()) @Body('email') email: string,
-    @Valid(RuleType.string()) @Body('avatar') avatar: string
+    @Valid(RuleType.string().allow('')) @Body('phone') phone: string,
+    @Valid(RuleType.string().allow('')) @Body('email') email: string,
+    @Valid(RuleType.string().allow('')) @Body('avatar') avatar: string
   ): Promise<Resp> {
     if (nickName === '' || sex === '') {
       return Resp.codeMsg(40010, 'bind err: nickName or sex not is empty');

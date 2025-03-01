@@ -191,7 +191,7 @@ export class SysDictDataController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string()) @Param('dataId') dataId: string
+    @Valid(RuleType.string().allow('')) @Param('dataId') dataId: string
   ): Promise<Resp> {
     if (dataId === '') {
       this.c.status = 400;
@@ -214,7 +214,7 @@ export class SysDictDataController {
   @Get('/type/:dictType')
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   public async dictType(
-    @Valid(RuleType.string()) @Param('dictType') dictType: string
+    @Valid(RuleType.string().allow('')) @Param('dictType') dictType: string
   ): Promise<Resp> {
     if (dictType === '') {
       this.c.status = 400;

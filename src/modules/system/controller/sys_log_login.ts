@@ -71,7 +71,7 @@ export class SysLogLoginController {
     businessType: BUSINESS_TYPE.CLEAN,
   })
   public async unlock(
-    @Valid(RuleType.string()) @Param('userName') userName: string
+    @Valid(RuleType.string().allow('')) @Param('userName') userName: string
   ): Promise<Resp> {
     if (!userName) {
       this.c.status = 400;

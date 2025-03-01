@@ -70,7 +70,7 @@ export class SysJobLogController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string()) @Param('logId') logId: string
+    @Valid(RuleType.string().allow('')) @Param('logId') logId: string
   ): Promise<Resp> {
     if (logId === '') {
       this.c.status = 400;

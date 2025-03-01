@@ -157,7 +157,7 @@ export class SysPostController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string()) @Param('postId') postId: string
+    @Valid(RuleType.string().allow('')) @Param('postId') postId: string
   ): Promise<Resp> {
     if (postId === '') {
       this.c.status = 400;

@@ -146,7 +146,7 @@ export class SysConfigController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string()) @Param('configId') configId: string
+    @Valid(RuleType.string().allow('')) @Param('configId') configId: string
   ) {
     if (configId === '') {
       return Resp.codeMsg(40010, 'bind err: configId is empty');
@@ -181,7 +181,7 @@ export class SysConfigController {
   /**参数配置根据参数键名 */
   @Get('/config-key/:configKey')
   public async configKey(
-    @Valid(RuleType.string()) @Param('configKey') configKey: string
+    @Valid(RuleType.string().allow('')) @Param('configKey') configKey: string
   ): Promise<Resp> {
     if (configKey === '') {
       this.c.status = 400;

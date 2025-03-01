@@ -193,7 +193,7 @@ export class SysJobController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string()) @Param('jobId') jobId: string
+    @Valid(RuleType.string().allow('')) @Param('jobId') jobId: string
   ): Promise<Resp> {
     if (jobId === '') {
       this.c.status = 400;

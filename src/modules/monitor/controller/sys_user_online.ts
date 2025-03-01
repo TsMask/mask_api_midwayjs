@@ -121,7 +121,7 @@ export class SysUserOnlineController {
     businessType: BUSINESS_TYPE.FORCE,
   })
   public async fogout(
-    @Valid(RuleType.string()) @Param('tokenId') tokenId: string
+    @Valid(RuleType.string().allow('')) @Param('tokenId') tokenId: string
   ): Promise<Resp> {
     if (tokenId === '' || tokenId.indexOf('*') >= 0) {
       this.c.status = 400;

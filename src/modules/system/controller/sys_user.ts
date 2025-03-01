@@ -311,7 +311,7 @@ export class SysUserController {
     businessType: BUSINESS_TYPE.DELETE,
   })
   public async remove(
-    @Valid(RuleType.string()) @Param('userId') userId: string
+    @Valid(RuleType.string().allow('')) @Param('userId') userId: string
   ): Promise<Resp> {
     if (userId === '') {
       this.c.status = 400;
