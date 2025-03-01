@@ -1,11 +1,10 @@
-import { resolve, posix } from 'node:path';
+import { resolve, normalize, join, extname } from 'node:path';
 
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
 
 import {
   getDirFileNameList,
-  checkDirPathExists,
   deleteFile,
   getFileStream,
   transferToNewFile,
@@ -39,7 +38,7 @@ export class FileUtil {
    * @returns fileName_随机值.extName
    */
   private generateFileName(fileName: string): string {
-    const fileExt = posix.extname(fileName);
+    const fileExt = extname(fileName);
     // 替换掉后缀和特殊字符保留文件名
     let newFileName = replace(fileExt, fileName, '');
     newFileName = replace('/[<>:"\\|?*]+/g', newFileName, '');
@@ -62,7 +61,7 @@ export class FileUtil {
     }
 
     // 判断文件拓展是否为允许的拓展类型
-    const fileExt = posix.extname(fileName);
+    const fileExt = extname(fileName);
     if (allowExts.length === 0) {
       allowExts = this.config.get<string[]>('upload.whitelist');
     }
@@ -93,7 +92,7 @@ export class FileUtil {
     }
     const uploadWhiteList = this.config.get<string[]>('upload.whitelist');
     // 检查允许下载的文件规则
-    const fileExt = posix.extname(filePath);
+    const fileExt = extname(filePath);
     let hasExt = false;
     for (const str of uploadWhiteList) {
       if (str === fileExt) {
@@ -199,15 +198,15 @@ export class FileUtil {
     );
     // 新文件名称并组装文件地址
     const fileName = this.generateFileName(file.filename);
-    const filePath = posix.join(subPath, parseDatePath());
-    const writePathFile = posix.join(dir, filePath, fileName);
+    const fileDir = normalize(join(subPath, parseDatePath()));
+    const writeFilePath = normalize(join(dir, fileDir));
     // 存入新文件路径
-    const errMsg = await transferToNewFile(file, writePathFile);
+    const errMsg = await transferToNewFile(file.data, writeFilePath, fileName);
     if (errMsg) {
       return ['', errMsg];
     }
-    const urlPath = posix.join(prefix, filePath, fileName);
-    return [urlPath, ''];
+    const upPath = normalize(join(prefix, fileDir, fileName));
+    return [upPath.replace(/\\/g, '/'), ''];
   }
 
   /**
@@ -225,9 +224,10 @@ export class FileUtil {
       return [[], err];
     }
     const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
-    const dirPath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
-    const readPath = posix.join(uploadDir, dirPath);
-    return await getDirFileNameList(readPath);
+    const dirPath = normalize(join(UPLOAD_CHUNK, parseDatePath(), identifier));
+    const readPath = normalize(join(uploadDir, dirPath));
+    const fileNameList = await getDirFileNameList(readPath);
+    return [fileNameList, ''];
   }
 
   /**
@@ -251,18 +251,18 @@ export class FileUtil {
       'staticFile.dirs.upload'
     );
     // 切片存放目录
-    const dirPath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
-    const readPath = posix.join(dir, dirPath);
+    const dirPath = normalize(join(UPLOAD_CHUNK, parseDatePath(), identifier));
+    const readPath = normalize(join(dir, dirPath));
     // 组合存放文件路径
     const fileName = this.generateFileName(originalFileName);
-    const filePath = posix.join(subPath, parseDatePath());
-    const writePath = posix.join(dir, filePath);
+    const fileDir = normalize(join(subPath, parseDatePath()));
+    const writePath = normalize(join(dir, fileDir));
     const errMsg = await mergeToNewFile(readPath, writePath, fileName);
     if (errMsg) {
       return ['', errMsg];
     }
-    const urlPath = posix.join(prefix, filePath, fileName);
-    return [urlPath, ''];
+    const upPath = normalize(join(prefix, fileDir, fileName));
+    return [upPath.replace(/\\/g, '/'), ''];
   }
 
   /**
@@ -286,11 +286,14 @@ export class FileUtil {
     const { prefix, dir } = this.config.get<Record<string, string>>(
       'staticFile.dirs.upload'
     );
-    const filePath = posix.join(UPLOAD_CHUNK, parseDatePath(), identifier);
-    const writePath = posix.join(dir, filePath, index);
-    await transferToNewFile(file, writePath);
-    const urlPath = posix.join(prefix, filePath, index);
-    return [urlPath, ''];
+    const fileDir = normalize(join(UPLOAD_CHUNK, parseDatePath(), identifier));
+    const writePath = normalize(join(dir, fileDir));
+    const errMsg = await transferToNewFile(file.data, writePath, index);
+    if (errMsg) {
+      return ['', errMsg];
+    }
+    const upPath = normalize(join(prefix, fileDir, index));
+    return [upPath.replace(/\\/g, '/'), ''];
   }
 
   /**
@@ -359,15 +362,11 @@ export class FileUtil {
     if (err) {
       return [undefined, err];
     }
-    const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
     // 保存上传文件
-    const savePath = posix.join(uploadDir, UPLOAD_IMPORT, parseDatePath());
-    err = await checkDirPathExists(savePath);
-    if (err) {
-      return [undefined, err];
-    }
+    const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
+    const fileDir = normalize(join(uploadDir, UPLOAD_IMPORT, parseDatePath()));
     const fileName = this.generateFileName(filename);
-    err = await transferToNewFile(file, posix.join(savePath, fileName));
+    err = await transferToNewFile(file.data, fileDir, fileName);
     if (err) {
       return [undefined, err];
     }
@@ -382,15 +381,16 @@ export class FileUtil {
    * @param sheetName 工作表名称 默认Sheet1
    * @return xlsx文件流
    */
-  async excelWriteRecord(data: any[], fileName: string, sheetName = 'Sheet1') {
+  async excelWriteRecord(data: any[], fileName?: string, sheetName = 'Sheet1') {
     const sheetBuffer = await writeSheet(data, sheetName);
     // 上传资源路径
     const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
     // 保存文件
     if (fileName) {
-      const savePath = posix.join(uploadDir, UPLOAD_EXPORT, parseDatePath());
-      await checkDirPathExists(savePath);
-      await writeBufferFile(Buffer.from(sheetBuffer), savePath, fileName);
+      const fileDir = normalize(
+        join(uploadDir, UPLOAD_EXPORT, parseDatePath())
+      );
+      await writeBufferFile(Buffer.from(sheetBuffer), fileDir, fileName);
     }
 
     return sheetBuffer;

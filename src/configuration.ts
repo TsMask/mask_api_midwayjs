@@ -1,4 +1,4 @@
-import { posix } from 'node:path';
+import { normalize, join } from 'node:path';
 
 import {
   Configuration,
@@ -33,7 +33,7 @@ import { ErrorCatchFilters } from './framework/catch';
     redis, // 缓存数据Redis
     bull, // 任务队列Bull
   ],
-  importConfigs: [posix.join(__dirname, './config')],
+  importConfigs: [normalize(join(__dirname, './config'))],
 })
 export class MainConfiguration {
   @App('koa')

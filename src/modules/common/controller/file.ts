@@ -1,4 +1,4 @@
-import { posix } from 'node:path';
+import { basename } from 'node:path';
 
 import {
   Body,
@@ -61,7 +61,7 @@ export class FileController {
     this.c.set('Content-Type', 'application/octet-stream');
     this.c.set(
       'Content-disposition',
-      `attachment;filename=${encodeURIComponent(posix.basename(routerPath))}`
+      `attachment;filename=${encodeURIComponent(basename(routerPath))}`
     );
 
     if (headerRange) {
@@ -112,7 +112,7 @@ export class FileController {
     return Resp.okData({
       url: `//${this.c.host}${uploadFilePath}`,
       filePath: uploadFilePath,
-      newFileName: posix.basename(uploadFilePath),
+      newFileName: basename(uploadFilePath),
       originalFileName: formFile.filename,
     });
   }
@@ -146,7 +146,7 @@ export class FileController {
     /**文件名 */
     @Valid(RuleType.string().required()) @Body('fileName') fileName: string,
     /**子路径类型 */
-    @Valid(RuleType.string()) @Body('subPath') subPath: string
+    @Valid(RuleType.string().allow('')) @Body('subPath') subPath: string
   ) {
     // 子路径需要在指定范围内
     const ok = UPLOAD_SUB_PATH[subPath];
@@ -170,8 +170,8 @@ export class FileController {
 
     return Resp.okData({
       url: `//${this.c.host}${mergeFilePath}`,
-      fileName: mergeFilePath,
-      newFileName: posix.basename(mergeFilePath),
+      filePath: mergeFilePath,
+      newFileName: basename(mergeFilePath),
       originalFileName: fileName,
     });
   }
