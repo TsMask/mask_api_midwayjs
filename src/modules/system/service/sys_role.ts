@@ -64,7 +64,7 @@ export class SysRoleService {
       }
       arr.push(v);
     }
-    return rows;
+    return arr;
   }
 
   /**
@@ -76,9 +76,9 @@ export class SysRoleService {
     if (roleId < 0) {
       return new SysRole();
     }
-    const posts = await this.sysRoleRepository.selectByIds([roleId]);
-    if (posts.length > 0) {
-      return posts[0];
+    const rows = await this.sysRoleRepository.selectByIds([roleId]);
+    if (rows.length > 0) {
+      return rows[0];
     }
     return new SysRole();
   }

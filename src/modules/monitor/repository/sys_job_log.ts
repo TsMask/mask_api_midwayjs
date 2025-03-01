@@ -124,7 +124,7 @@ export class SysJobLogRepository {
   /**
    * 通过ID查询
    *
-   * @param id ID
+   * @param logId ID
    * @return 信息
    */
   public async selectById(logId: number): Promise<SysJobLog> {
@@ -148,7 +148,7 @@ export class SysJobLogRepository {
   /**
    * 新增
    *
-   * @param sysJob 信息
+   * @param sysJobLog 信息
    * @return ID
    */
   public async insert(sysJobLog: SysJobLog): Promise<number> {
@@ -169,7 +169,7 @@ export class SysJobLogRepository {
   /**
    * 批量删除
    *
-   * @param ids ID数组
+   * @param logIds ID数组
    * @return 影响记录数
    */
   public async deleteByIds(logIds: number[]): Promise<number> {

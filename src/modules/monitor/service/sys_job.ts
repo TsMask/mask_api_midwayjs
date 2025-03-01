@@ -311,6 +311,7 @@ export class SysJobService {
     }
 
     // 创建日志对象
+    const now =  Date.now().valueOf()
     const sysJobLog = new SysJobLog();
     sysJobLog.jobName = sysJob.jobName;
     sysJobLog.jobGroup = sysJob.jobGroup;
@@ -318,7 +319,8 @@ export class SysJobService {
     sysJobLog.targetParams = sysJob.targetParams;
     sysJobLog.statusFlag = status;
     sysJobLog.jobMsg = jobMsg;
-    sysJobLog.costTime = Date.now() - jld.timestamp;
+    sysJobLog.costTime = now - jld.timestamp;
+    sysJobLog.createTime = now;
     // 插入数据
     await this.sysJobLogRepository.insert(sysJobLog);
   }
