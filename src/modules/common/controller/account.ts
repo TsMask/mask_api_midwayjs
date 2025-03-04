@@ -55,7 +55,7 @@ export class AccountController {
       body.uuid
     );
     if (errMsg) {
-      const msg = `${errMsg} code: ${body.code}`;
+      const msg = `${errMsg} code ${body.code}`;
       await this.sysLogLoginService.insert(body.username, STATUS_NO, msg, [
         ipaddr,
         location,

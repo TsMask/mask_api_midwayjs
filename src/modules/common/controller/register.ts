@@ -46,7 +46,7 @@ export class RegisterController {
     );
     // 根据错误信息，创建系统访问记录
     if (errMsg) {
-      const msg = `${errMsg} code: ${body.code}`;
+      const msg = `${errMsg} code ${body.code}`;
       await this.sysLogLoginService.insert(body.username, STATUS_NO, msg, [
         ipaddr,
         location,
