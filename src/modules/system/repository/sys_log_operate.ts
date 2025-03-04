@@ -97,7 +97,37 @@ export class SysLogOperateRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    rows = await tx.addOrderBy('s.id', 'DESC').getMany();
+
+    // 排序
+    if (query.sortBy && query.sortOrder) {
+      const sortByArr = query.sortBy.split(',');
+      const sortOrderArr = query.sortOrder.split(',');
+      for (let i = 0; i < sortByArr.length; i++) {
+        const sortBy = sortByArr[i];
+        const sortOrder = sortOrderArr[i];
+        // 排序字段
+        let sort: string = 's.id';
+        if (sortBy === 'operaBy') {
+          sort = 's.opera_by';
+        } else if (sortBy === 'operaTime') {
+          sort = 's.opera_time';
+        } else if (sortBy === 'costTime') {
+          sort = 's.cost_time';
+        }
+        // 排序方式
+        let order: 'ASC' | 'DESC' = 'ASC';
+        if (sortOrder.startsWith('asc')) {
+          order = 'ASC';
+        } else if (sortOrder.startsWith('desc')) {
+          order = 'DESC';
+        }
+        tx.addOrderBy(sort, order);
+      }
+    } else {
+      tx.addOrderBy('s.id', 'DESC');
+    }
+    // 查询数据
+    rows = await tx.getMany();
     return [rows, total];
   }
 
