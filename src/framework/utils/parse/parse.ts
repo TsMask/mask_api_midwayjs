@@ -1,4 +1,4 @@
-import cronParser = require('cron-parser');
+import { CronExpressionParser } from 'cron-parser';
 
 /**
  * 解析数值型
@@ -151,14 +151,14 @@ export function parseStringToObject(str: string): Record<string, any> | null {
 /**
  * 解析 Cron 表达式，返回下一次执行的时间戳（毫秒）
  * @param {string} cron Cron 表达式
- * @returns {number | null} 下一次执行的时间戳（毫秒），如果解析失败则返回 null
+ * @returns {number} 下一次执行的时间戳（毫秒），如果解析失败则返回 0
  */
-export function parseCronExpression(cron: string): number | null {
+export function parseCronExpression(cron: string): number {
   try {
-    const interval = cronParser.parseExpression(cron);
+    const interval = CronExpressionParser.parse(cron);
     return interval.next().getTime();
-  } catch (error) {
-    console.error(`failed parse cron "${cron}": ${error.message}`);
+  } catch (err) {
+    console.error(`failed parse cron "${cron}": ${err.message}`);
     return 0;
   }
 }
