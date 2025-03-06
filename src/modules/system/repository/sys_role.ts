@@ -29,13 +29,13 @@ export class SysRoleRepository {
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.roleName) {
-      tx.andWhere("s.role_name like concat(:roleName, '%')", {
-        roleName: query.roleName,
+      tx.andWhere('s.role_name like :roleName', {
+        roleName: query.roleName + '%',
       });
     }
     if (query.roleKey) {
-      tx.andWhere("s.role_key like concat(:roleKey, '%')", {
-        roleKey: query.roleKey,
+      tx.andWhere('s.role_key like :roleKey', {
+        roleKey: query.roleKey + '%',
       });
     }
     if (query.statusFlag) {
@@ -110,13 +110,13 @@ export class SysRoleRepository {
       .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysRole.roleKey) {
-      tx.andWhere("s.role_key like concat(:roleKey, '%')", {
-        roleKey: sysRole.roleKey,
+      tx.andWhere('s.role_key like :roleKey', {
+        roleKey: sysRole.roleKey + '%',
       });
     }
     if (sysRole.roleName) {
-      tx.andWhere("s.role_name like concat(:roleName, '%')", {
-        roleName: sysRole.roleName,
+      tx.andWhere('s.role_name like :roleName', {
+        roleName: sysRole.roleName + '%',
       });
     }
     if (sysRole.statusFlag) {

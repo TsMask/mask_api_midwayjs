@@ -30,8 +30,8 @@ export class SysLogOperateRepository {
       .from(SysLogOperate, 's');
     // 查询条件拼接
     if (query.title) {
-      tx.andWhere("s.title like concat(:title, '%')", {
-        title: query.title,
+      tx.andWhere('s.title like :title', {
+        title: query.title + '%',
       });
     }
     if (query.businessType) {
@@ -40,13 +40,13 @@ export class SysLogOperateRepository {
       });
     }
     if (query.operaBy) {
-      tx.andWhere("s.opera_by like concat(:operaBy, '%')", {
-        operaBy: query.operaBy,
+      tx.andWhere('s.opera_by like :operaBy', {
+        operaBy: query.operaBy + '%',
       });
     }
     if (query.operaIp) {
-      tx.andWhere("s.opera_ip like concat(:operaIp, '%')", {
-        operaIp: query.operaIp,
+      tx.andWhere('s.opera_ip like :operaIp', {
+        operaIp: query.operaIp + '%',
       });
     }
     if (query.statusFlag) {
@@ -106,7 +106,7 @@ export class SysLogOperateRepository {
         const sortBy = sortByArr[i];
         const sortOrder = sortOrderArr[i];
         // 排序字段
-        let sort: string = 's.id';
+        let sort = 's.id';
         if (sortBy === 'operaBy') {
           sort = 's.opera_by';
         } else if (sortBy === 'operaTime') {

@@ -32,8 +32,8 @@ export class SysMenuRepository {
       .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysMenu.menuName) {
-      tx.andWhere("s.menu_name like concat(:menuName, '%')", {
-        menuName: sysMenu.menuName,
+      tx.andWhere('s.menu_name like :menuName', {
+        menuName: sysMenu.menuName + '%',
       });
     }
     if (sysMenu.visibleFlag) {

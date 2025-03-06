@@ -29,13 +29,13 @@ export class SysDictTypeRepository {
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.dictName) {
-      tx.andWhere("s.dict_name like concat(:dictName, '%')", {
-        dictName: query.dictName,
+      tx.andWhere('s.dict_name like :dictName', {
+        dictName: query.dictName + '%',
       });
     }
     if (query.dictType) {
-      tx.andWhere("s.dict_type like concat(:dictType, '%')", {
-        dictType: query.dictType,
+      tx.andWhere('s.dict_type like :dictType', {
+        dictType: query.dictType + '%',
       });
     }
     if (query.statusFlag) {
@@ -101,13 +101,13 @@ export class SysDictTypeRepository {
       .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysDictType.dictName) {
-      tx.andWhere("s.dict_name like concat(:dictName, '%')", {
-        dictName: sysDictType.dictName,
+      tx.andWhere('s.dict_name like :dictName', {
+        dictName: sysDictType.dictName + '%',
       });
     }
     if (sysDictType.dictType) {
-      tx.andWhere("s.dict_type like concat(:dictType, '%')", {
-        dictType: sysDictType.dictType,
+      tx.andWhere('s.dict_type like :dictType', {
+        dictType: sysDictType.dictType + '%',
       });
     }
     if (sysDictType.statusFlag) {

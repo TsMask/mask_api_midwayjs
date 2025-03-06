@@ -29,8 +29,8 @@ export class SysNoticeRepository {
       .andWhere("del_flag = '0'");
     // 查询条件拼接
     if (query.noticeTitle) {
-      tx.andWhere("s.notice_title like concat(:noticeTitle, '%')", {
-        noticeTitle: query.noticeTitle,
+      tx.andWhere('s.notice_title like :noticeTitle', {
+        noticeTitle: query.noticeTitle + '%',
       });
     }
     if (query.noticeType) {
@@ -39,8 +39,8 @@ export class SysNoticeRepository {
       });
     }
     if (query.createBy) {
-      tx.andWhere("s.create_by like concat(:createBy, '%')", {
-        createBy: query.createBy,
+      tx.andWhere('s.create_by like :createBy', {
+        createBy: query.createBy + '%',
       });
     }
     if (query.statusFlag) {
@@ -105,8 +105,8 @@ export class SysNoticeRepository {
       .from(SysNotice, 's');
     // 构建查询条件
     if (sysNotice.noticeTitle) {
-      tx.andWhere("s.notice_title like concat(:noticeTitle, '%')", {
-        noticeTitle: sysNotice.noticeTitle,
+      tx.andWhere('s.notice_title like :noticeTitle', {
+        noticeTitle: sysNotice.noticeTitle + '%',
       });
     }
     if (sysNotice.noticeType) {
@@ -115,8 +115,8 @@ export class SysNoticeRepository {
       });
     }
     if (sysNotice.createBy) {
-      tx.andWhere("s.create_by like concat(:createBy, '%')", {
-        createBy: sysNotice.createBy,
+      tx.andWhere('s.create_by like :createBy', {
+        createBy: sysNotice.createBy + '%',
       });
     }
     if (sysNotice.statusFlag) {

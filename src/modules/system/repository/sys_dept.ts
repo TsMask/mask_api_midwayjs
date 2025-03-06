@@ -41,8 +41,8 @@ export class SysDeptRepository {
       });
     }
     if (sysDept.deptName) {
-      tx.andWhere("s.dept_name like concat(:deptName, '%')", {
-        deptName: sysDept.deptName,
+      tx.andWhere('s.dept_name like :deptName', {
+        deptName: sysDept.deptName + '%',
       });
     }
     if (sysDept.statusFlag) {

@@ -27,16 +27,16 @@ export class SysJobRepository {
       .from(SysJob, 's');
     // 查询条件拼接
     if (query.jobName) {
-      tx.andWhere("s.job_name like concat(:jobName, '%')", {
-        jobName: query.jobName,
+      tx.andWhere('s.job_name like :jobName', {
+        jobName: query.jobName + '%',
       });
     }
     if (query.jobGroup) {
       tx.andWhere('s.job_group = :jobGroup', { jobGroup: query.jobGroup });
     }
     if (query.invokeTarget) {
-      tx.andWhere("s.invoke_target like concat(:invokeTarget, '%')", {
-        invokeTarget: query.invokeTarget,
+      tx.andWhere('s.invoke_target like :invokeTarget', {
+        invokeTarget: query.invokeTarget + '%',
       });
     }
     if (query.statusFlag) {
@@ -79,16 +79,16 @@ export class SysJobRepository {
       .from(SysJob, 's');
     // 构建查询条件
     if (sysJob.jobName) {
-      tx.andWhere("s.job_name like concat(:jobName, '%')", {
-        v: sysJob.jobName,
+      tx.andWhere('s.job_name like :jobName', {
+        v: sysJob.jobName + '%',
       });
     }
     if (sysJob.jobGroup) {
       tx.andWhere('s.job_group = :jobGroup', { jobGroup: sysJob.jobGroup });
     }
     if (sysJob.invokeTarget) {
-      tx.andWhere("s.invoke_target like concat(:invokeTarget, '%')", {
-        invokeTarget: sysJob.invokeTarget,
+      tx.andWhere('s.invoke_target like :invokeTarget', {
+        invokeTarget: sysJob.invokeTarget + '%',
       });
     }
     if (sysJob.statusFlag) {

@@ -33,8 +33,8 @@ export class SysDictDataRepository {
       });
     }
     if (query.dataLabel) {
-      tx.andWhere("s.data_label like concat(:dataLabel, '%')", {
-        dataLabel: query.dataLabel,
+      tx.andWhere('s.data_label like :dataLabel', {
+        dataLabel: query.dataLabel + '%',
       });
     }
     if (query.statusFlag) {
@@ -78,8 +78,8 @@ export class SysDictDataRepository {
       .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysDictData.dataLabel) {
-      tx.andWhere("s.data_label like concat(:dataLabel, '%')", {
-        dataLabel: sysDictData.dataLabel,
+      tx.andWhere('s.data_label like :dataLabel', {
+        dataLabel: sysDictData.dataLabel + '%',
       });
     }
     if (sysDictData.dictType) {

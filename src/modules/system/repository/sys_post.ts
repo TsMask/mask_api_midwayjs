@@ -28,13 +28,13 @@ export class SysPostRepository {
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.postCode) {
-      tx.andWhere("s.post_code like concat(:postCode, '%')", {
-        postCode: query.postCode,
+      tx.andWhere('s.post_code like :postCode', {
+        postCode: query.postCode + '%',
       });
     }
     if (query.postName) {
-      tx.andWhere("s.post_name like concat(:postName, '%')", {
-        postName: query.postName,
+      tx.andWhere('s.post_name like :postName', {
+        postName: query.postName + '%',
       });
     }
     if (query.statusFlag) {
@@ -78,13 +78,13 @@ export class SysPostRepository {
       .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysPost.postCode) {
-      tx.andWhere("s.post_code like concat(:postCode, '%')", {
-        postCode: sysPost.postCode,
+      tx.andWhere('s.post_code like :postCode', {
+        postCode: sysPost.postCode + '%',
       });
     }
     if (sysPost.postName) {
-      tx.andWhere("s.post_name like concat(:postName, '%')", {
-        postName: sysPost.postName,
+      tx.andWhere('s.post_name like :postName', {
+        postName: sysPost.postName + '%',
       });
     }
     if (sysPost.statusFlag) {

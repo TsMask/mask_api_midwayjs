@@ -29,8 +29,8 @@ export class SysConfigRepository {
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.configName) {
-      tx.andWhere("s.config_name like concat(:configName, '%')", {
-        configName: query.configName,
+      tx.andWhere('s.config_name like :configName', {
+        configName: query.configName + '%',
       });
     }
     if (query.configType) {
@@ -39,8 +39,8 @@ export class SysConfigRepository {
       });
     }
     if (query.configKey) {
-      tx.andWhere("s.config_key like concat(:configKey, '%')", {
-        configKey: query.configKey,
+      tx.andWhere('s.config_key like :configKey', {
+        configKey: query.configKey + '%',
       });
     }
     if (query.beginTime) {
@@ -101,8 +101,8 @@ export class SysConfigRepository {
       .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysConfig.configName) {
-      tx.andWhere("s.config_name like concat(:configName, '%')", {
-        configName: sysConfig.configName,
+      tx.andWhere('s.config_name like :configName', {
+        configName: sysConfig.configName + '%',
       });
     }
     if (sysConfig.configType) {
@@ -111,8 +111,8 @@ export class SysConfigRepository {
       });
     }
     if (sysConfig.configKey) {
-      tx.andWhere("s.config_key like concat(:configKey, '%')", {
-        configKey: sysConfig.configKey,
+      tx.andWhere('s.config_key like :configKey', {
+        configKey: sysConfig.configKey + '%',
       });
     }
     if (sysConfig.createTime) {

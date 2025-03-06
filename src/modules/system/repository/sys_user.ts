@@ -38,12 +38,12 @@ export class SysUserRepository {
       tx.andWhere('s.user_id = :userId', { userId: query.userId });
     }
     if (query.userName) {
-      tx.andWhere("s.user_name like concat(:userName, '%')", {
-        userName: query.userName,
+      tx.andWhere('s.user_name like :userName', {
+        userName: query.userName + '%',
       });
     }
     if (query.phone) {
-      tx.andWhere("s.phone like concat(:phone, '%')", { phone: query.phone });
+      tx.andWhere('s.phone like :phone', { phone: query.phone + '%' });
     }
     if (query.statusFlag) {
       tx.andWhere('s.status_flag = :statusFlag', {
@@ -119,13 +119,13 @@ export class SysUserRepository {
       .andWhere("s.del_flag = '0'");
     // 构建查询条件
     if (sysUser.userName) {
-      tx.andWhere("s.user_name like concat(:userName, '%')", {
-        userName: sysUser.userName,
+      tx.andWhere('s.user_name like :userName', {
+        userName: sysUser.userName + '%',
       });
     }
     if (sysUser.phone) {
-      tx.andWhere("s.phone like concat(:phone, '%')", {
-        phone: sysUser.phone,
+      tx.andWhere('s.phone like :phone', {
+        phone: sysUser.phone + '%',
       });
     }
     if (sysUser.statusFlag) {
@@ -334,13 +334,13 @@ export class SysUserRepository {
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
     if (query.userName) {
-      tx.andWhere("s.user_name like concat(:userName, '%')", {
-        userName: query.userName,
+      tx.andWhere('s.user_name like :userName', {
+        userName: query.userName + '%',
       });
     }
     if (query.phone) {
-      tx.andWhere("s.phone like concat(:phone, '%')", {
-        phone: query.phone,
+      tx.andWhere('s.phone like :phone', {
+        phone: query.phone + '%',
       });
     }
     if (query.statusFlag) {

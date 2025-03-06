@@ -39,8 +39,8 @@ export class SysJobLogRepository {
       });
     }
     if (query.invokeTarget) {
-      tx.andWhere("s.invoke_target like concat(:invokeTarget, '%')", {
-        invokeTarget: query.invokeTarget,
+      tx.andWhere('s.invoke_target like :invokeTarget', {
+        invokeTarget: query.invokeTarget + '%',
       });
     }
     if (query.beginTime) {
@@ -100,8 +100,8 @@ export class SysJobLogRepository {
       .from(SysJobLog, 's');
     // 构建查询条件
     if (sysJobLog.jobName) {
-      tx.andWhere("s.job_name like concat(:jobName, '%')", {
-        jobName: sysJobLog.jobName,
+      tx.andWhere('s.job_name like :jobName', {
+        jobName: sysJobLog.jobName + '%',
       });
     }
     if (sysJobLog.jobGroup) {
@@ -113,8 +113,8 @@ export class SysJobLogRepository {
       });
     }
     if (sysJobLog.invokeTarget) {
-      tx.andWhere("s.invoke_target like concat(:invokeTarget, '%')", {
-        invokeTarget: sysJobLog.invokeTarget,
+      tx.andWhere('s.invoke_target like :invokeTarget', {
+        invokeTarget: sysJobLog.invokeTarget + '%',
       });
     }
     // 查询数据

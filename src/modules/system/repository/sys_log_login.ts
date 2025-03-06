@@ -30,13 +30,13 @@ export class SysLogLoginRepository {
       .from(SysLogLogin, 's');
     // 查询条件拼接
     if (query.loginIp) {
-      tx.andWhere("s.login_ip like concat(:loginIp, '%')", {
-        loginIp: query.loginIp,
+      tx.andWhere('s.login_ip like :loginIp', {
+        loginIp: query.loginIp + '%',
       });
     }
     if (query.userName) {
-      tx.andWhere("s.user_name like concat(:userName, '%')", {
-        userName: query.userName,
+      tx.andWhere('s.user_name like :userName', {
+        userName: query.userName + '%',
       });
     }
     if (query.statusFlag) {
@@ -96,7 +96,7 @@ export class SysLogLoginRepository {
         const sortBy = sortByArr[i];
         const sortOrder = sortOrderArr[i];
         // 排序字段
-        let sort: string = 's.id';
+        let sort = 's.id';
         if (sortBy === 'loginIp') {
           sort = 's.login_ip';
         } else if (sortBy === 'userName') {

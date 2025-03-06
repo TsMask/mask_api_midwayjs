@@ -27,7 +27,7 @@ export class DemoORMService {
       .from(DemoORM, 'd');
     // 查询条件拼接
     if (query.title) {
-      tx.andWhere('d.title = :title', { title: query.title });
+      tx.andWhere('d.title like :title', { title: query.title + '%' });
     }
     if (query.statusFlag) {
       tx.andWhere('d.status_flag = :statusFlag', {
@@ -69,7 +69,7 @@ export class DemoORMService {
       .from(DemoORM, 'd');
     // 构建查询条件
     if (param.title) {
-      tx.andWhere('d.title = :title', { title: param.title });
+      tx.andWhere('d.title like :title', { title: param.title + '%' });
     }
     if (param.statusFlag) {
       tx.andWhere('d.status_flag = :statusFlag', {
