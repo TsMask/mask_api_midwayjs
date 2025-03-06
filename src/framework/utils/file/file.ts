@@ -101,7 +101,7 @@ export class FileUtil {
       }
     }
     if (!hasExt) {
-      if (fileExt === ''){
+      if (fileExt === '') {
         return '未知异常文件';
       }
       return `限定下载的文件规则：${uploadWhiteList.join('、')}`;

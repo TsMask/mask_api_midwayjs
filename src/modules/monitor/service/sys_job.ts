@@ -311,7 +311,7 @@ export class SysJobService {
     }
 
     // 创建日志对象
-    const now =  Date.now().valueOf()
+    const now = Date.now().valueOf();
     const sysJobLog = new SysJobLog();
     sysJobLog.jobName = sysJob.jobName;
     sysJobLog.jobGroup = sysJob.jobGroup;
