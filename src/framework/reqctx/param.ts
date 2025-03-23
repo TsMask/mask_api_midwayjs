@@ -1,6 +1,7 @@
 import { type Context } from '@midwayjs/koa';
 
 import { clientIP, realAddressByIp } from '../ip2region/ip2region';
+import { sha256ToBase64 } from '../utils/crypto/hash';
 import { uaInfo } from '../utils/ua/ua';
 
 /**
@@ -34,4 +35,17 @@ export async function uaOsBrowser(c: Context): Promise<[string, string]> {
     browser = `${bName} ${bVersion}`;
   }
   return [os, browser];
+}
+
+/**
+ * 设备指纹信息
+ * @param c 上下文对象
+ * @returns 字符
+ */
+export async function deviceFingerprint(
+  c: Context,
+  v: string | number
+): Promise<string> {
+  const str = `${v}:${c.get('user-agent')}`;
+  return sha256ToBase64(str);
 }
