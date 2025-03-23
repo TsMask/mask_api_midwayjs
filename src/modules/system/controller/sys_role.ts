@@ -21,6 +21,7 @@ import {
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
 import {
+  loginUser,
   loginUserToDataScopeSQL,
   loginUserToUserName,
 } from '../../../framework/reqctx/auth';
@@ -128,10 +129,16 @@ export class SysRoleController {
       return Resp.errMsg('不允许操作系统管理员角色');
     }
 
-    // 检查是否存在
-    const roleInfo = await this.sysRoleService.findById(body.roleId);
-    if (roleInfo.roleId !== body.roleId) {
-      return Resp.errMsg('没有权限访问角色数据！');
+    // 检查是否分配给当前用户
+    const [info, err] = loginUser(this.c);
+    if (err) {
+      this.c.status = 401;
+      return Resp.codeMsg(40003, err);
+    }
+    if (Array.isArray(info.user.roleIds) && info.user.roleIds.length > 0) {
+      if (info.user.roleIds.includes(body.roleId)) {
+        return Resp.errMsg('不允许操作分配给自己的角色');
+      }
     }
 
     // 判断角色名称是否唯一
@@ -150,6 +157,12 @@ export class SysRoleController {
     );
     if (!uniqueKey) {
       return Resp.errMsg(`角色修改【${body.roleName}】失败，角色键值已存在`);
+    }
+
+    // 检查是否存在
+    const roleInfo = await this.sysRoleService.findById(body.roleId);
+    if (roleInfo.roleId !== body.roleId) {
+      return Resp.errMsg('没有权限访问角色数据！');
     }
 
     roleInfo.roleName = body.roleName;
