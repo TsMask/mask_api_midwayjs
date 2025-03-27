@@ -89,6 +89,33 @@ export class RedisCache {
   }
 
   /**
+   * 判断key是否存在
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 键
+   * @return 存在数量
+   */
+  public async has(source: string, key: string): Promise<number> {
+    const rdb = await this.rdb(source);
+    return await rdb.exists(key);
+  }
+
+  /**
+   * 设置过期时间（秒）
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 键
+   * @param seconds 有效时间，单位秒
+   * @return key剩余有效期，单位秒
+   */
+  public async setExpire(
+    source: string,
+    key: string,
+    seconds: number
+  ): Promise<number> {
+    const rdb = await this.rdb(source);
+    return await rdb.expire(key, seconds);
+  }
+
+  /**
    * 获取键的剩余有效时间（秒）
    * @param source 数据源名称，空字符值默认为default
    * @param key 键
@@ -164,49 +191,26 @@ export class RedisCache {
   }
 
   /**
-   * 判断key是否存在
-   * @param source 数据源名称，空字符值默认为default
-   * @param key 键
-   * @return 存在数量
-   */
-  public async has(source: string, key: string): Promise<number> {
-    const rdb = await this.rdb(source);
-    return await rdb.exists(key);
-  }
-
-  /**
    * 设置缓存数据
    * @param source 数据源名称，空字符值默认为default
    * @param key 键
    * @param value 值
+   * @param seconds 有效时间，单位秒 0表示永久有效
    * @return 布尔
    */
   public async set(
     source: string,
     key: string,
-    value: string | Buffer | number
-  ): Promise<boolean> {
-    const rdb = await this.rdb(source);
-    const ok = await rdb.set(key, value);
-    return ok === 'OK';
-  }
-
-  /**
-   * 设置缓存数据与过期时间
-   * @param source 数据源名称，空字符值默认为default
-   * @param key 键
-   * @param value 值
-   * @param timeout 有效时间，单位秒
-   * @return 布尔
-   */
-  public async setByExpire(
-    source: string,
-    key: string,
     value: string | Buffer | number,
-    timeout: number
+    seconds: number = 0
   ): Promise<boolean> {
     const rdb = await this.rdb(source);
-    const ok = await rdb.set(key, value, 'EX', timeout);
+    let ok = '';
+    if (seconds > 0) {
+      ok = await rdb.set(key, value, 'EX', seconds);
+    } else {
+      ok = await rdb.set(key, value);
+    }
     return ok === 'OK';
   }
 
