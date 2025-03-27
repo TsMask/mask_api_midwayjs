@@ -421,8 +421,7 @@ create table sys_dict_type
   update_by        varchar(64)     default ''                 comment '更新者',
   update_time      bigint          default 0                  comment '更新时间',
   remark           varchar(200)    default ''                 comment '备注',
-  primary key (dict_id),
-  unique (dict_type)
+  primary key (dict_id)
 ) engine=innodb auto_increment=50 comment='字典类型表';
 
 insert into sys_dict_type values(1,  '用户性别',     'sys_user_sex',        '1', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '用户性别列表');
