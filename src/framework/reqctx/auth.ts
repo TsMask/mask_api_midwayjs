@@ -8,7 +8,7 @@ import {
   ROLE_SCOPE_SELF,
 } from '../constants/role_data_scope';
 import { CTX_LOGIN_USER } from '../constants/common';
-import { TokenInfo } from '../utils/token/token_info';
+import { UserInfo } from '../token/user_info';
 import { isSystemUser } from './context';
 
 /**
@@ -16,13 +16,13 @@ import { isSystemUser } from './context';
  * @param c 上下文对象
  * @returns 登录用户信息
  */
-export function loginUser(c: Context): [TokenInfo, string] {
-  const value = c.getAttr<TokenInfo>(CTX_LOGIN_USER);
-  if (value && value.uuid) {
+export function loginUser(c: Context): [UserInfo, string] {
+  const value = c.getAttr<UserInfo>(CTX_LOGIN_USER);
+  if (value && value.deptId) {
     delete value.user.password;
     return [value, ''];
   }
-  return [new TokenInfo(), 'invalid login user information'];
+  return [new UserInfo(), 'invalid login user information'];
 }
 
 /**

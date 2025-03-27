@@ -13,7 +13,7 @@ import {
 import { Resp } from '../../../framework/resp/api';
 import { loginUser } from '../../../framework/reqctx/auth';
 import { bcryptCompare } from '../../../framework/utils/crypto/bcrypt';
-import { TokenUtil } from '../../../framework/utils/token/token';
+import { UserTokenService } from '../../../framework/token/user_token';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { SysPostService } from '../service/sys_post';
 import { SysRoleService } from '../service/sys_role';
@@ -26,6 +26,10 @@ export class SysProfileController {
   @Inject('ctx')
   private c: Context;
 
+  /**Token工具 */
+  @Inject()
+  private token: UserTokenService;
+
   /**用户服务 */
   @Inject()
   private sysUserService: SysUserService;
@@ -37,10 +41,6 @@ export class SysProfileController {
   /**岗位服务 */
   @Inject()
   private sysPostService: SysPostService;
-
-  /**Token工具 */
-  @Inject()
-  private token: TokenUtil;
 
   /**个人信息 */
   @Get()
@@ -147,8 +147,8 @@ export class SysProfileController {
     if (rows > 0) {
       // 更新缓存用户信息
       info.user = userInfo;
-      // 刷新令牌信息
-      await this.token.cache(info);
+      // 更新信息
+      await this.token.UserInfoUpdate(info);
       return Resp.ok();
     }
     return Resp.errMsg('修改个人信息异常');

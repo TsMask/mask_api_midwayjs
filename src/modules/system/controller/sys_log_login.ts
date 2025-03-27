@@ -17,7 +17,7 @@ import {
 import { Resp } from '../../../framework/resp/api';
 import { loginUserToDataScopeSQL } from '../../../framework/reqctx/auth';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { AccountService } from '../../common/service/account';
+import { AccountService } from '../../auth/service/account';
 import { SysLogLoginService } from '../service/sys_log_login';
 
 /**系统登录日志信息 控制层处理 */

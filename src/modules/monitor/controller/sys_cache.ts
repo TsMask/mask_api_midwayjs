@@ -8,7 +8,9 @@ import {
   CACHE_REPEAT_SUBMIT,
   CACHE_RATE_LIMIT,
   CACHE_PWD_ERR_COUNT,
-  CACHE_LOGIN_TOKEN,
+  CACHE_TOKEN_DEVICE,
+  CACHE_OAUTH2_CODE,
+  CACHE_OAUTH2_DEVICE,
 } from '../../../framework/constants/cache_key';
 import { Resp } from '../../../framework/resp/api';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
@@ -38,13 +40,15 @@ export class CacheController {
   @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
   public async names(): Promise<Resp> {
     const caches: SysCache[] = [
-      new SysCache().newNames('用户信息', CACHE_LOGIN_TOKEN),
+      new SysCache().newNames('用户令牌', CACHE_TOKEN_DEVICE),
       new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
       new SysCache().newNames('数据字典', CACHE_SYS_DICT),
-      new SysCache().newNames('验证码', CACHE_CAPTCHA_CODE),
+      new SysCache().newNames('用户验证码', CACHE_CAPTCHA_CODE),
       new SysCache().newNames('防重提交', CACHE_REPEAT_SUBMIT),
       new SysCache().newNames('限流处理', CACHE_RATE_LIMIT),
       new SysCache().newNames('密码错误次数', CACHE_PWD_ERR_COUNT),
+      new SysCache().newNames('客户端授权码', CACHE_OAUTH2_CODE),
+      new SysCache().newNames('客户端令牌', CACHE_OAUTH2_DEVICE),
     ];
     return Resp.okData(caches);
   }
@@ -86,10 +90,11 @@ export class CacheController {
     const caches: SysCache[] = [
       new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
       new SysCache().newNames('数据字典', CACHE_SYS_DICT),
-      new SysCache().newNames('验证码', CACHE_CAPTCHA_CODE),
+      new SysCache().newNames('用户验证码', CACHE_CAPTCHA_CODE),
       new SysCache().newNames('防重提交', CACHE_REPEAT_SUBMIT),
       new SysCache().newNames('限流处理', CACHE_RATE_LIMIT),
       new SysCache().newNames('密码错误次数', CACHE_PWD_ERR_COUNT),
+      new SysCache().newNames('客户端授权码', CACHE_OAUTH2_CODE),
     ];
     for (const v of caches) {
       const cacheKeys = await this.redisCache.getKeys('', `${v.cacheName}:*`);
@@ -104,7 +109,7 @@ export class CacheController {
   public async cleanKeys(
     @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string
   ): Promise<Resp> {
-    if (cacheName.startsWith(CACHE_LOGIN_TOKEN)) {
+    if (cacheName.startsWith(CACHE_TOKEN_DEVICE)) {
       return Resp.errMsg('不能删除用户信息缓存');
     }
     const cacheKeys = await this.redisCache.getKeys('', `${cacheName}:*`);

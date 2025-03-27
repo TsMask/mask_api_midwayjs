@@ -8,10 +8,10 @@ import {
 } from '../../../framework/decorator/OperateLogMethodDecorator';
 import { parseRemoveDuplicatesToArray } from '../../../framework/utils/parse/parse';
 import { Resp } from '../../../framework/resp/api';
+import { UserInfo } from '../../../framework/token/user_info';
 import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { TokenInfo } from '../../../framework/utils/token/token_info';
-import { CACHE_LOGIN_TOKEN } from '../../../framework/constants/cache_key';
+import { CACHE_TOKEN_DEVICE } from '../../../framework/constants/cache_key';
 import { SysUserOnline } from '../model/sys_user_online';
 import { SysUserOnlineService } from '../service/sys_user_online';
 
@@ -40,7 +40,7 @@ export class SysUserOnlineController {
     @Query('userName') userName: string
   ): Promise<Resp> {
     // 获取所有在线用户key
-    const keys = await this.redisCache.getKeys('', `${CACHE_LOGIN_TOKEN}:*`);
+    const keys = await this.redisCache.getKeys('', `${CACHE_TOKEN_DEVICE}:*`);
 
     // 分批获取
     const arr: string[] = [];
@@ -61,15 +61,15 @@ export class SysUserOnlineController {
     for (const str of arr) {
       if (!str) continue;
 
-      let tokenInfo = new TokenInfo();
+      let info = new UserInfo();
       try {
-        tokenInfo = JSON.parse(str);
+        info = JSON.parse(str);
       } catch (error) {
         continue;
       }
 
-      const onlineUser = await this.sysUserOnlineService.tokenInfoToUserOnline(
-        tokenInfo
+      const onlineUser = await this.sysUserOnlineService.userInfoToUserOnline(
+        info
       );
       if (onlineUser.tokenId !== '') {
         userOnlines.push(onlineUser);
@@ -131,7 +131,7 @@ export class SysUserOnlineController {
     // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(tokenId, ',');
     for (const v of uniqueIDs) {
-      const key = `${CACHE_LOGIN_TOKEN}:${v}`;
+      const key = `${CACHE_TOKEN_DEVICE}:${v}`;
       await this.redisCache.del('', key);
     }
     return Resp.ok();
