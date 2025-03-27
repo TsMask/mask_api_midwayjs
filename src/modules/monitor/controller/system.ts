@@ -1,11 +1,12 @@
 import { Controller, Get, Inject } from '@midwayjs/core';
 
 import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { SystemInfoService } from '../service/system_info';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
+import { AuthorizeOauth2Middleware } from '../../../framework/middleware/authorize_oauth2';
 
 /**服务器监控信息 控制层处理 */
-@Controller('/monitor/system')
+@Controller()
 export class SystemInfoController {
   /**在线用户服务 */
   @Inject()
@@ -14,8 +15,14 @@ export class SystemInfoController {
   /**
    * 服务器信息
    */
-  @Get()
-  @PreAuthorize({ hasPermissions: ['monitor:system:info'] })
+  @Get('/monitor/system', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:system:info'] }),
+    ],
+  })
+  @Get('/oauth2/open/monitor/system', {
+    middleware: [AuthorizeOauth2Middleware([])],
+  })
   public async info(): Promise<Resp> {
     return Resp.okData({
       project: this.systemInfoService.projectInfo(),

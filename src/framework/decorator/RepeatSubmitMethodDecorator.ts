@@ -77,7 +77,7 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
       }
 
       // 保存请求时间和参数
-      await redisCacheServer.setByExpire(
+      await redisCacheServer.set(
         '',
         cacheKey,
         JSON.stringify({

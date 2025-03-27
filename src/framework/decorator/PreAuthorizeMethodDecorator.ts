@@ -9,9 +9,9 @@ import {
   SYS_PERMISSION_SYSTEM,
   SYS_ROLE_SYSTEM_KEY,
 } from '../constants/system';
-import { TokenUtil } from '../utils/token/token';
-import { authorization } from '../reqctx/context';
 import { CTX_LOGIN_USER } from '../constants/common';
+import { authorization } from '../reqctx/context';
+import { UserTokenService } from '../token/user_token';
 import { Resp } from '../resp/api';
 
 /** 授权限制参数 */
@@ -50,8 +50,8 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       // 装饰器所在的实例上下文
       const c: Context = joinPoint.target[REQUEST_OBJ_CTX_KEY];
 
-      const tokenService: TokenUtil = await c.requestContext.getAsync(
-        TokenUtil
+      const tokenService: UserTokenService = await c.requestContext.getAsync(
+        UserTokenService
       );
 
       // 获取请求头标识信息
@@ -61,20 +61,17 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       }
 
       // 验证令牌
-      const [claims, err] = await tokenService.verify(tokenStr);
+      const [claims, err] = await tokenService.userTokenVerify(tokenStr);
       if (err) {
         return Resp.codeMsg(401, err);
       }
 
       // 获取缓存的用户信息
-      let info = await tokenService.info(claims);
+      let info = await tokenService.userInfoGet(claims);
       if (info.userId <= 0) {
         c.status = 401;
         return Resp.codeMsg(401, 'token valid error');
       }
-
-      // 检查刷新有效期后存入上下文
-      info = await tokenService.refreshIn(info);
       c.setAttr(CTX_LOGIN_USER, info);
 
       // 登录用户角色权限校验
