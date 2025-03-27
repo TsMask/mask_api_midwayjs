@@ -110,7 +110,7 @@ export class SysRoleService {
     if (
       rows > 0 &&
       Array.isArray(sysRole.menuIds) &&
-      sysRole.menuIds.length > 0
+      sysRole.menuIds.length >= 0
     ) {
       // 删除角色与菜单关联
       await this.sysRoleMenuRepository.deleteByRoleIds([sysRole.roleId]);
