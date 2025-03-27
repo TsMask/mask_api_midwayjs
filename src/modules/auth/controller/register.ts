@@ -32,8 +32,8 @@ export class RegisterController {
   private sysLogLoginService: SysLogLoginService;
 
   /**账号注册 */
-  @Post('/register')
-  @RateLimit({ time: 300, count: 20, type: LIMIT_IP })
+  @Post('/auth/register')
+  @RateLimit({ time: 300, count: 10, type: LIMIT_IP })
   public async register(@Body() body: RegisterBody): Promise<Resp> {
     // 当前请求信息
     const [ipaddr, location] = await ipaddrLocation(this.c);

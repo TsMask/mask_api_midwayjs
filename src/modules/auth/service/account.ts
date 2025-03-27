@@ -14,14 +14,14 @@ import {
   parseNumber,
 } from '../../../framework/utils/parse/parse';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { TokenInfo } from '../../../framework/utils/token/token_info';
+import { UserInfo } from '../../../framework/token/user_info';
 import { GlobalConfig } from '../../../framework/config/config';
 import { bcryptCompare } from '../../../framework/utils/crypto/bcrypt';
-import { Router } from '../../system/model/vo/router';
 import { SysConfigService } from '../../system/service/sys_config';
 import { SysMenuService } from '../../system/service/sys_menu';
 import { SysRoleService } from '../../system/service/sys_role';
 import { SysUserService } from '../../system/service/sys_user';
+import { Router } from '../../system/model/vo/router';
 
 /**账号身份操作 服务层处理 */
 @Provide()
@@ -84,35 +84,35 @@ export class AccountService {
    * 登录创建用户信息
    * @param username 登录用户名
    * @param password 密码
-   * @return [TokenInfo, string] 登录用户信息对象和错误结果信息
+   * @return [UserInfo, string] 登录用户信息对象和错误结果信息
    */
   public async byUsername(
     username: string,
     password: string
-  ): Promise<[TokenInfo, string]> {
-    const tokenInfo = new TokenInfo();
+  ): Promise<[UserInfo, string]> {
+    const info = new UserInfo();
 
     // 检查密码重试次数
     const [retryKey, retryCount, lockTime, err] = await this.passwordRetryCount(
       username
     );
     if (err) {
-      return [tokenInfo, err];
+      return [info, err];
     }
 
     // 查询用户登录账号
     const sysUser = await this.sysUserService.findByUserName(username);
     if (sysUser.userName !== username) {
-      return [tokenInfo, 'user does not exist or password is incorrect'];
+      return [info, 'user does not exist or password is incorrect'];
     }
     if (sysUser.delFlag === STATUS_YES) {
       return [
-        tokenInfo,
+        info,
         'sorry, your account has been deleted. Sorry, your account has been deleted',
       ];
     }
     if (sysUser.statusFlag === STATUS_NO) {
-      return [tokenInfo, 'sorry, your account has been disabled'];
+      return [info, 'sorry, your account has been disabled'];
     }
 
     // 检验用户密码
@@ -121,35 +121,72 @@ export class AccountService {
       // 清除错误记录次数
       await this.clearLoginRecordCache(username);
     } else {
-      await this.redis.setByExpire('', retryKey, retryCount + 1, lockTime);
-      return [tokenInfo, 'user does not exist or password is incorrect'];
+      await this.redis.set('', retryKey, retryCount + 1, lockTime);
+      return [info, 'user does not exist or password is incorrect'];
     }
 
     // 登录用户信息
-    tokenInfo.userId = sysUser.userId;
-    tokenInfo.deptId = sysUser.deptId;
-    tokenInfo.user = sysUser;
+    info.userId = sysUser.userId;
+    info.deptId = sysUser.deptId;
+    info.user = sysUser;
     // 用户权限组标识
     if (this.config.isSystemUser(sysUser.userId)) {
-      tokenInfo.permissions = [SYS_PERMISSION_SYSTEM];
+      info.permissions = [SYS_PERMISSION_SYSTEM];
     } else {
       const perms = await this.sysMenuService.findPermsByUserId(sysUser.userId);
-      tokenInfo.permissions = [...new Set(perms)];
+      info.permissions = [...new Set(perms)];
     }
-    return [tokenInfo, ''];
+    return [info, ''];
+  }
+
+  /**
+   * 用户ID刷新令牌创建用户信息
+   * @param userId 登录ID
+   * @return [UserInfo, string] 登录用户信息对象和错误结果信息
+   */
+  public async byUserId(userId: number): Promise<[UserInfo, string]> {
+    const info = new UserInfo();
+
+    // 查询用户登录账号
+    const sysUser = await this.sysUserService.findById(userId);
+    if (sysUser.userId !== userId) {
+      return [info, 'user does not exist'];
+    }
+    if (sysUser.delFlag === STATUS_YES) {
+      return [
+        info,
+        'sorry, your account has been deleted. Sorry, your account has been deleted',
+      ];
+    }
+    if (sysUser.statusFlag === STATUS_NO) {
+      return [info, 'sorry, your account has been disabled'];
+    }
+
+    // 登录用户信息
+    info.userId = sysUser.userId;
+    info.deptId = sysUser.deptId;
+    info.user = sysUser;
+    // 用户权限组标识
+    if (this.config.isSystemUser(sysUser.userId)) {
+      info.permissions = [SYS_PERMISSION_SYSTEM];
+    } else {
+      const perms = await this.sysMenuService.findPermsByUserId(sysUser.userId);
+      info.permissions = [...new Set(perms)];
+    }
+    return [info, ''];
   }
 
   /**
    * 更新登录时间和IP
-   * @param tokenInfo 登录用户信息对象
+   * @param info 登录用户信息对象
    * @returns 记录完成
    */
-  public async updateLoginDateAndIP(tokenInfo: TokenInfo): Promise<boolean> {
-    const user = await this.sysUserService.findById(tokenInfo.userId);
-    user.password = ''; // 密码不更新
-    user.loginIp = tokenInfo.loginIp;
-    user.loginTime = tokenInfo.loginTime;
-    const rows = await this.sysUserService.update(user);
+  public async updateLoginDateAndIP(info: UserInfo): Promise<boolean> {
+    const item = await this.sysUserService.findById(info.userId);
+    item.password = ''; // 密码不更新
+    item.loginIp = info.loginIp;
+    item.loginTime = info.loginTime;
+    const rows = await this.sysUserService.update(item);
     return rows > 0;
   }
 
