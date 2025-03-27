@@ -220,7 +220,7 @@ export class SysJobService {
         await job.remove();
       }
       // 执行单次任务
-      job = await queue.runJob(options, { jobId: jobId });
+      job = await queue.addJobToQueue(options, { jobId: jobId });
       // 执行中或等待中的都返回正常
       const isActive = await job.isActive();
       const isWaiting = await job.isWaiting();
@@ -239,7 +239,7 @@ export class SysJobService {
     await queue.clean(5000, 'wait');
 
     // 添加重复任务
-    await queue.runJob(options, {
+    await queue.addJobToQueue(options, {
       jobId: jobId,
       repeat: {
         cron: sysJob.cronExpression,
