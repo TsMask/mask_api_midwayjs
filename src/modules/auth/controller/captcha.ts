@@ -3,11 +3,6 @@ import { ConfigObject, create, createMathExpr } from 'svg-captcha-fixed';
 import svgBase64 = require('mini-svg-data-uri');
 
 import {
-  CAPTCHA_TYPE_CHAR,
-  CAPTCHA_TYPE_MATH,
-  CAPTCHA_EXPIRATION,
-} from '../../../framework/constants/captcha';
-import {
   LIMIT_IP,
   RateLimit,
 } from '../../../framework/decorator/RateLimitMethodDecorator';
@@ -55,36 +50,38 @@ export class CaptchaController {
       img: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
     };
 
+    // 验证码有效期，单位秒
+    const captchaExpiration = 2 * 60;
     // 从数据库配置获取验证码类型 math 数值计算 char 字符验证
     const captchaType = await this.sysConfigService.findValueByKey(
       'sys.account.captchaType'
     );
-    if (captchaType === CAPTCHA_TYPE_MATH) {
+    if (captchaType === 'math') {
       const uuid = generateCode(20);
       const options: ConfigObject = this.config.get('mathCaptcha');
       const { data: question, text: answer } = createMathExpr(options);
       data.uuid = uuid;
       data.img = svgBase64(question);
       verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
-      await this.redisCache.setByExpire(
+      await this.redisCache.set(
         '',
         verifyKey,
         answer,
-        CAPTCHA_EXPIRATION
+        captchaExpiration
       );
     }
-    if (captchaType === CAPTCHA_TYPE_CHAR) {
+    if (captchaType === 'char') {
       const uuid = generateCode(20);
       const options: ConfigObject = this.config.get('charCaptcha');
       const { data: question, text: answer } = create(options);
       data.uuid = uuid;
       data.img = svgBase64(question);
       verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
-      await this.redisCache.setByExpire(
+      await this.redisCache.set(
         '',
         verifyKey,
         answer.toLowerCase(),
-        CAPTCHA_EXPIRATION
+        captchaExpiration
       );
     }
 
