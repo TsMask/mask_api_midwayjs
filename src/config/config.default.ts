@@ -168,10 +168,10 @@ export default (): MidwayConfig => {
       algorithm: 'HS512',
       /**令牌密钥 */
       secret: 'abcdefghijklmnopqrstuvwxyz',
-      /**令牌有效期（默认120分钟） */
-      expiresIn: 120,
-      /**验证令牌有效期，相差不足xx分钟，自动刷新缓存 */
-      refreshIn: 20,
+      /**访问令牌有效期（默认15分钟） */
+      expiresIn: 15,
+      /**刷新令牌有效期（默认7*24*60分钟） */
+      refreshIn: 10080,
     },
 
     /**TypeORM 数据源 https://midwayjs.org/docs/extensions/orm */
