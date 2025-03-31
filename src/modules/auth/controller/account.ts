@@ -164,7 +164,7 @@ export class AccountController {
     }
 
     // 验证刷新令牌是否有效
-    const [claims, err] = await this.token.userTokenVerify(body.refreshToken);
+    const [claims, err] = await this.token.userTokenVerify(body.refreshToken, 'refresh');
     if (err != '') {
       this.c.status = 401;
       return Resp.codeMsg(40010, err);

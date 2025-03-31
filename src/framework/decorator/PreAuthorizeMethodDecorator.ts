@@ -61,7 +61,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       }
 
       // 验证令牌
-      const [claims, err] = await tokenService.userTokenVerify(tokenStr);
+      const [claims, err] = await tokenService.userTokenVerify(tokenStr, 'access');
       if (err) {
         return Resp.codeMsg(401, err);
       }

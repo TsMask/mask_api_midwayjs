@@ -39,7 +39,7 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
       }
 
       // 验证令牌
-      const [claims, err] = await token.userTokenVerify(tokenStr);
+      const [claims, err] = await token.userTokenVerify(tokenStr, 'access');
       if (err) {
         c.status = 401;
         return Resp.codeMsg(401, err);

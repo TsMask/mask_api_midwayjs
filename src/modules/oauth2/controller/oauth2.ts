@@ -161,7 +161,7 @@ export class Oauth2Controller {
     }
 
     // 验证刷新令牌是否有效
-    const [claims, err] = await this.token.oauth2TokenVerify(body.refreshToken);
+    const [claims, err] = await this.token.oauth2TokenVerify(body.refreshToken, 'refresh');
     if (err != '') {
       this.c.status = 401;
       return Resp.codeMsg(40001, err);

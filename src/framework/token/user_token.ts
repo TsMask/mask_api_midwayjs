@@ -30,7 +30,7 @@ export class UserTokenService {
   public async userTokenCreate(
     userId: number,
     deviceFingerprint: string,
-    tokenType: string
+    tokenType: 'access' | 'refresh'
   ): Promise<[string, number]> {
     // 令牌算法 HS256 HS384 HS512
     const algorithm: string = this.config.get('jwt.algorithm');
@@ -46,16 +46,20 @@ export class UserTokenService {
       default:
         method = 'HS256';
     }
+    // 生成令牌设置密钥
+    let secret: string = this.config.get('jwt.secret');
     // 设置令牌过期时间
     const now = Math.round(Date.now() / 1000);
     let exp = now;
     if (tokenType === 'access') {
       const expiresIn = parseNumber(this.config.get('jwt.expiresIn'));
       exp = now + expiresIn * 60;
+      secret = 'User_Access:' + secret;
     }
     if (tokenType === 'refresh') {
       const refreshIn = parseNumber(this.config.get('jwt.refreshIn'));
       exp = now + refreshIn * 60;
+      secret = 'User_Refresh:' + secret;
     }
     // 生成令牌负荷绑定uuid标识
     const jwtToken = {
@@ -65,8 +69,7 @@ export class UserTokenService {
       iat: now, // 签发时间
       nbf: now - 10, // 生效时间
     };
-    // 生成令牌设置密钥
-    const secret: string = this.config.get('jwt.secret');
+
     const tokenStr = sign(jwtToken, secret, { algorithm: method });
     const expSeconds = Math.round(exp - now);
     return [tokenStr, expSeconds];
@@ -75,14 +78,22 @@ export class UserTokenService {
   /**
    * 校验令牌是否有效
    * @param token 身份令牌
+   * @param tokenType 令牌类型 access:访问令牌 refresh:刷新令牌
    * @returns [令牌负荷, 错误信息]
    */
   public async userTokenVerify(
-    token: string
+    token: string,
+    tokenType: 'access' | 'refresh'
   ): Promise<[Record<string, any>, string]> {
     try {
       // 判断加密算法是预期的加密算法
-      const secret: string = this.config.get('jwt.secret');
+      let secret: string = this.config.get('jwt.secret');
+      if (tokenType === 'access') {
+        secret = 'User_Access:' + secret;
+      }
+      if (tokenType === 'refresh') {
+        secret = 'User_Refresh:' + secret;
+      }
       const jwtToken = verify(token, secret);
       if (jwtToken) {
         return [jwtToken as Record<string, any>, ''];
@@ -100,7 +111,7 @@ export class UserTokenService {
    * @returns [用户名, 错误信息]
    */
   public async userInfoRemove(token: string): Promise<[string, string]> {
-    const [claims, err] = await this.userTokenVerify(token);
+    const [claims, err] = await this.userTokenVerify(token, 'access');
     if (err != '') {
       return ['', err];
     }

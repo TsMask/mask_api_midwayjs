@@ -23,7 +23,7 @@ export class AuthorizeOauth2 implements IMiddleware<Context, NextFunction> {
       }
 
       // 验证令牌
-      const [claims, err] = await token.oauth2TokenVerify(tokenStr);
+      const [claims, err] = await token.oauth2TokenVerify(tokenStr, 'access');
       if (err) {
         c.status = 401;
         return Resp.codeMsg(401, err);
