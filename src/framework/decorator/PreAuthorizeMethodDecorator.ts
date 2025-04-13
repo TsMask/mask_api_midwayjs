@@ -57,20 +57,22 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
       // 获取请求头标识信息
       const tokenStr = authorization(c);
       if (tokenStr === '') {
-        return Resp.codeMsg(401, '无效身份授权');
+        c.status = 401;
+        return Resp.codeMsg(401003, 'authorization token is empty');
       }
 
       // 验证令牌
       const [claims, err] = await tokenService.userTokenVerify(tokenStr, 'access');
       if (err) {
-        return Resp.codeMsg(401, err);
+        c.status = 401;
+        return Resp.codeMsg(401001, err);
       }
 
       // 获取缓存的用户信息
       let info = await tokenService.userInfoGet(claims);
       if (info.userId <= 0) {
         c.status = 401;
-        return Resp.codeMsg(401, 'token valid error');
+        return Resp.codeMsg(401002, 'invalid login user information');
       }
       c.setAttr(CTX_LOGIN_USER, info);
 
@@ -82,7 +84,7 @@ export function PreAuthorizeVerify(options: { metadata: AuthOptions }) {
         const verifyOk = verifyRolePermission(roles, perms, metadataObj);
         if (!verifyOk) {
           c.status = 403;
-          return Resp.codeMsg(403, `无权访问 ${c.method} ${c.path}`);
+          return Resp.codeMsg(403001, `unauthorized access ${c.method} ${c.path}`);
         }
       }
 

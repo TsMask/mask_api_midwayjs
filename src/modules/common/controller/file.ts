@@ -40,8 +40,8 @@ export class FileController {
     @Valid(RuleType.string().required()) @Param('filePath') filePath: string
   ) {
     if (filePath.length < 8) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: filePath not is base64 string');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: filePath not is base64 string');
     }
     // base64解析出地址
     const routerPath = Buffer.from(filePath, 'base64').toString('utf-8');
@@ -84,16 +84,16 @@ export class FileController {
     @Fields('subPath') subPath: string
   ) {
     if (files.length !== 1) {
-      this.c.status = 200;
-      return Resp.errMsg('bind err: field file not upload');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: field file not upload');
     }
     const formFile = files[0];
 
     // 子路径需要在指定范围内
     const ok = UPLOAD_SUB_PATH[subPath];
     if (subPath && !ok) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: subPath not in range');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: subPath not in range');
     }
     if (!subPath) {
       subPath = UPLOAD_COMMON;
@@ -151,8 +151,8 @@ export class FileController {
     // 子路径需要在指定范围内
     const ok = UPLOAD_SUB_PATH[subPath];
     if (subPath && !ok) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: subPath not in range');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: subPath not in range');
     }
     if (!subPath) {
       subPath = UPLOAD_COMMON;
@@ -188,12 +188,13 @@ export class FileController {
     @Fields('identifier') identifier: string
   ) {
     if (index === '' || identifier === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: index and identifier must be set');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: index and identifier must be set');
     }
     // 上传的文件
     if (files.length !== 1) {
-      return Resp.errMsg('bind err: field file not upload');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: field file not upload');
     }
     const formFile = files[0];
 
@@ -203,10 +204,11 @@ export class FileController {
       identifier
     );
     if (err) {
+      this.c.status = 200;
       return Resp.errMsg(err);
     }
-    this.c.status = 206;
     await this.c.cleanupRequestFiles();
+    this.c.status = 206;
     return Resp.okData(chunkFilePath);
   }
 }

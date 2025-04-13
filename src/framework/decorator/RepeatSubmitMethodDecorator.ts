@@ -72,6 +72,7 @@ export function RepeatSubmitVerify(options: { metadata: number }) {
         c.set('X-RepeatSubmit-Rest', `${Date.now() + compareTime * 1000}`);
         // 小于间隔时间 且 参数内容一致
         if (compareTime < interval && compareParams) {
+          c.status = 200;
           return Resp.errMsg('不允许重复提交，请稍候再试');
         }
       }

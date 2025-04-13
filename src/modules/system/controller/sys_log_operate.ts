@@ -62,7 +62,7 @@ export class SysLogOperateController {
       dataScopeSQL
     );
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

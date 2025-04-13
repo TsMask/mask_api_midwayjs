@@ -55,14 +55,14 @@ export class Oauth2Controller {
     // 是否存在clientId
     const info = await this.oauth2ClientService.findByClientId(query.clientId);
     if (info.clientId == '' || info.clientId != query.clientId) {
-      this.c.status = 400;
-      return Resp.codeMsg(40404, 'clientId不存在');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'clientId not exist');
     }
 
     // 判断IP白名单
     if (!info.ipWhite.includes(this.c.ip)) {
-      this.c.status = 400;
-      return Resp.codeMsg(40404, 'IP白名单不匹配');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'IP whitelist mismatch');
     }
 
     // 生成登录预授权码
@@ -78,8 +78,8 @@ export class Oauth2Controller {
   @RateLimit({ time: 180, count: 15, type: LIMIT_IP })
   public async createToken(@Body() body: TokenBody): Promise<Resp> {
     if (body.grantType != 'authorization_code' || body.code == '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40404, 'grantType or code error');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'grantType or code error');
     }
 
     // 当前请求信息
@@ -96,8 +96,7 @@ export class Oauth2Controller {
         os,
         browser,
       ]);
-      this.c.status = 400;
-      return Resp.codeMsg(40012, err);
+      return Resp.errMsg(err);
     }
 
     // 客户端信息
@@ -106,8 +105,7 @@ export class Oauth2Controller {
       body.clientSecret
     );
     if (errMsg) {
-      this.c.status = 400;
-      return Resp.codeMsg(40014, err);
+      return Resp.errMsg(errMsg);
     }
     const deviceFingerprintStr = await deviceFingerprint(this.c, info.clientId);
 
@@ -118,8 +116,7 @@ export class Oauth2Controller {
       'access'
     );
     if (accessToken == '' || expiresIn == 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40001, 'token generation failed');
+      return Resp.errMsg('token generation failed');
     }
     // 生成刷新令牌
     const [refreshToken, refreshExpiresIn] = await this.token.oauth2TokenCreate(
@@ -156,15 +153,14 @@ export class Oauth2Controller {
   @RateLimit({ time: 60, count: 5, type: LIMIT_IP })
   public async refreshToken(@Body() body: TokenBody): Promise<Resp> {
     if (body.grantType != 'refresh_token' || body.refreshToken == '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40404, 'grantType or refreshToken error');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'grantType or refreshToken error');
     }
 
     // 验证刷新令牌是否有效
     const [claims, err] = await this.token.oauth2TokenVerify(body.refreshToken, 'refresh');
     if (err != '') {
-      this.c.status = 401;
-      return Resp.codeMsg(40001, err);
+      return Resp.errMsg(err);
     }
     const clientId = claims[JWT_CLIENT_ID];
 
@@ -174,21 +170,18 @@ export class Oauth2Controller {
       body.clientSecret
     );
     if (errMsg != '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40014, err);
+      return Resp.errMsg(errMsg);
     }
 
     // 客户端ID是否一致
     if (clientId != body.clientId) {
-      this.c.status = 400;
-      return Resp.codeMsg(40003, 'clientId mismatch');
+      return Resp.errMsg('clientId mismatch');
     }
     // 设备指纹信息是否一致
     const deviceId = claims[JWT_DEVICE_ID];
     const deviceFingerprintStr = await deviceFingerprint(this.c, clientId);
     if (deviceId != deviceFingerprintStr) {
-      this.c.status = 401;
-      return Resp.codeMsg(40003, 'device fingerprint mismatch');
+      return Resp.errMsg('device fingerprint mismatch');
     }
 
     // 生成访问令牌
@@ -198,8 +191,7 @@ export class Oauth2Controller {
       'access'
     );
     if (accessToken == '' || expiresIn == 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40001, 'token generation failed');
+      return Resp.errMsg('token generation failed');
     }
     // 生成刷新令牌
     const now = Math.round(Date.now() / 1000);

@@ -19,21 +19,21 @@ export class AuthorizeOauth2 implements IMiddleware<Context, NextFunction> {
       const tokenStr = authorization(c);
       if (tokenStr === '') {
         c.status = 401;
-        return Resp.codeMsg(401, '无效客户端授权');
+        return Resp.codeMsg(401003, 'authorization token is empty');
       }
 
       // 验证令牌
       const [claims, err] = await token.oauth2TokenVerify(tokenStr, 'access');
       if (err) {
         c.status = 401;
-        return Resp.codeMsg(401, err);
+        return Resp.codeMsg(401001, err);
       }
 
       // 获取缓存的用户信息
       let info = await token.oauth2InfoGet(claims);
       if (info.clientId === '') {
         c.status = 401;
-        return Resp.codeMsg(401, '无效客户端授权');
+        return Resp.codeMsg(401002, 'invalid login user information');
       }
       c.setAttr(CTX_LOGIN_OAUTH2, info);
 
@@ -50,7 +50,7 @@ export class AuthorizeOauth2 implements IMiddleware<Context, NextFunction> {
         }
         if (!hasScope) {
           c.status = 403;
-          return Resp.codeMsg(403, `无权访问 ${c.method} ${c.path}`);
+          return Resp.codeMsg(403001, `unauthorized access ${c.method} ${c.path}`);
         }
       }
 

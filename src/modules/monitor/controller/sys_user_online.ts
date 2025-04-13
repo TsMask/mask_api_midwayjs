@@ -124,8 +124,8 @@ export class SysUserOnlineController {
     @Valid(RuleType.string().allow('')) @Param('tokenId') tokenId: string
   ): Promise<Resp> {
     if (tokenId === '' || tokenId.indexOf('*') >= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: tokenId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: tokenId is empty');
     }
 
     // 处理字符转id数组后去重

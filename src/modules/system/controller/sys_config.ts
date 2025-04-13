@@ -53,8 +53,8 @@ export class SysConfigController {
     @Valid(RuleType.number().required()) @Param('configId') configId: number
   ): Promise<Resp> {
     if (configId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: configId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: configId is empty');
     }
     const data = await this.sysConfigService.findById(configId);
     if (data.configId === configId) {
@@ -72,8 +72,8 @@ export class SysConfigController {
   })
   public async add(@Body() body: SysConfig) {
     if (body.configId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: configId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: configId not is empty');
     }
 
     // 检查属性值唯一
@@ -104,8 +104,8 @@ export class SysConfigController {
   })
   public async edit(@Body() body: SysConfig) {
     if (body.configId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: configId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: configId is empty');
     }
 
     // 检查是否存在
@@ -149,7 +149,8 @@ export class SysConfigController {
     @Valid(RuleType.string().allow('')) @Param('configId') configId: string
   ) {
     if (configId === '') {
-      return Resp.codeMsg(40010, 'bind err: configId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: configId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -184,8 +185,8 @@ export class SysConfigController {
     @Valid(RuleType.string().allow('')) @Param('configKey') configKey: string
   ): Promise<Resp> {
     if (configKey === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: configKey is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: configKey is empty');
     }
     const key = await this.sysConfigService.findValueByKey(configKey);
     return Resp.okData(key);
@@ -202,7 +203,7 @@ export class SysConfigController {
     // 查询结果，根据查询条件结果，单页最大值限制
     const [rows, total] = await this.sysConfigService.findByPage(query);
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

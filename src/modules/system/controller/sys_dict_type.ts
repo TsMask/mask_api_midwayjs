@@ -50,8 +50,8 @@ export class SysDictTypeController {
   @PreAuthorize({ hasPermissions: ['system:dict:query'] })
   public async info(@Valid(RuleType.number()) @Param('dictId') dictId: number) {
     if (dictId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: dictId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: dictId is empty');
     }
 
     const data = await this.sysDictTypeService.findById(dictId);
@@ -70,8 +70,8 @@ export class SysDictTypeController {
   })
   public async add(@Body() body: SysDictType): Promise<Resp> {
     if (body.dictId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: dictId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: dictId not is empty');
     }
 
     // 检查字典名称唯一
@@ -109,8 +109,8 @@ export class SysDictTypeController {
   })
   public async edit(@Body() body: SysDictType): Promise<Resp> {
     if (body.dictId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: dictId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: dictId is empty');
     }
 
     // 检查数据是否存在
@@ -160,8 +160,8 @@ export class SysDictTypeController {
     @Valid(RuleType.string().allow('')) @Param('dictId') dictId: string
   ): Promise<Resp> {
     if (dictId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: dataId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: dataId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -216,7 +216,7 @@ export class SysDictTypeController {
   public async export(@Query() query: Record<string, string>) {
     const [rows, total] = await this.sysDictTypeService.findByPage(query);
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

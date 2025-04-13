@@ -57,8 +57,8 @@ export class SysDictDataController {
     @Valid(RuleType.number()) @Param('dataId') dataId: number
   ): Promise<Resp> {
     if (dataId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: deptId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: deptId is empty');
     }
     const data = await this.sysDictDataService.findById(dataId);
     if (data.dataId === dataId) {
@@ -76,8 +76,8 @@ export class SysDictDataController {
   })
   public async add(@Body() body: SysDictData): Promise<Resp> {
     if (body.dataId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: dataId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: dataId not is empty');
     }
 
     // 检查字典类型是否存在
@@ -127,8 +127,8 @@ export class SysDictDataController {
   })
   public async edit(@Body() body: SysDictData): Promise<Resp> {
     if (body.dataId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: dataId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: dataId is empty');
     }
 
     // 检查字典类型是否存在
@@ -194,8 +194,8 @@ export class SysDictDataController {
     @Valid(RuleType.string().allow('')) @Param('dataId') dataId: string
   ): Promise<Resp> {
     if (dataId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: dataId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: dataId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -217,8 +217,8 @@ export class SysDictDataController {
     @Valid(RuleType.string().allow('')) @Param('dictType') dictType: string
   ): Promise<Resp> {
     if (dictType === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: dictType is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: dictType is empty');
     }
     const data = await this.sysDictDataService.findByType(dictType);
     return Resp.okData(data);
@@ -234,7 +234,7 @@ export class SysDictDataController {
   public async export(@Query() query: Record<string, string>) {
     const [rows, total] = await this.sysDictDataService.findByPage(query);
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

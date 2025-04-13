@@ -14,7 +14,7 @@ export class ValidateError {
   async catch(err: MidwayValidationError, c: Context) {
     c.logger.error('%s > %s', err.name, err.message);
     // 返回422，提示错误信息
-    c.body = Resp.codeMsg(422, err.message);
+    c.body = Resp.codeMsg(422001, err.message);
     c.status = HttpStatus.UNPROCESSABLE_ENTITY;
   }
 }

@@ -65,8 +65,8 @@ export class SysDeptController {
     @Valid(RuleType.number().required()) @Param('deptId') deptId: number
   ): Promise<Resp> {
     if (deptId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: deptId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: deptId is empty');
     }
 
     const data = await this.sysDeptService.findById(deptId);
@@ -85,8 +85,8 @@ export class SysDeptController {
   })
   public async add(@Body() body: SysDept): Promise<Resp> {
     if (body.deptId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: deptId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: deptId not is empty');
     }
 
     // 父级ID不为0是要检查
@@ -138,8 +138,8 @@ export class SysDeptController {
   })
   public async edit(@Body() body: SysDept): Promise<Resp> {
     if (body.deptId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: deptId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: deptId is empty');
     }
 
     // 上级部门不能选自己
@@ -209,8 +209,8 @@ export class SysDeptController {
     @Valid(RuleType.number()) @Param('deptId') deptId: number
   ): Promise<Resp> {
     if (deptId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: deptId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: deptId is empty');
     }
 
     // 检查数据是否存在
@@ -245,8 +245,8 @@ export class SysDeptController {
     @Valid(RuleType.number()) @Param('deptId') deptId: number
   ): Promise<Resp> {
     if (deptId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: deptId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: deptId is empty');
     }
     const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
     const data = await this.sysDeptService.find(new SysDept(), dataScopeSQL);
@@ -296,8 +296,8 @@ export class SysDeptController {
     @Valid(RuleType.number().required()) @Param('roleId') roleId: number
   ): Promise<Resp> {
     if (roleId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: roleId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: roleId is empty');
     }
 
     const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');

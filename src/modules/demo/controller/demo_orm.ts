@@ -62,8 +62,8 @@ export class DemoORMController {
   @Get('/:id')
   async info(@Param('id') id: number): Promise<Resp> {
     if (id <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: id is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422001, 'bind err: id is empty');
     }
 
     const data = await this.demoORMService.findById(id);
@@ -77,8 +77,8 @@ export class DemoORMController {
   @Post()
   public async add(@Body() demoORM: DemoORM): Promise<Resp> {
     if (demoORM.id > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: id not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: id not is empty');
     }
     const insertId = await this.demoORMService.insert(demoORM);
     if (insertId > 0) {
@@ -93,8 +93,8 @@ export class DemoORMController {
   @Put()
   public async update(@Body() demoORM: DemoORM): Promise<Resp> {
     if (demoORM.id <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: id is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: id is empty');
     }
     const rowsAffected = await this.demoORMService.update(demoORM);
     if (rowsAffected > 0) {
@@ -107,8 +107,8 @@ export class DemoORMController {
   @Del('/:id')
   public async remove(@Param('id') id: string): Promise<Resp> {
     if (id === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: id is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: id is empty');
     }
 
     // 处理字符转id数组后去重

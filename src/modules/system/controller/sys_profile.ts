@@ -49,7 +49,7 @@ export class SysProfileController {
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(40003, err);
+      return Resp.codeMsg(401002, err);
     }
 
     // 查询用户所属角色组
@@ -88,14 +88,15 @@ export class SysProfileController {
     @Valid(RuleType.string().allow('')) @Body('avatar') avatar: string
   ): Promise<Resp> {
     if (nickName === '' || sex === '') {
-      return Resp.codeMsg(40010, 'bind err: nickName or sex not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: nickName or sex not is empty');
     }
 
     // 登录用户信息
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(40003, err);
+      return Resp.codeMsg(401002, err);
     }
     const userId = info.userId;
 
@@ -107,10 +108,10 @@ export class SysProfileController {
           userId
         );
         if (!uniquePhone) {
-          return Resp.codeMsg(40018, '抱歉，手机号码已存在');
+          return Resp.errMsg('抱歉，手机号码已存在');
         }
       } else {
-        return Resp.codeMsg(40018, '抱歉，手机号码格式错误');
+        return Resp.errMsg('抱歉，手机号码格式错误');
       }
     }
 
@@ -122,10 +123,10 @@ export class SysProfileController {
           userId
         );
         if (!uniqueEmail) {
-          return Resp.codeMsg(40019, '抱歉，邮箱已存在');
+          return Resp.errMsg('抱歉，邮箱已存在');
         }
       } else {
-        return Resp.codeMsg(40019, '抱歉，邮箱格式错误');
+        return Resp.errMsg('抱歉，邮箱格式错误');
       }
     }
 
@@ -175,7 +176,7 @@ export class SysProfileController {
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(40003, err);
+      return Resp.codeMsg(401002, err);
     }
     const userId = info.userId;
 

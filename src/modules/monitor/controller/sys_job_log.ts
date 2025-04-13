@@ -51,8 +51,8 @@ export class SysJobLogController {
     @Valid(RuleType.number()) @Param('logId') logId: number
   ): Promise<Resp> {
     if (logId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: logId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: logId is empty');
     }
 
     const data = await this.sysJobLogService.findById(logId);
@@ -73,8 +73,8 @@ export class SysJobLogController {
     @Valid(RuleType.string().allow('')) @Param('logId') logId: string
   ): Promise<Resp> {
     if (logId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: logId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: logId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -118,7 +118,7 @@ export class SysJobLogController {
     }
     const [rows, total] = await this.sysJobLogService.findByPage(query);
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出数据表格

@@ -35,21 +35,21 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
       const tokenStr = authorization(c);
       if (tokenStr === '') {
         c.status = 401;
-        return Resp.codeMsg(401, '无效身份授权');
+        return Resp.codeMsg(401003, 'authorization token is empty');
       }
 
       // 验证令牌
       const [claims, err] = await token.userTokenVerify(tokenStr, 'access');
       if (err) {
         c.status = 401;
-        return Resp.codeMsg(401, err);
+        return Resp.codeMsg(401001, err);
       }
 
       // 获取缓存的用户信息
       let info = await token.userInfoGet(claims);
       if (info.userId <= 0) {
         c.status = 401;
-        return Resp.codeMsg(401, 'token valid error');
+        return Resp.codeMsg(401002, 'invalid login user information');
       }
       c.setAttr(CTX_LOGIN_USER, info);
 
@@ -60,7 +60,7 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
         const verifyOk = verifyRolePermission(roles, perms, options);
         if (!verifyOk) {
           c.status = 403;
-          return Resp.codeMsg(403, `无权访问 ${c.method} ${c.path}`);
+          return Resp.codeMsg(403001, `unauthorized access ${c.method} ${c.path}`);
         }
       }
 

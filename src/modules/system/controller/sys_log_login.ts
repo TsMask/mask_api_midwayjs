@@ -74,8 +74,8 @@ export class SysLogLoginController {
     @Valid(RuleType.string().allow('')) @Param('userName') userName: string
   ): Promise<Resp> {
     if (!userName) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: userName is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: userName is empty');
     }
     const ok = await this.accountService.clearLoginRecordCache(userName);
     if (ok) {
@@ -103,7 +103,7 @@ export class SysLogLoginController {
       dataScopeSQL
     );
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

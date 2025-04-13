@@ -49,8 +49,8 @@ export class Oauth2ClientController {
   @PreAuthorize({ matchRoles: ['admin'] })
   public async info(@Param('clientId') clientId: string): Promise<Resp> {
     if (clientId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: clientId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: clientId is empty');
     }
     const data = await this.oauth2ClientService.findByClientId(clientId);
     if (data.clientId === clientId) {
@@ -68,8 +68,8 @@ export class Oauth2ClientController {
   })
   public async add(@Body() body: Oauth2Client) {
     if (body.id > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: id not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: id not is empty');
     }
 
     const localHost =
@@ -77,8 +77,8 @@ export class Oauth2ClientController {
       body.ipWhite.includes('localhost') ||
       body.ipWhite.includes('::1');
     if (localHost || body.ipWhite.includes('::ffff:')) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'no support local host');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'no support local host');
     }
 
     body.createBy = loginUserToUserName(this.c);
@@ -98,8 +98,8 @@ export class Oauth2ClientController {
   })
   public async edit(@Body() body: Oauth2Client) {
     if (body.id <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: id is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: id is empty');
     }
 
     const localHost =
@@ -107,8 +107,8 @@ export class Oauth2ClientController {
       body.ipWhite.includes('localhost') ||
       body.ipWhite.includes('::1');
     if (localHost || body.ipWhite.includes('::ffff:')) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'no support local host');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'no support local host');
     }
 
     // 查询信息
@@ -137,7 +137,8 @@ export class Oauth2ClientController {
   })
   public async remove(@Param('id') id: string) {
     if (id === '') {
-      return Resp.codeMsg(40010, 'bind err: id is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: id is empty');
     }
 
     // 处理字符转id数组后去重

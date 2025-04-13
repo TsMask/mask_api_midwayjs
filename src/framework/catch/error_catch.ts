@@ -23,7 +23,7 @@ export class ErrorCatch {
 
     // 返回错误响应给客户端
     if (c.app.getEnv() === 'prod') {
-      c.body = Resp.codeMsg(50000, 'internal error');
+      c.body = Resp.codeMsg(500001, 'internal error');
       c.status = HttpStatus.INTERNAL_SERVER_ERROR;
       return;
     }
@@ -42,7 +42,7 @@ export class ErrorCatch {
     }
 
     // 返回500，提示错误信息
-    c.body = Resp.codeMsg(50000, msg);
+    c.body = Resp.codeMsg(500001, msg);
     c.status = HttpStatus.INTERNAL_SERVER_ERROR;
   }
 }

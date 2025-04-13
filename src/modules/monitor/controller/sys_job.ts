@@ -55,8 +55,8 @@ export class SysJobController {
     @Valid(RuleType.number()) @Param('jobId') jobId: number
   ): Promise<Resp> {
     if (jobId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: jobId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: jobId not is empty');
     }
     const jobInfo = await this.sysJobService.findById(jobId);
     if (jobInfo.jobId === jobId) {
@@ -74,8 +74,8 @@ export class SysJobController {
   })
   public async add(@Body() body: SysJob): Promise<Resp> {
     if (body.jobId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: jobId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: jobId not is empty');
     }
 
     // 检查cron表达式格式
@@ -126,8 +126,8 @@ export class SysJobController {
   })
   public async edit(@Body() body: SysJob): Promise<Resp> {
     if (body.jobId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: jobId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: jobId is empty');
     }
 
     // 检查cron表达式格式
@@ -196,8 +196,8 @@ export class SysJobController {
     @Valid(RuleType.string().allow('')) @Param('jobId') jobId: string
   ): Promise<Resp> {
     if (jobId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: jobId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: jobId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -260,8 +260,8 @@ export class SysJobController {
     @Valid(RuleType.number()) @Param('jobId') jobId: number
   ): Promise<Resp> {
     if (jobId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: jobId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: jobId is empty');
     }
 
     // 检查是否存在
@@ -303,7 +303,7 @@ export class SysJobController {
     // 查询结果，根据查询条件结果，单页最大值限制
     const [rows, total] = await this.sysJobService.findByPage(query);
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

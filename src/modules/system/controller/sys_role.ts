@@ -62,8 +62,8 @@ export class SysRoleController {
     @Valid(RuleType.number()) @Param('roleId') roleId: number
   ): Promise<Resp> {
     if (roleId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: roleId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: roleId is empty');
     }
     const data = await this.sysRoleService.findById(roleId);
     if (data.roleId === roleId) {
@@ -81,8 +81,8 @@ export class SysRoleController {
   })
   public async add(@Body() body: SysRole): Promise<Resp> {
     if (body.roleId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: roleId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: roleId not is empty');
     }
 
     // 判断角色名称是否唯一
@@ -120,8 +120,8 @@ export class SysRoleController {
   })
   public async edit(@Body() body: SysRole): Promise<Resp> {
     if (body.roleId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: roleId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: roleId is empty');
     }
 
     // 检查是否系统管理员角色
@@ -133,7 +133,7 @@ export class SysRoleController {
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(40003, err);
+      return Resp.codeMsg(401002, err);
     }
     if (Array.isArray(info.user.roleIds) && info.user.roleIds.length > 0) {
       if (info.user.roleIds.includes(body.roleId)) {
@@ -194,8 +194,8 @@ export class SysRoleController {
     @Valid(RuleType.string().allow('')) @Param('roleId') roleId: string
   ): Promise<Resp> {
     if (roleId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: roleId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: roleId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -280,7 +280,8 @@ export class SysRoleController {
     deptCheckStrictly: string
   ): Promise<Resp> {
     if (roleId <= 0) {
-      return Resp.codeMsg(40010, 'bind err: roleId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: roleId is empty');
     }
     // 检查是否系统管理员角色
     if (roleId === SYS_ROLE_SYSTEM_ID) {
@@ -311,8 +312,8 @@ export class SysRoleController {
   ): Promise<Resp> {
     const roleId = parseNumber(query.roleId);
     if (roleId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: roleId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: roleId is empty');
     }
 
     // 检查是否存在
@@ -348,8 +349,8 @@ export class SysRoleController {
     @Valid(RuleType.boolean().required()) @Body('auth') auth: boolean
   ): Promise<Resp> {
     if (userIds.length <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: userIds is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: userIds is empty');
     }
 
     // 检查是否存在
@@ -381,7 +382,7 @@ export class SysRoleController {
     // 查询结果，根据查询条件结果，单页最大值限制
     const [rows, total] = await this.sysRoleService.findByPage(query);
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

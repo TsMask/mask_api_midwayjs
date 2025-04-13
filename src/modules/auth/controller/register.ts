@@ -53,8 +53,7 @@ export class RegisterController {
         os,
         browser,
       ]);
-      this.c.status = 400;
-      return Resp.codeMsg(40012, errMsg);
+      return Resp.errMsg(errMsg);
     }
 
     // 判断必传参数

@@ -99,7 +99,7 @@ export function OpLerateLogSave(options: { metadata: Options }) {
       const userName = loginUserToUserName(c);
       if (userName === '') {
         c.status = 401;
-        return Resp.codeMsg(401, '无效身份授权');
+        return Resp.codeMsg(401002, 'invalid login user information');
       }
 
       // 操作日志记录

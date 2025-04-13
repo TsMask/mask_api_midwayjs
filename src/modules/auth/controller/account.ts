@@ -71,8 +71,7 @@ export class AccountController {
         os,
         browser,
       ]);
-      this.c.status = 400;
-      return Resp.codeMsg(40012, errMsg);
+      return Resp.errMsg(errMsg);
     }
 
     // 登录用户信息
@@ -81,8 +80,7 @@ export class AccountController {
       body.password
     );
     if (err) {
-      this.c.status = 400;
-      return Resp.codeMsg(40014, err);
+      return Resp.errMsg(err);
     }
     const deviceFingerprintStr = await deviceFingerprint(this.c, info.userId);
 
@@ -93,8 +91,7 @@ export class AccountController {
       'access'
     );
     if (accessToken == '' || expiresIn == 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40001, 'token generation failed');
+      return Resp.errMsg('token generation failed');
     }
     // 生成刷新令牌
     const [refreshToken, refreshExpiresIn] = await this.token.userTokenCreate(
@@ -159,31 +156,32 @@ export class AccountController {
     @Body() body: Record<string, string>
   ): Promise<Resp> {
     if (body.refreshToken === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: refreshToken is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: refreshToken is empty');
     }
 
     // 验证刷新令牌是否有效
-    const [claims, err] = await this.token.userTokenVerify(body.refreshToken, 'refresh');
+    const [claims, err] = await this.token.userTokenVerify(
+      body.refreshToken,
+      'refresh'
+    );
     if (err != '') {
       this.c.status = 401;
-      return Resp.codeMsg(40010, err);
+      return Resp.codeMsg(401001, err);
     }
     const userId = parseNumber(claims[JWT_USER_ID]);
 
     // 登录用户信息
     let [info, errMsg] = await this.accountService.byUserId(userId);
     if (errMsg != '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40014, err);
+      return Resp.errMsg(errMsg);
     }
 
     // 设备指纹信息是否一致
     const deviceId = claims[JWT_DEVICE_ID];
     const deviceFingerprintStr = await deviceFingerprint(this.c, userId);
     if (deviceId != deviceFingerprintStr) {
-      this.c.status = 401;
-      return Resp.codeMsg(40003, 'device fingerprint mismatch');
+      return Resp.errMsg('device fingerprint mismatch');
     }
 
     // 生成访问令牌
@@ -193,8 +191,7 @@ export class AccountController {
       'access'
     );
     if (accessToken == '' || expiresIn == 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40001, 'token generation failed');
+      return Resp.errMsg('token generation failed');
     }
     // 生成刷新令牌
     const now = Math.round(Date.now() / 1000);
@@ -248,7 +245,7 @@ export class AccountController {
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(40003, err);
+      return Resp.codeMsg(401002, err);
     }
 
     // 角色权限集合，系统管理员拥有所有权限

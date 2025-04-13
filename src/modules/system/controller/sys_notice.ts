@@ -52,8 +52,8 @@ export class SysNoticeController {
     @Valid(RuleType.number()) @Param('noticeId') noticeId: number
   ): Promise<Resp> {
     if (noticeId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: noticeId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: noticeId is empty');
     }
     const data = await this.sysNoticeService.findById(noticeId);
     if (data.noticeId === noticeId) {
@@ -71,8 +71,8 @@ export class SysNoticeController {
   })
   public async add(@Body() body: SysNotice): Promise<Resp> {
     if (body.noticeId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: noticeId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: noticeId not is empty');
     }
 
     body.createBy = loginUserToUserName(this.c);
@@ -92,8 +92,8 @@ export class SysNoticeController {
   })
   public async edit(@Body() body: SysNotice): Promise<Resp> {
     if (body.noticeId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: noticeId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: noticeId is empty');
     }
 
     // 检查是否存在
@@ -126,8 +126,8 @@ export class SysNoticeController {
     @Valid(RuleType.string().allow('')) @Param('noticeId') noticeId: string
   ): Promise<Resp> {
     if (noticeId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: noticeId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: noticeId is empty');
     }
 
     // 处理字符转id数组后去重

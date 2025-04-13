@@ -84,7 +84,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
         const loginUserId = loginUserToUserID(c);
         if (loginUserId < 0) {
           c.status = 401;
-          return Resp.codeMsg(401, '无效身份授权');
+          return Resp.codeMsg(401002, 'invalid login user information');
         }
         limitKey = `${CACHE_RATE_LIMIT}:${loginUserId}:${classMethod}`;
       }
@@ -114,7 +114,7 @@ export function RateLimitVerify(options: { metadata: rateLimitOptions }) {
 
       if (rateCount >= count) {
         c.status = 200;
-        return Resp.codeMsg(4013, '访问过于频繁，请稍候再试');
+        return Resp.errMsg('访问过于频繁，请稍候再试');
       }
 
       // 执行原方法

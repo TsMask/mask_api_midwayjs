@@ -94,8 +94,8 @@ export class SysUserController {
     @Valid(RuleType.number()) @Param('userId') userId: number
   ): Promise<Resp> {
     if (userId < 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: userId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: userId is empty');
     }
 
     // 查询系统角色列表
@@ -146,8 +146,8 @@ export class SysUserController {
   })
   public async add(@Body() body: SysUser): Promise<Resp> {
     if (body.userId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: userId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: userId not is empty');
     }
     if (!validUsername(body.userName)) {
       return Resp.errMsg(
@@ -233,8 +233,8 @@ export class SysUserController {
   })
   public async edit(@Body() body: SysUser): Promise<Resp> {
     if (body.userId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: userId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: userId is empty');
     }
 
     // 检查是否系统管理员用户
@@ -314,8 +314,8 @@ export class SysUserController {
     @Valid(RuleType.string().allow('')) @Param('userId') userId: string
   ): Promise<Resp> {
     if (userId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: userId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: userId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -434,7 +434,7 @@ export class SysUserController {
       dataScopeSQL
     );
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

@@ -52,8 +52,8 @@ export class SysPostController {
     @Valid(RuleType.number()) @Param('postId') postId: number
   ): Promise<Resp> {
     if (postId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: postId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: postId is empty');
     }
     const data = await this.sysPostService.findById(postId);
     if (data.postId === postId) {
@@ -71,8 +71,8 @@ export class SysPostController {
   })
   public async add(@Body() body: SysPost): Promise<Resp> {
     if (body.postId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: postId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: postId not is empty');
     }
     // 检查名称唯一
     const uniqueuName = await this.sysPostService.checkUniqueByName(
@@ -108,8 +108,8 @@ export class SysPostController {
   })
   public async edit(@Body() body: SysPost): Promise<Resp> {
     if (body.postId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: postId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: postId is empty');
     }
 
     // 检查是否存在
@@ -160,8 +160,8 @@ export class SysPostController {
     @Valid(RuleType.string().allow('')) @Param('postId') postId: string
   ): Promise<Resp> {
     if (postId === '') {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: postId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: postId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -187,7 +187,7 @@ export class SysPostController {
     // 查询结果，根据查询条件结果，单页最大值限制
     const [rows, total] = await this.sysPostService.findByPage(query);
     if (total === 0) {
-      return Resp.codeMsg(40016, 'export data record as empty');
+      return Resp.errMsg('export data record as empty');
     }
 
     // 导出文件名称

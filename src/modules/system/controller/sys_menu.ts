@@ -73,8 +73,8 @@ export class SysMenuController {
     @Valid(RuleType.number()) @Param('menuId') menuId: number
   ): Promise<Resp> {
     if (menuId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: menuId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: menuId is empty');
     }
     const data = await this.sysMenuService.findById(menuId);
     if (data.menuId === menuId) {
@@ -92,8 +92,8 @@ export class SysMenuController {
   })
   public async add(@Body() body: SysMenu): Promise<Resp> {
     if (body.menuId > 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: menuId not is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: menuId not is empty');
     }
 
     // 目录和菜单检查地址唯一
@@ -146,8 +146,8 @@ export class SysMenuController {
   })
   public async edit(@Body() body: SysMenu): Promise<Resp> {
     if (body.menuId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: menuId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: menuId is empty');
     }
     // 上级菜单不能选自己
     if (body.menuId === body.parentId) {
@@ -247,8 +247,8 @@ export class SysMenuController {
     @Valid(RuleType.number()) @Param('menuId') menuId: number
   ): Promise<Resp> {
     if (menuId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: menuId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: menuId is empty');
     }
 
     // 检查数据是否存在
@@ -307,8 +307,8 @@ export class SysMenuController {
     @Query('statusFlag') statusFlag: string
   ): Promise<Resp> {
     if (roleId <= 0) {
-      this.c.status = 400;
-      return Resp.codeMsg(40010, 'bind err: roleId is empty');
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: roleId is empty');
     }
     const sysMenu = new SysMenu();
     if (menuName) sysMenu.menuName = menuName;
