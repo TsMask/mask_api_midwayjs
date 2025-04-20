@@ -17,7 +17,6 @@ import * as crossDomain from '@midwayjs/cross-domain';
 import * as security from '@midwayjs/security';
 
 import { checkDirPathExists } from './framework/utils/file/utils';
-import { MethodDecorators } from './framework/decorator';
 import { ReportMiddleware } from './framework/middleware/report';
 import { ErrorCatchFilters } from './framework/catch';
 
@@ -50,10 +49,6 @@ export class MainConfiguration {
     this.app.useMiddleware([ReportMiddleware]);
     // 注册捕获异常处理器
     this.app.useFilter(ErrorCatchFilters);
-    // 注册方法装饰器
-    for (const { key, fn } of MethodDecorators) {
-      this.decoratorService.registerMethodHandler(key, fn);
-    }
   }
 
   /**

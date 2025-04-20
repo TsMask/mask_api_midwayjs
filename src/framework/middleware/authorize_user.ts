@@ -15,11 +15,11 @@ interface Options {
   /**只需含有其中角色 */
   hasRoles?: string[];
   /**只需含有其中权限 */
-  hasPermissions?: string[];
+  hasPerms?: string[];
   /**同时匹配其中角色 */
   matchRoles?: string[];
   /**同时匹配其中权限 */
-  matchPermissions?: string[];
+  matchPerms?: string[];
 }
 
 /**用户身份授权认证校验-中间件 */
@@ -112,9 +112,9 @@ function verifyRolePermission(
     hasRole = options.hasRoles.some(r => roles.some(ur => ur === r));
   }
   // 只需含有其中权限
-  let hasPermission = false;
-  if (options.hasPermissions && options.hasPermissions.length > 0) {
-    hasPermission = options.hasPermissions.some(p =>
+  let hasPerms = false;
+  if (options.hasPerms && options.hasPerms.length > 0) {
+    hasPerms = options.hasPerms.some(p =>
       permissions.some(up => up === p)
     );
   }
@@ -124,27 +124,27 @@ function verifyRolePermission(
     matchRoles = options.matchRoles.every(r => roles.some(ur => ur === r));
   }
   // 同时匹配其中权限
-  let matchPermissions = false;
-  if (options.matchPermissions && options.matchPermissions.length > 0) {
-    matchPermissions = options.matchPermissions.every(p =>
+  let matchPerms = false;
+  if (options.matchPerms && options.matchPerms.length > 0) {
+    matchPerms = options.matchPerms.every(p =>
       permissions.some(up => up === p)
     );
   }
 
   // 同时判断 含有其中
-  if (options.hasRoles && options.hasPermissions) {
-    return hasRole || hasPermission;
+  if (options.hasRoles && options.hasPerms) {
+    return hasRole || hasPerms;
   }
   // 同时判断 匹配其中
-  if (options.matchRoles && options.matchPermissions) {
-    return matchRoles && matchPermissions;
+  if (options.matchRoles && options.matchPerms) {
+    return matchRoles && matchPerms;
   }
   // 同时判断 含有其中且匹配其中
-  if (options.hasRoles && options.matchPermissions) {
-    return hasRole && matchPermissions;
+  if (options.hasRoles && options.matchPerms) {
+    return hasRole && matchPerms;
   }
-  if (options.hasPermissions && options.matchRoles) {
-    return hasPermission && matchRoles;
+  if (options.hasPerms && options.matchRoles) {
+    return hasPerms && matchRoles;
   }
-  return hasRole || hasPermission || matchRoles || matchPermissions;
+  return hasRole || hasPerms || matchRoles || matchPerms;
 }
