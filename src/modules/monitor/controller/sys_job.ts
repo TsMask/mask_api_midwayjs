@@ -13,19 +13,19 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import {
   parseCronExpression,
   parseNumber,
   parseRemoveDuplicatesToArray,
   parseStringToObject,
 } from '../../../framework/utils/parse/parse';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
-import { Resp } from '../../../framework/resp/api';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { RepeatSubmitMiddleware } from '../../../framework/middleware/repeat_submit';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
+import { Resp } from '../../../framework/resp/api';
 import { SysJobService } from '../service/sys_job';
 import { SysJob } from '../model/sys_job';
 
@@ -41,16 +41,22 @@ export class SysJobController {
   private sysJobService: SysJobService;
 
   /**调度任务列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['monitor:job:list'] })
+  @Get('/list', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:list'] }),
+    ],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysJobService.findByPage(query);
     return Resp.okData({ rows, total });
   }
 
   /**调度任务信息 */
-  @Get('/:jobId')
-  @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
+  @Get('/:jobId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:query'] }),
+    ],
+  })
   public async info(
     @Valid(RuleType.number()) @Param('jobId') jobId: number
   ): Promise<Resp> {
@@ -66,11 +72,14 @@ export class SysJobController {
   }
 
   /**调度任务新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['monitor:job:add'] })
-  @OperateLog({
-    title: '调度任务信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:add'] }),
+      OperateLogMiddleware({
+        title: '调度任务信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysJob): Promise<Resp> {
     if (body.jobId > 0) {
@@ -118,11 +127,14 @@ export class SysJobController {
   }
 
   /**调度任务修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['monitor:job:edit'] })
-  @OperateLog({
-    title: '调度任务信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:edit'] }),
+      OperateLogMiddleware({
+        title: '调度任务信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysJob): Promise<Resp> {
     if (body.jobId <= 0) {
@@ -186,11 +198,14 @@ export class SysJobController {
   }
 
   /**调度任务删除 */
-  @Del('/:jobId')
-  @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
-  @OperateLog({
-    title: '调度任务信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:jobId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:remove'] }),
+      OperateLogMiddleware({
+        title: '调度任务信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.string().allow('')) @Param('jobId') jobId: string
@@ -213,12 +228,15 @@ export class SysJobController {
   }
 
   /**调度任务修改状态 */
-  @Put('/status')
-  @RepeatSubmit(5)
-  @PreAuthorize({ hasPermissions: ['monitor:job:status'] })
-  @OperateLog({
-    title: '调度任务信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('/status', {
+    middleware: [
+      RepeatSubmitMiddleware(5),
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:status'] }),
+      OperateLogMiddleware({
+        title: '调度任务信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async status(
     @Valid(RuleType.number().required()) @Body('jobId') jobId: number,
@@ -249,12 +267,15 @@ export class SysJobController {
   }
 
   /**调度任务立即执行一次 */
-  @Put('/run/:jobId')
-  @RepeatSubmit(10)
-  @PreAuthorize({ hasPermissions: ['monitor:job:status'] })
-  @OperateLog({
-    title: '调度任务信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('/run/:jobId', {
+    middleware: [
+      RepeatSubmitMiddleware(10),
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:status'] }),
+      OperateLogMiddleware({
+        title: '调度任务信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async run(
     @Valid(RuleType.number()) @Param('jobId') jobId: number
@@ -278,12 +299,15 @@ export class SysJobController {
   }
 
   /**调度任务重置刷新队列 */
-  @Put('/reset')
-  @RepeatSubmit(5)
-  @PreAuthorize({ hasPermissions: ['monitor:job:status'] })
-  @OperateLog({
-    title: '调度任务信息',
-    businessType: BUSINESS_TYPE.CLEAN,
+  @Put('/reset', {
+    middleware: [
+      RepeatSubmitMiddleware(5),
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:status'] }),
+      OperateLogMiddleware({
+        title: '调度任务信息',
+        businessType: BUSINESS_TYPE.CLEAN,
+      }),
+    ],
   })
   public async reset(): Promise<Resp> {
     await this.sysJobService.reset();
@@ -293,11 +317,14 @@ export class SysJobController {
   /**
    * 导出调度任务信息
    */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
-  @OperateLog({
-    title: '调度任务信息',
-    businessType: BUSINESS_TYPE.EXPORT,
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:export'] }),
+      OperateLogMiddleware({
+        title: '调度任务信息',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制

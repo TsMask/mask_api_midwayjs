@@ -2,16 +2,16 @@ import { Controller, Body, Post, Inject } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 
 import {
-  LIMIT_IP,
-  RateLimit,
-} from '../../../framework/decorator/RateLimitMethodDecorator';
-import {
   validPassword,
   validUsername,
 } from '../../../framework/utils/regular/regular';
-import { Resp } from '../../../framework/resp/api';
-import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
+import {
+  RateLimitMiddleware,
+  LIMIT_IP,
+} from '../../../framework/middleware/rate_limit';
 import { ipaddrLocation, uaOsBrowser } from '../../../framework/reqctx/param';
+import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
+import { Resp } from '../../../framework/resp/api';
 import { SysLogLoginService } from '../../system/service/sys_log_login';
 import { RegisterService } from '../service/register';
 import { RegisterBody } from '../model/register_body';
@@ -32,8 +32,9 @@ export class RegisterController {
   private sysLogLoginService: SysLogLoginService;
 
   /**账号注册 */
-  @Post('/auth/register')
-  @RateLimit({ time: 300, count: 10, type: LIMIT_IP })
+  @Post('/auth/register', {
+    middleware: [RateLimitMiddleware({ time: 300, count: 10, type: LIMIT_IP })],
+  })
   public async register(@Body() body: RegisterBody): Promise<Resp> {
     // 当前请求信息
     const [ipaddr, location] = await ipaddrLocation(this.c);

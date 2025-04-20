@@ -9,22 +9,26 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
+import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
-import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
-import { Resp } from '../../../framework/resp/api';
+import {
+  LIMIT_IP,
+  RateLimitMiddleware,
+} from '../../../framework/middleware/rate_limit';
+import {
+  BUSINESS_TYPE,
+  OperateLogMiddleware,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
+import { RepeatSubmitMiddleware } from '../../../framework/middleware/repeat_submit';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
+import { Resp } from '../../../framework/resp/api';
 import { SysConfigService } from '../service/sys_config';
-import { RuleType, Valid } from '@midwayjs/validate';
 import { SysConfig } from '../model/sys_config';
 
 /**参数配置信息 控制层处理 */
@@ -39,16 +43,22 @@ export class SysConfigController {
   private sysConfigService: SysConfigService;
 
   /**参数配置列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:config:list'] })
+  @Get('/list', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:config:list'] }),
+    ],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysConfigService.findByPage(query);
     return Resp.okData({ rows, total });
   }
 
   /**参数配置信息 */
-  @Get('/:configId')
-  @PreAuthorize({ hasPermissions: ['system:config:query'] })
+  @Get('/:configId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:config:query'] }),
+    ],
+  })
   public async info(
     @Valid(RuleType.number().required()) @Param('configId') configId: number
   ): Promise<Resp> {
@@ -64,11 +74,14 @@ export class SysConfigController {
   }
 
   /**参数配置新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:config:add'] })
-  @OperateLog({
-    title: '参数配置信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:config:add'] }),
+      OperateLogMiddleware({
+        title: '参数配置信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysConfig) {
     if (body.configId > 0) {
@@ -96,11 +109,14 @@ export class SysConfigController {
   }
 
   /**参数配置修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:config:edit'] })
-  @OperateLog({
-    title: '参数配置信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:config:edit'] }),
+      OperateLogMiddleware({
+        title: '参数配置信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysConfig) {
     if (body.configId <= 0) {
@@ -139,11 +155,14 @@ export class SysConfigController {
   }
 
   /**参数配置删除 */
-  @Del('/:configId')
-  @PreAuthorize({ hasPermissions: ['system:config:remove'] })
-  @OperateLog({
-    title: '参数配置信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:configId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:config:remove'] }),
+      OperateLogMiddleware({
+        title: '参数配置信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.string().allow('')) @Param('configId') configId: string
@@ -166,12 +185,15 @@ export class SysConfigController {
   }
 
   /**参数配置刷新缓存 */
-  @Put('/refresh')
-  @RepeatSubmit()
-  @PreAuthorize({ hasPermissions: ['system:config:remove'] })
-  @OperateLog({
-    title: '参数配置信息',
-    businessType: BUSINESS_TYPE.CLEAN,
+  @Put('/refresh', {
+    middleware: [
+      RepeatSubmitMiddleware(5),
+      AuthorizeUserMiddleware({ hasPermissions: ['system:config:remove'] }),
+      OperateLogMiddleware({
+        title: '参数配置信息',
+        businessType: BUSINESS_TYPE.CLEAN,
+      }),
+    ],
   })
   public async refresh(): Promise<Resp> {
     await this.sysConfigService.cacheClean('*');
@@ -180,7 +202,15 @@ export class SysConfigController {
   }
 
   /**参数配置根据参数键名 */
-  @Get('/config-key/:configKey')
+  @Get('/config-key/:configKey', {
+    middleware: [
+      RateLimitMiddleware({
+        time: 120,
+        count: 15,
+        type: LIMIT_IP,
+      }),
+    ],
+  })
   public async configKey(
     @Valid(RuleType.string().allow('')) @Param('configKey') configKey: string
   ): Promise<Resp> {
@@ -193,11 +223,14 @@ export class SysConfigController {
   }
 
   /**导出参数配置信息 */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['system:config:export'] })
-  @OperateLog({
-    title: '参数配置信息',
-    businessType: BUSINESS_TYPE.EXPORT,
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:config:export'] }),
+      OperateLogMiddleware({
+        title: '参数配置信息',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制

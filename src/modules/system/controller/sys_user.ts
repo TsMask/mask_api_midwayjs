@@ -28,15 +28,15 @@ import {
   loginUserToUserName,
 } from '../../../framework/reqctx/auth';
 import {
+  OperateLogMiddleware,
   BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
+} from '../../../framework/middleware/operate_log';
+import { RepeatSubmitMiddleware } from '../../../framework/middleware/repeat_submit';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { Resp } from '../../../framework/resp/api';
 import { GlobalConfig } from '../../../framework/config/config';
 import { FileUtil } from '../../../framework/utils/file/file';
 import { readSheet } from '../../../framework/utils/file/execl';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { RepeatSubmit } from '../../../framework/decorator/RepeatSubmitMethodDecorator';
 import { SysUserService } from '../service/sys_user';
 import { SysRoleService } from '../service/sys_role';
 import { SysPostService } from '../service/sys_post';
@@ -72,8 +72,11 @@ export class SysUserController {
   private sysPostService: SysPostService;
 
   /**用户信息列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:user:list'] })
+  @Get('/list', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:list'] }),
+    ],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const dataScopeSQL = loginUserToDataScopeSQL(
       this.c,
@@ -88,8 +91,11 @@ export class SysUserController {
   }
 
   /**用户信息详情 */
-  @Get('/:userId')
-  @PreAuthorize({ hasPermissions: ['system:user:query'] })
+  @Get('/:userId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:query'] }),
+    ],
+  })
   public async info(
     @Valid(RuleType.number()) @Param('userId') userId: number
   ): Promise<Resp> {
@@ -138,11 +144,14 @@ export class SysUserController {
   }
 
   /**用户信息新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:user:add'] })
-  @OperateLog({
-    title: '用户信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:add'] }),
+      OperateLogMiddleware({
+        title: '用户信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysUser): Promise<Resp> {
     if (body.userId > 0) {
@@ -225,11 +234,14 @@ export class SysUserController {
   }
 
   /**用户信息修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:user:edit'] })
-  @OperateLog({
-    title: '用户信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:edit'] }),
+      OperateLogMiddleware({
+        title: '用户信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysUser): Promise<Resp> {
     if (body.userId <= 0) {
@@ -304,11 +316,14 @@ export class SysUserController {
   }
 
   /**用户信息删除 */
-  @Del('/:userId')
-  @PreAuthorize({ hasPermissions: ['system:user:remove'] })
-  @OperateLog({
-    title: '用户信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:userId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:remove'] }),
+      OperateLogMiddleware({
+        title: '用户信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.string().allow('')) @Param('userId') userId: string
@@ -342,11 +357,15 @@ export class SysUserController {
   }
 
   /**用户密码修改 */
-  @Put('/password')
-  @PreAuthorize({ hasPermissions: ['system:user:resetPwd'] })
-  @OperateLog({
-    title: '用户信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('/password', {
+    middleware: [
+      RepeatSubmitMiddleware(5),
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:resetPwd'] }),
+      OperateLogMiddleware({
+        title: '用户信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async password(
     @Valid(RuleType.number().required()) @Body('userId') userId: number,
@@ -379,12 +398,15 @@ export class SysUserController {
   }
 
   /**用户状态修改 */
-  @Put('/status')
-  @RepeatSubmit()
-  @PreAuthorize({ hasPermissions: ['system:user:edit'] })
-  @OperateLog({
-    title: '用户信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('/status', {
+    middleware: [
+      RepeatSubmitMiddleware(5),
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:edit'] }),
+      OperateLogMiddleware({
+        title: '用户信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async status(
     @Valid(RuleType.number().required()) @Body('userId') userId: number,
@@ -416,11 +438,14 @@ export class SysUserController {
   }
 
   /**用户信息列表导出 */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['system:user:export'] })
-  @OperateLog({
-    title: '用户信息',
-    businessType: BUSINESS_TYPE.EXPORT,
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:export'] }),
+      OperateLogMiddleware({
+        title: '用户信息',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
@@ -451,8 +476,11 @@ export class SysUserController {
   }
 
   /**用户信息列表导入模板下载 */
-  @Get('/import/template')
-  @PreAuthorize({ hasPermissions: ['system:user:import'] })
+  @Get('/import/template', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:import'] }),
+    ],
+  })
   public async template() {
     const fileName = `user_import_template_${Date.now()}.xlsx`;
     this.c.set(
@@ -475,11 +503,14 @@ export class SysUserController {
   }
 
   /**用户信息列表导入 */
-  @Post('/import')
-  @PreAuthorize({ hasPermissions: ['system:user:import'] })
-  @OperateLog({
-    title: '用户信息',
-    businessType: BUSINESS_TYPE.IMPORT,
+  @Post('/import', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPermissions: ['system:user:import'] }),
+      OperateLogMiddleware({
+        title: '用户信息',
+        businessType: BUSINESS_TYPE.IMPORT,
+      }),
+    ],
   })
   public async import(
     @Valid(RuleType.string().required()) @Body('filePath') filePath: string,

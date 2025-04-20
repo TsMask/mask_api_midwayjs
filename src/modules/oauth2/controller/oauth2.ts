@@ -2,10 +2,6 @@ import { Body, Controller, Get, Inject, Post, Query } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 
 import {
-  LIMIT_IP,
-  RateLimit,
-} from '../../../framework/decorator/RateLimitMethodDecorator';
-import {
   HEADER_PREFIX,
   JWT_CLIENT_ID,
   JWT_DEVICE_ID,
@@ -15,10 +11,14 @@ import {
   ipaddrLocation,
   uaOsBrowser,
 } from '../../../framework/reqctx/param';
-import { Resp } from '../../../framework/resp/api';
+import {
+  RateLimitMiddleware,
+  LIMIT_IP,
+} from '../../../framework/middleware/rate_limit';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { Oauth2TokenService } from '../../../framework/token/oauth2_token';
 import { parseNumber } from '../../../framework/utils/parse/parse';
+import { Resp } from '../../../framework/resp/api';
 import { Oauth2LogLoginService } from '../service/oauth2_log_login';
 import { Oauth2ClientService } from '../service/oauth2_client';
 import { Oauth2Service } from '../service/oauth2';
@@ -49,8 +49,9 @@ export class Oauth2Controller {
   private oauth2LogLoginService: Oauth2LogLoginService;
 
   /**获取登录预授权码 */
-  @Get('/authorize')
-  @RateLimit({ time: 60, count: 30, type: LIMIT_IP })
+  @Get('/authorize', {
+    middleware: [RateLimitMiddleware({ time: 60, count: 30, type: LIMIT_IP })],
+  })
   public async authorize(@Query() query: CodeQuery): Promise<Resp> {
     // 是否存在clientId
     const info = await this.oauth2ClientService.findByClientId(query.clientId);
@@ -74,8 +75,9 @@ export class Oauth2Controller {
   }
 
   /**通过授权码获取访问令牌 */
-  @Post('/token')
-  @RateLimit({ time: 180, count: 15, type: LIMIT_IP })
+  @Post('/token', {
+    middleware: [RateLimitMiddleware({ time: 180, count: 15, type: LIMIT_IP })],
+  })
   public async createToken(@Body() body: TokenBody): Promise<Resp> {
     if (body.grantType != 'authorization_code' || body.code == '') {
       this.c.status = 422;
@@ -149,8 +151,9 @@ export class Oauth2Controller {
   }
 
   /**通过刷新令牌续期访问令牌 */
-  @Post('/refresh-token')
-  @RateLimit({ time: 60, count: 5, type: LIMIT_IP })
+  @Post('/refresh-token', {
+    middleware: [RateLimitMiddleware({ time: 60, count: 5, type: LIMIT_IP })],
+  })
   public async refreshToken(@Body() body: TokenBody): Promise<Resp> {
     if (body.grantType != 'refresh_token' || body.refreshToken == '') {
       this.c.status = 422;
@@ -158,7 +161,10 @@ export class Oauth2Controller {
     }
 
     // 验证刷新令牌是否有效
-    const [claims, err] = await this.token.oauth2TokenVerify(body.refreshToken, 'refresh');
+    const [claims, err] = await this.token.oauth2TokenVerify(
+      body.refreshToken,
+      'refresh'
+    );
     if (err != '') {
       return Resp.errMsg(err);
     }

@@ -2,27 +2,27 @@ import { Controller, Body, Post, Get, Inject } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 
 import {
-  LIMIT_IP,
-  RateLimit,
-} from '../../../framework/decorator/RateLimitMethodDecorator';
-import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import {
   HEADER_PREFIX,
   JWT_DEVICE_ID,
   JWT_USER_ID,
 } from '../../../framework/constants/token';
-import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import {
   deviceFingerprint,
   ipaddrLocation,
   uaOsBrowser,
 } from '../../../framework/reqctx/param';
+import {
+  RateLimitMiddleware,
+  LIMIT_IP,
+} from '../../../framework/middleware/rate_limit';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUser, loginUserToUserID } from '../../../framework/reqctx/auth';
+import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { authorization } from '../../../framework/reqctx/context';
 import { GlobalConfig } from '../../../framework/config/config';
 import { UserTokenService } from '../../../framework/token/user_token';
 import { parseNumber } from '../../../framework/utils/parse/parse';
+import { Resp } from '../../../framework/resp/api';
 import { SysLogLoginService } from '../../system/service/sys_log_login';
 import { AccountService } from '../service/account';
 import { LoginBody } from '../model/login_body';
@@ -51,8 +51,9 @@ export class AccountController {
   private sysLogLoginService: SysLogLoginService;
 
   /**系统登录 */
-  @Post('/auth/login')
-  @RateLimit({ time: 180, count: 15, type: LIMIT_IP })
+  @Post('/auth/login', {
+    middleware: [RateLimitMiddleware({ time: 180, count: 15, type: LIMIT_IP })],
+  })
   public async login(@Body() body: LoginBody): Promise<Resp> {
     // 当前请求信息
     const [ipaddr, location] = await ipaddrLocation(this.c);
@@ -126,8 +127,9 @@ export class AccountController {
   }
 
   /**系统登出 */
-  @Post('/auth/logout')
-  @RateLimit({ time: 120, count: 15, type: LIMIT_IP })
+  @Post('/auth/logout', {
+    middleware: [RateLimitMiddleware({ time: 120, count: 15, type: LIMIT_IP })],
+  })
   public async logout(): Promise<Resp> {
     const tokenStr = authorization(this.c);
     if (tokenStr) {
@@ -150,8 +152,9 @@ export class AccountController {
   }
 
   /**刷新Token */
-  @Post('/auth/refresh-token')
-  @RateLimit({ time: 60, count: 5, type: LIMIT_IP })
+  @Post('/auth/refresh-token', {
+    middleware: [RateLimitMiddleware({ time: 60, count: 5, type: LIMIT_IP })],
+  })
   public async refreshToken(
     @Body() body: Record<string, string>
   ): Promise<Resp> {
@@ -239,8 +242,9 @@ export class AccountController {
   }
 
   /**登录用户信息 */
-  @Get('/me')
-  @PreAuthorize()
+  @Get('/me', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async me(): Promise<Resp> {
     const [info, err] = loginUser(this.c);
     if (err) {
@@ -263,8 +267,9 @@ export class AccountController {
   }
 
   /**登录用户路由信息 */
-  @Get('/router')
-  @PreAuthorize()
+  @Get('/router', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async router(): Promise<Resp> {
     const loginUserId = loginUserToUserID(this.c);
 

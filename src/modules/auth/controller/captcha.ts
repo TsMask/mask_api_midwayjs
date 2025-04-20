@@ -3,15 +3,15 @@ import { ConfigObject, create, createMathExpr } from 'svg-captcha-fixed';
 import svgBase64 = require('mini-svg-data-uri');
 
 import {
+  RateLimitMiddleware,
   LIMIT_IP,
-  RateLimit,
-} from '../../../framework/decorator/RateLimitMethodDecorator';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../framework/middleware/rate_limit';
 import { CACHE_CAPTCHA_CODE } from '../../../framework/constants/cache_key';
+import { generateCode } from '../../../framework/utils/generate/generate';
+import { parseBoolean } from '../../../framework/utils/parse/parse';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { GlobalConfig } from '../../../framework/config/config';
-import { parseBoolean } from '../../../framework/utils/parse/parse';
-import { generateCode } from '../../../framework/utils/generate/generate';
+import { Resp } from '../../../framework/resp/api';
 import { SysConfigService } from '../../system/service/sys_config';
 
 /**验证码操作 控制层处理 */
@@ -30,8 +30,9 @@ export class CaptchaController {
   private sysConfigService: SysConfigService;
 
   /**获取验证码-图片 */
-  @Get('/captcha-image')
-  @RateLimit({ time: 300, count: 60, type: LIMIT_IP })
+  @Get('/captcha-image', {
+    middleware: [RateLimitMiddleware({ time: 300, count: 6, type: LIMIT_IP })],
+  })
   public async image(): Promise<Resp> {
     // 从数据库配置获取验证码开关 true开启，false关闭
     const captchaEnabledStr = await this.sysConfigService.findValueByKey(
@@ -63,12 +64,7 @@ export class CaptchaController {
       data.uuid = uuid;
       data.img = svgBase64(question);
       verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
-      await this.redisCache.set(
-        '',
-        verifyKey,
-        answer,
-        captchaExpiration
-      );
+      await this.redisCache.set('', verifyKey, answer, captchaExpiration);
     }
     if (captchaType === 'char') {
       const uuid = generateCode(20);

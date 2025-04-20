@@ -6,9 +6,9 @@ import {
 } from '@midwayjs/core';
 
 import {
+  RateLimitMiddleware,
   LIMIT_IP,
-  RateLimit,
-} from '../../../framework/decorator/RateLimitMethodDecorator';
+} from '../../../framework/middleware/rate_limit';
 import { Resp } from '../../../framework/resp/api';
 
 /**路由主页 控制层处理 */
@@ -19,8 +19,9 @@ export class IndexController {
   private midwayInformationService: MidwayInformationService;
 
   /**根路由 */
-  @Get()
-  @RateLimit({ time: 300, count: 60, type: LIMIT_IP })
+  @Get('', {
+    middleware: [RateLimitMiddleware({ time: 300, count: 60, type: LIMIT_IP })],
+  })
   public async index(): Promise<Resp> {
     const pkg = this.midwayInformationService.getPkg();
     return Resp.okData({
