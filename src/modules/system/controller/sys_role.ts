@@ -13,10 +13,6 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import {
   parseNumber,
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
@@ -25,9 +21,13 @@ import {
   loginUserToDataScopeSQL,
   loginUserToUserName,
 } from '../../../framework/reqctx/auth';
-import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
+import { Resp } from '../../../framework/resp/api';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';
 import { SysRole } from '../model/sys_role';
@@ -48,16 +48,18 @@ export class SysRoleController {
   private sysUserService: SysUserService;
 
   /**角色列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:role:list'] })
+  @Get('/list', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:role:list'] })],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysRoleService.findByPage(query);
     return Resp.okData({ rows, total });
   }
 
   /**角色信息详情 */
-  @Get('/:roleId')
-  @PreAuthorize({ hasPermissions: ['system:role:query'] })
+  @Get('/:roleId', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:role:query'] })],
+  })
   public async info(
     @Valid(RuleType.number()) @Param('roleId') roleId: number
   ): Promise<Resp> {
@@ -73,11 +75,14 @@ export class SysRoleController {
   }
 
   /**角色信息新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:role:add'] })
-  @OperateLog({
-    title: '角色信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:role:add'] }),
+      OperateLogMiddleware({
+        title: '角色信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysRole): Promise<Resp> {
     if (body.roleId > 0) {
@@ -112,11 +117,14 @@ export class SysRoleController {
   }
 
   /**角色信息修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperateLog({
-    title: '角色信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:role:edit'] }),
+      OperateLogMiddleware({
+        title: '角色信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysRole): Promise<Resp> {
     if (body.roleId <= 0) {
@@ -184,11 +192,14 @@ export class SysRoleController {
   }
 
   /**角色信息删除 */
-  @Del('/:roleId')
-  @PreAuthorize({ hasPermissions: ['system:role:remove'] })
-  @OperateLog({
-    title: '角色信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:roleId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:role:remove'] }),
+      OperateLogMiddleware({
+        title: '角色信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.string().allow('')) @Param('roleId') roleId: string
@@ -218,11 +229,14 @@ export class SysRoleController {
   }
 
   /**角色状态变更 */
-  @Put('/status')
-  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperateLog({
-    title: '角色信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('/status', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:role:edit'] }),
+      OperateLogMiddleware({
+        title: '角色信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async status(
     @Valid(RuleType.number().required()) @Body('roleId') roleId: number,
@@ -255,11 +269,14 @@ export class SysRoleController {
   }
 
   /**角色数据权限修改 */
-  @Put('/data-scope')
-  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperateLog({
-    title: '角色信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('/data-scope', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:role:edit'] }),
+      OperateLogMiddleware({
+        title: '角色信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async dataScope(
     @Valid(RuleType.number().required()) @Body('roleId') roleId: number,
@@ -305,8 +322,9 @@ export class SysRoleController {
   }
 
   /**角色分配用户列表 */
-  @Get('/user/list')
-  @PreAuthorize({ hasPermissions: ['system:role:list'] })
+  @Get('/user/list', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:role:list'] })],
+  })
   public async userAuthList(
     @Query() query: Record<string, string>
   ): Promise<Resp> {
@@ -335,11 +353,14 @@ export class SysRoleController {
   }
 
   /**角色分配选择授权 */
-  @Put('/user/auth')
-  @PreAuthorize({ hasPermissions: ['system:role:edit'] })
-  @OperateLog({
-    title: '角色信息',
-    businessType: BUSINESS_TYPE.GRANT,
+  @Put('/user/auth', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:role:edit'] }),
+      OperateLogMiddleware({
+        title: '角色信息',
+        businessType: BUSINESS_TYPE.GRANT,
+      }),
+    ],
   })
   public async userAuthChecked(
     @Valid(RuleType.number().required()) @Body('roleId') roleId: number,
@@ -372,11 +393,14 @@ export class SysRoleController {
   }
 
   /**导出角色信息 */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['system:role:export'] })
-  @OperateLog({
-    title: '角色信息',
-    businessType: BUSINESS_TYPE.EXPORT,
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:role:export'] }),
+      OperateLogMiddleware({
+        title: '角色信息',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制

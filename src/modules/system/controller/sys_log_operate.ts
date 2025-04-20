@@ -2,12 +2,12 @@ import { Controller, Inject, Get, Del, Query } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 
 import {
+  OperateLogMiddleware,
   BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToDataScopeSQL } from '../../../framework/reqctx/auth';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { Resp } from '../../../framework/resp/api';
 import { SysLogOperateService } from '../service/sys_log_operate';
 
 /**操作日志记录信息 控制层处理 */
@@ -22,8 +22,11 @@ export class SysLogOperateController {
   private sysLogOperateService: SysLogOperateService;
 
   /**操作日志列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:log:operate:list'] })
+  @Get('/list', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:log:operate:list'] }),
+    ],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const dataScopeSQL = loginUserToDataScopeSQL(
       this.c,
@@ -38,18 +41,30 @@ export class SysLogOperateController {
   }
 
   /**操作日志清空 */
-  @Del('/clean')
-  @PreAuthorize({ hasPermissions: ['system:log:operate:remove'] })
-  @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.CLEAN })
+  @Del('/clean', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:log:operate:remove'] }),
+      OperateLogMiddleware({
+        title: '操作日志',
+        businessType: BUSINESS_TYPE.CLEAN,
+      }),
+    ],
+  })
   public async clean(): Promise<Resp> {
     const rows = await this.sysLogOperateService.clean();
     return Resp.okData(rows);
   }
 
   /**导出操作日志 */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['system:log:operate:export'] })
-  @OperateLog({ title: '操作日志', businessType: BUSINESS_TYPE.EXPORT })
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:log:operate:export'] }),
+      OperateLogMiddleware({
+        title: '操作日志',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
+  })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
     const dataScopeSQL = loginUserToDataScopeSQL(

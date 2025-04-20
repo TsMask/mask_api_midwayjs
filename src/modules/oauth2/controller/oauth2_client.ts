@@ -11,18 +11,18 @@ import {
 } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 
-import { Resp } from '../../../framework/resp/api';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
-import { Oauth2ClientService } from '../service/oauth2_client';
 import {
+  OperateLogMiddleware,
   BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
+import { Oauth2ClientService } from '../service/oauth2_client';
+import { Resp } from '../../../framework/resp/api';
 import { Oauth2Client } from '../model/oauth2_client';
 
 /**客户端授权管理 控制层处理 */
@@ -37,16 +37,18 @@ export class Oauth2ClientController {
   private oauth2ClientService: Oauth2ClientService;
 
   /**列表 */
-  @Get('/list')
-  @PreAuthorize({ matchRoles: ['admin'] })
+  @Get('/list', {
+    middleware: [AuthorizeUserMiddleware({ matchRoles: ['admin'] })],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.oauth2ClientService.findByPage(query);
     return Resp.okData({ rows, total });
   }
 
   /**信息 */
-  @Get('/:clientId')
-  @PreAuthorize({ matchRoles: ['admin'] })
+  @Get('/:clientId', {
+    middleware: [AuthorizeUserMiddleware({ matchRoles: ['admin'] })],
+  })
   public async info(@Param('clientId') clientId: string): Promise<Resp> {
     if (clientId === '') {
       this.c.status = 422;
@@ -60,11 +62,14 @@ export class Oauth2ClientController {
   }
 
   /**新增 */
-  @Post()
-  @PreAuthorize({ matchRoles: ['admin'] })
-  @OperateLog({
-    title: '客户端授权管理',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ matchRoles: ['admin'] }),
+      OperateLogMiddleware({
+        title: '客户端授权管理',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: Oauth2Client) {
     if (body.id > 0) {
@@ -90,11 +95,14 @@ export class Oauth2ClientController {
   }
 
   /**更新 */
-  @Put()
-  @PreAuthorize({ matchRoles: ['admin'] })
-  @OperateLog({
-    title: '客户端授权管理',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ matchRoles: ['admin'] }),
+      OperateLogMiddleware({
+        title: '客户端授权管理',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: Oauth2Client) {
     if (body.id <= 0) {
@@ -129,11 +137,14 @@ export class Oauth2ClientController {
   }
 
   /**删除 */
-  @Del('/:id')
-  @PreAuthorize({ matchRoles: ['admin'] })
-  @OperateLog({
-    title: '客户端授权管理',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:id', {
+    middleware: [
+      AuthorizeUserMiddleware({ matchRoles: ['admin'] }),
+      OperateLogMiddleware({
+        title: '客户端授权管理',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(@Param('id') id: string) {
     if (id === '') {

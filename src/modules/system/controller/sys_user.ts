@@ -74,7 +74,7 @@ export class SysUserController {
   /**用户信息列表 */
   @Get('/list', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:list'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:list'] }),
     ],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
@@ -93,7 +93,7 @@ export class SysUserController {
   /**用户信息详情 */
   @Get('/:userId', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:query'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:query'] }),
     ],
   })
   public async info(
@@ -146,7 +146,7 @@ export class SysUserController {
   /**用户信息新增 */
   @Post('', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:add'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:add'] }),
       OperateLogMiddleware({
         title: '用户信息',
         businessType: BUSINESS_TYPE.INSERT,
@@ -236,7 +236,7 @@ export class SysUserController {
   /**用户信息修改 */
   @Put('', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:edit'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:edit'] }),
       OperateLogMiddleware({
         title: '用户信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -318,7 +318,7 @@ export class SysUserController {
   /**用户信息删除 */
   @Del('/:userId', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:remove'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:remove'] }),
       OperateLogMiddleware({
         title: '用户信息',
         businessType: BUSINESS_TYPE.DELETE,
@@ -360,7 +360,7 @@ export class SysUserController {
   @Put('/password', {
     middleware: [
       RepeatSubmitMiddleware(5),
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:resetPwd'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:resetPwd'] }),
       OperateLogMiddleware({
         title: '用户信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -401,7 +401,7 @@ export class SysUserController {
   @Put('/status', {
     middleware: [
       RepeatSubmitMiddleware(5),
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:edit'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:edit'] }),
       OperateLogMiddleware({
         title: '用户信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -440,7 +440,7 @@ export class SysUserController {
   /**用户信息列表导出 */
   @Get('/export', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:export'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:export'] }),
       OperateLogMiddleware({
         title: '用户信息',
         businessType: BUSINESS_TYPE.EXPORT,
@@ -478,7 +478,7 @@ export class SysUserController {
   /**用户信息列表导入模板下载 */
   @Get('/import/template', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:import'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:import'] }),
     ],
   })
   public async template() {
@@ -505,7 +505,7 @@ export class SysUserController {
   /**用户信息列表导入 */
   @Post('/import', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:user:import'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:import'] }),
       OperateLogMiddleware({
         title: '用户信息',
         businessType: BUSINESS_TYPE.IMPORT,

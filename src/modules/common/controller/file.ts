@@ -11,16 +11,16 @@ import {
   Post,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
+import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
   UPLOAD_COMMON,
   UPLOAD_SUB_PATH,
 } from '../../../framework/constants/upload_sub_path';
-import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { FileUtil } from '../../../framework/utils/file/file';
-import { RuleType, Valid } from '@midwayjs/validate';
+import { Resp } from '../../../framework/resp/api';
 
 /**文件操作 控制层处理*/
 @Controller('/file')
@@ -34,8 +34,9 @@ export class FileController {
   private fileUtil: FileUtil;
 
   /**下载文件 */
-  @Get('/download/:filePath')
-  @PreAuthorize()
+  @Get('/download/:filePath', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async download(
     @Valid(RuleType.string().required()) @Param('filePath') filePath: string
   ) {
@@ -77,8 +78,9 @@ export class FileController {
   }
 
   /**上传文件 */
-  @Post('/upload')
-  @PreAuthorize()
+  @Post('/upload', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async upload(
     @Files('file') files: UploadFileInfo<string>[],
     @Fields('subPath') subPath: string
@@ -118,8 +120,9 @@ export class FileController {
   }
 
   /**切片文件检查 */
-  @Post('/chunk-check')
-  @PreAuthorize()
+  @Post('/chunk-check', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async chunkCheck(
     /**唯一标识 */
     @Valid(RuleType.string().required()) @Body('identifier') identifier: string,
@@ -138,8 +141,9 @@ export class FileController {
   }
 
   /**切片文件合并 */
-  @Post('/chunk-merge')
-  @PreAuthorize()
+  @Post('/chunk-merge', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async chunkMerge(
     /**唯一标识 */
     @Valid(RuleType.string().required()) @Body('identifier') identifier: string,
@@ -177,8 +181,9 @@ export class FileController {
   }
 
   /**切片文件上传 */
-  @Post('/chunk-upload')
-  @PreAuthorize()
+  @Post('/chunk-upload', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async chunkUpload(
     /**上传的文件 */
     @Files('file') files: UploadFileInfo<string>[],

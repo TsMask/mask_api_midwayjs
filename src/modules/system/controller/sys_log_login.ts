@@ -11,12 +11,12 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
+  OperateLogMiddleware,
   BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToDataScopeSQL } from '../../../framework/reqctx/auth';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { Resp } from '../../../framework/resp/api';
 import { AccountService } from '../../auth/service/account';
 import { SysLogLoginService } from '../service/sys_log_login';
 
@@ -36,8 +36,11 @@ export class SysLogLoginController {
   private accountService: AccountService;
 
   /**系统登录日志列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:log:login:list'] })
+  @Get('/list', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:log:login:list'] }),
+    ],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const dataScopeSQL = loginUserToDataScopeSQL(
       this.c,
@@ -52,11 +55,14 @@ export class SysLogLoginController {
   }
 
   /**系统登录日志清空 */
-  @Del('/clean')
-  @PreAuthorize({ hasPermissions: ['system:log:login:remove'] })
-  @OperateLog({
-    title: '系统登录信息',
-    businessType: BUSINESS_TYPE.CLEAN,
+  @Del('/clean', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:log:login:remove'] }),
+      OperateLogMiddleware({
+        title: '系统登录信息',
+        businessType: BUSINESS_TYPE.CLEAN,
+      }),
+    ],
   })
   public async clean(): Promise<Resp> {
     const rows = await this.sysLogLoginService.clean();
@@ -64,11 +70,14 @@ export class SysLogLoginController {
   }
 
   /**系统登录日志账户解锁 */
-  @Put('/unlock/:userName')
-  @PreAuthorize({ hasPermissions: ['system:log:login:unlock'] })
-  @OperateLog({
-    title: '系统登录信息',
-    businessType: BUSINESS_TYPE.CLEAN,
+  @Put('/unlock/:userName', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:log:login:unlock'] }),
+      OperateLogMiddleware({
+        title: '系统登录信息',
+        businessType: BUSINESS_TYPE.CLEAN,
+      }),
+    ],
   })
   public async unlock(
     @Valid(RuleType.string().allow('')) @Param('userName') userName: string
@@ -85,11 +94,14 @@ export class SysLogLoginController {
   }
 
   /**导出系统登录日志信息 */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['system:log:login:export'] })
-  @OperateLog({
-    title: '系统登录信息',
-    businessType: BUSINESS_TYPE.EXPORT,
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:log:login:export'] }),
+      OperateLogMiddleware({
+        title: '系统登录信息',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制

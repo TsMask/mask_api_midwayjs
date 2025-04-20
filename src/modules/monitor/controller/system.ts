@@ -15,13 +15,13 @@ export class SystemInfoController {
   /**
    * 服务器信息
    */
-  @Get('/monitor/system', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:system:info'] }),
-    ],
-  })
   @Get('/oauth2/open/monitor/system', {
     middleware: [AuthorizeOauth2Middleware([])],
+  })
+  @Get('/monitor/system', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:system:info'] }),
+    ],
   })
   public async info(): Promise<Resp> {
     return Resp.okData({

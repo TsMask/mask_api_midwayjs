@@ -3,15 +3,15 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
+  OperateLogMiddleware,
   BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { parseRemoveDuplicatesToArray } from '../../../framework/utils/parse/parse';
-import { Resp } from '../../../framework/resp/api';
-import { UserInfo } from '../../../framework/token/user_info';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { CACHE_TOKEN_DEVICE } from '../../../framework/constants/cache_key';
+import { RedisCache } from '../../../framework/datasource/redis/redis';
+import { UserInfo } from '../../../framework/token/user_info';
+import { Resp } from '../../../framework/resp/api';
 import { SysUserOnline } from '../model/sys_user_online';
 import { SysUserOnlineService } from '../service/sys_user_online';
 
@@ -33,8 +33,11 @@ export class SysUserOnlineController {
   /**
    * 在线用户列表
    */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['monitor:online:list'] })
+  @Get('/list', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:online:list'] }),
+    ],
+  })
   public async list(
     @Query('loginIp') loginIp: string,
     @Query('userName') userName: string
@@ -114,13 +117,16 @@ export class SysUserOnlineController {
   /**
    * 在线用户强制退出
    */
-  @Del('/logout/:tokenId')
-  @PreAuthorize({ hasPermissions: ['monitor:online:logout'] })
-  @OperateLog({
-    title: '在线用户监控',
-    businessType: BUSINESS_TYPE.FORCE,
+  @Del('/logout/:tokenId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:online:logout'] }),
+      OperateLogMiddleware({
+        title: '在线用户监控',
+        businessType: BUSINESS_TYPE.FORCE,
+      }),
+    ],
   })
-  public async fogout(
+  public async logout(
     @Valid(RuleType.string().allow('')) @Param('tokenId') tokenId: string
   ): Promise<Resp> {
     if (tokenId === '' || tokenId.indexOf('*') >= 0) {

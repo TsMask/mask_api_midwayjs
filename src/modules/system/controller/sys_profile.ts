@@ -3,18 +3,18 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import {
   validEmail,
   validMobile,
 } from '../../../framework/utils/regular/regular';
-import { Resp } from '../../../framework/resp/api';
-import { loginUser } from '../../../framework/reqctx/auth';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { bcryptCompare } from '../../../framework/utils/crypto/bcrypt';
 import { UserTokenService } from '../../../framework/token/user_token';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { loginUser } from '../../../framework/reqctx/auth';
+import { Resp } from '../../../framework/resp/api';
 import { SysPostService } from '../service/sys_post';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';
@@ -43,8 +43,9 @@ export class SysProfileController {
   private sysPostService: SysPostService;
 
   /**个人信息 */
-  @Get()
-  @PreAuthorize()
+  @Get('', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async info(): Promise<Resp> {
     const [info, err] = loginUser(this.c);
     if (err) {
@@ -74,11 +75,14 @@ export class SysProfileController {
   }
 
   /**个人信息修改 */
-  @Put()
-  @PreAuthorize()
-  @OperateLog({
-    title: '个人信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware(),
+      OperateLogMiddleware({
+        title: '个人信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async updateProfile(
     @Valid(RuleType.string().required()) @Body('nickName') nickName: string,
@@ -156,11 +160,14 @@ export class SysProfileController {
   }
 
   /**个人重置密码 */
-  @Put('/password')
-  @PreAuthorize()
-  @OperateLog({
-    title: '个人信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('/password', {
+    middleware: [
+      AuthorizeUserMiddleware(),
+      OperateLogMiddleware({
+        title: '个人信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async updatePassword(
     @Valid(RuleType.string().required())

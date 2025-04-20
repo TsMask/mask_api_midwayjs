@@ -3,17 +3,17 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import {
   parseNumber,
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { SysJobService } from '../service/sys_job';
 import { SysJobLogService } from '../service/sys_job_log';
+import { SysJobService } from '../service/sys_job';
 
 /**调度任务日志信息 控制层处理 */
 @Controller('/monitor/job/log')
@@ -31,8 +31,11 @@ export class SysJobLogController {
   private sysJobLogService: SysJobLogService;
 
   /**调度任务日志列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['monitor:job:list'] })
+  @Get('/list', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:list'] }),
+    ],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const jobId = parseNumber(query.jobId);
     if (jobId > 0) {
@@ -45,8 +48,11 @@ export class SysJobLogController {
   }
 
   /**调度任务日志信息 */
-  @Get('/:logId')
-  @PreAuthorize({ hasPermissions: ['monitor:job:query'] })
+  @Get('/:logId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:query'] }),
+    ],
+  })
   public async info(
     @Valid(RuleType.number()) @Param('logId') logId: number
   ): Promise<Resp> {
@@ -63,11 +69,14 @@ export class SysJobLogController {
   }
 
   /**调度任务日志删除 */
-  @Del('/:logId')
-  @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
-  @OperateLog({
-    title: '调度任务日志信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:logId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:remove'] }),
+      OperateLogMiddleware({
+        title: '调度任务信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.string().allow('')) @Param('logId') logId: string
@@ -90,11 +99,14 @@ export class SysJobLogController {
   }
 
   /**调度任务日志清空 */
-  @Del('/clean')
-  @PreAuthorize({ hasPermissions: ['monitor:job:remove'] })
-  @OperateLog({
-    title: '调度任务日志信息',
-    businessType: BUSINESS_TYPE.CLEAN,
+  @Del('/clean', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:remove'] }),
+      OperateLogMiddleware({
+        title: '调度任务日志信息',
+        businessType: BUSINESS_TYPE.CLEAN,
+      }),
+    ],
   })
   public async clean(): Promise<Resp> {
     const rows = await this.sysJobLogService.clean();
@@ -102,11 +114,14 @@ export class SysJobLogController {
   }
 
   /**导出调度任务日志信息 */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['monitor:job:export'] })
-  @OperateLog({
-    title: '调度任务日志信息',
-    businessType: BUSINESS_TYPE.EXPORT,
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:export'] }),
+      OperateLogMiddleware({
+        title: '调度任务日志信息',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制

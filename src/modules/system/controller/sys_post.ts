@@ -13,16 +13,16 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import {
   parseNumber,
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
-import { Resp } from '../../../framework/resp/api';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { Resp } from '../../../framework/resp/api';
 import { SysPostService } from '../service/sys_post';
 import { SysPost } from '../model/sys_post';
 
@@ -38,16 +38,18 @@ export class SysPostController {
   private sysPostService: SysPostService;
 
   /**岗位列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:post:list'] })
+  @Get('/list', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:post:list'] })],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysPostService.findByPage(query);
     return Resp.okData({ rows, total });
   }
 
   /**岗位信息 */
-  @Get('/:postId')
-  @PreAuthorize({ hasPermissions: ['system:post:query'] })
+  @Get('/:postId', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:post:query'] })],
+  })
   public async info(
     @Valid(RuleType.number()) @Param('postId') postId: number
   ): Promise<Resp> {
@@ -63,11 +65,14 @@ export class SysPostController {
   }
 
   /**岗位新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:post:add'] })
-  @OperateLog({
-    title: '岗位信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:post:add'] }),
+      OperateLogMiddleware({
+        title: '岗位信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysPost): Promise<Resp> {
     if (body.postId > 0) {
@@ -100,11 +105,14 @@ export class SysPostController {
   }
 
   /**岗位修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:post:edit'] })
-  @OperateLog({
-    title: '岗位信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:post:edit'] }),
+      OperateLogMiddleware({
+        title: '岗位信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysPost): Promise<Resp> {
     if (body.postId <= 0) {
@@ -150,11 +158,14 @@ export class SysPostController {
   }
 
   /**岗位删除 */
-  @Del('/:postId')
-  @PreAuthorize({ hasPermissions: ['system:post:remove'] })
-  @OperateLog({
-    title: '岗位信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:postId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:post:remove'] }),
+      OperateLogMiddleware({
+        title: '岗位信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.string().allow('')) @Param('postId') postId: string
@@ -177,11 +188,14 @@ export class SysPostController {
   }
 
   /**导出岗位信息 */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['system:post:export'] })
-  @OperateLog({
-    title: '岗位信息',
-    businessType: BUSINESS_TYPE.EXPORT,
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:post:export'] }),
+      OperateLogMiddleware({
+        title: '岗位信息',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制

@@ -3,15 +3,16 @@ import { createHash } from 'node:crypto';
 import { Body, Controller, Post } from '@midwayjs/core';
 import { RuleType, Valid } from '@midwayjs/validate';
 
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 
 /**通用请求 控制层处理 */
 @Controller('/common')
 export class CommonController {
   /**哈希编码 */
-  @Post('/hash')
-  @PreAuthorize()
+  @Post('/hash', {
+    middleware: [AuthorizeUserMiddleware()],
+  })
   public async hash(
     @Valid(RuleType.string().required())
     @Body('type')

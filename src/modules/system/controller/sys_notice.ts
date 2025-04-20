@@ -13,16 +13,16 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import {
   parseNumber,
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
-import { Resp } from '../../../framework/resp/api';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { Resp } from '../../../framework/resp/api';
 import { SysNoticeService } from '../service/sys_notice';
 import { SysNotice } from '../model/sys_notice';
 
@@ -38,16 +38,20 @@ export class SysNoticeController {
   private sysNoticeService: SysNoticeService;
 
   /**通知公告列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:notice:list'] })
+  @Get('/list', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:notice:list'] })],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysNoticeService.findByPage(query);
     return Resp.okData({ rows, total });
   }
 
   /**通知公告信息 */
-  @Get('/:noticeId')
-  @PreAuthorize({ hasPermissions: ['system:notice:query'] })
+  @Get('/:noticeId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:notice:query'] }),
+    ],
+  })
   public async info(
     @Valid(RuleType.number()) @Param('noticeId') noticeId: number
   ): Promise<Resp> {
@@ -63,11 +67,14 @@ export class SysNoticeController {
   }
 
   /**通知公告新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:notice:add'] })
-  @OperateLog({
-    title: '通知公告信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:notice:add'] }),
+      OperateLogMiddleware({
+        title: '通知公告信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysNotice): Promise<Resp> {
     if (body.noticeId > 0) {
@@ -84,11 +91,14 @@ export class SysNoticeController {
   }
 
   /**通知公告修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:notice:edit'] })
-  @OperateLog({
-    title: '通知公告信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:notice:edit'] }),
+      OperateLogMiddleware({
+        title: '通知公告信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysNotice): Promise<Resp> {
     if (body.noticeId <= 0) {
@@ -116,11 +126,14 @@ export class SysNoticeController {
   }
 
   /**通知公告删除 */
-  @Del('/:noticeId')
-  @PreAuthorize({ hasPermissions: ['system:notice:remove'] })
-  @OperateLog({
-    title: '通知公告信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:noticeId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:notice:remove'] }),
+      OperateLogMiddleware({
+        title: '通知公告信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.string().allow('')) @Param('noticeId') noticeId: string

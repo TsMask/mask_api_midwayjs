@@ -13,16 +13,16 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import {
   loginUserToDataScopeSQL,
   loginUserToUserName,
 } from '../../../framework/reqctx/auth';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
 import { SysDeptService } from '../service/sys_dept';
 import { SysDept } from '../model/sys_dept';
 
@@ -38,8 +38,9 @@ export class SysDeptController {
   private sysDeptService: SysDeptService;
 
   /**部门列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:dept:list'] })
+  @Get('/list', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dept:list'] })],
+  })
   public async list(
     @Valid(RuleType.number()) @Query('deptId') deptId: number,
     @Valid(RuleType.number()) @Query('parentId') parentId: number,
@@ -59,8 +60,9 @@ export class SysDeptController {
   }
 
   /**部门信息 */
-  @Get('/:deptId')
-  @PreAuthorize({ hasPermissions: ['system:dept:query'] })
+  @Get('/:deptId', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dept:query'] })],
+  })
   public async info(
     @Valid(RuleType.number().required()) @Param('deptId') deptId: number
   ): Promise<Resp> {
@@ -77,11 +79,14 @@ export class SysDeptController {
   }
 
   /**部门新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:dept:add'] })
-  @OperateLog({
-    title: '部门信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:add'] }),
+      OperateLogMiddleware({
+        title: '部门信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysDept): Promise<Resp> {
     if (body.deptId > 0) {
@@ -130,11 +135,14 @@ export class SysDeptController {
   }
 
   /**部门修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:dept:edit'] })
-  @OperateLog({
-    title: '部门信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:edit'] }),
+      OperateLogMiddleware({
+        title: '部门信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysDept): Promise<Resp> {
     if (body.deptId <= 0) {
@@ -199,11 +207,14 @@ export class SysDeptController {
   }
 
   /**部门删除 */
-  @Del('/:deptId')
-  @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
-  @OperateLog({
-    title: '部门信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:deptId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:remove'] }),
+      OperateLogMiddleware({
+        title: '部门信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.number()) @Param('deptId') deptId: number
@@ -239,8 +250,9 @@ export class SysDeptController {
   }
 
   /**部门列表（排除节点） */
-  @Get('/list/exclude/:deptId')
-  @PreAuthorize({ hasPermissions: ['system:dept:list'] })
+  @Get('/list/exclude/:deptId', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dept:list'] })],
+  })
   public async excludeChild(
     @Valid(RuleType.number()) @Param('deptId') deptId: number
   ): Promise<Resp> {
@@ -266,8 +278,13 @@ export class SysDeptController {
   }
 
   /**部门树结构列表 */
-  @Get('/tree')
-  @PreAuthorize({ hasPermissions: ['system:dept:list', 'system:user:list'] })
+  @Get('/tree', {
+    middleware: [
+      AuthorizeUserMiddleware({
+        hasPerms: ['system:dept:list', 'system:user:list'],
+      }),
+    ],
+  })
   public async tree(
     @Valid(RuleType.number().allow(0)) @Query('deptId') deptId: number,
     @Valid(RuleType.number().allow(0)) @Query('parentId') parentId: number,
@@ -290,8 +307,9 @@ export class SysDeptController {
   }
 
   /**部门树结构列表（指定角色） */
-  @Get('/tree/role/:roleId')
-  @PreAuthorize({ hasPermissions: ['system:role:query'] })
+  @Get('/tree/role/:roleId', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:role:query'] })],
+  })
   public async treeRole(
     @Valid(RuleType.number().required()) @Param('roleId') roleId: number
   ): Promise<Resp> {

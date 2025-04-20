@@ -43,7 +43,7 @@ export class SysJobController {
   /**调度任务列表 */
   @Get('/list', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:list'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:list'] }),
     ],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
@@ -54,7 +54,7 @@ export class SysJobController {
   /**调度任务信息 */
   @Get('/:jobId', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:query'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:query'] }),
     ],
   })
   public async info(
@@ -74,7 +74,7 @@ export class SysJobController {
   /**调度任务新增 */
   @Post('', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:add'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:add'] }),
       OperateLogMiddleware({
         title: '调度任务信息',
         businessType: BUSINESS_TYPE.INSERT,
@@ -129,7 +129,7 @@ export class SysJobController {
   /**调度任务修改 */
   @Put('', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:edit'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:edit'] }),
       OperateLogMiddleware({
         title: '调度任务信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -200,7 +200,7 @@ export class SysJobController {
   /**调度任务删除 */
   @Del('/:jobId', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:remove'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:remove'] }),
       OperateLogMiddleware({
         title: '调度任务信息',
         businessType: BUSINESS_TYPE.DELETE,
@@ -231,7 +231,7 @@ export class SysJobController {
   @Put('/status', {
     middleware: [
       RepeatSubmitMiddleware(5),
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:status'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:status'] }),
       OperateLogMiddleware({
         title: '调度任务信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -270,7 +270,7 @@ export class SysJobController {
   @Put('/run/:jobId', {
     middleware: [
       RepeatSubmitMiddleware(10),
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:status'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:status'] }),
       OperateLogMiddleware({
         title: '调度任务信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -302,7 +302,7 @@ export class SysJobController {
   @Put('/reset', {
     middleware: [
       RepeatSubmitMiddleware(5),
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:status'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:status'] }),
       OperateLogMiddleware({
         title: '调度任务信息',
         businessType: BUSINESS_TYPE.CLEAN,
@@ -319,7 +319,7 @@ export class SysJobController {
    */
   @Get('/export', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['monitor:job:export'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:export'] }),
       OperateLogMiddleware({
         title: '调度任务信息',
         businessType: BUSINESS_TYPE.EXPORT,

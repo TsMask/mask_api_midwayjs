@@ -17,18 +17,18 @@ import {
   MENU_TYPE_MENU,
 } from '../../../framework/constants/menu';
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import { Resp } from '../../../framework/resp/api';
-import {
   loginUserToUserID,
   loginUserToUserName,
 } from '../../../framework/reqctx/auth';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
-import { GlobalConfig } from '../../../framework/config/config';
 import { validHttp } from '../../../framework/utils/regular/regular';
+import { GlobalConfig } from '../../../framework/config/config';
+import { Resp } from '../../../framework/resp/api';
 import { SysMenuService } from '../service/sys_menu';
 import { SysMenu } from '../model/sys_menu';
 
@@ -48,8 +48,9 @@ export class SysMenuController {
   private sysMenuService: SysMenuService;
 
   /**菜单列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:menu:list'] })
+  @Get('/list', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:menu:list'] })],
+  })
   public async list(
     @Query('menuName') menuName: string,
     @Query('statusFlag') statusFlag: string
@@ -67,8 +68,9 @@ export class SysMenuController {
   }
 
   /**菜单信息 */
-  @Get('/:menuId')
-  @PreAuthorize({ hasPermissions: ['system:menu:query'] })
+  @Get('/:menuId', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:menu:query'] })],
+  })
   public async info(
     @Valid(RuleType.number()) @Param('menuId') menuId: number
   ): Promise<Resp> {
@@ -84,11 +86,14 @@ export class SysMenuController {
   }
 
   /**菜单新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:menu:add'] })
-  @OperateLog({
-    title: '菜单信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:menu:add'] }),
+      OperateLogMiddleware({
+        title: '菜单信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysMenu): Promise<Resp> {
     if (body.menuId > 0) {
@@ -138,11 +143,14 @@ export class SysMenuController {
   }
 
   /**菜单修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:menu:edit'] })
-  @OperateLog({
-    title: '菜单信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:menu:edit'] }),
+      OperateLogMiddleware({
+        title: '菜单信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysMenu): Promise<Resp> {
     if (body.menuId <= 0) {
@@ -237,11 +245,14 @@ export class SysMenuController {
   }
 
   /**菜单删除 */
-  @Del('/:menuId')
-  @PreAuthorize({ hasPermissions: ['system:menu:remove'] })
-  @OperateLog({
-    title: '菜单信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:menuId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:menu:remove'] }),
+      OperateLogMiddleware({
+        title: '菜单信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.number()) @Param('menuId') menuId: number
@@ -277,8 +288,9 @@ export class SysMenuController {
   }
 
   /**菜单树结构列表 */
-  @Get('/tree')
-  @PreAuthorize({ hasPermissions: ['system:menu:list'] })
+  @Get('/tree', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:menu:list'] })],
+  })
   public async tree(
     @Query('menuName') menuName: string,
     @Query('statusFlag') statusFlag: string
@@ -299,8 +311,9 @@ export class SysMenuController {
   }
 
   /**菜单树结构列表（指定角色） */
-  @Get('/tree/role/:roleId')
-  @PreAuthorize({ hasPermissions: ['system:menu:list'] })
+  @Get('/tree/role/:roleId', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:menu:list'] })],
+  })
   public async treeRole(
     @Param('roleId') roleId: number,
     @Query('menuName') menuName: string,

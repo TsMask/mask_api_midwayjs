@@ -45,7 +45,7 @@ export class SysConfigController {
   /**参数配置列表 */
   @Get('/list', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:config:list'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:config:list'] }),
     ],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
@@ -56,7 +56,7 @@ export class SysConfigController {
   /**参数配置信息 */
   @Get('/:configId', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:config:query'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:config:query'] }),
     ],
   })
   public async info(
@@ -76,7 +76,7 @@ export class SysConfigController {
   /**参数配置新增 */
   @Post('', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:config:add'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:config:add'] }),
       OperateLogMiddleware({
         title: '参数配置信息',
         businessType: BUSINESS_TYPE.INSERT,
@@ -111,7 +111,7 @@ export class SysConfigController {
   /**参数配置修改 */
   @Put('', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:config:edit'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:config:edit'] }),
       OperateLogMiddleware({
         title: '参数配置信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -157,7 +157,7 @@ export class SysConfigController {
   /**参数配置删除 */
   @Del('/:configId', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:config:remove'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:config:remove'] }),
       OperateLogMiddleware({
         title: '参数配置信息',
         businessType: BUSINESS_TYPE.DELETE,
@@ -188,7 +188,7 @@ export class SysConfigController {
   @Put('/refresh', {
     middleware: [
       RepeatSubmitMiddleware(5),
-      AuthorizeUserMiddleware({ hasPermissions: ['system:config:remove'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:config:remove'] }),
       OperateLogMiddleware({
         title: '参数配置信息',
         businessType: BUSINESS_TYPE.CLEAN,
@@ -225,7 +225,7 @@ export class SysConfigController {
   /**导出参数配置信息 */
   @Get('/export', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPermissions: ['system:config:export'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:config:export'] }),
       OperateLogMiddleware({
         title: '参数配置信息',
         businessType: BUSINESS_TYPE.EXPORT,

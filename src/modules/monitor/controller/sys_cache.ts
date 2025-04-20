@@ -12,9 +12,9 @@ import {
   CACHE_OAUTH2_CODE,
   CACHE_OAUTH2_DEVICE,
 } from '../../../framework/constants/cache_key';
-import { Resp } from '../../../framework/resp/api';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
+import { Resp } from '../../../framework/resp/api';
 import { SysCache } from '../model/sys_cache';
 
 /**缓存信息 控制层处理 */
@@ -25,8 +25,11 @@ export class CacheController {
   private redisCache: RedisCache;
 
   /**Redis信息 */
-  @Get()
-  @PreAuthorize({ hasPermissions: ['monitor:cache:info'] })
+  @Get('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:info'] }),
+    ],
+  })
   public async info(): Promise<Resp> {
     return Resp.okData({
       info: await this.redisCache.info(''),
@@ -36,8 +39,11 @@ export class CacheController {
   }
 
   /**缓存名称列表 */
-  @Get('/names')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @Get('/names', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:list'] }),
+    ],
+  })
   public async names(): Promise<Resp> {
     const caches: SysCache[] = [
       new SysCache().newNames('用户令牌', CACHE_TOKEN_DEVICE),
@@ -54,8 +60,11 @@ export class CacheController {
   }
 
   /**缓存名称下键名列表 */
-  @Get('/keys')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:list'] })
+  @Get('/keys', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:list'] }),
+    ],
+  })
   public async keys(
     @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string
   ): Promise<Resp> {
@@ -68,8 +77,11 @@ export class CacheController {
   }
 
   /**缓存内容信息 */
-  @Get('/value')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:query'] })
+  @Get('/value', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:query'] }),
+    ],
+  })
   public async value(
     @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string,
     @Valid(RuleType.string().required()) @Query('cacheKey') cacheKey: string
@@ -83,8 +95,11 @@ export class CacheController {
   }
 
   /**缓存名称列表安全删除 */
-  @Del('/names')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
+  @Del('/names', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:remove'] }),
+    ],
+  })
   public async cleanNames(): Promise<Resp> {
     // 指定清除的缓存列表
     const caches: SysCache[] = [
@@ -104,8 +119,11 @@ export class CacheController {
   }
 
   /**缓存名称下键名删除 */
-  @Del('/keys')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
+  @Del('/keys', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:remove'] }),
+    ],
+  })
   public async cleanKeys(
     @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string
   ): Promise<Resp> {
@@ -121,8 +139,11 @@ export class CacheController {
   }
 
   /**缓存内容删除 */
-  @Del('/value')
-  @PreAuthorize({ hasPermissions: ['monitor:cache:remove'] })
+  @Del('/value', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:remove'] }),
+    ],
+  })
   public async clearCacheKey(
     @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string,
     @Valid(RuleType.string().required()) @Query('cacheKey') cacheKey: string

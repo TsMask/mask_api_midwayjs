@@ -13,16 +13,16 @@ import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
-  BUSINESS_TYPE,
-  OperateLog,
-} from '../../../framework/decorator/OperateLogMethodDecorator';
-import {
   parseNumber,
   parseRemoveDuplicatesToArray,
 } from '../../../framework/utils/parse/parse';
-import { Resp } from '../../../framework/resp/api';
+import {
+  OperateLogMiddleware,
+  BUSINESS_TYPE,
+} from '../../../framework/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { PreAuthorize } from '../../../framework/decorator/PreAuthorizeMethodDecorator';
+import { Resp } from '../../../framework/resp/api';
 import { SysDictTypeService } from '../service/sys_dict_type';
 import { SysDictDataService } from '../service/sys_dict_data';
 import { SysDictData } from '../model/sys_dict_data';
@@ -43,16 +43,18 @@ export class SysDictDataController {
   private sysDictTypeService: SysDictTypeService;
 
   /**字典数据列表 */
-  @Get('/list')
-  @PreAuthorize({ hasPermissions: ['system:dict:list'] })
+  @Get('/list', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:list'] })],
+  })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysDictDataService.findByPage(query);
     return Resp.okData({ rows, total });
   }
 
   /**字典数据详情 */
-  @Get('/:dataId')
-  @PreAuthorize({ hasPermissions: ['system:dict:query'] })
+  @Get('/:dataId', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:query'] })],
+  })
   public async info(
     @Valid(RuleType.number()) @Param('dataId') dataId: number
   ): Promise<Resp> {
@@ -68,11 +70,14 @@ export class SysDictDataController {
   }
 
   /**字典数据新增 */
-  @Post()
-  @PreAuthorize({ hasPermissions: ['system:dict:add'] })
-  @OperateLog({
-    title: '字典数据信息',
-    businessType: BUSINESS_TYPE.INSERT,
+  @Post('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:add'] }),
+      OperateLogMiddleware({
+        title: '字典数据信息',
+        businessType: BUSINESS_TYPE.INSERT,
+      }),
+    ],
   })
   public async add(@Body() body: SysDictData): Promise<Resp> {
     if (body.dataId > 0) {
@@ -119,11 +124,14 @@ export class SysDictDataController {
   }
 
   /**字典类型修改 */
-  @Put()
-  @PreAuthorize({ hasPermissions: ['system:dict:edit'] })
-  @OperateLog({
-    title: '字典数据信息',
-    businessType: BUSINESS_TYPE.UPDATE,
+  @Put('', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:edit'] }),
+      OperateLogMiddleware({
+        title: '字典数据信息',
+        businessType: BUSINESS_TYPE.UPDATE,
+      }),
+    ],
   })
   public async edit(@Body() body: SysDictData): Promise<Resp> {
     if (body.dataId <= 0) {
@@ -184,11 +192,14 @@ export class SysDictDataController {
   }
 
   /**字典数据删除 */
-  @Del('/:dataId')
-  @PreAuthorize({ hasPermissions: ['system:dict:remove'] })
-  @OperateLog({
-    title: '字典数据信息',
-    businessType: BUSINESS_TYPE.DELETE,
+  @Del('/:dataId', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:remove'] }),
+      OperateLogMiddleware({
+        title: '字典数据信息',
+        businessType: BUSINESS_TYPE.DELETE,
+      }),
+    ],
   })
   public async remove(
     @Valid(RuleType.string().allow('')) @Param('dataId') dataId: string
@@ -211,8 +222,9 @@ export class SysDictDataController {
   }
 
   /**字典数据列表（指定字典类型） */
-  @Get('/type/:dictType')
-  @PreAuthorize({ hasPermissions: ['system:dict:query'] })
+  @Get('/type/:dictType', {
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:query'] })],
+  })
   public async dictType(
     @Valid(RuleType.string().allow('')) @Param('dictType') dictType: string
   ): Promise<Resp> {
@@ -225,11 +237,14 @@ export class SysDictDataController {
   }
 
   /**字典数据列表导出 */
-  @Get('/export')
-  @PreAuthorize({ hasPermissions: ['system:dict:export'] })
-  @OperateLog({
-    title: '字典数据信息',
-    businessType: BUSINESS_TYPE.EXPORT,
+  @Get('/export', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:export'] }),
+      OperateLogMiddleware({
+        title: '字典数据信息',
+        businessType: BUSINESS_TYPE.EXPORT,
+      }),
+    ],
   })
   public async export(@Query() query: Record<string, string>) {
     const [rows, total] = await this.sysDictDataService.findByPage(query);
