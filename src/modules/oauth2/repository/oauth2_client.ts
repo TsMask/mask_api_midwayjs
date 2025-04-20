@@ -106,7 +106,6 @@ export class Oauth2ClientRepository {
         title: param.title + '%',
       });
     }
-  
     // 查询数据
     return await tx.getMany();
   }
@@ -218,17 +217,21 @@ export class Oauth2ClientRepository {
    * @returns
    */
   public async selectByClientId(clientId: string): Promise<Oauth2Client> {
-    let item = new Oauth2Client();
-    if (!clientId) return item;
+    if (!clientId) {
+      return new Oauth2Client();
+    }
 
     // 查询数据
-    item = await this.db
+    const item = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(Oauth2Client, 's')
       .andWhere("s.client_id = :clientId and s.del_flag = '0'", { clientId })
       .getOne();
+    if (!item) {
+      return new Oauth2Client();
+    }
     return item;
   }
 }
