@@ -196,7 +196,8 @@ export class AccountService {
    * @returns boolean
    */
   public async clearLoginRecordCache(username: string): Promise<boolean> {
-    const cacheKey = CACHE_PWD_ERR_COUNT + ':' + username;
+    const base64UserName =Buffer.from(username, 'utf8').toString('base64')
+    const cacheKey = CACHE_PWD_ERR_COUNT + ':' + base64UserName;
     const hasKey = await this.redis.has('', cacheKey);
     if (hasKey > 0) {
       const rows = await this.redis.del('', cacheKey);
@@ -219,7 +220,8 @@ export class AccountService {
     );
     const lockTime: number = this.config.get('user.password.lockTime');
     // 验证缓存记录次数
-    const retryKey = CACHE_PWD_ERR_COUNT + ':' + username;
+    const base64UserName =Buffer.from(username, 'utf8').toString('base64')
+    const retryKey = CACHE_PWD_ERR_COUNT + ':' + base64UserName;
     let retryCount = await this.redis.get('', retryKey);
     if (!retryCount) {
       retryCount = '0';
