@@ -60,11 +60,15 @@ export class AuthorizeOauth2 implements IMiddleware<Context, NextFunction> {
   }
 
   static getName(): string {
-    return 'Authorize_Oauth2';
+    return 'AUTHORIZE_OAUTH2';
   }
 }
 
-/**客户端授权认证校验-中间件 */
+/**
+ * 客户端授权认证校验-中间件
+ *
+ * @param scope 授权范围数组
+ */
 export function AuthorizeOauth2Middleware(scope: string[]) {
   return createMiddleware(AuthorizeOauth2, scope, AuthorizeOauth2.getName());
 }

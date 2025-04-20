@@ -5,7 +5,7 @@ import { createHash, createHmac } from 'crypto';
  * @param str 原始字符串
  * @returns Base64 URL编码的SHA-256哈希字符串
  */
-export async function sha256ToBase64(str: string): Promise<string> {
+export function sha256ToBase64(str: string): string {
   const hash = createHash('sha256');
   hash.update(str);
   const base64Hash = hash.digest('base64');
@@ -36,7 +36,7 @@ export function sha256Hmac(key: string, data: string): string {
  * @param str 原始字符
  * @returns 加密字符串
  */
-export async function md5(str: string): Promise<string> {
+export function md5(str: string): string {
   const hash = createHash('md5');
   hash.update(str);
   return hash.digest('hex');

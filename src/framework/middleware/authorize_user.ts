@@ -11,7 +11,7 @@ import { UserTokenService } from '../token/user_token';
 import { Resp } from '../resp/api';
 
 /** 授权限制参数 */
-interface AuthOptions {
+interface Options {
   /**只需含有其中角色 */
   hasRoles?: string[];
   /**只需含有其中权限 */
@@ -25,7 +25,7 @@ interface AuthOptions {
 /**用户身份授权认证校验-中间件 */
 @Middleware()
 export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
-  resolve(_: any, options: AuthOptions) {
+  resolve(_: any, options: Options) {
     return async (c: Context, next: NextFunction) => {
       const token: UserTokenService = await c.requestContext.getAsync(
         UserTokenService
@@ -60,7 +60,10 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
         const verifyOk = verifyRolePermission(roles, perms, options);
         if (!verifyOk) {
           c.status = 403;
-          return Resp.codeMsg(403001, `unauthorized access ${c.method} ${c.path}`);
+          return Resp.codeMsg(
+            403001,
+            `unauthorized access ${c.method} ${c.path}`
+          );
         }
       }
 
@@ -70,12 +73,16 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
   }
 
   static getName(): string {
-    return 'Authorize_User';
+    return 'AUTHORIZE_USER';
   }
 }
 
-/**用户身份授权认证校验-中间件 */
-export function AuthorizeUserMiddleware(options: AuthOptions) {
+/**
+ * 用户身份授权认证校验-中间件
+ *
+ * @param options 授权限制参数
+ */
+export function AuthorizeUserMiddleware(options?: Options) {
   return createMiddleware(AuthorizeUser, options, AuthorizeUser.getName());
 }
 
@@ -89,7 +96,7 @@ export function AuthorizeUserMiddleware(options: AuthOptions) {
 function verifyRolePermission(
   roles: string[],
   permissions: string[],
-  options: AuthOptions
+  options: Options
 ): boolean {
   // 直接放行 管理员角色或任意权限
   if (

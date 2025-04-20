@@ -19,6 +19,6 @@ export class ReportMiddleware implements IMiddleware<Context, NextFunction> {
   }
 
   static getName(): string {
-    return 'report';
+    return 'REPORT';
   }
 }
