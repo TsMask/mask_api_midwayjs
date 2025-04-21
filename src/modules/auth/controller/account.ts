@@ -81,6 +81,12 @@ export class AccountController {
       body.password
     );
     if (err) {
+      await this.sysLogLoginService.insert(body.username, STATUS_NO, err, [
+        ipaddr,
+        location,
+        os,
+        browser,
+      ]);
       return Resp.errMsg(err);
     }
     const deviceFingerprintStr = await deviceFingerprint(this.c, info.userId);

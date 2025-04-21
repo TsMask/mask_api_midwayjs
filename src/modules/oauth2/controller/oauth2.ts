@@ -101,12 +101,18 @@ export class Oauth2Controller {
       return Resp.errMsg(err);
     }
 
-    // 客户端信息
+    // 登录客户端信息
     let [info, errMsg] = await this.oauth2Service.byClient(
       body.clientId,
       body.clientSecret
     );
     if (errMsg) {
+      await this.oauth2LogLoginService.insert(
+        body.clientId,
+        STATUS_NO,
+        errMsg,
+        [ipaddr, location, os, browser]
+      );
       return Resp.errMsg(errMsg);
     }
     const deviceFingerprintStr = await deviceFingerprint(this.c, info.clientId);
