@@ -136,9 +136,9 @@ export class OperateLog implements IMiddleware<Context, NextFunction> {
         const contentType =
           c.get('Content-Type') || 'application/json; charset=utf-8';
         const content = contentType + contentDisposition;
-        const msg = `{"status":"${status}","size":"${
+        const msg = `{"status":"${status}","size":${
           JSON.stringify(res).length
-        }","content-type":"${content}"}`;
+        },"content-type":"${content}"}`;
         operLog.operaMsg = msg;
       }
 
