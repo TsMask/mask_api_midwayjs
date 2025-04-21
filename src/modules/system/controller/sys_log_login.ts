@@ -88,9 +88,9 @@ export class SysLogLoginController {
     }
     const ok = await this.accountService.clearLoginRecordCache(userName);
     if (ok) {
-      return Resp.ok();
+      return Resp.okMsg('unlock success');
     }
-    return Resp.err();
+    return Resp.errMsg('not found unlock object');
   }
 
   /**导出系统登录日志信息 */
