@@ -2,12 +2,9 @@ import {
   Controller,
   Inject,
   Get,
-  Param,
   Del,
-  Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
 import { Context } from '@midwayjs/koa';
 
 import {
@@ -17,7 +14,6 @@ import {
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToDataScopeSQL } from '../../../framework/reqctx/auth';
 import { Resp } from '../../../framework/resp/api';
-import { AccountService } from '../../auth/service/account';
 import { SysLogLoginService } from '../service/sys_log_login';
 
 /**系统登录日志信息 控制层处理 */
@@ -30,10 +26,6 @@ export class SysLogLoginController {
   /**系统登录日志服务 */
   @Inject()
   private sysLogLoginService: SysLogLoginService;
-
-  /**账号身份操作服务 */
-  @Inject()
-  private accountService: AccountService;
 
   /**系统登录日志列表 */
   @Get('/list', {
@@ -67,30 +59,6 @@ export class SysLogLoginController {
   public async clean(): Promise<Resp> {
     const rows = await this.sysLogLoginService.clean();
     return Resp.okData(rows);
-  }
-
-  /**系统登录日志账户解锁 */
-  @Put('/unlock/:userName', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:log:login:unlock'] }),
-      OperateLogMiddleware({
-        title: '系统登录信息',
-        businessType: BUSINESS_TYPE.CLEAN,
-      }),
-    ],
-  })
-  public async unlock(
-    @Valid(RuleType.string().allow('')) @Param('userName') userName: string
-  ): Promise<Resp> {
-    if (!userName) {
-      this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: userName is empty');
-    }
-    const ok = await this.accountService.clearLoginRecordCache(userName);
-    if (ok) {
-      return Resp.okMsg('unlock success');
-    }
-    return Resp.errMsg('not found unlock object');
   }
 
   /**导出系统登录日志信息 */

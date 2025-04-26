@@ -37,6 +37,7 @@ import { Resp } from '../../../framework/resp/api';
 import { GlobalConfig } from '../../../framework/config/config';
 import { FileUtil } from '../../../framework/utils/file/file';
 import { readSheet } from '../../../framework/utils/file/execl';
+import { AccountService } from '../../auth/service/account';
 import { SysUserService } from '../service/sys_user';
 import { SysRoleService } from '../service/sys_role';
 import { SysPostService } from '../service/sys_post';
@@ -71,11 +72,13 @@ export class SysUserController {
   @Inject()
   private sysPostService: SysPostService;
 
+  /**账号身份操作服务 */
+  @Inject()
+  private accountService: AccountService;
+
   /**用户信息列表 */
   @Get('/list', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:user:list'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:list'] })],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const dataScopeSQL = loginUserToDataScopeSQL(
@@ -92,9 +95,7 @@ export class SysUserController {
 
   /**用户信息详情 */
   @Get('/:userId', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:user:query'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:query'] })],
   })
   public async info(
     @Valid(RuleType.number()) @Param('userId') userId: number
@@ -437,6 +438,30 @@ export class SysUserController {
     return Resp.err();
   }
 
+  /**用户账户解锁 */
+  @Put('/unlock/:userName', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:unlock'] }),
+      OperateLogMiddleware({
+        title: '用户信息',
+        businessType: BUSINESS_TYPE.CLEAN,
+      }),
+    ],
+  })
+  public async unlock(
+    @Valid(RuleType.string().allow('')) @Param('userName') userName: string
+  ): Promise<Resp> {
+    if (!userName) {
+      this.c.status = 422;
+      return Resp.codeMsg(422002, 'bind err: userName is empty');
+    }
+    const ok = await this.accountService.clearLoginRecordCache(userName);
+    if (ok) {
+      return Resp.okMsg('unlock success');
+    }
+    return Resp.errMsg('not found unlock user');
+  }
+
   /**用户信息列表导出 */
   @Get('/export', {
     middleware: [
@@ -477,9 +502,7 @@ export class SysUserController {
 
   /**用户信息列表导入模板下载 */
   @Get('/import/template', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:user:import'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:import'] })],
   })
   public async template() {
     const fileName = `user_import_template_${Date.now()}.xlsx`;
