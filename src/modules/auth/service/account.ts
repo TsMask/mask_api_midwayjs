@@ -215,10 +215,14 @@ export class AccountService {
     username: string
   ): Promise<[string, number, number, string]> {
     // 验证登录次数和错误锁定时间
-    const maxRetryCount: number = this.config.get(
-      'user.password.maxRetryCount'
+    const maxRetryCountStr = await this.sysConfigService.findValueByKey(
+      'sys.account.passwordRetryMaxCount'
     );
-    const lockTime: number = this.config.get('user.password.lockTime');
+    const lockTimeStr = await this.sysConfigService.findValueByKey(
+      'sys.account.passwordRetryLockTime'
+    );
+    const maxRetryCount: number = parseNumber(maxRetryCountStr);
+    const lockTime: number = parseNumber(lockTimeStr);
     // 验证缓存记录次数
     const base64UserName = Buffer.from(username, 'utf8').toString('base64');
     const retryKey = CACHE_PWD_ERR_COUNT + ':' + base64UserName;

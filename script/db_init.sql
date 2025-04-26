@@ -262,7 +262,7 @@ insert into sys_menu values(1050, '任务查询', 116, 1, '#', '', '1', '1', 'A'
 insert into sys_menu values(1051, '任务新增', 116, 2, '#', '', '1', '1', 'A', '1', '1', 'monitor:job:add',            '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_menu values(1052, '任务修改', 116, 3, '#', '', '1', '1', 'A', '1', '1', 'monitor:job:edit',           '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_menu values(1053, '任务删除', 116, 4, '#', '', '1', '1', 'A', '1', '1', 'monitor:job:remove',         '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
-insert into sys_menu values(1054, '状态修改', 116, 5, '#', '', '1', '1', 'A', '1', '1', 'monitor:job:status',   '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
+insert into sys_menu values(1054, '状态修改', 116, 5, '#', '', '1', '1', 'A', '1', '1', 'monitor:job:status',         '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 insert into sys_menu values(1055, '任务导出', 116, 6, '#', '', '1', '1', 'A', '1', '1', 'monitor:job:export',         '#', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '');
 
 
@@ -499,7 +499,7 @@ drop table if exists sys_config;
 create table sys_config (
   config_id         bigint          not null auto_increment    comment '参数ID',
   config_name       varchar(64)     default ''                 comment '参数名称',
-  config_key        varchar(32)     default ''                 comment '参数键名',
+  config_key        varchar(64)     default ''                 comment '参数键名',
   config_value      varchar(128)    default ''                 comment '参数键值',
   config_type       varchar(1)      default 'N'                comment '系统内置（Y是 N否）',
   del_flag          varchar(1)      default '0'                comment '删除标记（0存在 1删除）',
@@ -514,10 +514,12 @@ create table sys_config (
 -- ----------------------------
 -- 初始化-参数配置表数据
 -- ----------------------------
-insert into sys_config values(1, '用户管理-账号初始密码',         'sys.user.initPassword',         'Abcd@1234..',   'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '导入用户初始化密码 123456' );
-insert into sys_config values(2, '账号自助-验证码开关',           'sys.account.captchaEnabled',    'true',          'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启验证码功能（true开启，false关闭）');
-insert into sys_config values(3, '账号自助-验证码类型',           'sys.account.captchaType',       'math',          'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '使用验证码类型（math数值计算，char字符验证）');
-insert into sys_config values(4, '账号自助-是否开启用户注册功能',  'sys.account.registerUser',      'false',         'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启注册用户功能（true开启，false关闭）');
+insert into sys_config values(1, '用户管理-账号初始密码',           'sys.user.initPassword',                  'Abcd@1234..',   'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '导入用户初始化密码 123456' );
+insert into sys_config values(2, '账号认证-验证码开关',             'sys.account.captchaEnabled',             'true',          'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启验证码功能（true开启，false关闭）');
+insert into sys_config values(3, '账号认证-验证码类型',             'sys.account.captchaType',                'math',          'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '使用验证码类型（math数值计算，char字符验证）');
+insert into sys_config values(4, '账号认证-是否开启用户注册功能',    'sys.account.registerUser',               'false',         'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '是否开启用户注册功能（true开启，false关闭）');
+insert into sys_config values(5, '账号认证-密码尝试错误最大次数',    'sys.account.passwordRetryMaxCount',      '5',             'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '密码尝试错误最大次数，单位（次）');
+insert into sys_config values(6, '账号认证-密码尝试错误后锁定时间',  'sys.account.passwordRetryLockTime',      '10',            'Y', '0', 'system', REPLACE(unix_timestamp(now(3)),'.',''), '', 0, '密码尝试错误后锁定时间，单位（分钟）');
 
 
 -- ----------------------------

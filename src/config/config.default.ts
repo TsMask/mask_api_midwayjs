@@ -237,18 +237,8 @@ export default (): MidwayConfig => {
       },
     },
 
-    /**用户配置 */
-    user: {
-      /**密码 */
-      password: {
-        /**密码最大错误次数 */
-        maxRetryCount: 5,
-        /**密码锁定时间,单位分钟（默认10分钟） */
-        lockTime: 10,
-      },
-      /**设定为系统管理员的用户ID */
-      system: [1],
-    },
+    /**系统用户，将用户ID设定为系统管理员角色 */
+    systemUser: [1],
 
     /**char 字符验证码配置 */
     charCaptcha: {
