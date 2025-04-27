@@ -58,7 +58,7 @@ export class Oauth2ClientController {
     if (data.clientId === clientId) {
       return Resp.okData(data);
     }
-    return Resp.err();
+    return Resp.errMsg('clientId does not exist');
   }
 
   /**新增 */
@@ -82,8 +82,7 @@ export class Oauth2ClientController {
       body.ipWhite.includes('localhost') ||
       body.ipWhite.includes('::1');
     if (localHost || body.ipWhite.includes('::ffff:')) {
-      this.c.status = 422;
-      return Resp.codeMsg(422002, 'no support local host');
+      return Resp.errMsg('no support local host');
     }
 
     body.createBy = loginUserToUserName(this.c);
@@ -115,14 +114,13 @@ export class Oauth2ClientController {
       body.ipWhite.includes('localhost') ||
       body.ipWhite.includes('::1');
     if (localHost || body.ipWhite.includes('::ffff:')) {
-      this.c.status = 422;
-      return Resp.codeMsg(422002, 'no support local host');
+      return Resp.errMsg('no support local host');
     }
 
     // 查询信息
-    const info = await this.oauth2ClientService.findByClientId(body.clientId);
-    if (info.clientId != body.clientId) {
-      return Resp.errMsg('修改失败，客户端ID已存在');
+    const info = await this.oauth2ClientService.findById(body.id);
+    if (!info.clientId || info.id != body.id) {
+      return Resp.errMsg('modification failed, data not exist');
     }
 
     info.title = body.title;

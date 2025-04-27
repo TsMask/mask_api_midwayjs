@@ -24,9 +24,22 @@ export class Oauth2ClientService {
   }
 
   /**
-   * 查询集合
+   * 查询ID
+   * @param id ID
+   * @return 结果信息
+   */
+  public async findById(id: number): Promise<Oauth2Client> {
+    const rows = await this.oauth2ClientRepository.selectByIds([id]);
+    if (rows.length > 0) {
+      return rows[0];
+    }
+    return new Oauth2Client();
+  }
+
+  /**
+   * 查询ClientId
    * @param clientId 客户端ID
-   * @return 错误结果信息
+   * @return 结果信息
    */
   public async findByClientId(clientId: string): Promise<Oauth2Client> {
     return await this.oauth2ClientRepository.selectByClientId(clientId);

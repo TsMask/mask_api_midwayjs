@@ -55,15 +55,13 @@ export class Oauth2Controller {
   public async authorize(@Query() query: CodeQuery): Promise<Resp> {
     // 是否存在clientId
     const info = await this.oauth2ClientService.findByClientId(query.clientId);
-    if (info.clientId == '' || info.clientId != query.clientId) {
-      this.c.status = 422;
-      return Resp.codeMsg(422002, 'clientId not exist');
+    if (!info.clientId || info.clientId != query.clientId) {
+      return Resp.errMsg('clientId not exist');
     }
 
     // 判断IP白名单
     if (!info.ipWhite.includes(this.c.ip)) {
-      this.c.status = 422;
-      return Resp.codeMsg(422002, 'IP whitelist mismatch');
+      return Resp.errMsg('ip whitelist mismatch');
     }
 
     // 生成登录预授权码
