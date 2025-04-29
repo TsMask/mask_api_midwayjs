@@ -102,7 +102,8 @@ export class Oauth2Controller {
     // 登录客户端信息
     let [info, errMsg] = await this.oauth2Service.byClient(
       body.clientId,
-      body.clientSecret
+      body.clientSecret,
+      ipaddr
     );
     if (errMsg) {
       await this.oauth2LogLoginService.insert(
@@ -174,10 +175,15 @@ export class Oauth2Controller {
     }
     const clientId = claims[JWT_CLIENT_ID];
 
+    // 当前请求信息
+    const [ipaddr, location] = await ipaddrLocation(this.c);
+    const [os, browser] = await uaOsBrowser(this.c);
+
     // 客户端信息
     let [info, errMsg] = await this.oauth2Service.byClient(
       body.clientId,
-      body.clientSecret
+      body.clientSecret,
+      ipaddr
     );
     if (errMsg != '') {
       return Resp.errMsg(errMsg);
@@ -220,9 +226,6 @@ export class Oauth2Controller {
       );
     }
 
-    // 当前请求信息
-    const [ipaddr, location] = await ipaddrLocation(this.c);
-    const [os, browser] = await uaOsBrowser(this.c);
     // 记录令牌，创建系统访问记录
     info = await this.token.oauth2InfoCreate(info, deviceFingerprintStr, [
       ipaddr,

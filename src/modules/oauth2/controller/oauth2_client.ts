@@ -77,11 +77,9 @@ export class Oauth2ClientController {
       return Resp.codeMsg(422002, 'bind err: id not is empty');
     }
 
-    const localHost =
-      body.ipWhite.includes('127.0.0.1') ||
-      body.ipWhite.includes('localhost') ||
-      body.ipWhite.includes('::1');
-    if (localHost || body.ipWhite.includes('::ffff:')) {
+    // 本地IP地址不支持
+    const localHosts = ['127.0.0.1', 'localhost', '::ffff:', '::1'];
+    if (localHosts.some(str => body.ipWhite.includes(str))) {
       return Resp.errMsg('no support local host');
     }
 
@@ -109,11 +107,9 @@ export class Oauth2ClientController {
       return Resp.codeMsg(422002, 'bind err: id is empty');
     }
 
-    const localHost =
-      body.ipWhite.includes('127.0.0.1') ||
-      body.ipWhite.includes('localhost') ||
-      body.ipWhite.includes('::1');
-    if (localHost || body.ipWhite.includes('::ffff:')) {
+    // 本地IP地址不支持
+    const localHosts = ['127.0.0.1', 'localhost', '::ffff:', '::1'];
+    if (localHosts.some(str => body.ipWhite.includes(str))) {
       return Resp.errMsg('no support local host');
     }
 

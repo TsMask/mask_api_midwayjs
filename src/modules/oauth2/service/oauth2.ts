@@ -60,11 +60,13 @@ export class Oauth2Service {
    * 客户端信息
    * @param clientId 客户端ID
    * @param clientSecret 客户端密钥
+   * @param ipaddr 访问IP地址
    * @return 错误结果信息
    */
   public async byClient(
     clientId: string,
-    clientSecret: string
+    clientSecret: string,
+    ipaddr: string
   ): Promise<[Oauth2Info, string]> {
     const info = new Oauth2Info();
 
@@ -76,8 +78,12 @@ export class Oauth2Service {
     if (rows.length > 0) {
       item = rows[0];
     }
-    if (item.clientId === '') {
+    if (item.clientId === '' || item.clientSecret === '') {
       return [info, 'clientId or clientSecret is not exist'];
+    }
+    // 判断IP白名单
+    if (!item.ipWhite.includes(ipaddr)) {
+      return [info, 'ip whitelist mismatch'];
     }
 
     info.clientId = clientId;
