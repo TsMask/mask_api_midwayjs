@@ -15,7 +15,7 @@ export class SystemInfoController {
   /**
    * 服务器信息
    */
-  @Get('/oauth2/open/monitor/system', {
+  @Get('/open-api/monitor/system', {
     middleware: [AuthorizeOauth2Middleware([])],
   })
   @Get('/monitor/system', {
