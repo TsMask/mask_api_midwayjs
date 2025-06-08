@@ -21,8 +21,9 @@ import {
 } from '../../../framework/middleware/operate_log';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { Oauth2ClientService } from '../service/oauth2_client';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { Resp } from '../../../framework/resp/api';
+import { Oauth2ClientService } from '../service/oauth2_client';
 import { Oauth2Client } from '../model/oauth2_client';
 
 /**客户端授权管理 控制层处理 */
@@ -52,7 +53,7 @@ export class Oauth2ClientController {
   public async info(@Param('clientId') clientId: string): Promise<Resp> {
     if (clientId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: clientId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: clientId is empty');
     }
     const data = await this.oauth2ClientService.findByClientId(clientId);
     if (data.clientId === clientId) {
@@ -74,7 +75,7 @@ export class Oauth2ClientController {
   public async add(@Body() body: Oauth2Client) {
     if (body.id > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: id not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id not is empty');
     }
 
     // 本地IP地址不支持
@@ -104,7 +105,7 @@ export class Oauth2ClientController {
   public async edit(@Body() body: Oauth2Client) {
     if (body.id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: id is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
     }
 
     // 本地IP地址不支持
@@ -143,7 +144,7 @@ export class Oauth2ClientController {
   public async remove(@Param('id') id: string) {
     if (id === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: id is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
     }
 
     // 处理字符转id数组后去重

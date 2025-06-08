@@ -20,6 +20,7 @@ import {
 } from '../../../framework/constants/upload_sub_path';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { FileUtil } from '../../../framework/utils/file/file';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { Resp } from '../../../framework/resp/api';
 
 /**文件操作 控制层处理*/
@@ -42,7 +43,7 @@ export class FileController {
   ) {
     if (filePath.length < 8) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: filePath not is base64 string');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: filePath not is base64 string');
     }
     // base64解析出地址
     const routerPath = Buffer.from(filePath, 'base64').toString('utf-8');
@@ -87,7 +88,7 @@ export class FileController {
   ) {
     if (files.length !== 1) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: field file not upload');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: field file not upload');
     }
     const formFile = files[0];
 
@@ -95,7 +96,7 @@ export class FileController {
     const ok = UPLOAD_SUB_PATH[subPath];
     if (subPath && !ok) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: subPath not in range');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: subPath not in range');
     }
     if (!subPath) {
       subPath = UPLOAD_COMMON;
@@ -156,7 +157,7 @@ export class FileController {
     const ok = UPLOAD_SUB_PATH[subPath];
     if (subPath && !ok) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: subPath not in range');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: subPath not in range');
     }
     if (!subPath) {
       subPath = UPLOAD_COMMON;
@@ -194,12 +195,12 @@ export class FileController {
   ) {
     if (index === '' || identifier === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: index and identifier must be set');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: index and identifier must be set');
     }
     // 上传的文件
     if (files.length !== 1) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: field file not upload');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: field file not upload');
     }
     const formFile = files[0];
 

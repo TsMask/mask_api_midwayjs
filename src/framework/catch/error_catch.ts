@@ -2,6 +2,7 @@ import { Catch, HttpStatus } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 
 import { Resp } from '../resp/api';
+import { CODE_INTERNAL, MSG_INTERNAL } from '../resp/code';
 import { loginUserToUserID } from '../reqctx/auth';
 
 /**
@@ -23,7 +24,7 @@ export class ErrorCatch {
 
     // 返回错误响应给客户端
     if (c.app.getEnv() === 'prod') {
-      c.body = Resp.codeMsg(500001, 'internal error');
+      c.body = Resp.codeMsg(CODE_INTERNAL, MSG_INTERNAL);
       c.status = HttpStatus.INTERNAL_SERVER_ERROR;
       return;
     }
@@ -42,7 +43,7 @@ export class ErrorCatch {
     }
 
     // 返回500，提示错误信息
-    c.body = Resp.codeMsg(500001, msg);
+    c.body = Resp.codeMsg(CODE_INTERNAL, msg);
     c.status = HttpStatus.INTERNAL_SERVER_ERROR;
   }
 }

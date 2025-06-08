@@ -11,9 +11,10 @@ import { parseRemoveDuplicatesToArray } from '../../../framework/utils/parse/par
 import { CACHE_TOKEN_DEVICE } from '../../../framework/constants/cache_key';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { UserInfo } from '../../../framework/token/user_info';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { Resp } from '../../../framework/resp/api';
-import { SysUserOnline } from '../model/sys_user_online';
 import { SysUserOnlineService } from '../service/sys_user_online';
+import { SysUserOnline } from '../model/sys_user_online';
 
 /**在线用户信息 控制层处理 */
 @Controller('/monitor/user-online')
@@ -131,7 +132,7 @@ export class SysUserOnlineController {
   ): Promise<Resp> {
     if (tokenId === '' || tokenId.indexOf('*') >= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: tokenId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: tokenId is empty');
     }
 
     // 处理字符转id数组后去重

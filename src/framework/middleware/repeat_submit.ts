@@ -1,4 +1,9 @@
-import { IMiddleware, Middleware, MidwayWebRouterService, createMiddleware } from '@midwayjs/core';
+import {
+  IMiddleware,
+  Middleware,
+  MidwayWebRouterService,
+  createMiddleware,
+} from '@midwayjs/core';
 import { NextFunction, Context } from '@midwayjs/koa';
 
 import { CACHE_REPEAT_SUBMIT } from '../constants/cache_key';
@@ -38,7 +43,7 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
       );
       const funcName = routerInfo.funcHandlerName;
       // 唯一标识（指定key + 客户端IP + 请求地址）
-      const funcMd5 = md5(`${clientIP(c.ip)}:${funcName}`); 
+      const funcMd5 = md5(`${clientIP(c.ip)}:${funcName}`);
       const cacheKey = `${CACHE_REPEAT_SUBMIT}:${funcMd5}`;
 
       // 从Redis读取上一次保存的请求时间和参数
@@ -83,7 +88,7 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
 
 /**
  * 防止表单重复提交-中间件
- * 
+ *
  * 小于间隔时间视为重复提交
  * @param interval 间隔时间(单位秒) 默认:5
  */

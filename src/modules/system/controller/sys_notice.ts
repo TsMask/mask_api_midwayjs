@@ -22,6 +22,7 @@ import {
 } from '../../../framework/middleware/operate_log';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { Resp } from '../../../framework/resp/api';
 import { SysNoticeService } from '../service/sys_notice';
 import { SysNotice } from '../model/sys_notice';
@@ -57,7 +58,7 @@ export class SysNoticeController {
   ): Promise<Resp> {
     if (noticeId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: noticeId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId is empty');
     }
     const data = await this.sysNoticeService.findById(noticeId);
     if (data.noticeId === noticeId) {
@@ -79,7 +80,7 @@ export class SysNoticeController {
   public async add(@Body() body: SysNotice): Promise<Resp> {
     if (body.noticeId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: noticeId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId not is empty');
     }
 
     body.createBy = loginUserToUserName(this.c);
@@ -103,7 +104,7 @@ export class SysNoticeController {
   public async edit(@Body() body: SysNotice): Promise<Resp> {
     if (body.noticeId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: noticeId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId is empty');
     }
 
     // 检查是否存在
@@ -140,7 +141,7 @@ export class SysNoticeController {
   ): Promise<Resp> {
     if (noticeId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: noticeId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId is empty');
     }
 
     // 处理字符转id数组后去重

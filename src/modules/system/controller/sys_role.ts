@@ -25,9 +25,13 @@ import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
 } from '../../../framework/middleware/operate_log';
+import {
+  CODE_AUTH_INVALID,
+  CODE_PARAM_CHEACK,
+} from '../../../framework/resp/code';
+import { Resp } from '../../../framework/resp/api';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
-import { Resp } from '../../../framework/resp/api';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';
 import { SysRole } from '../model/sys_role';
@@ -65,7 +69,7 @@ export class SysRoleController {
   ): Promise<Resp> {
     if (roleId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
     }
     const data = await this.sysRoleService.findById(roleId);
     if (data.roleId === roleId) {
@@ -87,7 +91,7 @@ export class SysRoleController {
   public async add(@Body() body: SysRole): Promise<Resp> {
     if (body.roleId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: roleId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId not is empty');
     }
 
     // 判断角色名称是否唯一
@@ -129,7 +133,7 @@ export class SysRoleController {
   public async edit(@Body() body: SysRole): Promise<Resp> {
     if (body.roleId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
     }
 
     // 检查是否系统管理员角色
@@ -141,7 +145,7 @@ export class SysRoleController {
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(401002, err);
+      return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
     if (Array.isArray(info.user.roleIds) && info.user.roleIds.length > 0) {
       if (info.user.roleIds.includes(body.roleId)) {
@@ -206,7 +210,7 @@ export class SysRoleController {
   ): Promise<Resp> {
     if (roleId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -298,7 +302,7 @@ export class SysRoleController {
   ): Promise<Resp> {
     if (roleId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
     }
     // 检查是否系统管理员角色
     if (roleId === SYS_ROLE_SYSTEM_ID) {
@@ -331,7 +335,7 @@ export class SysRoleController {
     const roleId = parseNumber(query.roleId);
     if (roleId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
     }
 
     // 检查是否存在
@@ -371,7 +375,7 @@ export class SysRoleController {
   ): Promise<Resp> {
     if (userIds.length <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: userIds is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userIds is empty');
     }
 
     // 检查是否存在

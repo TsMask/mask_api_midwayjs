@@ -10,6 +10,7 @@ import { CACHE_RATE_LIMIT } from '../constants/cache_key';
 import { loginUserToUserID } from '../reqctx/auth';
 import { RedisCache } from '../datasource/redis/redis';
 import { clientIP } from '../ip2region/ip2region';
+import { CODE_AUTH_INVALID, CODE_RATELIMIT, MSG_RATELIMIT } from '../resp/code';
 import { Resp } from '../resp/api';
 import { md5 } from '../utils/crypto/hash';
 
@@ -68,7 +69,10 @@ export class RateLimit implements IMiddleware<Context, NextFunction> {
         const loginUserId = loginUserToUserID(c);
         if (loginUserId < 0) {
           c.status = 401;
-          return Resp.codeMsg(401002, 'invalid login user information');
+          return Resp.codeMsg(
+            CODE_AUTH_INVALID,
+            'invalid login user information'
+          );
         }
         const funcMd5 = md5(`${loginUserId}:${funcName}`);
         limitKey = `${CACHE_RATE_LIMIT}:${funcMd5}`;
@@ -99,7 +103,7 @@ export class RateLimit implements IMiddleware<Context, NextFunction> {
 
       if (rateCount >= count) {
         c.status = 200;
-        return Resp.errMsg('访问过于频繁，请稍候再试');
+        return Resp.codeMsg(CODE_RATELIMIT, MSG_RATELIMIT);
       }
 
       // 调用下一个处理程序

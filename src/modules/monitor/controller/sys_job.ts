@@ -25,6 +25,7 @@ import {
 import { RepeatSubmitMiddleware } from '../../../framework/middleware/repeat_submit';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { Resp } from '../../../framework/resp/api';
 import { SysJobService } from '../service/sys_job';
 import { SysJob } from '../model/sys_job';
@@ -62,7 +63,7 @@ export class SysJobController {
   ): Promise<Resp> {
     if (jobId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: jobId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: jobId not is empty');
     }
     const jobInfo = await this.sysJobService.findById(jobId);
     if (jobInfo.jobId === jobId) {
@@ -84,7 +85,7 @@ export class SysJobController {
   public async add(@Body() body: SysJob): Promise<Resp> {
     if (body.jobId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: jobId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: jobId not is empty');
     }
 
     // 检查cron表达式格式
@@ -139,7 +140,7 @@ export class SysJobController {
   public async edit(@Body() body: SysJob): Promise<Resp> {
     if (body.jobId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: jobId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: jobId is empty');
     }
 
     // 检查cron表达式格式
@@ -212,7 +213,7 @@ export class SysJobController {
   ): Promise<Resp> {
     if (jobId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: jobId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: jobId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -282,7 +283,7 @@ export class SysJobController {
   ): Promise<Resp> {
     if (jobId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: jobId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: jobId is empty');
     }
 
     // 检查是否存在

@@ -11,6 +11,7 @@ import {
   BUSINESS_TYPE,
 } from '../../../framework/middleware/operate_log';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { Resp } from '../../../framework/resp/api';
 import { SysJobLogService } from '../service/sys_job_log';
 import { SysJobService } from '../service/sys_job';
@@ -58,7 +59,7 @@ export class SysJobLogController {
   ): Promise<Resp> {
     if (logId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: logId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: logId is empty');
     }
 
     const data = await this.sysJobLogService.findById(logId);
@@ -83,7 +84,7 @@ export class SysJobLogController {
   ): Promise<Resp> {
     if (logId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: logId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: logId is empty');
     }
 
     // 处理字符转id数组后去重

@@ -20,9 +20,10 @@ import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
 } from '../../../framework/middleware/operate_log';
+import { Resp } from '../../../framework/resp/api';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { Resp } from '../../../framework/resp/api';
 import { SysPostService } from '../service/sys_post';
 import { SysPost } from '../model/sys_post';
 
@@ -55,7 +56,7 @@ export class SysPostController {
   ): Promise<Resp> {
     if (postId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: postId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId is empty');
     }
     const data = await this.sysPostService.findById(postId);
     if (data.postId === postId) {
@@ -77,7 +78,7 @@ export class SysPostController {
   public async add(@Body() body: SysPost): Promise<Resp> {
     if (body.postId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: postId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId not is empty');
     }
     // 检查名称唯一
     const uniqueuName = await this.sysPostService.checkUniqueByName(
@@ -117,7 +118,7 @@ export class SysPostController {
   public async edit(@Body() body: SysPost): Promise<Resp> {
     if (body.postId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: postId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId is empty');
     }
 
     // 检查是否存在
@@ -172,7 +173,7 @@ export class SysPostController {
   ): Promise<Resp> {
     if (postId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: postId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId is empty');
     }
 
     // 处理字符转id数组后去重

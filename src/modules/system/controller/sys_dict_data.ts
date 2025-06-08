@@ -23,6 +23,7 @@ import {
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
 import { Resp } from '../../../framework/resp/api';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { SysDictTypeService } from '../service/sys_dict_type';
 import { SysDictDataService } from '../service/sys_dict_data';
 import { SysDictData } from '../model/sys_dict_data';
@@ -60,7 +61,7 @@ export class SysDictDataController {
   ): Promise<Resp> {
     if (dataId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: deptId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
     }
     const data = await this.sysDictDataService.findById(dataId);
     if (data.dataId === dataId) {
@@ -82,7 +83,7 @@ export class SysDictDataController {
   public async add(@Body() body: SysDictData): Promise<Resp> {
     if (body.dataId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: dataId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dataId not is empty');
     }
 
     // 检查字典类型是否存在
@@ -136,7 +137,7 @@ export class SysDictDataController {
   public async edit(@Body() body: SysDictData): Promise<Resp> {
     if (body.dataId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: dataId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dataId is empty');
     }
 
     // 检查字典类型是否存在
@@ -206,7 +207,7 @@ export class SysDictDataController {
   ): Promise<Resp> {
     if (dataId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: dataId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dataId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -230,7 +231,7 @@ export class SysDictDataController {
   ): Promise<Resp> {
     if (dictType === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: dictType is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictType is empty');
     }
     const data = await this.sysDictDataService.findByType(dictType);
     return Resp.okData(data);

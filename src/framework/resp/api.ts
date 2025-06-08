@@ -1,16 +1,9 @@
+import { CODE_ERROR, CODE_SUCCESS, MSG_ERROR, MSG_SUCCESS } from './code';
+
 export class Resp {
   code: number;
   msg: string;
   [key: string]: any;
-
-  // 响应-code错误失败
-  static CODE_ERROR = 400001;
-  // 响应-msg错误失败
-  static MSG_ERROR = 'error';
-  // 响应-msg正常成功
-  static CODE_SUCCESS = 200001;
-  // 响应-code正常成功
-  static MSG_SUCCESS = 'success';
 
   /**
    * 响应结果
@@ -29,7 +22,7 @@ export class Resp {
    * @return 响应结果对象
    */
   static ok(args?: Record<string, any>) {
-    return { code: this.CODE_SUCCESS, msg: this.MSG_SUCCESS, ...args };
+    return { code: CODE_SUCCESS, msg: MSG_SUCCESS, ...args };
   }
 
   /**
@@ -38,7 +31,7 @@ export class Resp {
    * @return 响应结果对象
    */
   static okMsg(msg: string) {
-    return { code: this.CODE_SUCCESS, msg };
+    return { code: CODE_SUCCESS, msg };
   }
 
   /**
@@ -47,7 +40,7 @@ export class Resp {
    * @return 响应结果对象
    */
   static okData<T>(data: T) {
-    return { code: this.CODE_SUCCESS, msg: this.MSG_SUCCESS, data };
+    return { code: CODE_SUCCESS, msg: MSG_SUCCESS, data };
   }
 
   /**
@@ -56,7 +49,7 @@ export class Resp {
    * @return 响应结果对象
    */
   static err(args?: Record<string, any>) {
-    return { code: this.CODE_ERROR, msg: this.MSG_ERROR, ...args };
+    return { code: CODE_ERROR, msg: MSG_ERROR, ...args };
   }
 
   /**
@@ -65,7 +58,7 @@ export class Resp {
    * @return 响应结果对象
    */
   static errMsg(msg: string) {
-    return { code: this.CODE_ERROR, msg };
+    return { code: CODE_ERROR, msg };
   }
 
   /**
@@ -74,6 +67,6 @@ export class Resp {
    * @return 响应结果对象
    */
   static errData<T>(data: T) {
-    return { code: this.CODE_ERROR, msg: this.MSG_ERROR, data };
+    return { code: CODE_ERROR, msg: MSG_ERROR, data };
   }
 }

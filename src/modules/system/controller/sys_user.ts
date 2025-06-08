@@ -31,9 +31,10 @@ import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
 } from '../../../framework/middleware/operate_log';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
+import { Resp } from '../../../framework/resp/api';
 import { RepeatSubmitMiddleware } from '../../../framework/middleware/repeat_submit';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { Resp } from '../../../framework/resp/api';
 import { GlobalConfig } from '../../../framework/config/config';
 import { FileUtil } from '../../../framework/utils/file/file';
 import { readSheet } from '../../../framework/utils/file/execl';
@@ -102,7 +103,7 @@ export class SysUserController {
   ): Promise<Resp> {
     if (userId < 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: userId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId is empty');
     }
 
     // 查询系统角色列表
@@ -157,7 +158,7 @@ export class SysUserController {
   public async add(@Body() body: SysUser): Promise<Resp> {
     if (body.userId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: userId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId not is empty');
     }
     if (!validUsername(body.userName)) {
       return Resp.errMsg(
@@ -247,7 +248,7 @@ export class SysUserController {
   public async edit(@Body() body: SysUser): Promise<Resp> {
     if (body.userId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: userId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId is empty');
     }
 
     // 检查是否系统管理员用户
@@ -331,7 +332,7 @@ export class SysUserController {
   ): Promise<Resp> {
     if (userId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: userId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -453,7 +454,7 @@ export class SysUserController {
   ): Promise<Resp> {
     if (!userName) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: userName is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userName is empty');
     }
     const ok = await this.accountService.clearLoginRecordCache(userName);
     if (ok) {

@@ -1,10 +1,16 @@
 import { IMiddleware, Middleware, createMiddleware } from '@midwayjs/core';
 import { NextFunction, Context } from '@midwayjs/koa';
 
+import {
+  CODE_AUTH,
+  CODE_AUTH_INVALID,
+  CODE_AUTH_NOTOKEN,
+  CODE_PERMISSION,
+} from '../resp/code';
+import { Resp } from '../resp/api';
 import { CTX_LOGIN_OAUTH2 } from '../constants/common';
 import { authorization } from '../reqctx/context';
 import { Oauth2TokenService } from '../token/oauth2_token';
-import { Resp } from '../resp/api';
 
 /**客户端授权认证校验-中间件 */
 @Middleware()
@@ -19,21 +25,24 @@ export class AuthorizeOauth2 implements IMiddleware<Context, NextFunction> {
       const tokenStr = authorization(c);
       if (tokenStr === '') {
         c.status = 401;
-        return Resp.codeMsg(401003, 'authorization token is empty');
+        return Resp.codeMsg(CODE_AUTH_NOTOKEN, 'authorization token is empty');
       }
 
       // 验证令牌
       const [claims, err] = await token.oauth2TokenVerify(tokenStr, 'access');
       if (err) {
         c.status = 401;
-        return Resp.codeMsg(401001, err);
+        return Resp.codeMsg(CODE_AUTH, err);
       }
 
       // 获取缓存的用户信息
       let info = await token.oauth2InfoGet(claims);
       if (info.clientId === '') {
         c.status = 401;
-        return Resp.codeMsg(401002, 'invalid login user information');
+        return Resp.codeMsg(
+          CODE_AUTH_INVALID,
+          'invalid login user information'
+        );
       }
       c.setAttr(CTX_LOGIN_OAUTH2, info);
 
@@ -50,7 +59,10 @@ export class AuthorizeOauth2 implements IMiddleware<Context, NextFunction> {
         }
         if (!hasScope) {
           c.status = 403;
-          return Resp.codeMsg(403001, `unauthorized access ${c.method} ${c.path}`);
+          return Resp.codeMsg(
+            CODE_PERMISSION,
+            `unauthorized access ${c.method} ${c.path}`
+          );
         }
       }
 

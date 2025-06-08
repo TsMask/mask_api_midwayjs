@@ -30,6 +30,7 @@ import { loginUserToUserName } from '../../../framework/reqctx/auth';
 import { Resp } from '../../../framework/resp/api';
 import { SysConfigService } from '../service/sys_config';
 import { SysConfig } from '../model/sys_config';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 
 /**参数配置信息 控制层处理 */
 @Controller('/system/config')
@@ -64,7 +65,7 @@ export class SysConfigController {
   ): Promise<Resp> {
     if (configId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: configId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configId is empty');
     }
     const data = await this.sysConfigService.findById(configId);
     if (data.configId === configId) {
@@ -86,7 +87,7 @@ export class SysConfigController {
   public async add(@Body() body: SysConfig) {
     if (body.configId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: configId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configId not is empty');
     }
 
     // 检查属性值唯一
@@ -121,7 +122,7 @@ export class SysConfigController {
   public async edit(@Body() body: SysConfig) {
     if (body.configId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: configId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configId is empty');
     }
 
     // 检查是否存在
@@ -169,7 +170,7 @@ export class SysConfigController {
   ) {
     if (configId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: configId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configId is empty');
     }
 
     // 处理字符转id数组后去重
@@ -216,7 +217,7 @@ export class SysConfigController {
   ): Promise<Resp> {
     if (configKey === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: configKey is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configKey is empty');
     }
     const key = await this.sysConfigService.findValueByKey(configKey);
     return Resp.okData(key);

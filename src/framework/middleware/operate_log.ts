@@ -12,6 +12,7 @@ import { clientIP, realAddressByIp } from '../ip2region/ip2region';
 import { STATUS_NO, STATUS_YES } from '../constants/common';
 import { parseSafeContent } from '../utils/parse/parse';
 import { loginUserToUserName } from '../reqctx/auth';
+import { CODE_AUTH_INVALID, CODE_SUCCESS } from '../resp/code';
 import { Resp } from '../resp/api';
 
 /**操作日志-业务操作类型枚举 */
@@ -87,7 +88,10 @@ export class OperateLog implements IMiddleware<Context, NextFunction> {
       const userName = loginUserToUserName(c);
       if (userName === '') {
         c.status = 401;
-        return Resp.codeMsg(401002, 'invalid login user information');
+        return Resp.codeMsg(
+          CODE_AUTH_INVALID,
+          'invalid login user information'
+        );
       }
 
       // 操作日志记录
@@ -124,7 +128,7 @@ export class OperateLog implements IMiddleware<Context, NextFunction> {
 
       // 响应状态
       const status = res.code;
-      if (status === Resp.CODE_SUCCESS) {
+      if (status === CODE_SUCCESS) {
         operLog.statusFlag = STATUS_YES;
       } else {
         operLog.statusFlag = STATUS_NO;

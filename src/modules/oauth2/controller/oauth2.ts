@@ -19,6 +19,7 @@ import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { Oauth2TokenService } from '../../../framework/token/oauth2_token';
 import { parseNumber } from '../../../framework/utils/parse/parse';
 import { Resp } from '../../../framework/resp/api';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { Oauth2LogLoginService } from '../service/oauth2_log_login';
 import { Oauth2ClientService } from '../service/oauth2_client';
 import { Oauth2Service } from '../service/oauth2';
@@ -79,7 +80,7 @@ export class Oauth2Controller {
   public async createToken(@Body() body: TokenBody): Promise<Resp> {
     if (body.grantType != 'authorization_code' || body.code == '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'grantType or code error');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'grantType or code error');
     }
 
     // 当前请求信息
@@ -162,7 +163,7 @@ export class Oauth2Controller {
   public async refreshToken(@Body() body: TokenBody): Promise<Resp> {
     if (body.grantType != 'refresh_token' || body.refreshToken == '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'grantType or refreshToken error');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'grantType or refreshToken error');
     }
 
     // 验证刷新令牌是否有效

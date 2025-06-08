@@ -23,6 +23,7 @@ import {
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { Resp } from '../../../framework/resp/api';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { SysDeptService } from '../service/sys_dept';
 import { SysDept } from '../model/sys_dept';
 
@@ -68,7 +69,7 @@ export class SysDeptController {
   ): Promise<Resp> {
     if (deptId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: deptId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
     }
 
     const data = await this.sysDeptService.findById(deptId);
@@ -91,7 +92,7 @@ export class SysDeptController {
   public async add(@Body() body: SysDept): Promise<Resp> {
     if (body.deptId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: deptId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId not is empty');
     }
 
     // 父级ID不为0是要检查
@@ -147,7 +148,7 @@ export class SysDeptController {
   public async edit(@Body() body: SysDept): Promise<Resp> {
     if (body.deptId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: deptId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
     }
 
     // 上级部门不能选自己
@@ -221,7 +222,7 @@ export class SysDeptController {
   ): Promise<Resp> {
     if (deptId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: deptId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
     }
 
     // 检查数据是否存在
@@ -258,7 +259,7 @@ export class SysDeptController {
   ): Promise<Resp> {
     if (deptId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: deptId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
     }
     const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
     const data = await this.sysDeptService.find(new SysDept(), dataScopeSQL);
@@ -315,7 +316,7 @@ export class SysDeptController {
   ): Promise<Resp> {
     if (roleId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
     }
 
     const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');

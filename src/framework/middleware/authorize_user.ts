@@ -5,10 +5,16 @@ import {
   SYS_PERMISSION_SYSTEM,
   SYS_ROLE_SYSTEM_KEY,
 } from '../constants/system';
+import {
+  CODE_AUTH,
+  CODE_AUTH_INVALID,
+  CODE_AUTH_NOTOKEN,
+  CODE_PERMISSION,
+} from '../resp/code';
+import { Resp } from '../resp/api';
 import { CTX_LOGIN_USER } from '../constants/common';
 import { authorization } from '../reqctx/context';
 import { UserTokenService } from '../token/user_token';
-import { Resp } from '../resp/api';
 
 /** 授权限制参数 */
 interface Options {
@@ -35,21 +41,24 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
       const tokenStr = authorization(c);
       if (tokenStr === '') {
         c.status = 401;
-        return Resp.codeMsg(401003, 'authorization token is empty');
+        return Resp.codeMsg(CODE_AUTH_NOTOKEN, 'authorization token is empty');
       }
 
       // 验证令牌
       const [claims, err] = await token.userTokenVerify(tokenStr, 'access');
       if (err) {
         c.status = 401;
-        return Resp.codeMsg(401001, err);
+        return Resp.codeMsg(CODE_AUTH, err);
       }
 
       // 获取缓存的用户信息
       let info = await token.userInfoGet(claims);
       if (info.userId <= 0) {
         c.status = 401;
-        return Resp.codeMsg(401002, 'invalid login user information');
+        return Resp.codeMsg(
+          CODE_AUTH_INVALID,
+          'invalid login user information'
+        );
       }
       c.setAttr(CTX_LOGIN_USER, info);
 
@@ -61,7 +70,7 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
         if (!verifyOk) {
           c.status = 403;
           return Resp.codeMsg(
-            403001,
+            CODE_PERMISSION,
             `unauthorized access ${c.method} ${c.path}`
           );
         }
@@ -114,9 +123,7 @@ function verifyRolePermission(
   // 只需含有其中权限
   let hasPerms = false;
   if (options.hasPerms && options.hasPerms.length > 0) {
-    hasPerms = options.hasPerms.some(p =>
-      permissions.some(up => up === p)
-    );
+    hasPerms = options.hasPerms.some(p => permissions.some(up => up === p));
   }
   // 同时匹配其中角色
   let matchRoles = false;

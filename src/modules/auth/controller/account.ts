@@ -15,6 +15,11 @@ import {
   RateLimitMiddleware,
   LIMIT_IP,
 } from '../../../framework/middleware/rate_limit';
+import {
+  CODE_AUTH_INVALID,
+  CODE_PARAM_CHEACK,
+} from '../../../framework/resp/code';
+import { Resp } from '../../../framework/resp/api';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUser, loginUserToUserID } from '../../../framework/reqctx/auth';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
@@ -22,7 +27,6 @@ import { authorization } from '../../../framework/reqctx/context';
 import { GlobalConfig } from '../../../framework/config/config';
 import { UserTokenService } from '../../../framework/token/user_token';
 import { parseNumber } from '../../../framework/utils/parse/parse';
-import { Resp } from '../../../framework/resp/api';
 import { SysLogLoginService } from '../../system/service/sys_log_login';
 import { AccountService } from '../service/account';
 import { LoginBody } from '../model/login_body';
@@ -166,7 +170,7 @@ export class AccountController {
   ): Promise<Resp> {
     if (body.refreshToken === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: refreshToken is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: refreshToken is empty');
     }
 
     // 验证刷新令牌是否有效
@@ -176,7 +180,7 @@ export class AccountController {
     );
     if (err != '') {
       this.c.status = 401;
-      return Resp.codeMsg(401001, err);
+      return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
     const userId = parseNumber(claims[JWT_USER_ID]);
 
@@ -255,7 +259,7 @@ export class AccountController {
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(401002, err);
+      return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
 
     // 角色权限集合，系统管理员拥有所有权限

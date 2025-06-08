@@ -22,6 +22,7 @@ import {
 } from '../../../framework/middleware/operate_log';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { loginUserToUserName } from '../../../framework/reqctx/auth';
+import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
 import { Resp } from '../../../framework/resp/api';
 import { SysDictTypeService } from '../service/sys_dict_type';
 import { SysDictType } from '../model/sys_dict_type';
@@ -53,7 +54,7 @@ export class SysDictTypeController {
   public async info(@Valid(RuleType.number()) @Param('dictId') dictId: number) {
     if (dictId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: dictId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId is empty');
     }
 
     const data = await this.sysDictTypeService.findById(dictId);
@@ -76,7 +77,7 @@ export class SysDictTypeController {
   public async add(@Body() body: SysDictType): Promise<Resp> {
     if (body.dictId > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: dictId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId not is empty');
     }
 
     // 检查字典名称唯一
@@ -118,7 +119,7 @@ export class SysDictTypeController {
   public async edit(@Body() body: SysDictType): Promise<Resp> {
     if (body.dictId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: dictId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId is empty');
     }
 
     // 检查数据是否存在
@@ -172,7 +173,7 @@ export class SysDictTypeController {
   ): Promise<Resp> {
     if (dictId === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: dataId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dataId is empty');
     }
 
     // 处理字符转id数组后去重

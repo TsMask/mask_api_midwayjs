@@ -10,11 +10,15 @@ import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
 } from '../../../framework/middleware/operate_log';
+import {
+  CODE_AUTH_INVALID,
+  CODE_PARAM_CHEACK,
+} from '../../../framework/resp/code';
+import { Resp } from '../../../framework/resp/api';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { bcryptCompare } from '../../../framework/utils/crypto/bcrypt';
 import { UserTokenService } from '../../../framework/token/user_token';
 import { loginUser } from '../../../framework/reqctx/auth';
-import { Resp } from '../../../framework/resp/api';
 import { SysPostService } from '../service/sys_post';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';
@@ -50,7 +54,7 @@ export class SysProfileController {
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(401002, err);
+      return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
 
     // 查询用户所属角色组
@@ -93,14 +97,17 @@ export class SysProfileController {
   ): Promise<Resp> {
     if (nickName === '' || sex === '') {
       this.c.status = 422;
-      return Resp.codeMsg(422002, 'bind err: nickName or sex not is empty');
+      return Resp.codeMsg(
+        CODE_PARAM_CHEACK,
+        'bind err: nickName or sex not is empty'
+      );
     }
 
     // 登录用户信息
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(401002, err);
+      return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
     const userId = info.userId;
 
@@ -183,7 +190,7 @@ export class SysProfileController {
     const [info, err] = loginUser(this.c);
     if (err) {
       this.c.status = 401;
-      return Resp.codeMsg(401002, err);
+      return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
     const userId = info.userId;
 
