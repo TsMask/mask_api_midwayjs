@@ -83,7 +83,7 @@ export class Oauth2Service {
     }
     // 判断IP白名单
     if (!item.ipWhite.includes(ipaddr)) {
-      return [info, 'ip whitelist mismatch'];
+      return [info, `ip whitelist mismatch, your ip is ${ipaddr}`];
     }
 
     info.clientId = clientId;
