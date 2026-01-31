@@ -12,6 +12,11 @@ import {
   cpus,
   networkInterfaces,
 } from 'node:os';
+import { statfs, readFile } from 'node:fs/promises';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execAsync = promisify(exec);
 
 import {
   Inject,
@@ -21,7 +26,6 @@ import {
   App,
 } from '@midwayjs/core';
 import { Application } from '@midwayjs/koa';
-import { diskinfo } from '@dropb/diskinfo';
 
 import { parseDateToStr } from '../../../framework/utils/date/data';
 import { parseBit } from '../../../framework/utils/parse/parse';
@@ -165,16 +169,87 @@ export class SystemInfoService {
 
   /**磁盘信息 */
   public async diskInfo(): Promise<Record<string, string>[]> {
-    const disks = await diskinfo();
-    const diskInfos = disks.map(disk => {
-      return {
-        size: parseBit(disk.size),
-        used: parseBit(disk.used),
-        avail: parseBit(disk.avail),
-        percent: disk.pcent,
-        target: disk.target,
-      };
-    });
-    return diskInfos;
+    const results: Record<string, string>[] = [];
+
+    // 获取磁盘分区列表
+    const platform = process.platform;
+    let drives: string[] = [];
+    if (platform === 'win32') {
+      drives = await this.getWindowsDrives();
+    } else {
+      drives = await this.getLinuxDrives();
+    }
+
+    for (const drive of drives) {
+      try {
+        const stat = await statfs(drive);
+        const statAny = stat as Record<string, any>;
+        const blockSize = statAny.bsize || statAny.frsize || 4096;
+        const total = (stat.blocks || 0) * blockSize;
+        const free = (stat.bfree || 0) * blockSize;
+        const available = (stat.bavail || 0) * blockSize;
+        const used = total - free;
+
+        results.push({
+          size: parseBit(total),
+          used: parseBit(used),
+          avail: parseBit(available),
+          percent: ((used / total) * 100).toFixed(2),
+          target: drive,
+        });
+      } catch {
+        console.warn(`Failed to get disk info for drive: ${drive}`);
+      }
+    }
+
+    return results;
+  }
+
+  /**获取 Windows 磁盘分区列表 */
+  private async getWindowsDrives(): Promise<string[]> {
+    try {
+      const { stdout } = await execAsync('wmic logicaldisk get name');
+      const drives: string[] = [];
+      const lines = stdout.split('\n');
+      for (const line of lines) {
+        const match = line.match(/([A-Z]:)/);
+        if (match) {
+          drives.push(match[1]);
+        }
+      }
+      return drives.length > 0 ? drives : ['C:\\'];
+    } catch {
+      return ['C:\\'];
+    }
+  }
+
+  /**获取 Linux 磁盘分区列表 */
+  private async getLinuxDrives(): Promise<string[]> {
+    try {
+      const content = await readFile('/proc/mounts', 'utf8');
+      const drives: string[] = [];
+      const lines = content.split('\n');
+      for (const line of lines) {
+        const parts = line.split(/\s+/);
+        if (parts.length >= 2) {
+          const mountPoint = parts[1];
+          if (
+            mountPoint.startsWith('/') &&
+            !mountPoint.startsWith('/proc') &&
+            !mountPoint.startsWith('/sys') &&
+            !mountPoint.startsWith('/dev') &&
+            !mountPoint.startsWith('/run') &&
+            !mountPoint.startsWith('/snap')
+          ) {
+            if (!drives.includes(mountPoint)) {
+              drives.push(mountPoint);
+            }
+          }
+        }
+      }
+      return drives.length > 0 ? drives : ['/'];
+    } catch {
+      return ['/'];
+    }
   }
 }

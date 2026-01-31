@@ -20,6 +20,7 @@ export class SystemInfoController {
     ],
   })
   public async info(): Promise<Resp> {
+    const disk = await this.systemInfoService.diskInfo()
     return Resp.okData({
       project: this.systemInfoService.projectInfo(),
       cpu: this.systemInfoService.cpuInfo(),
@@ -27,7 +28,7 @@ export class SystemInfoController {
       network: this.systemInfoService.networkInfo(),
       time: this.systemInfoService.timeInfo(),
       system: this.systemInfoService.systemInfo(),
-      disk: await this.systemInfoService.diskInfo(),
+      disk
     });
   }
 }
