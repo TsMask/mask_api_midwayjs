@@ -27,7 +27,7 @@ export default {
     dataSource: {
       // 单数据库实例
       default: {
-        host: '192.168.56.100',
+        host: '192.168.127.171',
         port: 3306,
         username: 'root',
         password: 'root@1234',
@@ -41,8 +41,8 @@ export default {
   redis: {
     client: {
       port: 6379,
-      host: '192.168.56.100',
-      password: 'redis@1234',
+      host: '192.168.127.171',
+      password: 'root@1234',
       db: 1,
     },
   },
@@ -52,8 +52,8 @@ export default {
     defaultQueueOptions: {
       redis: {
         port: 6379,
-        host: '192.168.56.100',
-        password: 'redis@1234',
+        host: '192.168.127.171',
+        password: 'root@1234',
         db: 1,
       },
     },

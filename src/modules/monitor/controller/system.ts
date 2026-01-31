@@ -3,7 +3,6 @@ import { Controller, Get, Inject } from '@midwayjs/core';
 import { Resp } from '../../../framework/resp/api';
 import { SystemInfoService } from '../service/system_info';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { AuthorizeOauth2Middleware } from '../../../framework/middleware/authorize_oauth2';
 
 /**服务器监控信息 控制层处理 */
 @Controller()
@@ -15,9 +14,6 @@ export class SystemInfoController {
   /**
    * 服务器信息
    */
-  @Get('/open-api/monitor/system', {
-    middleware: [AuthorizeOauth2Middleware([])],
-  })
   @Get('/monitor/system', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['monitor:system:info'] }),

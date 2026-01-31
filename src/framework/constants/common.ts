@@ -8,6 +8,3 @@ export const STATUS_NO = '0';
 
 /**上下文信息-登录用户 */
 export const CTX_LOGIN_USER = 'ctx:login_user';
-
-/**上下文信息-认证客户端 */
-export const CTX_LOGIN_OAUTH2 = 'ctx:login_oauth2';

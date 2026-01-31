@@ -9,8 +9,6 @@ import {
   CACHE_RATE_LIMIT,
   CACHE_PWD_ERR_COUNT,
   CACHE_TOKEN_DEVICE,
-  CACHE_OAUTH2_CODE,
-  CACHE_OAUTH2_DEVICE,
 } from '../../../framework/constants/cache_key';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
@@ -49,8 +47,6 @@ export class CacheController {
       new SysCache().newNames('防重提交', CACHE_REPEAT_SUBMIT),
       new SysCache().newNames('限流处理', CACHE_RATE_LIMIT),
       new SysCache().newNames('密码错误次数', CACHE_PWD_ERR_COUNT),
-      new SysCache().newNames('客户端授权码', CACHE_OAUTH2_CODE),
-      new SysCache().newNames('客户端令牌', CACHE_OAUTH2_DEVICE),
     ];
     return Resp.okData(caches);
   }
@@ -103,7 +99,6 @@ export class CacheController {
       new SysCache().newNames('防重提交', CACHE_REPEAT_SUBMIT),
       new SysCache().newNames('限流处理', CACHE_RATE_LIMIT),
       new SysCache().newNames('密码错误次数', CACHE_PWD_ERR_COUNT),
-      new SysCache().newNames('客户端授权码', CACHE_OAUTH2_CODE),
     ];
     for (const v of caches) {
       const cacheKeys = await this.redisCache.getKeys('', `${v.cacheName}:*`);
