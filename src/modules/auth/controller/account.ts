@@ -80,18 +80,18 @@ export class AccountController {
     }
 
     // 登录用户信息
-    let [info, err] = await this.accountService.byUsername(
+    const [info, infoErr] = await this.accountService.byUsername(
       body.username,
       body.password
     );
-    if (err) {
-      await this.sysLogLoginService.insert(body.username, STATUS_NO, err, [
+    if (infoErr !== '') {
+      await this.sysLogLoginService.insert(body.username, STATUS_NO, infoErr, [
         ipaddr,
         location,
         os,
         browser,
       ]);
-      return Resp.errMsg(err);
+      return Resp.errMsg(infoErr);
     }
     const deviceFingerprintStr = await deviceFingerprint(this.c, info.userId);
 
@@ -101,7 +101,7 @@ export class AccountController {
       deviceFingerprintStr,
       'access'
     );
-    if (accessToken == '' || expiresIn == 0) {
+    if (accessToken === '' || expiresIn === 0) {
       return Resp.errMsg('token generation failed');
     }
     // 生成刷新令牌
@@ -112,13 +112,12 @@ export class AccountController {
     );
 
     // 记录令牌，创建系统访问记录
-    info = await this.token.userInfoCreate(info, deviceFingerprintStr, [
-      ipaddr,
-      location,
-      os,
-      browser,
-    ]);
-    await this.accountService.updateLoginDateAndIP(info);
+    const userInfo = await this.token.userInfoCreate(
+      info,
+      deviceFingerprintStr,
+      [ipaddr, location, os, browser]
+    );
+    await this.accountService.updateLoginDateAndIP(userInfo);
     await this.sysLogLoginService.insert(
       body.username,
       STATUS_YES,
@@ -132,7 +131,7 @@ export class AccountController {
       expiresIn: expiresIn,
       refreshToken: refreshToken,
       refreshExpiresIn: refreshExpiresIn,
-      userId: info.userId,
+      userId: userInfo.userId,
     });
   }
 
@@ -178,22 +177,22 @@ export class AccountController {
       body.refreshToken,
       'refresh'
     );
-    if (err != '') {
+    if (err !== '') {
       this.c.status = 401;
       return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
     const userId = parseNumber(claims[JWT_USER_ID]);
 
     // 登录用户信息
-    let [info, errMsg] = await this.accountService.byUserId(userId);
-    if (errMsg != '') {
+    const [info, errMsg] = await this.accountService.byUserId(userId);
+    if (errMsg !== '') {
       return Resp.errMsg(errMsg);
     }
 
     // 设备指纹信息是否一致
     const deviceId = claims[JWT_DEVICE_ID];
     const deviceFingerprintStr = await deviceFingerprint(this.c, userId);
-    if (deviceId != deviceFingerprintStr) {
+    if (deviceId !== deviceFingerprintStr) {
       return Resp.errMsg('device fingerprint mismatch');
     }
 
@@ -203,7 +202,7 @@ export class AccountController {
       deviceFingerprintStr,
       'access'
     );
-    if (accessToken == '' || expiresIn == 0) {
+    if (accessToken === '' || expiresIn === 0) {
       return Resp.errMsg('token generation failed');
     }
     // 生成刷新令牌
@@ -227,15 +226,14 @@ export class AccountController {
     const [ipaddr, location] = await ipaddrLocation(this.c);
     const [os, browser] = await uaOsBrowser(this.c);
     // 记录令牌，创建系统访问记录
-    info = await this.token.userInfoCreate(info, deviceFingerprintStr, [
-      ipaddr,
-      location,
-      os,
-      browser,
-    ]);
-    await this.accountService.updateLoginDateAndIP(info);
+    const userInfo = await this.token.userInfoCreate(
+      info,
+      deviceFingerprintStr,
+      [ipaddr, location, os, browser]
+    );
+    await this.accountService.updateLoginDateAndIP(userInfo);
     await this.sysLogLoginService.insert(
-      info.user.userName,
+      userInfo.user.userName,
       STATUS_YES,
       '刷新访问令牌成功',
       [ipaddr, location, os, browser]
@@ -247,7 +245,7 @@ export class AccountController {
       expiresIn: expiresIn,
       refreshToken: refreshToken,
       refreshExpiresIn: refreshExpiresIn,
-      userId: userId,
+      userId: userInfo.userId,
     });
   }
 

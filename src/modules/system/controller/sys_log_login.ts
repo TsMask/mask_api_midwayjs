@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Inject,
-  Get,
-  Del,
-  Query,
-} from '@midwayjs/core';
+import { Controller, Inject, Get, Del, Query } from '@midwayjs/core';
 import { Context } from '@midwayjs/koa';
 
 import {

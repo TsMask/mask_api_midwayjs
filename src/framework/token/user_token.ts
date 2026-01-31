@@ -112,11 +112,11 @@ export class UserTokenService {
    */
   public async userInfoRemove(token: string): Promise<[string, string]> {
     const [claims, err] = await this.userTokenVerify(token, 'access');
-    if (err != '') {
+    if (err !== '') {
       return ['', err];
     }
     const info = await this.userInfoGet(claims);
-    if (info.user.userName != '') {
+    if (info.user.userName !== '') {
       // 清除缓存KEY
       const deviceId = claims[JWT_DEVICE_ID];
       const tokenKey = CACHE_TOKEN_DEVICE + ':' + deviceId;

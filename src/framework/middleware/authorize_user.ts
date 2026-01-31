@@ -52,7 +52,7 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
       }
 
       // 获取缓存的用户信息
-      let info = await token.userInfoGet(claims);
+      const info = await token.userInfoGet(claims);
       if (info.userId <= 0) {
         c.status = 401;
         return Resp.codeMsg(

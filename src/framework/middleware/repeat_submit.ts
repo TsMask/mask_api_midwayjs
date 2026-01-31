@@ -92,6 +92,6 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
  * 小于间隔时间视为重复提交
  * @param interval 间隔时间(单位秒) 默认:5
  */
-export function RepeatSubmitMiddleware(interval: number = 5) {
+export function RepeatSubmitMiddleware(interval = 5) {
   return createMiddleware(RepeatSubmit, interval, RepeatSubmit.getName());
 }

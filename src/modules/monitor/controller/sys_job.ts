@@ -43,9 +43,7 @@ export class SysJobController {
 
   /**调度任务列表 */
   @Get('/list', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:list'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:job:list'] })],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysJobService.findByPage(query);
@@ -54,9 +52,7 @@ export class SysJobController {
 
   /**调度任务信息 */
   @Get('/:jobId', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:query'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:job:query'] })],
   })
   public async info(
     @Valid(RuleType.number()) @Param('jobId') jobId: number

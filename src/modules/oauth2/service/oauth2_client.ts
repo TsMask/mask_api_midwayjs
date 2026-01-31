@@ -76,7 +76,7 @@ export class Oauth2ClientService {
     if (arr.length <= 0) {
       return [0, '没有权限访问用户授权第三方应用数据！'];
     }
-    if (arr.length == ids.length) {
+    if (arr.length === ids.length) {
       const rows = await this.oauth2ClientRepository.deleteByIds(ids);
       return [rows, ''];
     }

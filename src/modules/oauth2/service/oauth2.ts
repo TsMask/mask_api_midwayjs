@@ -46,11 +46,11 @@ export class Oauth2Service {
     const uuid = md5(code);
     const verifyKey = CACHE_OAUTH2_CODE + ':' + uuid;
     const captcha = await this.redis.get('', verifyKey);
-    if (captcha == '') {
+    if (captcha === '') {
       return 'code expire';
     }
     await this.redis.del('', verifyKey);
-    if (captcha != code.toLowerCase()) {
+    if (captcha !== code.toLowerCase()) {
       return 'code error';
     }
     return '';

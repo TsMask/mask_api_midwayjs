@@ -36,7 +36,7 @@ export class AuthorizeOauth2 implements IMiddleware<Context, NextFunction> {
       }
 
       // 获取缓存的用户信息
-      let info = await token.oauth2InfoGet(claims);
+      const info = await token.oauth2InfoGet(claims);
       if (info.clientId === '') {
         c.status = 401;
         return Resp.codeMsg(

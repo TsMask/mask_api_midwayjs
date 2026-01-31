@@ -26,9 +26,7 @@ export class CacheController {
 
   /**Redis信息 */
   @Get('', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:info'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:info'] })],
   })
   public async info(): Promise<Resp> {
     return Resp.okData({
@@ -40,9 +38,7 @@ export class CacheController {
 
   /**缓存名称列表 */
   @Get('/names', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:list'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:list'] })],
   })
   public async names(): Promise<Resp> {
     const caches: SysCache[] = [
@@ -61,9 +57,7 @@ export class CacheController {
 
   /**缓存名称下键名列表 */
   @Get('/keys', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:list'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:list'] })],
   })
   public async keys(
     @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string

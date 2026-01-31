@@ -45,9 +45,7 @@ export class SysConfigController {
 
   /**参数配置列表 */
   @Get('/list', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:config:list'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:config:list'] })],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysConfigService.findByPage(query);

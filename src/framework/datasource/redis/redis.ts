@@ -202,7 +202,7 @@ export class RedisCache {
     source: string,
     key: string,
     value: string | Buffer | number,
-    seconds: number = 0
+    seconds = 0
   ): Promise<boolean> {
     const rdb = await this.rdb(source);
     let ok = '';

@@ -1,6 +1,6 @@
 import {
-  getUaInfo
-} from '../../src/framework/utils/UAParserUtils';
+  uaInfo
+} from '../../src/framework/utils/ua/ua';
 
 describe('test/utils/UAParserUtils.test.ts', () => {
 
@@ -8,7 +8,7 @@ describe('test/utils/UAParserUtils.test.ts', () => {
 
   it('should getUaInfo', () => {
 
-    const ua = getUaInfo(user_agent);
+    const ua = uaInfo(user_agent);
 
     // use expect by jest
     const browser = ua.getBrowser()

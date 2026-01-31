@@ -43,7 +43,10 @@ export class FileController {
   ) {
     if (filePath.length < 8) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: filePath not is base64 string');
+      return Resp.codeMsg(
+        CODE_PARAM_CHEACK,
+        'bind err: filePath not is base64 string'
+      );
     }
     // base64解析出地址
     const routerPath = Buffer.from(filePath, 'base64').toString('utf-8');
@@ -195,7 +198,10 @@ export class FileController {
   ) {
     if (index === '' || identifier === '') {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: index and identifier must be set');
+      return Resp.codeMsg(
+        CODE_PARAM_CHEACK,
+        'bind err: index and identifier must be set'
+      );
     }
     // 上传的文件
     if (files.length !== 1) {

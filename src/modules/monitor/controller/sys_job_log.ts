@@ -33,9 +33,7 @@ export class SysJobLogController {
 
   /**调度任务日志列表 */
   @Get('/list', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:list'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:job:list'] })],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const jobId = parseNumber(query.jobId);
@@ -50,9 +48,7 @@ export class SysJobLogController {
 
   /**调度任务日志信息 */
   @Get('/:logId', {
-    middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:job:query'] }),
-    ],
+    middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:job:query'] })],
   })
   public async info(
     @Valid(RuleType.number()) @Param('logId') logId: number

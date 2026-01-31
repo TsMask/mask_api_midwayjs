@@ -4,7 +4,7 @@ import {
   diffSeconds,
   parseDatePath,
   YYYY_MM_DD,
-} from '../../src/framework/utils/DateUtils';
+} from '../../src/framework/utils/date/data';
 
 describe('test/utils/DateUtils.test.ts', () => {
 

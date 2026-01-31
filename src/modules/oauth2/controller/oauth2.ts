@@ -56,7 +56,7 @@ export class Oauth2Controller {
   public async authorize(@Query() query: CodeQuery): Promise<Resp> {
     // 是否存在clientId
     const info = await this.oauth2ClientService.findByClientId(query.clientId);
-    if (!info.clientId || info.clientId != query.clientId) {
+    if (!info.clientId || info.clientId !== query.clientId) {
       return Resp.errMsg('clientId not exist');
     }
 
@@ -78,7 +78,7 @@ export class Oauth2Controller {
     middleware: [RateLimitMiddleware({ time: 180, count: 15, type: LIMIT_IP })],
   })
   public async createToken(@Body() body: TokenBody): Promise<Resp> {
-    if (body.grantType != 'authorization_code' || body.code == '') {
+    if (body.grantType !== 'authorization_code' || body.code === '') {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'grantType or code error');
     }
@@ -101,7 +101,7 @@ export class Oauth2Controller {
     }
 
     // 登录客户端信息
-    let [info, errMsg] = await this.oauth2Service.byClient(
+    const [info, errMsg] = await this.oauth2Service.byClient(
       body.clientId,
       body.clientSecret,
       ipaddr
@@ -123,7 +123,7 @@ export class Oauth2Controller {
       deviceFingerprintStr,
       'access'
     );
-    if (accessToken == '' || expiresIn == 0) {
+    if (accessToken === '' || expiresIn === 0) {
       return Resp.errMsg('token generation failed');
     }
     // 生成刷新令牌
@@ -134,13 +134,12 @@ export class Oauth2Controller {
     );
 
     // 记录令牌，创建系统访问记录
-    info = await this.token.oauth2InfoCreate(info, deviceFingerprintStr, [
-      ipaddr,
-      location,
-      os,
-      browser,
-    ]);
-    await this.oauth2Service.updateLoginDateAndIP(info);
+    const userInfo = await this.token.oauth2InfoCreate(
+      info,
+      deviceFingerprintStr,
+      [ipaddr, location, os, browser]
+    );
+    await this.oauth2Service.updateLoginDateAndIP(userInfo);
     await this.oauth2LogLoginService.insert(
       body.clientId,
       STATUS_YES,
@@ -161,7 +160,7 @@ export class Oauth2Controller {
     middleware: [RateLimitMiddleware({ time: 60, count: 5, type: LIMIT_IP })],
   })
   public async refreshToken(@Body() body: TokenBody): Promise<Resp> {
-    if (body.grantType != 'refresh_token' || body.refreshToken == '') {
+    if (body.grantType !== 'refresh_token' || body.refreshToken === '') {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'grantType or refreshToken error');
     }
@@ -171,7 +170,7 @@ export class Oauth2Controller {
       body.refreshToken,
       'refresh'
     );
-    if (err != '') {
+    if (err !== '') {
       return Resp.errMsg(err);
     }
     const clientId = claims[JWT_CLIENT_ID];
@@ -181,23 +180,23 @@ export class Oauth2Controller {
     const [os, browser] = await uaOsBrowser(this.c);
 
     // 客户端信息
-    let [info, errMsg] = await this.oauth2Service.byClient(
+    const [info, errMsg] = await this.oauth2Service.byClient(
       body.clientId,
       body.clientSecret,
       ipaddr
     );
-    if (errMsg != '') {
+    if (errMsg !== '') {
       return Resp.errMsg(errMsg);
     }
 
     // 客户端ID是否一致
-    if (clientId != body.clientId) {
+    if (clientId !== body.clientId) {
       return Resp.errMsg('clientId mismatch');
     }
     // 设备指纹信息是否一致
     const deviceId = claims[JWT_DEVICE_ID];
     const deviceFingerprintStr = await deviceFingerprint(this.c, clientId);
-    if (deviceId != deviceFingerprintStr) {
+    if (deviceId !== deviceFingerprintStr) {
       return Resp.errMsg('device fingerprint mismatch');
     }
 
@@ -207,7 +206,7 @@ export class Oauth2Controller {
       deviceFingerprintStr,
       'access'
     );
-    if (accessToken == '' || expiresIn == 0) {
+    if (accessToken === '' || expiresIn === 0) {
       return Resp.errMsg('token generation failed');
     }
     // 生成刷新令牌
@@ -228,13 +227,12 @@ export class Oauth2Controller {
     }
 
     // 记录令牌，创建系统访问记录
-    info = await this.token.oauth2InfoCreate(info, deviceFingerprintStr, [
-      ipaddr,
-      location,
-      os,
-      browser,
-    ]);
-    await this.oauth2Service.updateLoginDateAndIP(info);
+    const userInfo = await this.token.oauth2InfoCreate(
+      info,
+      deviceFingerprintStr,
+      [ipaddr, location, os, browser]
+    );
+    await this.oauth2Service.updateLoginDateAndIP(userInfo);
     await this.oauth2LogLoginService.insert(
       info.clientId,
       STATUS_YES,

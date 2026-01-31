@@ -69,7 +69,7 @@ export class Oauth2TokenService {
       iat: now, // 签发时间
       nbf: now - 10, // 生效时间
     };
-    
+
     const tokenStr = sign(jwtToken, secret, { algorithm: method });
     const expSeconds = Math.round(exp - now);
     return [tokenStr, expSeconds];
@@ -112,11 +112,11 @@ export class Oauth2TokenService {
    */
   public async oauth2InfoRemove(tokenStr: string): Promise<[string, string]> {
     const [claims, err] = await this.oauth2TokenVerify(tokenStr, 'access');
-    if (err != '') {
+    if (err !== '') {
       return ['', err];
     }
     const deviceId = claims[JWT_DEVICE_ID];
-    if (deviceId && deviceId != '') {
+    if (deviceId && deviceId !== '') {
       // 清除缓存KEY
       const tokenKey = CACHE_OAUTH2_DEVICE + ':' + deviceId;
       const rows = await this.redis.del('', tokenKey);

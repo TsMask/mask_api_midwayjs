@@ -116,7 +116,7 @@ export class Oauth2ClientController {
 
     // 查询信息
     const info = await this.oauth2ClientService.findById(body.id);
-    if (!info.clientId || info.id != body.id) {
+    if (!info.clientId || info.id !== body.id) {
       return Resp.errMsg('modification failed, data not exist');
     }
 
