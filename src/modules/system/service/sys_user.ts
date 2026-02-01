@@ -114,29 +114,26 @@ export class SysUserService {
    * @returns 结果
    */
   public async findById(userId: number): Promise<SysUser> {
-    let userInfo = new SysUser();
     if (userId <= 0) {
-      return userInfo;
+      return new SysUser();
     }
     const users = await this.sysUserRepository.selectByIds([userId]);
-    if (users.length > 0) {
-      userInfo = users[0];
-      // 部门
-      const deptInfo = await this.sysDeptRepository.selectById(userInfo.deptId);
-      userInfo.dept = deptInfo;
-      // 角色
-      const roleArr = await this.sysRoleRepository.selectByUserId(
-        userInfo.userId
-      );
-      const roleIds: number[] = [];
-      const roles: SysRole[] = [];
-      for (const role of roleArr) {
-        roles.push(role);
-        roleIds.push(role.roleId);
-      }
-      userInfo.roles = roles;
-      userInfo.roleIds = roleIds;
+    if (users.length === 0) {
+      return new SysUser();
     }
+    const userInfo = users[0];
+    // 批量查询部门和角色
+    const deptMap = new Map<number, SysDept>();
+    if (userInfo.deptId > 0) {
+      const depts = await this.sysDeptRepository.selectByIds([userInfo.deptId]);
+      for (const dept of depts) {
+        deptMap.set(dept.deptId, dept);
+      }
+    }
+    const roleMap = await this.sysRoleRepository.selectByUserIds([userInfo.userId]);
+    userInfo.dept = deptMap.get(userInfo.deptId);
+    userInfo.roles = roleMap.get(userInfo.userId) || [];
+    userInfo.roleIds = userInfo.roles.map(r => r.roleId);
     return userInfo;
   }
 
@@ -325,21 +322,18 @@ export class SysUserService {
     if (userInfo.userName !== userName) {
       return userInfo;
     }
-    // 部门
-    const deptInfo = await this.sysDeptRepository.selectById(userInfo.deptId);
-    userInfo.dept = deptInfo;
-    // 角色
-    const roleArr = await this.sysRoleRepository.selectByUserId(
-      userInfo.userId
-    );
-    const roles: SysRole[] = [];
-    const roleIds: number[] = [];
-    for (const role of roleArr) {
-      roles.push(role);
-      roleIds.push(role.roleId);
+    // 批量查询部门和角色
+    const deptMap = new Map<number, SysDept>();
+    if (userInfo.deptId > 0) {
+      const depts = await this.sysDeptRepository.selectByIds([userInfo.deptId]);
+      for (const dept of depts) {
+        deptMap.set(dept.deptId, dept);
+      }
     }
-    userInfo.roles = roles;
-    userInfo.roleIds = roleIds;
+    const roleMap = await this.sysRoleRepository.selectByUserIds([userInfo.userId]);
+    userInfo.dept = deptMap.get(userInfo.deptId);
+    userInfo.roles = roleMap.get(userInfo.userId) || [];
+    userInfo.roleIds = userInfo.roles.map(r => r.roleId);
     return userInfo;
   }
 
@@ -357,24 +351,29 @@ export class SysUserService {
       query,
       dataScopeSQL
     );
-    for (let i = 0; i < rows.length; i++) {
-      const v = rows[i];
-      delete rows[i].password;
-      delete rows[i].delFlag;
-      delete rows[i].postIds;
-      // 部门
-      const deptInfo = await this.sysDeptRepository.selectById(v.deptId);
-      rows[i].dept = deptInfo;
-      // 角色
-      const roleArr = await this.sysRoleRepository.selectByUserId(v.userId);
-      const roleIds: number[] = [];
-      const roles: SysRole[] = [];
-      for (const role of roleArr) {
-        roles.push(role);
-        roleIds.push(role.roleId);
+    if (total === 0) {
+      return [[], 0];
+    }
+    const deptIds = rows.map(u => u.deptId).filter(id => id > 0);
+    const deptMap = new Map<number, SysDept>();
+    if (deptIds.length > 0) {
+      const depts = await this.sysDeptRepository.selectByIds(deptIds);
+      for (const dept of depts) {
+        deptMap.set(dept.deptId, dept);
       }
-      rows[i].roles = roles;
-      rows[i].roleIds = roleIds;
+    }
+    const userIds = rows.map(u => u.userId);
+    let roleMap = new Map<number, SysRole[]>();
+    if (userIds.length > 0) {
+      roleMap = await this.sysRoleRepository.selectByUserIds(userIds);
+    }
+    for (const v of rows) {
+      delete v.password;
+      delete v.delFlag;
+      delete v.postIds;
+      v.dept = deptMap.get(v.deptId);
+      v.roles = roleMap.get(v.userId) || [];
+      v.roleIds = v.roles.map(r => r.roleId);
     }
     return [rows, total];
   }
