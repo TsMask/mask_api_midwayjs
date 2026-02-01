@@ -226,15 +226,14 @@ export class AccountController {
     const [ipaddr, location] = await ipaddrLocation(this.c);
     const [os, browser] = await uaOsBrowser(this.c);
     // 记录令牌，创建系统访问记录
-    const userInfo = await this.token.userInfoCreate(info, deviceFingerprintStr, [
-      ipaddr,
-      location,
-      os,
-      browser,
-    ]);
+    const userInfo = await this.token.userInfoCreate(
+      info,
+      deviceFingerprintStr,
+      [ipaddr, location, os, browser]
+    );
     await this.accountService.updateLoginDateAndIP(userInfo);
     await this.sysLogLoginService.insert(
-      userInfo.user.userName, 
+      userInfo.user.userName,
       STATUS_YES,
       '刷新访问令牌成功',
       [ipaddr, location, os, browser]

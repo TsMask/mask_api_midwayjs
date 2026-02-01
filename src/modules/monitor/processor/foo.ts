@@ -26,9 +26,9 @@ export class FooProcessor implements IProcessor {
       const progress = await ctxJob.progress();
       log.info('jonId: %d => 任务进度：%d', sysJob.jobId, progress);
       // 延迟响应
-      await new Promise(resolve => setTimeout(() => resolve(i++), 2000));
+      await new Promise(r => setTimeout(r, 2000));
       // 改变任务进度
-      await ctxJob.progress(i);
+      await ctxJob.progress(++i);
     }
 
     // 返回结果，用于记录执行结果

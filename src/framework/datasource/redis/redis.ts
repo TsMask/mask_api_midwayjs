@@ -138,7 +138,7 @@ export class RedisCache {
     let cursor = '0';
     const count = 100;
     // 循环遍历获取匹配的键
-    for (; ;) {
+    for (;;) {
       // 使用 SCAN 命令获取匹配的键
       const [nextCursor, batchKeys] = await rdb.scan(
         cursor,

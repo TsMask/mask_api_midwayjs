@@ -146,15 +146,15 @@ export default (): MidwayConfig => {
         enable: true,
       },
       hsts: {
-        enable: false,
+        enable: true,
         maxAge: 365 * 24 * 3600,
         includeSubdomains: false,
       },
       noopen: {
-        enable: false,
+        enable: true,
       },
       nosniff: {
-        enable: false,
+        enable: true,
       },
       xssProtection: {
         enable: true,

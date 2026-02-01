@@ -28,10 +28,9 @@ export function authorization(c: Context): string {
  */
 export function isSystemUser(c: Context, userId: number): boolean {
   if (userId <= 0) return false;
-  // 从配置中获取系统管理员ID列表
   const configUser = c.app.getConfig('systemUser');
-  if (Array.isArray(configUser.system)) {
-    return configUser.system.includes(userId);
+  if (Array.isArray(configUser)) {
+    return configUser.map(Number).includes(userId);
   }
   return false;
 }

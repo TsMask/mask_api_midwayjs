@@ -21,6 +21,7 @@ import { SysConfigService } from '../../system/service/sys_config';
 import { SysMenuService } from '../../system/service/sys_menu';
 import { SysRoleService } from '../../system/service/sys_role';
 import { SysUserService } from '../../system/service/sys_user';
+import { SysUser } from '../../system/model/sys_user';
 import { Router } from '../../system/model/vo/router';
 
 /**账号身份操作 服务层处理 */
@@ -106,10 +107,7 @@ export class AccountService {
       return [info, 'user does not exist or password is incorrect'];
     }
     if (sysUser.delFlag === STATUS_YES) {
-      return [
-        info,
-        'sorry, your account has been deleted. Sorry, your account has been deleted',
-      ];
+      return [info, 'sorry, your account has been deleted'];
     }
     if (sysUser.statusFlag === STATUS_NO) {
       return [info, 'sorry, your account has been disabled'];
@@ -118,25 +116,11 @@ export class AccountService {
     // 检验用户密码
     const compareBool = await bcryptCompare(password, sysUser.password);
     if (compareBool) {
-      // 清除错误记录次数
       await this.clearLoginRecordCache(username);
-    } else {
-      await this.redis.set('', retryKey, retryCount + 1, lockTime);
-      return [info, 'user does not exist or password is incorrect'];
+      return this.buildUserInfo(sysUser);
     }
-
-    // 登录用户信息
-    info.userId = sysUser.userId;
-    info.deptId = sysUser.deptId;
-    info.user = sysUser;
-    // 用户权限组标识
-    if (this.config.isSystemUser(sysUser.userId)) {
-      info.permissions = [SYS_PERMISSION_SYSTEM];
-    } else {
-      const perms = await this.sysMenuService.findPermsByUserId(sysUser.userId);
-      info.permissions = [...new Set(perms)];
-    }
-    return [info, ''];
+    await this.redis.set('', retryKey, retryCount + 1, lockTime);
+    return [info, 'user does not exist or password is incorrect'];
   }
 
   /**
@@ -145,35 +129,11 @@ export class AccountService {
    * @return [UserInfo, string] 登录用户信息对象和错误结果信息
    */
   public async byUserId(userId: number): Promise<[UserInfo, string]> {
-    const info = new UserInfo();
-
-    // 查询用户登录账号
     const sysUser = await this.sysUserService.findById(userId);
     if (sysUser.userId !== userId) {
-      return [info, 'user does not exist'];
+      return [new UserInfo(), 'user does not exist'];
     }
-    if (sysUser.delFlag === STATUS_YES) {
-      return [
-        info,
-        'sorry, your account has been deleted. Sorry, your account has been deleted',
-      ];
-    }
-    if (sysUser.statusFlag === STATUS_NO) {
-      return [info, 'sorry, your account has been disabled'];
-    }
-
-    // 登录用户信息
-    info.userId = sysUser.userId;
-    info.deptId = sysUser.deptId;
-    info.user = sysUser;
-    // 用户权限组标识
-    if (this.config.isSystemUser(sysUser.userId)) {
-      info.permissions = [SYS_PERMISSION_SYSTEM];
-    } else {
-      const perms = await this.sysMenuService.findPermsByUserId(sysUser.userId);
-      info.permissions = [...new Set(perms)];
-    }
-    return [info, ''];
+    return this.buildUserInfo(sysUser);
   }
 
   /**
@@ -282,5 +242,33 @@ export class AccountService {
       buildMenus = await this.sysMenuService.buildRouteMenus(menus, '');
     }
     return buildMenus;
+  }
+
+  /**
+   * 构建用户信息
+   * @param sysUser 系统用户信息
+   * @returns [UserInfo, string] 用户信息对象和错误结果信息
+   */
+  private async buildUserInfo(sysUser: SysUser): Promise<[UserInfo, string]> {
+    const info = new UserInfo();
+    if (sysUser.delFlag === STATUS_YES) {
+      return [
+        info,
+        'sorry, your account has been deleted. Sorry, your account has been deleted',
+      ];
+    }
+    if (sysUser.statusFlag === STATUS_NO) {
+      return [info, 'sorry, your account has been disabled'];
+    }
+    info.userId = sysUser.userId;
+    info.deptId = sysUser.deptId;
+    info.user = sysUser;
+    if (this.config.isSystemUser(sysUser.userId)) {
+      info.permissions = [SYS_PERMISSION_SYSTEM];
+    } else {
+      const perms = await this.sysMenuService.findPermsByUserId(sysUser.userId);
+      info.permissions = [...new Set(perms)];
+    }
+    return [info, ''];
   }
 }

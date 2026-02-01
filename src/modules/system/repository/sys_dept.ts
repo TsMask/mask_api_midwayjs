@@ -344,16 +344,22 @@ export class SysDeptRepository {
     if (arr.length <= 0) {
       return 0;
     }
-    // 构建查询条件
     const conditions: string[] = [];
     const deptIds: number[] = [];
     for (const v of arr) {
-      conditions.push(`WHEN dept_id = ${v.deptId} THEN '${v.ancestors}'`);
-      deptIds.push(v.deptId);
+      if (typeof v.ancestors === 'string' && v.ancestors.length > 0) {
+        const sanitizedAncestors = v.ancestors.replace(/'/g, "''");
+        conditions.push(
+          `WHEN dept_id = ${Number(v.deptId)} THEN '${sanitizedAncestors}'`
+        );
+        deptIds.push(Number(v.deptId));
+      }
+    }
+    if (conditions.length === 0) {
+      return 0;
     }
     const casesValues = `"CASE ${conditions.join(',')} END"`;
 
-    // 执行更新操作
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()

@@ -66,14 +66,7 @@ export class FileUtil {
       allowExts = this.config.get<string[]>('upload.whitelist');
     }
 
-    let hasExt = false;
-    for (const ext of allowExts) {
-      if (ext === fileExt) {
-        hasExt = true;
-        break;
-      }
-    }
-    if (!hasExt) {
+    if (!allowExts.includes(fileExt)) {
       return `上传文件类型不支持，仅支持以下类型：${allowExts.join('、')}`;
     }
 
@@ -87,20 +80,13 @@ export class FileUtil {
    */
   private isAllowRead(filePath: string): string {
     // 禁止目录上跳级别
-    if (filePath.indexOf('..') !== -1) {
+    if (filePath.includes('..')) {
       return '禁止目录上跳级别';
     }
     const uploadWhiteList = this.config.get<string[]>('upload.whitelist');
     // 检查允许下载的文件规则
     const fileExt = extname(filePath);
-    let hasExt = false;
-    for (const str of uploadWhiteList) {
-      if (str === fileExt) {
-        hasExt = true;
-        break;
-      }
-    }
-    if (!hasExt) {
+    if (!uploadWhiteList.includes(fileExt)) {
       if (fileExt === '') {
         return '未知异常文件';
       }

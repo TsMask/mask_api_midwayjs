@@ -130,7 +130,9 @@ export class SysUserService {
         deptMap.set(dept.deptId, dept);
       }
     }
-    const roleMap = await this.sysRoleRepository.selectByUserIds([userInfo.userId]);
+    const roleMap = await this.sysRoleRepository.selectByUserIds([
+      userInfo.userId,
+    ]);
     userInfo.dept = deptMap.get(userInfo.deptId);
     userInfo.roles = roleMap.get(userInfo.userId) || [];
     userInfo.roleIds = userInfo.roles.map(r => r.roleId);
@@ -330,7 +332,9 @@ export class SysUserService {
         deptMap.set(dept.deptId, dept);
       }
     }
-    const roleMap = await this.sysRoleRepository.selectByUserIds([userInfo.userId]);
+    const roleMap = await this.sysRoleRepository.selectByUserIds([
+      userInfo.userId,
+    ]);
     userInfo.dept = deptMap.get(userInfo.deptId);
     userInfo.roles = roleMap.get(userInfo.userId) || [];
     userInfo.roleIds = userInfo.roles.map(r => r.roleId);
@@ -444,6 +448,9 @@ export class SysUserService {
     const dictSysUserSex = await this.sysDictTypeService.findDataByType(
       'sys_user_sex'
     );
+    const sexLabelToValueMap = new Map(
+      dictSysUserSex.map(v => [v.dataLabel, v.dataValue])
+    );
 
     // 导入记录
     let successNum = 0;
@@ -461,13 +468,7 @@ export class SysUserService {
       }
 
       // 用户性别转值
-      let sysUserSex = '0';
-      for (const v of dictSysUserSex) {
-        if (v.dataLabel === item['用户性别']) {
-          sysUserSex = v.dataValue;
-          break;
-        }
-      }
+      const sysUserSex = sexLabelToValueMap.get(item['用户性别']) || '0';
       let sysUserStatus = STATUS_NO;
       if (item['帐号状态'] === '正常') {
         sysUserStatus = STATUS_YES;

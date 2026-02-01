@@ -82,7 +82,7 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
   }
 
   static getName(): string {
-    return 'REPAT_SUBMIT';
+    return 'REPEAT_SUBMIT';
   }
 }
 

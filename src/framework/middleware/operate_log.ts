@@ -55,7 +55,54 @@ const MASK_PROPERTIES = [
   'oldPassword',
   'newPassword',
   'confirmPassword',
+  'token',
+  'accessToken',
+  'refreshToken',
+  'secret',
+  'apiKey',
+  'apiSecret',
+  'privateKey',
+  'publicKey',
+  'creditCard',
+  'cvv',
+  'cardNumber',
+  'idCard',
+  'phone',
+  'mobile',
+  'email',
 ];
+
+/**
+ * 递归脱敏对象中的敏感字段
+ * @param obj 对象
+ * @param depth 递归深度
+ */
+function maskSensitiveData(
+  obj: Record<string, any>,
+  depth = 0
+): Record<string, any> {
+  if (depth > 3) {
+    return obj;
+  }
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+  const result: Record<string, any> = {};
+  for (const key of Object.keys(obj)) {
+    const lowerKey = key.toLowerCase();
+    const shouldMask = MASK_PROPERTIES.some(prop =>
+      lowerKey.includes(prop.toLowerCase())
+    );
+    if (shouldMask) {
+      result[key] = parseSafeContent(obj[key]);
+    } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+      result[key] = maskSensitiveData(obj[key], depth + 1);
+    } else {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}
 
 /**访问操作日志记录-中间件 */
 @Middleware()
@@ -112,15 +159,8 @@ export class OperateLog implements IMiddleware<Context, NextFunction> {
           c.request.body,
           c.request.query
         );
-        // 敏感属性字段进行掩码
-        for (const key in params) {
-          if (Object.prototype.hasOwnProperty.call(params, key)) {
-            if (MASK_PROPERTIES.includes(key)) {
-              params[key] = parseSafeContent(params[key]);
-            }
-          }
-        }
-        operLog.operaParam = JSON.stringify(params).substring(0, 2000);
+        const maskedParams = maskSensitiveData(params);
+        operLog.operaParam = JSON.stringify(maskedParams).substring(0, 2000);
       }
 
       // 调用下一个处理程序
