@@ -8,9 +8,6 @@ export class RedisCache {
   @Inject()
   private redisServiceFactory: RedisServiceFactory;
 
-  /**定义Lua脚本标记，避免重复定义 */
-  private defineCommand: Record<string, string[]> = {};
-
   /**
    * 获取实例
    * @param source redis服务标识，默认为default
@@ -141,7 +138,7 @@ export class RedisCache {
     let cursor = '0';
     const count = 100;
     // 循环遍历获取匹配的键
-    for (;;) {
+    for (; ;) {
       // 使用 SCAN 命令获取匹配的键
       const [nextCursor, batchKeys] = await rdb.scan(
         cursor,
@@ -255,36 +252,16 @@ export class RedisCache {
   ): Promise<number> {
     const rdb = await this.rdb(source);
 
-    // 定义限流命令
-    let isDefine = true;
-    if (Object.hasOwn(this.defineCommand, 'rateLimitCommand')) {
-      if (this.defineCommand.rateLimitCommand.indexOf(source) === -1) {
-        isDefine = false;
-      }
-    } else {
-      this.defineCommand.rateLimitCommand = [];
-      isDefine = false;
-    }
-    if (!isDefine) {
-      // 声明定义限流脚本命令
-      rdb.defineCommand('rateLimitCommand', {
-        numberOfKeys: 1,
-        lua: `local key = KEYS[1]
-        local time = tonumber(ARGV[1])
-        local count = tonumber(ARGV[2])
-        local current = redis.call('get', key);
-        if current and tonumber(current) >= count then
-            return tonumber(current);
-        end
-        current = redis.call('incr', key)
-        if tonumber(current) == 1 then
-            redis.call('expire', key, time)
-        end
-        return tonumber(current);`,
-      });
-      this.defineCommand.rateLimitCommand.push(source);
+    const current = await rdb.get(limitKey);
+    if (current && Number(current) >= count) {
+      return Number(current);
     }
 
-    return await rdb.rateLimitCommand(limitKey, time, count);
+    const newCount = await rdb.incr(limitKey);
+    if (newCount === 1) {
+      await rdb.expire(limitKey, time);
+    }
+
+    return newCount;
   }
 }
