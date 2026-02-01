@@ -20,6 +20,7 @@ import { SysUserRole } from '../model/sys_user_role';
 import { SysUserPost } from '../model/sys_user_post';
 import { SysRole } from '../model/sys_role';
 import { SysUser } from '../model/sys_user';
+import { SysDept } from '../model/sys_dept';
 
 /**用户 服务层处理 */
 @Provide()
@@ -71,24 +72,29 @@ export class SysUserService {
       query,
       dataScopeSQL
     );
-    for (let i = 0; i < rows.length; i++) {
-      const v = rows[i];
-      delete rows[i].password;
-      delete rows[i].delFlag;
-      delete rows[i].postIds;
-      // 部门
-      const deptInfo = await this.sysDeptRepository.selectById(v.deptId);
-      rows[i].dept = deptInfo;
-      // 角色
-      const roleArr = await this.sysRoleRepository.selectByUserId(v.userId);
-      const roleIds: number[] = [];
-      const roles: SysRole[] = [];
-      for (const role of roleArr) {
-        roles.push(role);
-        roleIds.push(role.roleId);
+    if (total === 0) {
+      return [[], 0];
+    }
+    const deptIds = rows.map(u => u.deptId).filter(id => id > 0);
+    const deptMap = new Map<number, SysDept>();
+    if (deptIds.length > 0) {
+      const depts = await this.sysDeptRepository.selectByIds(deptIds);
+      for (const dept of depts) {
+        deptMap.set(dept.deptId, dept);
       }
-      rows[i].roles = roles;
-      rows[i].roleIds = roleIds;
+    }
+    const userIds = rows.map(u => u.userId);
+    let roleMap = new Map<number, SysRole[]>();
+    if (userIds.length > 0) {
+      roleMap = await this.sysRoleRepository.selectByUserIds(userIds);
+    }
+    for (const v of rows) {
+      delete v.password;
+      delete v.delFlag;
+      delete v.postIds;
+      v.dept = deptMap.get(v.deptId);
+      v.roles = roleMap.get(v.userId) || [];
+      v.roleIds = v.roles.map(r => r.roleId);
     }
     return [rows, total];
   }

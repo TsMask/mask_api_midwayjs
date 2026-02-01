@@ -281,4 +281,50 @@ export class SysRoleRepository {
       .getMany();
     return rows;
   }
+
+  /**
+   * 根据用户ID列表批量获取角色信息
+   * @param userIds 用户ID数组
+   * @returns 用户ID到角色数组的映射
+   */
+  public async selectByUserIds(
+    userIds: number[]
+  ): Promise<Map<number, SysRole[]>> {
+    const roleMap = new Map<number, SysRole[]>();
+    if (userIds.length <= 0) {
+      return roleMap;
+    }
+    const rows = await this.db
+      .queryBuilder('')
+      .createQueryBuilder()
+      .select('ur.user_id', 'userId')
+      .addSelect('r.role_id', 'roleId')
+      .addSelect('r.role_name', 'roleName')
+      .addSelect('r.role_key', 'roleKey')
+      .addSelect('r.role_sort', 'roleSort')
+      .addSelect('r.data_scope', 'dataScope')
+      .addSelect('r.status_flag', 'statusFlag')
+      .addSelect('r.del_flag', 'delFlag')
+      .from(SysRole, 'r')
+      .innerJoin('sys_user_role', 'ur', 'ur.role_id = r.role_id')
+      .andWhere("r.del_flag = '0' AND ur.user_id in (:userIds)", { userIds })
+      .getRawMany();
+
+    for (const row of rows) {
+      const role = new SysRole();
+      role.roleId = Number(row.roleId);
+      role.roleName = row.roleName;
+      role.roleKey = row.roleKey;
+      role.roleSort = Number(row.roleSort);
+      role.dataScope = row.dataScope;
+      role.statusFlag = row.statusFlag;
+      role.delFlag = row.delFlag;
+
+      const userId = Number(row.userId);
+      const existing = roleMap.get(userId) || [];
+      existing.push(role);
+      roleMap.set(userId, existing);
+    }
+    return roleMap;
+  }
 }

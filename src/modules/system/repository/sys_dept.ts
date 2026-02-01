@@ -82,6 +82,26 @@ export class SysDeptRepository {
   }
 
   /**
+   * 通过ID列表批量查询
+   *
+   * @param deptIds ID数组
+   * @return 信息列表
+   */
+  public async selectByIds(deptIds: number[]): Promise<SysDept[]> {
+    if (deptIds.length <= 0) {
+      return [];
+    }
+    const rows = await this.db
+      .queryBuilder('')
+      .createQueryBuilder()
+      .select('s')
+      .from(SysDept, 's')
+      .andWhere("s.dept_id in (:deptIds) and s.del_flag = '0'", { deptIds })
+      .getMany();
+    return rows;
+  }
+
+  /**
    * 新增
    *
    * @param sysDept 信息
