@@ -172,9 +172,15 @@ export function parseBit(bit: number): string {
   let GB = '';
   let MB = '';
   let KB = '';
-  bit > 1 << 30 && (GB = Number(bit / (1 << 30)).toFixed(2));
-  bit > 1 << 20 && bit < 1 << 30 && (MB = Number(bit / (1 << 20)).toFixed(2));
-  bit > 1 << 10 && bit > 1 << 20 && (KB = Number(bit / (1 << 10)).toFixed(2));
+  if (bit > 1 << 30) {
+    GB = Number(bit / (1 << 30)).toFixed(2);
+  }
+  if (bit > 1 << 20 && bit < 1 << 30) {
+    MB = Number(bit / (1 << 20)).toFixed(2);
+  }
+  if (bit > 1 << 10 && bit > 1 << 20) {
+    KB = Number(bit / (1 << 10)).toFixed(2);
+  }
   return GB ? GB + 'GB' : MB ? MB + 'MB' : KB ? KB + 'KB' : bit + 'B';
 }
 

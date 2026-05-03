@@ -94,9 +94,8 @@ export class AccountService {
     const info = new UserInfo();
 
     // 检查密码重试次数
-    const [retryKey, retryCount, lockTime, err] = await this.passwordRetryCount(
-      username
-    );
+    const [retryKey, retryCount, lockTime, err] =
+      await this.passwordRetryCount(username);
     if (err) {
       return [info, err];
     }
@@ -233,7 +232,7 @@ export class AccountService {
     userId: number,
     isSystemUser: boolean
   ): Promise<Router[]> {
-    let buildMenus: Router[] = [];
+    let buildMenus: Router[];
     if (isSystemUser) {
       const menus = await this.sysMenuService.buildTreeMenusByUserId(0);
       buildMenus = await this.sysMenuService.buildRouteMenus(menus, '');

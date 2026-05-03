@@ -47,9 +47,8 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
       const cacheKey = `${CACHE_REPEAT_SUBMIT}:${funcMd5}`;
 
       // 从Redis读取上一次保存的请求时间和参数
-      const redisCacheServer: RedisCache = await c.requestContext.getAsync(
-        RedisCache
-      );
+      const redisCacheServer: RedisCache =
+        await c.requestContext.getAsync(RedisCache);
       const rpStr = await redisCacheServer.get('', cacheKey);
       if (rpStr) {
         const rpObj: RepeatParamType = JSON.parse(rpStr);

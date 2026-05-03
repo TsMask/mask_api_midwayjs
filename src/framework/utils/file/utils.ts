@@ -21,7 +21,7 @@ import { normalize, join } from 'node:path';
  */
 export async function getFileSize(filePath: string): Promise<number> {
   // 获取文件信息
-  let fileInfo: Stats = null;
+  let fileInfo: Stats;
   try {
     fileInfo = await stat(filePath);
   } catch (error) {

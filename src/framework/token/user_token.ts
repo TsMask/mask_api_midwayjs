@@ -34,7 +34,7 @@ export class UserTokenService {
   ): Promise<[string, number]> {
     // 令牌算法 HS256 HS384 HS512
     const algorithm: string = this.config.get('jwt.algorithm');
-    let method: Algorithm = undefined;
+    let method: Algorithm;
     switch (algorithm) {
       case 'HS512':
         method = 'HS512';

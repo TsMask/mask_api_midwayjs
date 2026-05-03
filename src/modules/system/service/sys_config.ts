@@ -141,9 +141,8 @@ export class SysConfigService {
       return cacheValue;
     }
     // 无缓存时读取数据放入缓存中
-    const configValue = await this.sysConfigRepository.selectValueByKey(
-      configKey
-    );
+    const configValue =
+      await this.sysConfigRepository.selectValueByKey(configKey);
     if (configValue) {
       await this.redisCache.set('', cacheKey, configValue);
       return configValue;
@@ -168,9 +167,8 @@ export class SysConfigService {
       return;
     }
     // 指定参数
-    const cacheValue = await this.sysConfigRepository.selectValueByKey(
-      configKey
-    );
+    const cacheValue =
+      await this.sysConfigRepository.selectValueByKey(configKey);
     if (cacheValue) {
       const key = CACHE_SYS_CONFIG + ':' + configKey;
       await this.redisCache.del('', key);

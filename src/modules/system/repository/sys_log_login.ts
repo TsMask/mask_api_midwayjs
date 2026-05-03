@@ -71,14 +71,10 @@ export class SysLogLoginRepository {
       tx.andWhere(`s.user_name in ( ${dataScopeSQL} )`);
     }
 
-    // 查询结果
-    let total = 0;
-    let rows: SysLogLogin[] = [];
-
     // 查询数量为0直接返回
-    total = await tx.getCount();
+    const total = await tx.getCount();
     if (total <= 0) {
-      return [rows, total];
+      return [[], total];
     }
 
     // 查询数据分页
@@ -117,7 +113,7 @@ export class SysLogLoginRepository {
       tx.addOrderBy('s.id', 'DESC');
     }
     // 查询数据
-    rows = await tx.getMany();
+    const rows = await tx.getMany();
     return [rows, total];
   }
 

@@ -140,13 +140,17 @@ const _checkFile = dbPath => {
   try {
     fs.accessSync(dbPath, fs.constants.F_OK);
   } catch (err) {
-    throw new Error(`${dbPath} ${err ? 'does not exist' : 'exists'}`);
+    throw new Error(`${dbPath} ${err ? 'does not exist' : 'exists'}`, {
+      cause: err,
+    });
   }
 
   try {
     fs.accessSync(dbPath, fs.constants.R_OK);
   } catch (err) {
-    throw new Error(`${dbPath} ${err ? 'is not readable' : 'is readable'}`);
+    throw new Error(`${dbPath} ${err ? 'is not readable' : 'is readable'}`, {
+      cause: err,
+    });
   }
 };
 

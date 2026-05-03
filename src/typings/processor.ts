@@ -52,6 +52,7 @@ type ProcessorOptions = {
 };
 
 /**调度任务处理结果参数 */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ProcessorData = Partial<ProcessorOptions> & {
   /**其余自定义属性 */
   [key: string]: any;

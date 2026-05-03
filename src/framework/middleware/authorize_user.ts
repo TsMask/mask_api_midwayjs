@@ -33,9 +33,8 @@ interface Options {
 export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
   resolve(_: any, options: Options) {
     return async (c: Context, next: NextFunction) => {
-      const token: UserTokenService = await c.requestContext.getAsync(
-        UserTokenService
-      );
+      const token: UserTokenService =
+        await c.requestContext.getAsync(UserTokenService);
 
       // 获取请求头标识信息
       const tokenStr = authorization(c);

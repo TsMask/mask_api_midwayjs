@@ -76,9 +76,8 @@ export class SysJobLogService {
    */
   public async exportData(rows: SysJobLog[], fileName: string) {
     // 读取任务组名字典数据
-    const dictSysJobGroup = await this.sysDictDataService.findByType(
-      'sys_job_group'
-    );
+    const dictSysJobGroup =
+      await this.sysDictDataService.findByType('sys_job_group');
     // 导出数据组装
     const arr: Record<string, any>[] = [];
     for (const item of rows) {

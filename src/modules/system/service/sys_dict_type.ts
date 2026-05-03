@@ -198,7 +198,7 @@ export class SysDictTypeService {
    * @returns 结果
    */
   public async findDataByType(dictType: string): Promise<SysDictData[]> {
-    let data: SysDictData[] = [];
+    let data: SysDictData[];
     const key = CACHE_SYS_DICT + ':' + dictType;
     const jsonStr = await this.redisCache.get('', key);
     if (jsonStr.length > 7) {

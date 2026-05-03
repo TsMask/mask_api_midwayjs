@@ -65,16 +65,15 @@ export class SysUserOnlineController {
     for (const str of arr) {
       if (!str) continue;
 
-      let info = new UserInfo();
+      let info: UserInfo;
       try {
         info = JSON.parse(str);
-      } catch (error) {
+      } catch {
         continue;
       }
 
-      const onlineUser = await this.sysUserOnlineService.userInfoToUserOnline(
-        info
-      );
+      const onlineUser =
+        await this.sysUserOnlineService.userInfoToUserOnline(info);
       if (onlineUser.tokenId !== '') {
         userOnlines.push(onlineUser);
       }

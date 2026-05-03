@@ -85,9 +85,8 @@ export class RateLimit implements IMiddleware<Context, NextFunction> {
       }
 
       // 在Redis查询并记录请求次数
-      const redisCacheServer: RedisCache = await c.requestContext.getAsync(
-        RedisCache
-      );
+      const redisCacheServer: RedisCache =
+        await c.requestContext.getAsync(RedisCache);
       const rateCount = await redisCacheServer.rateLimit(
         '',
         limitKey,

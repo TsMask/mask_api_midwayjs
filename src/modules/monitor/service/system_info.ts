@@ -173,7 +173,7 @@ export class SystemInfoService {
 
     // 获取磁盘分区列表
     const platform = process.platform;
-    let drives: string[] = [];
+    let drives: string[];
     if (platform === 'win32') {
       drives = await this.getWindowsDrives();
     } else {

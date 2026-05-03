@@ -392,9 +392,8 @@ export class SysUserService {
     // 导出数据组装
     const arr: Record<string, any>[] = [];
     // 读取用户性别字典数据
-    const dictSysUserSex = await this.sysDictTypeService.findDataByType(
-      'sys_user_sex'
-    );
+    const dictSysUserSex =
+      await this.sysDictTypeService.findDataByType('sys_user_sex');
     for (const row of rows) {
       // 用户性别
       let sysUserSex = '';
@@ -445,9 +444,8 @@ export class SysUserService {
       'sys.user.initPassword'
     );
     // 读取用户性别字典数据
-    const dictSysUserSex = await this.sysDictTypeService.findDataByType(
-      'sys_user_sex'
-    );
+    const dictSysUserSex =
+      await this.sysDictTypeService.findDataByType('sys_user_sex');
     const sexLabelToValueMap = new Map(
       dictSysUserSex.map(v => [v.dataLabel, v.dataValue])
     );
@@ -569,7 +567,7 @@ export class SysUserService {
       }
     }
 
-    let message = '';
+    let message: string;
     if (failureNum > 0) {
       const msg = `很抱歉，导入失败！共 ${failureNum} 条数据格式不正确，错误如下：`;
       failureMsgArr.unshift(msg);

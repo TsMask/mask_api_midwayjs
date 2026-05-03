@@ -384,7 +384,7 @@ export class SysRoleController {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
-    let rows = 0;
+    let rows: number;
     if (auth) {
       rows = await this.sysRoleService.insertAuthUsers(roleId, userIds);
     } else {

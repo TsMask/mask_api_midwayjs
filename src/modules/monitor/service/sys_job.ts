@@ -364,9 +364,8 @@ export class SysJobService {
    */
   public async exportData(rows: SysJob[], fileName: string) {
     // 读取任务组名字典数据
-    const dictSysJobGroup = await this.sysDictTypeService.findByType(
-      'sys_job_group'
-    );
+    const dictSysJobGroup =
+      await this.sysDictTypeService.findByType('sys_job_group');
     // 导出数据组装
     const arr: Record<string, any>[] = [];
     for (const item of rows) {

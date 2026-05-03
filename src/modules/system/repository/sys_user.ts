@@ -84,14 +84,10 @@ export class SysUserRepository {
       tx.andWhere(dataScopeSQL);
     }
 
-    // 查询结果
-    let total = 0;
-    let rows: SysUser[] = [];
-
     // 查询数量为0直接返回
-    total = await tx.getCount();
+    const total = await tx.getCount();
     if (total <= 0) {
-      return [rows, total];
+      return [[], total];
     }
 
     // 查询数据分页
@@ -100,7 +96,7 @@ export class SysUserRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
+    const rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
     return [rows, total];
   }
 
@@ -376,13 +372,9 @@ export class SysUserRepository {
     }
 
     // 查询结果
-    let total = 0;
-    let rows: SysUser[] = [];
-
-    // 查询数量为0直接返回
-    total = await tx.getCount();
+    const total = await tx.getCount();
     if (total <= 0) {
-      return [rows, total];
+      return [[], total];
     }
 
     // 查询数据分页
@@ -391,7 +383,7 @@ export class SysUserRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
+    const rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
     return [rows, total];
   }
 }
