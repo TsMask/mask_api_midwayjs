@@ -7,18 +7,15 @@ import {
 } from '../../src/framework/utils/date/data';
 
 describe('test/utils/DateUtils.test.ts', () => {
-
   it('should parseStrToDate', () => {
-    const date = parseStrToDate("2022-10-14", YYYY_MM_DD);
+    const date = parseStrToDate('2022-10-14', YYYY_MM_DD);
     expect(typeof date === 'object').toBe(true);
   });
-
 
   it('should parseDateToStr', () => {
     const dateStr = parseDateToStr(new Date(), YYYY_MM_DD);
     expect(typeof dateStr === 'string').toBe(true);
   });
-
 
   it('should parseDatePath', () => {
     const datePath = parseDatePath();
@@ -39,7 +36,7 @@ describe('test/utils/DateUtils.test.ts', () => {
     const value = diffSeconds(endDate, startDate);
     expect(value <= 360).toBe(true);
 
-    const nona = diffSeconds(endDate, new Date("NAN"));
+    const nona = diffSeconds(endDate, new Date('NAN'));
     expect(nona === 0).toBe(true);
   });
 });
