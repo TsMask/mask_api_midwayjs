@@ -18,7 +18,7 @@ create table demo_orm (
   update_time       bigint          default 0                  comment '更新时间',
   remark            varchar(200)    default ''                 comment '备注',
   primary key (id)
-) engine=innodb auto_increment=10 comment = '测试ORM表';
+) engine=innodb auto_increment=10 comment = '测试_ORM表';
 
 -- ----------------------------
 -- 初始化-测试ORM表数据
