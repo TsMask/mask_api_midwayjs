@@ -46,10 +46,10 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
       const funcMd5 = md5(`${clientIP(c.ip)}:${funcName}`);
       const cacheKey = `${CACHE_REPEAT_SUBMIT}:${funcMd5}`;
 
-      // 从Redis读取上一次保存的请求时间和参数
+      // 原子获取并删除上一次保存的请求时间和参数
       const redisCacheServer: RedisCache =
         await c.requestContext.getAsync(RedisCache);
-      const rpStr = await redisCacheServer.get('', cacheKey);
+      const rpStr = await redisCacheServer.getDel('', cacheKey);
       if (rpStr) {
         const rpObj: RepeatParamType = JSON.parse(rpStr);
         const compareTime = diffSeconds(Date.now(), rpObj.time);
@@ -59,6 +59,8 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
         c.set('X-RepeatSubmit-Rest', `${Date.now() + compareTime * 1000}`);
         // 小于间隔时间 且 参数内容一致
         if (compareTime < interval && compareParams) {
+          // 恢复key，因为已被getdel删除
+          await redisCacheServer.set('', cacheKey, rpStr, interval);
           c.status = 200;
           return Resp.errMsg('不允许重复提交，请稍候再试');
         }

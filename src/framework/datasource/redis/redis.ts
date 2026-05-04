@@ -223,6 +223,28 @@ export class RedisCache {
   }
 
   /**
+   * 原子获取并删除键
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 键
+   * @return 键对应的值
+   */
+  public async getDel(source: string, key: string): Promise<string> {
+    const rdb = await this.rdb(source);
+    return (await rdb.getdel(key)) ?? '';
+  }
+
+  /**
+   * 原子递增
+   * @param source 数据源名称，空字符值默认为default
+   * @param key 键
+   * @return 递增后的值
+   */
+  public async incr(source: string, key: string): Promise<number> {
+    const rdb = await this.rdb(source);
+    return await rdb.incr(key);
+  }
+
+  /**
    * 删除多个
    * @param source 数据源名称，空字符值默认为default
    * @param keys 多个键
@@ -251,11 +273,6 @@ export class RedisCache {
     count: number
   ): Promise<number> {
     const rdb = await this.rdb(source);
-
-    const current = await rdb.get(limitKey);
-    if (current && Number(current) >= count) {
-      return Number(current);
-    }
 
     const newCount = await rdb.incr(limitKey);
     if (newCount === 1) {

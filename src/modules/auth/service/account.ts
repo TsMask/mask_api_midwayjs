@@ -70,11 +70,10 @@ export class AccountService {
       return 'captcha empty';
     }
     const verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
-    const captcha = await this.redis.get('', verifyKey);
+    const captcha = await this.redis.getDel('', verifyKey);
     if (!captcha) {
       return 'captcha expire';
     }
-    await this.redis.del('', verifyKey);
     if (captcha !== code.toLowerCase()) {
       return 'captcha error';
     }
@@ -94,8 +93,7 @@ export class AccountService {
     const info = new UserInfo();
 
     // 检查密码重试次数
-    const [retryKey, retryCount, lockTime, err] =
-      await this.passwordRetryCount(username);
+    const [, , , err] = await this.passwordRetryCount(username);
     if (err) {
       return [info, err];
     }
@@ -118,7 +116,6 @@ export class AccountService {
       await this.clearLoginRecordCache(username);
       return this.buildUserInfo(sysUser);
     }
-    await this.redis.set('', retryKey, retryCount + 1, lockTime);
     return [info, 'user does not exist or password is incorrect'];
   }
 
@@ -173,7 +170,6 @@ export class AccountService {
   public async passwordRetryCount(
     username: string
   ): Promise<[string, number, number, string]> {
-    // 验证登录次数和错误锁定时间
     const maxRetryCountStr = await this.sysConfigService.findValueByKey(
       'sys.account.passwordRetryMaxCount'
     );
@@ -182,20 +178,20 @@ export class AccountService {
     );
     const maxRetryCount: number = parseNumber(maxRetryCountStr);
     const lockTime: number = parseNumber(lockTimeStr);
-    // 验证缓存记录次数
+
     const base64UserName = Buffer.from(username, 'utf8').toString('base64');
     const retryKey = CACHE_PWD_ERR_COUNT + ':' + base64UserName;
-    let retryCount = await this.redis.get('', retryKey);
-    if (!retryCount) {
-      retryCount = '0';
+
+    const retryCount = await this.redis.incr('', retryKey);
+    if (retryCount === 1) {
+      await this.redis.setExpire('', retryKey, lockTime * 60);
     }
-    // 是否超过错误值
-    const retryCountInt = parseNumber(retryCount);
-    if (retryCountInt >= maxRetryCount) {
+
+    if (retryCount >= maxRetryCount) {
       const msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;
-      return [retryKey, retryCountInt, lockTime * 60, msg];
+      return [retryKey, retryCount, lockTime * 60, msg];
     }
-    return [retryKey, retryCountInt, lockTime * 60, ''];
+    return [retryKey, retryCount, lockTime * 60, ''];
   }
 
   /**

@@ -42,11 +42,10 @@ export class RegisterService {
       return 'captcha empty';
     }
     const verifyKey = CACHE_CAPTCHA_CODE + ':' + uuid;
-    const captcha = await this.redis.get('', verifyKey);
+    const captcha = await this.redis.getDel('', verifyKey);
     if (!captcha) {
       return 'captcha expire';
     }
-    await this.redis.del('', verifyKey);
     if (captcha !== code) {
       return 'captcha error';
     }
