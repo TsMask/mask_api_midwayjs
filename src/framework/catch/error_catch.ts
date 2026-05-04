@@ -22,15 +22,8 @@ export class ErrorCatch {
       err.message
     );
 
-    // 返回错误响应给客户端
-    if (c.app.getEnv() === 'prod') {
-      c.body = Resp.codeMsg(CODE_INTERNAL, MSG_INTERNAL);
-      c.status = HttpStatus.INTERNAL_SERVER_ERROR;
-      return;
-    }
-
-    let msg = err.message;
     // 过滤已经知道的错误
+    let msg = err.message;
     const errMsgs = [
       { k: 'QueryFailedError', v: '访问数据权限错误' },
       { k: 'CSRFError', v: `无效 Referer ${c.header.referer || '未知'}` },
@@ -40,10 +33,15 @@ export class ErrorCatch {
     const msgItem = errMsgs.find(n => n.k === err.name);
     if (msgItem) {
       msg = msgItem.v;
+      // 返回400，提示错误信息
+      c.body = Resp.codeMsg(CODE_INTERNAL, msg);
+      c.status = HttpStatus.BAD_REQUEST;
+      return;
     }
 
-    // 返回500，提示错误信息
-    c.body = Resp.codeMsg(CODE_INTERNAL, msg);
+    // 返回错误响应给客户端 500
+    c.body = Resp.codeMsg(CODE_INTERNAL, MSG_INTERNAL);
     c.status = HttpStatus.INTERNAL_SERVER_ERROR;
+    return;
   }
 }
