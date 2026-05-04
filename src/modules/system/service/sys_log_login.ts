@@ -20,14 +20,14 @@ export class SysLogLoginService {
   /**
    * 分页查询列表数据
    * @param query 参数
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @returns [rows, total]
    */
   public async findByPage(
     query: Record<string, string>,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<[SysLogLogin[], number]> {
-    return await this.sysLogLoginRepository.selectByPage(query, dataScopeSQL);
+    return await this.sysLogLoginRepository.selectByPage(query, filter);
   }
 
   /**

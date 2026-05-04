@@ -344,14 +344,14 @@ export class SysRoleController {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
-    const dataScopeSQL = loginUserToDataScopeSQL(
+    const filter = loginUserToDataScopeSQL(
       this.c,
       'sys_user',
       'sys_user'
     );
     const [rows, total] = await this.sysUserService.findAuthUsersPage(
       query,
-      dataScopeSQL
+      filter
     );
     return Resp.okData({ rows, total });
   }

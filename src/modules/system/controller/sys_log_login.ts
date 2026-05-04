@@ -28,14 +28,14 @@ export class SysLogLoginController {
     ],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
-    const dataScopeSQL = loginUserToDataScopeSQL(
+    const filter = loginUserToDataScopeSQL(
       this.c,
       'sys_user',
       'sys_user'
     );
     const [rows, total] = await this.sysLogLoginService.findByPage(
       query,
-      dataScopeSQL
+      filter
     );
     return Resp.okData({ rows, total });
   }
@@ -67,14 +67,14 @@ export class SysLogLoginController {
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
-    const dataScopeSQL = loginUserToDataScopeSQL(
+    const filter = loginUserToDataScopeSQL(
       this.c,
       'sys_user',
       'sys_user'
     );
     const [rows, total] = await this.sysLogLoginService.findByPage(
       query,
-      dataScopeSQL
+      filter
     );
     if (total === 0) {
       return Resp.errMsg('export data record as empty');

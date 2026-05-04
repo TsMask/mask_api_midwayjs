@@ -16,12 +16,12 @@ export class SysLogOperateRepository {
    * 分页查询集合
    *
    * @param query 参数
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @returns 集合
    */
   public async selectByPage(
     query: Record<string, string>,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<[SysLogOperate[], number]> {
     const tx = this.db
       .queryBuilder('')
@@ -76,9 +76,11 @@ export class SysLogOperateRepository {
         });
       }
     }
-    if (dataScopeSQL) {
-      dataScopeSQL = `select distinct user_name from sys_user where ${dataScopeSQL}`;
-      tx.andWhere(`s.opera_by in ( ${dataScopeSQL} )`);
+    if (filter?.sql) {
+      tx.andWhere(
+        `s.opera_by in (select distinct user_name from sys_user where ${filter.sql})`,
+        filter.params
+      );
     }
 
     // 查询数量为0直接返回

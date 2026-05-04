@@ -1,5 +1,5 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult } from 'typeorm';
+import { DeleteResult, EntityManager, In, InsertResult } from 'typeorm';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysUserPost } from '../model/sys_user_post';
@@ -31,14 +31,24 @@ export class SysUserPostRepository {
   }
 
   /**
-   * 批量删除关联By用户
-   *
-   * @param userIds ID数组
-   * @return 影响记录数
+   * 通过用户ID数组删除关联岗位
+   * @param userIds 用户ID数组
+   * @param entityManager 事务EntityManager（可选）
+   * @returns 影响记录数
    */
-  public async deleteByUserIds(userIds: number[]): Promise<number> {
-    if (userIds.length <= 0) return 0;
-    // 执行删除
+  public async deleteByUserIds(
+    userIds: number[],
+    entityManager?: EntityManager
+  ): Promise<number> {
+    if (userIds.length <= 0) {
+      return 0;
+    }
+    if (entityManager) {
+      const result: DeleteResult = await entityManager.delete(SysUserPost, {
+        userId: In(userIds),
+      });
+      return result.affected;
+    }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .delete()
@@ -49,24 +59,31 @@ export class SysUserPostRepository {
   }
 
   /**
-   * 批量新增信息
-   *
-   * @param userRoles 信息
-   * @return 影响记录数
+   * 批量新增
+   * @param sysUserPosts 用户岗位关联数组
+   * @param entityManager 事务EntityManager（可选）
+   * @returns 影响记录数
    */
-  public async batchInsert(sysUserPosts: SysUserPost[]): Promise<number> {
-    if (sysUserPosts.length <= 0) return 0;
-    // 执行插入
+  public async batchInsert(
+    sysUserPosts: SysUserPost[],
+    entityManager?: EntityManager
+  ): Promise<number> {
+    if (sysUserPosts.length <= 0) {
+      return 0;
+    }
+    if (entityManager) {
+      const result: InsertResult = await entityManager.insert(
+        SysUserPost,
+        sysUserPosts
+      );
+      return result.raw.affectedRows > 0 ? result.raw.affectedRows : 0;
+    }
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()
       .into(SysUserPost)
       .values(sysUserPosts)
       .execute();
-    const raw: ResultSetHeader = tx.raw;
-    if (raw.affectedRows > 0) {
-      return raw.affectedRows;
-    }
-    return 0;
+    return tx.raw.affectedRows > 0 ? tx.raw.affectedRows : 0;
   }
 }

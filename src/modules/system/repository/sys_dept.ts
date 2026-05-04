@@ -16,12 +16,12 @@ export class SysDeptRepository {
    * 查询集合
    *
    * @param sysDept 信息
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @return 列表
    */
   public async select(
     sysDept: SysDept,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<SysDept[]> {
     const tx = this.db
       .queryBuilder('')
@@ -50,8 +50,8 @@ export class SysDeptRepository {
         statusFlag: sysDept.statusFlag,
       });
     }
-    if (dataScopeSQL) {
-      tx.andWhere(dataScopeSQL);
+    if (filter?.sql) {
+      tx.andWhere(filter.sql, filter.params);
     }
     // 查询数据
     return await tx.getMany();
@@ -344,29 +344,19 @@ export class SysDeptRepository {
     if (arr.length <= 0) {
       return 0;
     }
-    const conditions: string[] = [];
-    const deptIds: number[] = [];
+    let totalAffected = 0;
     for (const v of arr) {
       if (typeof v.ancestors === 'string' && v.ancestors.length > 0) {
-        const sanitizedAncestors = v.ancestors.replace(/'/g, "''");
-        conditions.push(
-          `WHEN dept_id = ${Number(v.deptId)} THEN '${sanitizedAncestors}'`
-        );
-        deptIds.push(Number(v.deptId));
+        const tx: UpdateResult = await this.db
+          .queryBuilder('')
+          .createQueryBuilder()
+          .update(SysDept)
+          .set({ ancestors: v.ancestors })
+          .andWhere('dept_id = :deptId', { deptId: Number(v.deptId) })
+          .execute();
+        totalAffected += tx.affected;
       }
     }
-    if (conditions.length === 0) {
-      return 0;
-    }
-    const casesValues = `"CASE ${conditions.join(',')} END"`;
-
-    const tx: UpdateResult = await this.db
-      .queryBuilder('')
-      .createQueryBuilder()
-      .update(SysDept)
-      .set(`ancestors = ${casesValues}`)
-      .andWhere('dept_id in (:deptIds)', { deptIds })
-      .execute();
-    return tx.affected;
+    return totalAffected;
   }
 }

@@ -1,4 +1,5 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { EntityManager } from 'typeorm';
 
 import {
   validEmail,
@@ -9,6 +10,7 @@ import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { FileUtil } from '../../../framework/utils/file/file';
 import { parseDateToStr } from '../../../framework/utils/date/data';
 import { parseNumber } from '../../../framework/utils/parse/parse';
+import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysUserRoleRepository } from '../repository/sys_user_role';
 import { SysUserPostRepository } from '../repository/sys_user_post';
 import { SysUserRepository } from '../repository/sys_user';
@@ -26,6 +28,10 @@ import { SysDept } from '../model/sys_dept';
 @Provide()
 @Singleton()
 export class SysUserService {
+  /**动态数据源 */
+  @Inject()
+  private db: DynamicDataSource;
+
   /**用户服务 */
   @Inject()
   private sysUserRepository: SysUserRepository;
@@ -61,16 +67,16 @@ export class SysUserService {
   /**
    * 分页查询列表数据
    * @param query 参数
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @returns []
    */
   public async findByPage(
     query: Record<string, string>,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<[SysUser[], number]> {
     const [rows, total] = await this.sysUserRepository.selectByPage(
       query,
-      dataScopeSQL
+      filter
     );
     if (total === 0) {
       return [[], 0];
@@ -145,70 +151,64 @@ export class SysUserService {
    * @returns ID
    */
   public async insert(sysUser: SysUser): Promise<number> {
-    // 新增用户信息
-    const insertId = await this.sysUserRepository.insert(sysUser);
-    if (insertId > 0) {
-      await this.insertUserRole(insertId, sysUser.roleIds); // 新增用户角色信息
-      await this.insertUserPost(insertId, sysUser.postIds); // 新增用户岗位信息
-    }
-    return insertId;
+    return await this.db.transaction('', async manager => {
+      const insertId = await this.sysUserRepository.insert(sysUser, manager);
+      if (insertId > 0) {
+        await this.insertUserRole(insertId, sysUser.roleIds, manager);
+        await this.insertUserPost(insertId, sysUser.postIds, manager);
+      }
+      return insertId;
+    });
   }
 
   /**
-   * 新增用户角色信息
+   * 新增用户角色关联
    * @param userId 用户ID
    * @param roleIds 角色ID数组
-   * @returns 影响记录数
+   * @param entityManager 事务EntityManager（可选）
    */
   private async insertUserRole(
     userId: number,
-    roleIds: number[]
-  ): Promise<number> {
-    if (userId <= 0 || roleIds.length <= 0) {
-      return 0;
-    }
-
+    roleIds: number[],
+    entityManager?: EntityManager
+  ): Promise<void> {
+    if (userId <= 0 || !roleIds?.length) return;
     const arr: SysUserRole[] = [];
     for (const roleId of roleIds) {
-      // 系统管理员角色禁止操作，只能通过配置指定用户ID分配
-      if (roleId <= 0 || roleId === SYS_ROLE_SYSTEM_ID) {
-        continue;
-      }
-      const sysUserRole = new SysUserRole();
-      sysUserRole.userId = userId;
-      sysUserRole.roleId = roleId;
-      arr.push(sysUserRole);
+      if (roleId <= 0 || roleId === SYS_ROLE_SYSTEM_ID) continue;
+      const ur = new SysUserRole();
+      ur.userId = userId;
+      ur.roleId = roleId;
+      arr.push(ur);
     }
-
-    return await this.sysUserRoleRepository.batchInsert(arr);
+    if (arr.length > 0) {
+      await this.sysUserRoleRepository.batchInsert(arr, entityManager);
+    }
   }
 
   /**
-   * 新增用户岗位信息
+   * 新增用户岗位关联
    * @param userId 用户ID
    * @param postIds 岗位ID数组
-   * @returns 影响记录数
+   * @param entityManager 事务EntityManager（可选）
    */
   private async insertUserPost(
     userId: number,
-    postIds: number[]
-  ): Promise<number> {
-    if (userId <= 0 || postIds.length <= 0) {
-      return 0;
-    }
-
+    postIds: number[],
+    entityManager?: EntityManager
+  ): Promise<void> {
+    if (userId <= 0 || !postIds?.length) return;
     const arr: SysUserPost[] = [];
     for (const postId of postIds) {
-      if (postId <= 0) {
-        continue;
-      }
-      const sysUserPost = new SysUserPost();
-      sysUserPost.userId = userId;
-      sysUserPost.postId = postId;
-      arr.push(sysUserPost);
+      if (postId <= 0) continue;
+      const up = new SysUserPost();
+      up.userId = userId;
+      up.postId = postId;
+      arr.push(up);
     }
-
-    return await this.sysUserPostRepository.batchInsert(arr);
+    if (arr.length > 0) {
+      await this.sysUserPostRepository.batchInsert(arr, entityManager);
+    }
   }
 
   /**
@@ -226,15 +226,19 @@ export class SysUserService {
    * @returns 影响记录数
    */
   public async updateUserAndRolePost(sysUser: SysUser): Promise<number> {
-    // 删除用户与角色关联
-    await this.sysUserRoleRepository.deleteByUserIds([sysUser.userId]);
-    // 新增用户角色信息
-    await this.insertUserRole(sysUser.userId, sysUser.roleIds);
-    // 删除用户与岗位关联
-    await this.sysUserPostRepository.deleteByUserIds([sysUser.userId]);
-    // 新增用户岗位信息
-    await this.insertUserPost(sysUser.userId, sysUser.postIds);
-    return await this.sysUserRepository.update(sysUser);
+    return await this.db.transaction('', async manager => {
+      await this.sysUserRoleRepository.deleteByUserIds(
+        [sysUser.userId],
+        manager
+      );
+      await this.insertUserRole(sysUser.userId, sysUser.roleIds, manager);
+      await this.sysUserPostRepository.deleteByUserIds(
+        [sysUser.userId],
+        manager
+      );
+      await this.insertUserPost(sysUser.userId, sysUser.postIds, manager);
+      return await this.sysUserRepository.update(sysUser, manager);
+    });
   }
 
   /**
@@ -243,15 +247,16 @@ export class SysUserService {
    * @returns [影响记录数, 错误信息]
    */
   public async deleteByIds(userIds: number[]): Promise<[number, string]> {
-    // 检查是否存在
     const users = await this.sysUserRepository.selectByIds(userIds);
     if (users.length <= 0) {
       return [0, '没有权限访问用户数据！'];
     }
     if (users.length === userIds.length) {
-      await this.sysUserRoleRepository.deleteByUserIds(userIds); // 删除用户与角色关联
-      await this.sysUserPostRepository.deleteByUserIds(userIds); // 删除用户与岗位关联
-      const rows = await this.sysUserRepository.deleteByIds(userIds);
+      const rows = await this.db.transaction('', async manager => {
+        await this.sysUserRoleRepository.deleteByUserIds(userIds, manager);
+        await this.sysUserPostRepository.deleteByUserIds(userIds, manager);
+        return await this.sysUserRepository.deleteByIds(userIds, manager);
+      });
       return [rows, ''];
     }
     return [0, '删除用户信息失败！'];
@@ -344,16 +349,16 @@ export class SysUserService {
   /**
    * 根据条件分页查询分配用户角色列表
    * @param query 查询信息 { roleId:角色ID,auth:是否已分配 }
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @returns 结果
    */
   public async findAuthUsersPage(
     query: Record<string, string>,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<[SysUser[], number]> {
     const [rows, total] = await this.sysUserRepository.selectAuthUsersByPage(
       query,
-      dataScopeSQL
+      filter
     );
     if (total === 0) {
       return [[], 0];

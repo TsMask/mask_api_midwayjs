@@ -189,6 +189,11 @@ export default (): MidwayConfig => {
           logging: false, // 输出sql日志
           /**配置实体模型以扫描形式 */
           entities: ['modules/*/model/*{.ts,.js}'],
+          /**连接池配置 */
+          extra: {
+            connectionLimit: 10,
+            queueLimit: 0,
+          },
         },
       },
       // 多个数据源时可以用这个指定默认的数据源

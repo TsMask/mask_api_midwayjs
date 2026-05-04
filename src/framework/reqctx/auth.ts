@@ -97,38 +97,47 @@ export function loginUserByContainPerms(c: Context, target: string): boolean {
   return false;
 }
 
+/**数据范围过滤参数化结构 */
+export interface DataScopeFilter {
+  sql: string;
+  params: Record<string, any>;
+}
+
 /**
- * 登录用户信息-角色数据范围过滤SQL字符串
+ * 登录用户信息-角色数据范围过滤SQL
  * @param c 上下文对象
  * @param deptAlias 部门表别名
  * @param userAlias 用户表别名
- * @return SQL字符串 (...)
+ * @return 参数化过滤对象 {sql, params}
  */
 export function loginUserToDataScopeSQL(
   c: Context,
   deptAlias: string,
   userAlias: string
-): string {
-  let dataScopeSQL = '';
+): DataScopeFilter {
+  const empty: DataScopeFilter = { sql: '', params: {} };
   // 登录用户信息
   const [info, err] = loginUser(c);
   if (err) {
-    return dataScopeSQL;
+    return empty;
   }
   const userInfo = info.user;
 
   // 如果是系统管理员，则不过滤数据
   if (isSystemUser(c, userInfo.userId)) {
-    return dataScopeSQL;
+    return empty;
   }
   // 无用户角色
   if (!Array.isArray(userInfo.roles) || userInfo.roles.length <= 0) {
-    return dataScopeSQL;
+    return empty;
   }
 
   // 记录角色权限范围定义添加过, 非自定数据权限不需要重复拼接SQL
   const scopeKeys: string[] = [];
   const conditions: string[] = [];
+  const allParams: Record<string, any> = {};
+  let paramIndex = 0;
+
   for (const role of userInfo.roles) {
     const dataScope = role.dataScope;
 
@@ -143,35 +152,45 @@ export function loginUserToDataScopeSQL(
     }
 
     if (ROLE_SCOPE_CUSTOM === dataScope) {
+      const roleParam = `ds_roleId_${paramIndex++}`;
+      allParams[roleParam] = role.roleId;
       const sql = `${deptAlias}.dept_id IN 
-        ( SELECT dept_id FROM sys_role_dept WHERE role_id = ${role.roleId} ) 
+        ( SELECT dept_id FROM sys_role_dept WHERE role_id = :${roleParam} ) 
         AND ${deptAlias}.dept_id NOT IN 
         ( 
         SELECT d.parent_id FROM sys_dept d 
         INNER JOIN sys_role_dept rd ON rd.dept_id = d.dept_id 
-        AND rd.role_id = ${role.roleId}
+        AND rd.role_id = :${roleParam}
         )`;
       conditions.push(sql);
     }
 
     if (ROLE_SCOPE_DEPT === dataScope) {
-      conditions.push(`${deptAlias}.dept_id = ${userInfo.deptId}`);
+      const deptParam = `ds_deptId_${paramIndex++}`;
+      allParams[deptParam] = userInfo.deptId;
+      conditions.push(`${deptAlias}.dept_id = :${deptParam}`);
     }
 
     if (ROLE_SCOPE_DEPT_CHILD === dataScope) {
+      const deptParam = `ds_deptId_${paramIndex++}`;
+      allParams[deptParam] = userInfo.deptId;
       const sql = `${deptAlias}.dept_id IN ( 
         SELECT dept_id FROM sys_dept 
-        WHERE dept_id = ${userInfo.deptId} 
-        OR find_in_set(${userInfo.deptId}, ancestors ) 
+        WHERE dept_id = :${deptParam} 
+        OR find_in_set(:${deptParam}, ancestors ) 
         )`;
       conditions.push(sql);
     }
 
     if (ROLE_SCOPE_SELF === dataScope) {
       if (userAlias === '') {
-        conditions.push(`${deptAlias}.dept_id = ${userInfo.deptId}`);
+        const deptParam = `ds_deptId_${paramIndex++}`;
+        allParams[deptParam] = userInfo.deptId;
+        conditions.push(`${deptAlias}.dept_id = :${deptParam}`);
       } else {
-        conditions.push(`${userAlias}.user_id = ${userInfo.userId}`);
+        const userParam = `ds_userId_${paramIndex++}`;
+        allParams[userParam] = userInfo.userId;
+        conditions.push(`${userAlias}.user_id = :${userParam}`);
       }
     }
 
@@ -181,7 +200,10 @@ export function loginUserToDataScopeSQL(
 
   // 构建查询条件语句
   if (conditions.length > 0) {
-    dataScopeSQL = ` ( ${conditions.join(' OR ')} ) `;
+    return {
+      sql: ` ( ${conditions.join(' OR ')} ) `,
+      params: allParams,
+    };
   }
-  return dataScopeSQL;
+  return empty;
 }

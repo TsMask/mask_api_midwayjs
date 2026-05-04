@@ -55,8 +55,8 @@ export class SysDeptController {
     sysDept.parentId = parentId;
     sysDept.deptName = deptName;
     sysDept.statusFlag = statusFlag;
-    const dataScopeSQL = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
-    const data = await this.sysDeptService.find(sysDept, dataScopeSQL);
+    const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
+    const data = await this.sysDeptService.find(sysDept, filter);
     return Resp.okData(data);
   }
 
@@ -261,8 +261,8 @@ export class SysDeptController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
     }
-    const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
-    const data = await this.sysDeptService.find(new SysDept(), dataScopeSQL);
+    const filter = loginUserToDataScopeSQL(this.c, 's', '');
+    const data = await this.sysDeptService.find(new SysDept(), filter);
 
     // 过滤排除节点
     const filtered: SysDept[] = [];
@@ -299,10 +299,10 @@ export class SysDeptController {
     sysDept.parentId = parentId;
     sysDept.deptName = deptName;
     sysDept.statusFlag = statusFlag;
-    const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
+    const filter = loginUserToDataScopeSQL(this.c, 's', '');
     const data = await this.sysDeptService.buildTreeSelect(
       sysDept,
-      dataScopeSQL
+      filter
     );
     return Resp.okData(data);
   }
@@ -319,10 +319,10 @@ export class SysDeptController {
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
     }
 
-    const dataScopeSQL = loginUserToDataScopeSQL(this.c, 's', '');
+    const filter = loginUserToDataScopeSQL(this.c, 's', '');
     const deptTreeSelect = await this.sysDeptService.buildTreeSelect(
       new SysDept(),
-      dataScopeSQL
+      filter
     );
     const checkedKeys = await this.sysDeptService.findDeptIdsByRoleId(roleId);
     return Resp.okData({

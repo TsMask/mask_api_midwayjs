@@ -1,5 +1,11 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import {
+  DeleteResult,
+  EntityManager,
+  In,
+  InsertResult,
+  UpdateResult,
+} from 'typeorm';
 
 import {
   parseBoolean,
@@ -20,12 +26,12 @@ export class SysUserRepository {
    * 分页查询集合
    *
    * @param query 参数
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @returns 集合
    */
   public async selectByPage(
     query: Record<string, string>,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<[SysUser[], number]> {
     const tx = this.db
       .queryBuilder('')
@@ -80,10 +86,9 @@ export class SysUserRepository {
         { deptId: query.deptId }
       );
     }
-    if (dataScopeSQL) {
-      tx.andWhere(dataScopeSQL);
+    if (filter?.sql) {
+      tx.andWhere(filter.sql, filter.params);
     }
-
     // 查询数量为0直接返回
     const total = await tx.getCount();
     if (total <= 0) {
@@ -164,11 +169,14 @@ export class SysUserRepository {
 
   /**
    * 新增
-   *
    * @param sysUser 信息
-   * @return ID
+   * @param entityManager 事务EntityManager（可选）
+   * @returns ID
    */
-  public async insert(sysUser: SysUser): Promise<number> {
+  public async insert(
+    sysUser: SysUser,
+    entityManager?: EntityManager
+  ): Promise<number> {
     sysUser.delFlag = '0';
     if (sysUser.createBy) {
       const ms = Date.now().valueOf();
@@ -180,7 +188,11 @@ export class SysUserRepository {
       const password = await bcryptHash(sysUser.password);
       sysUser.password = password;
     }
-    // 执行插入
+    if (entityManager) {
+      const result: InsertResult = await entityManager.insert(SysUser, sysUser);
+      const raw: ResultSetHeader = result.raw;
+      return raw.insertId > 0 ? raw.insertId : 0;
+    }
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()
@@ -188,19 +200,19 @@ export class SysUserRepository {
       .values(sysUser)
       .execute();
     const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
-      return raw.insertId;
-    }
-    return 0;
+    return raw.insertId > 0 ? raw.insertId : 0;
   }
 
   /**
    * 更新
-   *
    * @param sysUser 信息
-   * @return 影响记录数
+   * @param entityManager 事务EntityManager（可选）
+   * @returns 影响记录数
    */
-  public async update(sysUser: SysUser): Promise<number> {
+  public async update(
+    sysUser: SysUser,
+    entityManager?: EntityManager
+  ): Promise<number> {
     if (sysUser.userId <= 0) {
       return 0;
     }
@@ -222,7 +234,14 @@ export class SysUserRepository {
     delete data.roleId;
     delete data.roleIds;
     delete data.postIds;
-    // 执行更新
+    if (entityManager) {
+      const result: UpdateResult = await entityManager.update(
+        SysUser,
+        { userId: sysUser.userId },
+        data
+      );
+      return result.affected;
+    }
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
@@ -234,14 +253,24 @@ export class SysUserRepository {
   }
 
   /**
-   * 批量删除
-   *
+   * 批量删除（软删除）
    * @param userIds ID数组
-   * @return 影响记录数
+   * @param entityManager 事务EntityManager（可选）
+   * @returns 影响记录数
    */
-  public async deleteByIds(userIds: number[]): Promise<number> {
+  public async deleteByIds(
+    userIds: number[],
+    entityManager?: EntityManager
+  ): Promise<number> {
     if (userIds.length === 0) return 0;
-    // 执行更新删除标记
+    if (entityManager) {
+      const result: UpdateResult = await entityManager.update(
+        SysUser,
+        { userId: In(userIds) },
+        { delFlag: '1' }
+      );
+      return result.affected;
+    }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .update(SysUser)
@@ -315,12 +344,12 @@ export class SysUserRepository {
    * 分页查询集合By分配用户角色
    *
    * @param query 参数
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @returns 集合
    */
   public async selectAuthUsersByPage(
     query: Record<string, string>,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<[SysUser[], number]> {
     const tx = this.db
       .queryBuilder('')
@@ -367,8 +396,8 @@ export class SysUserRepository {
         );
       }
     }
-    if (dataScopeSQL) {
-      tx.andWhere(dataScopeSQL);
+    if (filter?.sql) {
+      tx.andWhere(filter.sql, filter.params);
     }
 
     // 查询结果

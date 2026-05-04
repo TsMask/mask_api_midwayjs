@@ -1,5 +1,5 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult } from 'typeorm';
+import { DeleteResult, EntityManager, In, InsertResult } from 'typeorm';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysUserRole } from '../model/sys_user_role';
@@ -31,19 +31,29 @@ export class SysUserRoleRepository {
   }
 
   /**
-   * 批量删除关联By用户
-   *
-   * @param userIds ID数组
-   * @return 影响记录数
+   * 通过用户ID数组删除关联角色
+   * @param userIds 用户ID数组
+   * @param entityManager 事务EntityManager（可选）
+   * @returns 影响记录数
    */
-  public async deleteByUserIds(userIds: number[]): Promise<number> {
-    if (userIds.length <= 0) return 0;
-    // 执行删除
+  public async deleteByUserIds(
+    userIds: number[],
+    entityManager?: EntityManager
+  ): Promise<number> {
+    if (userIds.length <= 0) {
+      return 0;
+    }
+    if (entityManager) {
+      const result: DeleteResult = await entityManager.delete(SysUserRole, {
+        userId: In(userIds),
+      });
+      return result.affected;
+    }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .delete()
       .from(SysUserRole)
-      .andWhere('user_id in (:userIds)', { userIds })
+      .andWhere('user_id IN (:...userIds)', { userIds })
       .execute();
     return tx.affected;
   }
@@ -72,24 +82,31 @@ export class SysUserRoleRepository {
   }
 
   /**
-   * 批量新增信息
-   *
-   * @param sysUserRoles 信息
-   * @return 影响记录数
+   * 批量新增
+   * @param sysUserRoles 用户角色关联数组
+   * @param entityManager 事务EntityManager（可选）
+   * @returns 影响记录数
    */
-  public async batchInsert(sysUserRoles: SysUserRole[]): Promise<number> {
-    if (sysUserRoles.length <= 0) return 0;
-    // 执行插入
+  public async batchInsert(
+    sysUserRoles: SysUserRole[],
+    entityManager?: EntityManager
+  ): Promise<number> {
+    if (sysUserRoles.length <= 0) {
+      return 0;
+    }
+    if (entityManager) {
+      const result: InsertResult = await entityManager.insert(
+        SysUserRole,
+        sysUserRoles
+      );
+      return result.raw.affectedRows > 0 ? result.raw.affectedRows : 0;
+    }
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()
       .into(SysUserRole)
       .values(sysUserRoles)
       .execute();
-    const raw: ResultSetHeader = tx.raw;
-    if (raw.affectedRows > 0) {
-      return raw.affectedRows;
-    }
-    return 0;
+    return tx.raw.affectedRows > 0 ? tx.raw.affectedRows : 0;
   }
 }

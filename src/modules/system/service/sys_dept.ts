@@ -27,14 +27,14 @@ export class SysDeptService {
   /**
    * 查询数据
    * @param sysDept 信息
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @returns []
    */
   public async find(
     sysDept: SysDept,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<SysDept[]> {
-    return await this.sysDeptRepository.select(sysDept, dataScopeSQL);
+    return await this.sysDeptRepository.select(sysDept, filter);
   }
 
   /**
@@ -200,14 +200,14 @@ export class SysDeptService {
   /**
    * 查询部门树状结构
    * @param sysDept 信息
-   * @param dataScopeSQL 角色数据范围过滤SQL字符串
+   * @param filter 角色数据范围过滤对象
    * @returns 结果
    */
   public async buildTreeSelect(
     sysDept: SysDept,
-    dataScopeSQL: string
+    filter: { sql: string; params: Record<string, any> }
   ): Promise<TreeSelect[]> {
-    const arr = await this.sysDeptRepository.select(sysDept, dataScopeSQL);
+    const arr = await this.sysDeptRepository.select(sysDept, filter);
     const treeArr = await this.parseDataToTree(arr);
     const tree: TreeSelect[] = [];
     for (const item of treeArr) {

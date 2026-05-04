@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 import { TypeORMDataSourceManager } from '@midwayjs/typeorm';
-import { DataSource, SelectQueryBuilder } from 'typeorm';
+import { DataSource, EntityManager, SelectQueryBuilder } from 'typeorm';
 
 import { parseNumber } from '../../utils/parse/parse';
 
@@ -67,6 +67,23 @@ export class DynamicDataSource {
   }
 
   /**
+   * 事务执行
+   *
+   * 所有在回调内的数据库操作共享同一事务上下文
+   *
+   * @param source 数据源 空字符默认'default'
+   * @param run 事务内执行的异步回调，接收 EntityManager
+   * @returns 回调返回值
+   */
+  public async transaction<T>(
+    source: string,
+    run: (manager: EntityManager) => Promise<T>
+  ): Promise<T> {
+    const ds = this.db(source);
+    return ds.transaction(run);
+  }
+
+  /**
    * 分页页码记录数
    * @param pageNum 页码
    * @param pageSize 单页记录数
@@ -84,7 +101,7 @@ export class DynamicDataSource {
 
     // 显示记录数
     let size = parseNumber(pageSize);
-    if (size < 0) {
+    if (size <= 0) {
       size = 10;
     }
     return [num - 1, size];

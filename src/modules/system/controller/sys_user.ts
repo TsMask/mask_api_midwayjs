@@ -82,14 +82,14 @@ export class SysUserController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:list'] })],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
-    const dataScopeSQL = loginUserToDataScopeSQL(
+    const filter = loginUserToDataScopeSQL(
       this.c,
       'sys_user',
       'sys_user'
     );
     const [rows, total] = await this.sysUserService.findByPage(
       query,
-      dataScopeSQL
+      filter
     );
     return Resp.okData({ rows, total });
   }
@@ -475,14 +475,14 @@ export class SysUserController {
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
-    const dataScopeSQL = loginUserToDataScopeSQL(
+    const filter = loginUserToDataScopeSQL(
       this.c,
       'sys_user',
       'sys_user'
     );
     const [rows, total] = await this.sysUserService.findByPage(
       query,
-      dataScopeSQL
+      filter
     );
     if (total === 0) {
       return Resp.errMsg('export data record as empty');
