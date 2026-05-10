@@ -10,7 +10,7 @@ import {
   Param,
   Post,
 } from '@midwayjs/core';
-import { UploadFileInfo } from '@midwayjs/upload';
+import { UploadFileInfo, UploadMiddleware } from '@midwayjs/busboy';
 import { Valid } from '@midwayjs/validation';
 import * as Joi from 'joi';
 import { Context } from '@midwayjs/koa';
@@ -84,10 +84,10 @@ export class FileController {
 
   /**上传文件 */
   @Post('/upload', {
-    middleware: [AuthorizeUserMiddleware()],
+    middleware: [AuthorizeUserMiddleware(), UploadMiddleware],
   })
   public async upload(
-    @Files('file') files: UploadFileInfo<string>[],
+    @Files('file') files: UploadFileInfo[],
     @Fields('subPath') subPath: string
   ) {
     if (files.length !== 1) {
@@ -115,7 +115,7 @@ export class FileController {
       return Resp.errMsg(err);
     }
 
-    await this.c.cleanupRequestFiles();
+    await this.c.cleanupRequestFiles?.();
     return Resp.okData({
       url: `//${this.c.host}${uploadFilePath}`,
       filePath: uploadFilePath,
@@ -187,14 +187,14 @@ export class FileController {
 
   /**切片文件上传 */
   @Post('/chunk-upload', {
-    middleware: [AuthorizeUserMiddleware()],
+    middleware: [AuthorizeUserMiddleware(), UploadMiddleware],
   })
   public async chunkUpload(
     /**上传的文件 */
-    @Files('file') files: UploadFileInfo<string>[],
-    /**切片编号 */
+    @Files('file') files: UploadFileInfo[],
+    /**切片文件序号 */
     @Fields('index') index: string,
-    /**切片唯一标识 */
+    /**切片文件唯一标识 */
     @Fields('identifier') identifier: string
   ) {
     if (index === '' || identifier === '') {
@@ -220,7 +220,7 @@ export class FileController {
       this.c.status = 200;
       return Resp.errMsg(err);
     }
-    await this.c.cleanupRequestFiles();
+    await this.c.cleanupRequestFiles?.();
     this.c.status = 206;
     return Resp.okData(chunkFilePath);
   }

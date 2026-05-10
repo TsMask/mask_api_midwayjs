@@ -1,7 +1,7 @@
 import { resolve, normalize, join, extname } from 'node:path';
 
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { UploadFileInfo } from '@midwayjs/upload';
+import { UploadFileInfo } from '@midwayjs/busboy';
 
 import {
   getDirFileNameList,
@@ -63,7 +63,7 @@ export class FileUtil {
     // 判断文件拓展是否为允许的拓展类型
     const fileExt = extname(fileName);
     if (allowExts.length === 0) {
-      allowExts = this.config.get<string[]>('upload.whitelist');
+      allowExts = this.config.get<string[]>('busboy.whitelist');
     }
 
     if (!allowExts.includes(fileExt)) {
@@ -83,7 +83,7 @@ export class FileUtil {
     if (filePath.includes('..')) {
       return '禁止目录上跳级别';
     }
-    const uploadWhiteList = this.config.get<string[]>('upload.whitelist');
+    const uploadWhiteList = this.config.get<string[]>('busboy.whitelist');
     // 检查允许下载的文件规则
     const fileExt = extname(filePath);
     if (!uploadWhiteList.includes(fileExt)) {
@@ -103,12 +103,12 @@ export class FileUtil {
    */
   public async readUploadFileStream(
     filePath: string,
-    headerRange: string
+    headerRange?: string
   ): Promise<[Record<string, any>, string]> {
     // 检查文件允许访问
     const err = this.isAllowRead(filePath);
     if (err) {
-      return [undefined, err];
+      return [{}, err];
     }
     // 上传资源路径
     const { prefix, dir } = this.config.get<Record<string, string>>(
@@ -127,7 +127,7 @@ export class FileUtil {
     // 文件大小
     const fileSize = await getFileSize(fileAsbPath);
     if (fileSize <= 0) {
-      return [undefined, '文件不存在'];
+      return [{}, '文件不存在'];
     }
     result.fileSize = fileSize;
 
@@ -150,7 +150,7 @@ export class FileUtil {
       result.chunkSize = end - start + 1;
       const [byteArr, errMsg] = await getFileStream(fileAsbPath, start, end);
       if (errMsg) {
-        return [undefined, errMsg];
+        return [{}, errMsg];
       }
       result.data = byteArr;
       return [result, ''];
@@ -158,7 +158,7 @@ export class FileUtil {
 
     const [byteArr, errMsg] = await getFileStream(fileAsbPath, 0, fileSize);
     if (errMsg) {
-      return [undefined, errMsg];
+      return [{}, errMsg];
     }
     result.data = byteArr;
     return [result, ''];
@@ -172,7 +172,7 @@ export class FileUtil {
    * @returns [文件存放资源路径，URL相对地址, 错误信息]
    */
   public async transferUploadFile(
-    file: UploadFileInfo<string>,
+    file: UploadFileInfo,
     subPath: string,
     allowExts: string[] = []
   ): Promise<[string, string]> {
@@ -262,7 +262,7 @@ export class FileUtil {
    * @returns 文件存放资源路径，URL相对地址
    */
   async transferChunkUploadFile(
-    file: UploadFileInfo<string>,
+    file: UploadFileInfo,
     index: string,
     identifier: string
   ): Promise<[string, string]> {
@@ -317,7 +317,7 @@ export class FileUtil {
     // 检查文件允许访问
     const err = this.isAllowRead(asserPath);
     if (err) {
-      return [undefined, err];
+      return [Buffer.from(''), err];
     }
     const absPath = resolve(__dirname, '../../../assets', asserPath);
     return await getFileStream(absPath);
@@ -343,13 +343,13 @@ export class FileUtil {
    * @return 表格信息对象列表
    */
   async excelReadRecord(
-    file: UploadFileInfo<string>,
+    file: UploadFileInfo,
     sheetName: string
   ): Promise<[Record<string, string>[], string]> {
     const { data, filename } = file;
     let err = this.isAllowWrite(filename, ['.xls', '.xlsx']);
     if (err) {
-      return [undefined, err];
+      return [[], err];
     }
     // 保存上传文件
     const uploadDir = this.config.get<string>('staticFile.dirs.upload.dir');
@@ -357,7 +357,7 @@ export class FileUtil {
     const fileName = this.generateFileName(filename);
     err = await transferToNewFile(file.data, fileDir, fileName);
     if (err) {
-      return [undefined, err];
+      return [[], err];
     }
     // 读取数据
     return await readSheet(data, sheetName);

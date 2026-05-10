@@ -16,7 +16,7 @@ export const UPLOAD_DOWNLOAD = 'download';
 export const UPLOAD_CHUNK = 'chunk';
 
 /**子路径类型映射 */
-export const UPLOAD_SUB_PATH = {
+export const UPLOAD_SUB_PATH: Record<string, string> = {
   [UPLOAD_DEFAULT]: '默认',
   [UPLOAD_AVATAR]: '头像',
   [UPLOAD_IMPORT]: '导入',

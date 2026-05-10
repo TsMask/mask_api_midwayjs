@@ -41,10 +41,14 @@ export default (): MidwayConfig => {
       },
     },
 
-    /**文件上传 https://midwayjs.org/docs/extensions/upload */
-    upload: {
-      /**最大上传文件大小，默认为 10mb */
-      fileSize: '10mb',
+    /**文件上传 https://www.midwayjs.org/docs/extensions/busboy */
+    busboy: {
+      /**上传模式 */
+      mode: 'file',
+      /**最大上传文件大小，默认 10mb */
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10mb
+      },
       /**文件扩展名白名单 */
       whitelist: [
         // 图片
@@ -82,8 +86,6 @@ export default (): MidwayConfig => {
       tmpdir: normalize(join(filePath, '/temp')),
       /**上传的文件在临时目录中多久之后自动删除，默认为 5 分钟 */
       cleanTimeout: 5 * 60 * 1000,
-      /**设置原始body是否是base64格式，默认为false，一般用于腾讯云的兼容 */
-      base64: false,
     },
 
     /**静态文件配置 https://midwayjs.org/docs/extensions/static_file */

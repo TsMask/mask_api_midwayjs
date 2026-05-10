@@ -28,6 +28,7 @@
   "dependencies": {
     "@midwayjs/bootstrap": "4.1.0",
     "@midwayjs/bullmq": "4.1.0",
+    "@midwayjs/busboy": "^4.1.0",
     "@midwayjs/core": "4.1.0",
     "@midwayjs/cross-domain": "4.1.0",
     "@midwayjs/koa": "4.1.0",
@@ -36,7 +37,6 @@
     "@midwayjs/security": "4.1.0",
     "@midwayjs/static-file": "4.1.0",
     "@midwayjs/typeorm": "4.1.0",
-    "@midwayjs/upload": "4.1.0",
     "@midwayjs/validation": "4.1.0",
     "@midwayjs/validation-joi": "4.1.0",
     "@node-rs/bcrypt": "1.10.7",

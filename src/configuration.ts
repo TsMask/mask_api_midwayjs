@@ -1,4 +1,4 @@
-﻿import { normalize, join } from 'node:path';
+import { normalize, join } from 'node:path';
 
 import {
   Configuration,
@@ -10,7 +10,7 @@ import * as koa from '@midwayjs/koa';
 import * as validation from '@midwayjs/validation';
 import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';
-import * as upload from '@midwayjs/upload';
+import * as busboy from '@midwayjs/busboy';
 import * as staticFile from '@midwayjs/static-file';
 import * as bullmq from '@midwayjs/bullmq';
 import * as crossDomain from '@midwayjs/cross-domain';
@@ -26,7 +26,7 @@ import { ErrorCatchFilters } from './framework/catch';
     validation, // 参数校验
     security, // 安全
     crossDomain, // 跨域
-    upload, // 文件上传
+    busboy, // 文件上传
     staticFile, // 静态文件映射
     typeorm, // 数据库ORM
     redis, // 缓存数据Redis
