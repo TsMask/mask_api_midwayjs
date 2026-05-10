@@ -90,8 +90,7 @@ export class RateLimit implements IMiddleware<Context, NextFunction> {
       const rateCount = await redisCacheServer.rateLimit(
         '',
         limitKey,
-        time,
-        count
+        time
       );
       const rateTime = await redisCacheServer.getExpire('', limitKey);
 
