@@ -182,10 +182,11 @@ export class AccountService {
     const base64UserName = Buffer.from(username, 'utf8').toString('base64');
     const retryKey = CACHE_PWD_ERR_COUNT + ':' + base64UserName;
 
-    const retryCount = await this.redis.incr('', retryKey);
-    if (retryCount === 1) {
-      await this.redis.setExpire('', retryKey, lockTime * 60);
-    }
+    const retryCount = await this.redis.incrWithExpire(
+      '',
+      retryKey,
+      lockTime * 60
+    );
 
     if (retryCount >= maxRetryCount) {
       const msg = `密码输入错误 ${maxRetryCount} 次，帐户锁定 ${lockTime} 分钟`;

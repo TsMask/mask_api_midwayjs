@@ -184,7 +184,7 @@ export class SysJobService {
             data: job.data,
             Result: Result,
           };
-          this.saveJobLog(jobLog, STATUS_YES);
+          await this.saveJobLog(jobLog, STATUS_YES);
           await job.remove();
         }
       );
@@ -196,7 +196,7 @@ export class SysJobService {
           data: job.data,
           Result: error,
         };
-        this.saveJobLog(jobLog, STATUS_NO);
+        await this.saveJobLog(jobLog, STATUS_NO);
         await job.remove();
       });
     }

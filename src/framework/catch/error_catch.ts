@@ -23,7 +23,6 @@ export class ErrorCatch {
     );
 
     // 过滤已经知道的错误
-    let msg = err.message;
     const errMsgs = [
       { k: 'QueryFailedError', v: '访问数据权限错误' },
       { k: 'CSRFError', v: `无效 Referer ${c.header.referer || '未知'}` },
@@ -32,9 +31,8 @@ export class ErrorCatch {
     ];
     const msgItem = errMsgs.find(n => n.k === err.name);
     if (msgItem) {
-      msg = msgItem.v;
       // 返回400，提示错误信息
-      c.body = Resp.codeMsg(CODE_INTERNAL, msg);
+      c.body = Resp.codeMsg(CODE_INTERNAL, msgItem.v);
       c.status = HttpStatus.BAD_REQUEST;
       return;
     }

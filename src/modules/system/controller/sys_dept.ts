@@ -300,10 +300,7 @@ export class SysDeptController {
     sysDept.deptName = deptName;
     sysDept.statusFlag = statusFlag;
     const filter = loginUserToDataScopeSQL(this.c, 's', '');
-    const data = await this.sysDeptService.buildTreeSelect(
-      sysDept,
-      filter
-    );
+    const data = await this.sysDeptService.buildTreeSelect(sysDept, filter);
     return Resp.okData(data);
   }
 

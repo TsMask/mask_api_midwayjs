@@ -174,10 +174,8 @@ export class UserTokenService {
    */
   public async UserInfoUpdate(info: UserInfo): Promise<void> {
     info.user.password = '';
-    // 登录信息标识缓存
     const tokenKey = CACHE_TOKEN_DEVICE + ':' + info.deviceId;
-    const expiration = await this.redis.getExpire('', tokenKey);
-    await this.redis.set('', tokenKey, JSON.stringify(info), expiration);
+    await this.redis.setWithExistingTTL('', tokenKey, JSON.stringify(info));
   }
 
   /**
