@@ -7,7 +7,7 @@ import {
   MidwayDecoratorService,
 } from '@midwayjs/core';
 import * as koa from '@midwayjs/koa';
-import * as validate from '@midwayjs/validate';
+import * as validation from '@midwayjs/validation';
 import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';
 import * as upload from '@midwayjs/upload';
@@ -23,7 +23,7 @@ import { ErrorCatchFilters } from './framework/catch';
 @Configuration({
   imports: [
     koa, // 核心程序服务
-    validate, // 参数校验
+    validation, // 参数校验
     security, // 安全
     crossDomain, // 跨域
     upload, // 文件上传

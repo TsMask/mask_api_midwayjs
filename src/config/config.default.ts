@@ -1,5 +1,6 @@
 import { resolve, normalize, join } from 'node:path';
 import { MidwayConfig } from '@midwayjs/core';
+import joi from '@midwayjs/validation-joi';
 
 export default (): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级
@@ -219,8 +220,8 @@ export default (): MidwayConfig => {
         db: 0,
       },
       defaultPrefix: 'bull_queue', // Redis key
-       // 默认的任务配置
-       defaultQueueOptions: {
+      // 默认的任务配置
+      defaultQueueOptions: {
         defaultJobOptions: {
           // 成功后移除任务记录，最多保留最近 10 条记录
           removeOnComplete: 10,
@@ -232,14 +233,20 @@ export default (): MidwayConfig => {
       clearRepeatJobWhenStart: true,
     },
 
-    /**参数校验 http://www.midwayjs.org/docs/extensions/validate */
-    validate: {
-      validationOptions: {
-        allowUnknown: true, // 允许未定义的字段
-        stripUnknown: false, // 剔除参数中的未定义属性
-        // 临时禁用全局校验
-        // @Body() user: Partial<UserDTO>
+    /**参数校验 https://www.midwayjs.org/docs/extensions/validation */
+    validation: {
+      validators: {
+        joi,
       },
+      defaultValidator: 'joi',
+      errorStatus: 422,
+      locale: 'zh_CN',
+    },
+    joi: {
+      allowUnknown: true, // 允许未定义的字段
+      stripUnknown: false, // 剔除参数中的未定义属性
+      // 临时禁用全局校验
+      // @Body() user: Partial<UserDTO>
     },
 
     /**系统用户，将用户ID设定为系统管理员角色 */

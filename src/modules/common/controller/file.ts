@@ -11,7 +11,8 @@ import {
   Post,
 } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/upload';
-import { RuleType, Valid } from '@midwayjs/validate';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
 import { Context } from '@midwayjs/koa';
 
 import {
@@ -39,7 +40,7 @@ export class FileController {
     middleware: [AuthorizeUserMiddleware()],
   })
   public async download(
-    @Valid(RuleType.string().required()) @Param('filePath') filePath: string
+    @Valid(Joi.string().required()) @Param('filePath') filePath: string
   ) {
     if (filePath.length < 8) {
       this.c.status = 422;
@@ -129,9 +130,9 @@ export class FileController {
   })
   public async chunkCheck(
     /**唯一标识 */
-    @Valid(RuleType.string().required()) @Body('identifier') identifier: string,
+    @Valid(Joi.string().required()) @Body('identifier') identifier: string,
     /**文件名 */
-    @Valid(RuleType.string().required()) @Body('fileName') fileName: string
+    @Valid(Joi.string().required()) @Body('fileName') fileName: string
   ) {
     // 读取标识目录
     const [chunks, err] = await this.fileUtil.chunkCheckFile(
@@ -150,11 +151,11 @@ export class FileController {
   })
   public async chunkMerge(
     /**唯一标识 */
-    @Valid(RuleType.string().required()) @Body('identifier') identifier: string,
+    @Valid(Joi.string().required()) @Body('identifier') identifier: string,
     /**文件名 */
-    @Valid(RuleType.string().required()) @Body('fileName') fileName: string,
+    @Valid(Joi.string().required()) @Body('fileName') fileName: string,
     /**子路径类型 */
-    @Valid(RuleType.string().allow('')) @Body('subPath') subPath: string
+    @Valid(Joi.string().allow('')) @Body('subPath') subPath: string
   ) {
     // 子路径需要在指定范围内
     const ok = UPLOAD_SUB_PATH[subPath];

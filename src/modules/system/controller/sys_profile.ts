@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Inject, Put } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
 import { Context } from '@midwayjs/koa';
 
 import {
@@ -89,11 +90,11 @@ export class SysProfileController {
     ],
   })
   public async updateProfile(
-    @Valid(RuleType.string().required()) @Body('nickName') nickName: string,
-    @Valid(RuleType.string().pattern(/^[012]$/)) @Body('sex') sex: string,
-    @Valid(RuleType.string().allow('')) @Body('phone') phone: string,
-    @Valid(RuleType.string().allow('')) @Body('email') email: string,
-    @Valid(RuleType.string().allow('')) @Body('avatar') avatar: string
+    @Valid(Joi.string().required()) @Body('nickName') nickName: string,
+    @Valid(Joi.string().pattern(/^[012]$/)) @Body('sex') sex: string,
+    @Valid(Joi.string().allow('')) @Body('phone') phone: string,
+    @Valid(Joi.string().allow('')) @Body('email') email: string,
+    @Valid(Joi.string().allow('')) @Body('avatar') avatar: string
   ): Promise<Resp> {
     if (nickName === '' || sex === '') {
       this.c.status = 422;
@@ -177,10 +178,10 @@ export class SysProfileController {
     ],
   })
   public async updatePassword(
-    @Valid(RuleType.string().required())
+    @Valid(Joi.string().required())
     @Body('oldPassword')
     oldPassword: string,
-    @Valid(RuleType.string().required())
+    @Valid(Joi.string().required())
     @Body('newPassword')
     newPassword: string
   ): Promise<Resp> {

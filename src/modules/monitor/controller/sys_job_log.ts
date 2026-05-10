@@ -1,5 +1,6 @@
 import { Controller, Inject, Get, Param, Del, Query } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
 import { Context } from '@midwayjs/koa';
 
 import {
@@ -51,7 +52,7 @@ export class SysJobLogController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:job:query'] })],
   })
   public async info(
-    @Valid(RuleType.number()) @Param('logId') logId: number
+    @Valid(Joi.number()) @Param('logId') logId: number
   ): Promise<Resp> {
     if (logId <= 0) {
       this.c.status = 422;
@@ -76,7 +77,7 @@ export class SysJobLogController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('logId') logId: string
+    @Valid(Joi.string().allow('')) @Param('logId') logId: string
   ): Promise<Resp> {
     if (logId === '') {
       this.c.status = 422;

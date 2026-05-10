@@ -1,5 +1,6 @@
 import { Controller, Inject, Get, Del, Query } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
 
 import {
   CACHE_SYS_CONFIG,
@@ -56,7 +57,7 @@ export class CacheController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:list'] })],
   })
   public async keys(
-    @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string
+    @Valid(Joi.string().required()) @Query('cacheName') cacheName: string
   ): Promise<Resp> {
     const cacheKeys = await this.redisCache.getKeys('', `${cacheName}:*`);
     const caches: SysCache[] = [];
@@ -73,8 +74,8 @@ export class CacheController {
     ],
   })
   public async value(
-    @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string,
-    @Valid(RuleType.string().required()) @Query('cacheKey') cacheKey: string
+    @Valid(Joi.string().required()) @Query('cacheName') cacheName: string,
+    @Valid(Joi.string().required()) @Query('cacheKey') cacheKey: string
   ): Promise<Resp> {
     const cacheValue = await this.redisCache.get(
       '',
@@ -114,7 +115,7 @@ export class CacheController {
     ],
   })
   public async cleanKeys(
-    @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string
+    @Valid(Joi.string().required()) @Query('cacheName') cacheName: string
   ): Promise<Resp> {
     if (cacheName.startsWith(CACHE_TOKEN_DEVICE)) {
       return Resp.errMsg('不能删除用户信息缓存');
@@ -134,8 +135,8 @@ export class CacheController {
     ],
   })
   public async clearCacheKey(
-    @Valid(RuleType.string().required()) @Query('cacheName') cacheName: string,
-    @Valid(RuleType.string().required()) @Query('cacheKey') cacheKey: string
+    @Valid(Joi.string().required()) @Query('cacheName') cacheName: string,
+    @Valid(Joi.string().required()) @Query('cacheKey') cacheKey: string
   ): Promise<Resp> {
     const num = await this.redisCache.del('', cacheName + ':' + cacheKey);
     if (num > 0) {

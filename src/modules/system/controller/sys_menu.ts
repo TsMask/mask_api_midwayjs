@@ -9,7 +9,8 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
 import { Context } from '@midwayjs/koa';
 
 import {
@@ -73,7 +74,7 @@ export class SysMenuController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:menu:query'] })],
   })
   public async info(
-    @Valid(RuleType.number()) @Param('menuId') menuId: number
+    @Valid(Joi.number()) @Param('menuId') menuId: number
   ): Promise<Resp> {
     if (menuId <= 0) {
       this.c.status = 422;
@@ -256,7 +257,7 @@ export class SysMenuController {
     ],
   })
   public async remove(
-    @Valid(RuleType.number()) @Param('menuId') menuId: number
+    @Valid(Joi.number()) @Param('menuId') menuId: number
   ): Promise<Resp> {
     if (menuId <= 0) {
       this.c.status = 422;

@@ -9,7 +9,8 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
 import { Context } from '@midwayjs/koa';
 
 import {
@@ -65,7 +66,7 @@ export class SysRoleController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:role:query'] })],
   })
   public async info(
-    @Valid(RuleType.number()) @Param('roleId') roleId: number
+    @Valid(Joi.number()) @Param('roleId') roleId: number
   ): Promise<Resp> {
     if (roleId <= 0) {
       this.c.status = 422;
@@ -206,7 +207,7 @@ export class SysRoleController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('roleId') roleId: string
+    @Valid(Joi.string().allow('')) @Param('roleId') roleId: string
   ): Promise<Resp> {
     if (roleId === '') {
       this.c.status = 422;
@@ -243,8 +244,8 @@ export class SysRoleController {
     ],
   })
   public async status(
-    @Valid(RuleType.number().required()) @Body('roleId') roleId: number,
-    @Valid(RuleType.string().required()) @Body('statusFlag') statusFlag: string
+    @Valid(Joi.number().required()) @Body('roleId') roleId: number,
+    @Valid(Joi.string().required()) @Body('statusFlag') statusFlag: string
   ): Promise<Resp> {
     // 检查是否管理员角色
     if (roleId === SYS_ROLE_SYSTEM_ID) {
@@ -283,17 +284,17 @@ export class SysRoleController {
     ],
   })
   public async dataScope(
-    @Valid(RuleType.number().required()) @Body('roleId') roleId: number,
-    @Valid(RuleType.array<number>()) @Body('deptIds') deptIds: number[],
+    @Valid(Joi.number().required()) @Body('roleId') roleId: number,
+    @Valid(Joi.array<number>()) @Body('deptIds') deptIds: number[],
     @Valid(
-      RuleType.string()
+      Joi.string()
         .pattern(/^[12345]$/)
         .required()
     )
     @Body('dataScope')
     dataScope: string,
     @Valid(
-      RuleType.string()
+      Joi.string()
         .pattern(/^[01]$/)
         .required()
     )
@@ -363,11 +364,11 @@ export class SysRoleController {
     ],
   })
   public async userAuthChecked(
-    @Valid(RuleType.number().required()) @Body('roleId') roleId: number,
-    @Valid(RuleType.array<number>().required())
+    @Valid(Joi.number().required()) @Body('roleId') roleId: number,
+    @Valid(Joi.array<number>().required())
     @Body('userIds')
     userIds: number[],
-    @Valid(RuleType.boolean().required()) @Body('auth') auth: boolean
+    @Valid(Joi.boolean().required()) @Body('auth') auth: boolean
   ): Promise<Resp> {
     if (userIds.length <= 0) {
       this.c.status = 422;

@@ -1,5 +1,6 @@
 import { Controller, Del, Get, Inject, Param, Query } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
 import { Context } from '@midwayjs/koa';
 
 import {
@@ -127,7 +128,7 @@ export class SysUserOnlineController {
     ],
   })
   public async logout(
-    @Valid(RuleType.string().allow('')) @Param('tokenId') tokenId: string
+    @Valid(Joi.string().allow('')) @Param('tokenId') tokenId: string
   ): Promise<Resp> {
     if (tokenId === '' || tokenId.indexOf('*') >= 0) {
       this.c.status = 422;

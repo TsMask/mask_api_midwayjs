@@ -425,7 +425,7 @@ export class RedisCache {
   public async rateLimit(
     source: string,
     limitKey: string,
-    time: number,
+    time: number
   ): Promise<number> {
     const rdb = await this.rdb(source);
     if (!rdb) return 0;
