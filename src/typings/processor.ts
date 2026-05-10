@@ -5,7 +5,7 @@ type ProcessorOptions = {
   /**定时任务调度表记录信息 */
   sysJob: {
     /**任务ID */
-    jobId: string;
+    jobId: number;
 
     /**任务名称 */
     jobName: string;

@@ -1,4 +1,4 @@
-import { Processor, IProcessor, Context } from '@midwayjs/bull';
+﻿import { Processor, IProcessor, Context } from '@midwayjs/bullmq';
 import { Inject } from '@midwayjs/core';
 
 /**Bar 队列任务处理 */
@@ -6,7 +6,7 @@ import { Inject } from '@midwayjs/core';
 export class BarProcessor implements IProcessor {
   /**上下文 */
   @Inject('ctx')
-  private c: Context;
+  private c!: Context;
 
   async execute(options: ProcessorOptions): Promise<ProcessorData> {
     const log = this.c.getLogger();
@@ -17,13 +17,12 @@ export class BarProcessor implements IProcessor {
     // options 获取任务执行时外部给到的参数数据
     // log 日志输出到bull配置的文件内
     // ctxJob 当前任务的上下文，可控制暂停进度等数据
-
     const { repeat, sysJob } = options;
 
     let i = 0;
     while (i < 10) {
       // 获取任务进度
-      const progress = await ctxJob.progress();
+      const progress = await ctxJob.progress;
       log.info('jonId: %d => 任务进度：%d', sysJob.jobId, progress);
       // 延迟响应
       await new Promise(r => setTimeout(r, 1000));
@@ -32,7 +31,7 @@ export class BarProcessor implements IProcessor {
         throw new Error('程序中途执行错误');
       }
       // 改变任务进度
-      await ctxJob.progress(i++);
+      await ctxJob.updateProgress(i++);
     }
 
     // 返回结果，用于记录执行结果

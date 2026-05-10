@@ -1,4 +1,5 @@
-import { Job, Framework } from '@midwayjs/bull';
+import { Framework } from '@midwayjs/bullmq';
+import { Job } from 'bullmq';
 import { Provide, Inject, Singleton, Init } from '@midwayjs/core';
 
 import { SysJob } from '../model/sys_job';
@@ -15,23 +16,23 @@ import { SysDictDataService } from '../../system/service/sys_dict_data';
 export class SysJobService {
   /**调度任务数据信息 */
   @Inject()
-  private sysJobRepository: SysJobRepository;
+  private sysJobRepository!: SysJobRepository;
 
   /**调度任务日志数据信息 */
   @Inject()
-  private sysJobLogRepository: SysJobLogRepository;
+  private sysJobLogRepository!: SysJobLogRepository;
 
   /**字典类型服务 */
   @Inject()
-  private sysDictTypeService: SysDictDataService;
+  private sysDictTypeService!: SysDictDataService;
 
   /**任务队列 */
   @Inject()
-  private bullFramework: Framework;
+  private bullFramework!: Framework;
 
   /**文件服务 */
   @Inject()
-  private fileUtil: FileUtil;
+  private fileUtil!: FileUtil;
 
   /**初始化 */
   @Init()
@@ -169,7 +170,7 @@ export class SysJobService {
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
     if (!queue) return false;
 
-    const jobId = sysJob.jobId;
+    const jobId = String(sysJob.jobId);
 
     // 判断是否给队列添加完成和失败的监听事件
     const completedOnCount = queue.listenerCount('completed');
@@ -228,21 +229,21 @@ export class SysJobService {
     }
 
     // 移除重复任务，在执行中的无法移除
-    const repeatableJobs = await queue.getRepeatableJobs();
+    const repeatableJobs = await queue.getJobSchedulers();
     for (const repeatable of repeatableJobs) {
       if (`${jobId}` === `${repeatable.id}`) {
-        await queue.removeRepeatableByKey(repeatable.key);
+        await queue.removeJobScheduler(`${repeatable.id}`);
       }
     }
     // 清除任务记录
-    await queue.clean(5000, 'active');
-    await queue.clean(5000, 'wait');
+    await queue.clean(5000, 10, 'active');
+    await queue.clean(5000, 10, 'wait');
 
     // 添加重复任务
     await queue.addJobToQueue(options, {
       jobId: jobId,
       repeat: {
-        cron: sysJob.cronExpression,
+        pattern: sysJob.cronExpression,
       },
     });
     return true;
@@ -261,15 +262,15 @@ export class SysJobService {
     const jobId = sysJob.jobId;
 
     // 移除重复任务，在执行中的无法移除
-    const repeatableJobs = await queue.getRepeatableJobs();
+    const repeatableJobs = await queue.getJobSchedulers();
     for (const repeatable of repeatableJobs) {
       if (`${jobId}` === `${repeatable.id}`) {
-        await queue.removeRepeatableByKey(repeatable.key);
+        await queue.removeJobScheduler(`${repeatable.id}`);
       }
     }
     // 清除任务记录
-    await queue.clean(5000, 'active');
-    await queue.clean(5000, 'wait');
+    await queue.clean(5000, 10, 'active');
+    await queue.clean(5000, 10, 'wait');
   }
 
   /**

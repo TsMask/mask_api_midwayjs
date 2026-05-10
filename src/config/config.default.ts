@@ -210,17 +210,17 @@ export default (): MidwayConfig => {
       },
     },
 
-    /**Bull 任务队列 http://www.midwayjs.org/docs/extensions/bull */
-    bull: {
-      defaultQueueOptions: {
-        redis: {
-          port: 6379,
-          host: '127.0.0.1',
-          password: '<redis password>',
-          db: 0,
-        },
-        prefix: 'bull_queue', // Redis key
-        // 默认的任务配置
+    /**BullMQ 任务队列 https://www.midwayjs.org/docs/extensions/bullmq */
+    bullmq: {
+      defaultConnection: {
+        port: 6379,
+        host: '127.0.0.1',
+        password: '<redis password>',
+        db: 0,
+      },
+      defaultPrefix: 'bull_queue', // Redis key
+       // 默认的任务配置
+       defaultQueueOptions: {
         defaultJobOptions: {
           // 成功后移除任务记录，最多保留最近 10 条记录
           removeOnComplete: 10,

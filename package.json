@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@midwayjs/bootstrap": "4.1.0",
-    "@midwayjs/bull": "4.1.0",
+    "@midwayjs/bullmq": "4.1.0",
     "@midwayjs/core": "4.1.0",
     "@midwayjs/cross-domain": "4.1.0",
     "@midwayjs/koa": "4.1.0",
