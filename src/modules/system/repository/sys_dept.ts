@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysDept } from '../model/sys_dept';
@@ -143,10 +144,10 @@ export class SysDeptRepository {
       sysDept.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysDept);
-    delete data.deptId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysDept>).deptId;
+    delete (data as Partial<SysDept>).delFlag;
+    delete (data as Partial<SysDept>).createBy;
+    delete (data as Partial<SysDept>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -155,7 +156,7 @@ export class SysDeptRepository {
       .set(data)
       .andWhere('dept_id = :deptId', { deptId: sysDept.deptId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -173,7 +174,7 @@ export class SysDeptRepository {
       .set({ delFlag: '1' })
       .andWhere('dept_id = :deptId', { deptId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -331,7 +332,7 @@ export class SysDeptRepository {
       .set("status_flag = '1'")
       .andWhere('dept_id in (:deptIds)', { deptIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -354,7 +355,7 @@ export class SysDeptRepository {
           .set({ ancestors: v.ancestors })
           .andWhere('dept_id = :deptId', { deptId: Number(v.deptId) })
           .execute();
-        totalAffected += tx.affected;
+        totalAffected += tx.affected ?? 0;
       }
     }
     return totalAffected;

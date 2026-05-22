@@ -25,7 +25,7 @@ import {
   MidwayInformationService,
   App,
 } from '@midwayjs/core';
-import { Application } from '@midwayjs/koa';
+import type { Application } from '@midwayjs/koa';
 
 import { parseDateToStr } from '../../../framework/utils/date/data';
 import { parseBit } from '../../../framework/utils/parse/parse';
@@ -70,7 +70,9 @@ export class SystemInfoService {
       runTime: Math.ceil((Date.now() - runTime) / 1000),
       homeDir: homedir(),
       cmd: process.cwd(),
-      execCommand: [].concat(process.argv, process.execArgv).join(' '),
+      execCommand: ([] as string[])
+        .concat(process.argv, process.execArgv)
+        .join(' '),
     };
   }
 
@@ -154,7 +156,7 @@ export class SystemInfoService {
       }
       const arr: string[] = [];
       const addrs = interfaces[v];
-      for (const v of addrs) {
+      for (const v of addrs!) {
         if (v.family === 'IPv6' && v.address.includes('::')) {
           arr.push('IPv6 ' + v.address);
         }

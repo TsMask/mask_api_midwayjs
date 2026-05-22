@@ -13,7 +13,7 @@ import {
 import { UploadFileInfo, UploadMiddleware } from '@midwayjs/busboy';
 import { Valid } from '@midwayjs/validation';
 import * as Joi from 'joi';
-import { Context } from '@midwayjs/koa';
+import type { Context } from '@midwayjs/koa';
 
 import {
   UPLOAD_COMMON,

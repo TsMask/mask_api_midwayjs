@@ -11,7 +11,7 @@ import {
 } from '@midwayjs/core';
 import { Valid } from '@midwayjs/validation';
 import * as Joi from 'joi';
-import { Context } from '@midwayjs/koa';
+import type { Context } from '@midwayjs/koa';
 
 import {
   validUsername,
@@ -121,7 +121,7 @@ export class SysUserController {
     if (userInfo.userId !== userId) {
       return Resp.errMsg('没有权限访问用户数据');
     }
-    delete userInfo.password;
+    delete (userInfo as Partial<SysUser>).password;
 
     // 角色ID组
     const roleIds = userInfo.roles.map(r => r.roleId);

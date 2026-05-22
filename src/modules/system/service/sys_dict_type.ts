@@ -240,10 +240,11 @@ export class SysDictTypeService {
     const m: Map<string, SysDictData[]> = new Map();
     for (const v of arr) {
       const key = v.dictType;
-      if (m[key]) {
-        m[key].push(v);
+      const existing = m.get(key);
+      if (existing) {
+        existing.push(v);
       } else {
-        m[key] = [v];
+        m.set(key, [v]);
       }
     }
 

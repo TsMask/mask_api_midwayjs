@@ -1,7 +1,7 @@
 import { Controller, Inject, Get, Param, Del, Query } from '@midwayjs/core';
 import { Valid } from '@midwayjs/validation';
 import * as Joi from 'joi';
-import { Context } from '@midwayjs/koa';
+import type { Context } from '@midwayjs/koa';
 
 import {
   parseNumber,

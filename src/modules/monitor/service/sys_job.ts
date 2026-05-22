@@ -9,6 +9,7 @@ import { SysJobLogRepository } from '../repository/sys_job_log';
 import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
 import { FileUtil } from '../../../framework/utils/file/file';
 import { SysDictDataService } from '../../system/service/sys_dict_data';
+import { ProcessorData, ProcessorOptions } from '../../../typings/processor';
 
 /**调度任务 服务层处理 */
 @Provide()

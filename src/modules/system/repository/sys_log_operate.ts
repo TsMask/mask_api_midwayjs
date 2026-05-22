@@ -4,6 +4,7 @@ import { DeleteResult, InsertResult } from 'typeorm';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
 import { SysLogOperate } from '../model/sys_log_operate';
+import { ResultSetHeader } from '../../../typings/commont';
 
 /**操作日志表 数据层处理 */
 @Provide()
@@ -165,6 +166,6 @@ export class SysLogOperateRepository {
       .delete()
       .from(SysLogOperate)
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 }

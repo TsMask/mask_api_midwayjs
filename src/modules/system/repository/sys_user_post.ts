@@ -47,7 +47,7 @@ export class SysUserPostRepository {
       const result: DeleteResult = await entityManager.delete(SysUserPost, {
         userId: In(userIds),
       });
-      return result.affected;
+      return result.affected ?? 0;
     }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
@@ -55,7 +55,7 @@ export class SysUserPostRepository {
       .from(SysUserPost)
       .andWhere('user_id in (:userIds)', { userIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

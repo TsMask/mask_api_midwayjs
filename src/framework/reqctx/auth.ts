@@ -19,7 +19,7 @@ import { isSystemUser } from './context';
 export function loginUser(c: Context): [UserInfo, string] {
   const value = c.getAttr<UserInfo>(CTX_LOGIN_USER);
   if (value && value.deptId) {
-    delete value.user.password;
+    delete (value.user as Partial<UserInfo['user']>).password;
     return [value, ''];
   }
   return [new UserInfo(), 'invalid login user information'];

@@ -1,5 +1,5 @@
 import { Provide, Singleton, App } from '@midwayjs/core';
-import { Application } from '@midwayjs/koa';
+import type { Application } from '@midwayjs/koa';
 
 /**Config全局配置 */
 @Provide()
@@ -17,7 +17,9 @@ export class GlobalConfig {
     try {
       return this.app.getConfig(key) as T;
     } catch (e) {
-      throw new Error(`获取配置信息异常, ${e.message}.`, { cause: e });
+      throw new Error(`获取配置信息异常, ${(e as Error).message}.`, {
+        cause: e,
+      });
     }
   }
 

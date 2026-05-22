@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
@@ -190,12 +191,12 @@ export class SysRoleRepository {
       sysRole.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysRole);
-    delete data.roleId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
-    delete data.deptIds;
-    delete data.menuIds;
+    delete (data as Partial<SysRole>).roleId;
+    delete (data as Partial<SysRole>).delFlag;
+    delete (data as Partial<SysRole>).createBy;
+    delete (data as Partial<SysRole>).createTime;
+    delete (data as Partial<SysRole>).deptIds;
+    delete (data as Partial<SysRole>).menuIds;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -204,7 +205,7 @@ export class SysRoleRepository {
       .set(data)
       .andWhere('role_id = :roleId', { roleId: sysRole.roleId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -222,7 +223,7 @@ export class SysRoleRepository {
       .set({ delFlag: '1' })
       .andWhere('role_id in (:roleIds)', { roleIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

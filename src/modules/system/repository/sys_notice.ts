@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
@@ -192,10 +193,10 @@ export class SysNoticeRepository {
       sysNotice.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysNotice);
-    delete data.noticeId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysNotice>).noticeId;
+    delete (data as Partial<SysNotice>).delFlag;
+    delete (data as Partial<SysNotice>).createBy;
+    delete (data as Partial<SysNotice>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -204,7 +205,7 @@ export class SysNoticeRepository {
       .set(data)
       .andWhere('notice_id = :noticeId', { noticeId: sysNotice.noticeId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -222,6 +223,6 @@ export class SysNoticeRepository {
       .set({ delFlag: '1' })
       .andWhere('notice_id in (:noticeIds)', { noticeIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 }

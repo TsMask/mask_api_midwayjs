@@ -1,5 +1,7 @@
-﻿import { Processor, IProcessor, Context } from '@midwayjs/bullmq';
+﻿import { Processor, IProcessor } from '@midwayjs/bullmq';
+import type { Context } from '@midwayjs/bullmq';
 import { Inject } from '@midwayjs/core';
+import { ProcessorData, ProcessorOptions } from '../../../typings/processor';
 
 /**Foo 队列任务处理 */
 @Processor('foo')

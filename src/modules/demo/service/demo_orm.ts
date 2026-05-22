@@ -1,6 +1,7 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { ResultSetHeader } from '../../../typings/commont';
 import { DemoORM } from '../model/demo_orm';
 
 /**
@@ -161,7 +162,7 @@ export class DemoORMService {
       .set(setColumns)
       .andWhere('id = :id', { id: item.id })
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 
   /**
@@ -179,7 +180,7 @@ export class DemoORMService {
       .from(DemoORM)
       .andWhere('id in (:ids)', { ids })
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 
   /**
@@ -192,6 +193,6 @@ export class DemoORMService {
       .delete()
       .from(DemoORM)
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 }

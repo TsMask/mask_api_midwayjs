@@ -4,7 +4,7 @@ import {
   MidwayWebRouterService,
   createMiddleware,
 } from '@midwayjs/core';
-import { NextFunction, Context } from '@midwayjs/koa';
+import { Context, NextFunction } from '@midwayjs/koa';
 
 import { SysLogOperateService } from '../../modules/system/service/sys_log_operate';
 import { SysLogOperate } from '../../modules/system/model/sys_log_operate';
@@ -125,7 +125,10 @@ export class OperateLog implements IMiddleware<Context, NextFunction> {
         c.path,
         c.method
       );
-      const funcName = `${routerInfo.controllerClz.name}.${routerInfo.method}`;
+      if (!routerInfo) {
+        return await next();
+      }
+      const funcName = `${routerInfo.controllerClz!.name}.${routerInfo.method}`;
 
       // 解析ip地址
       const ipaddr = clientIP(c.ip);
@@ -211,5 +214,5 @@ export class OperateLog implements IMiddleware<Context, NextFunction> {
  * @param options 操作日志参数
  */
 export function OperateLogMiddleware(options: Options) {
-  return createMiddleware(OperateLog, options, OperateLog.getName());
+  return createMiddleware(OperateLog as any, options, OperateLog.getName());
 }

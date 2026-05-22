@@ -47,7 +47,7 @@ export class SysUserRoleRepository {
       const result: DeleteResult = await entityManager.delete(SysUserRole, {
         userId: In(userIds),
       });
-      return result.affected;
+      return result.affected ?? 0;
     }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
@@ -55,7 +55,7 @@ export class SysUserRoleRepository {
       .from(SysUserRole)
       .andWhere('user_id IN (:...userIds)', { userIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -78,7 +78,7 @@ export class SysUserRoleRepository {
       .andWhere('role_id = :roleId', { roleId })
       .andWhere('user_id in (:userIds)', { userIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

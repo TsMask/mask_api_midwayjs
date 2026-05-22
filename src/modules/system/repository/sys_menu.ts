@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import {
   MENU_TYPE_AUTH,
@@ -169,10 +170,10 @@ export class SysMenuRepository {
       sysMenu.perms = '';
     }
     const data = Object.assign({}, sysMenu);
-    delete data.menuId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysMenu>).menuId;
+    delete (data as Partial<SysMenu>).delFlag;
+    delete (data as Partial<SysMenu>).createBy;
+    delete (data as Partial<SysMenu>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -181,7 +182,7 @@ export class SysMenuRepository {
       .set(data)
       .andWhere('menu_id = :menuId', { menuId: sysMenu.menuId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -199,7 +200,7 @@ export class SysMenuRepository {
       .set({ delFlag: '1' })
       .andWhere('menu_id = :menuId', { menuId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

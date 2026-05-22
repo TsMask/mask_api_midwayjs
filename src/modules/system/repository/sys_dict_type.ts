@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
@@ -181,10 +182,10 @@ export class SysDictTypeRepository {
       sysDictType.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysDictType);
-    delete data.dictId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysDictType>).dictId;
+    delete (data as Partial<SysDictType>).delFlag;
+    delete (data as Partial<SysDictType>).createBy;
+    delete (data as Partial<SysDictType>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -193,7 +194,7 @@ export class SysDictTypeRepository {
       .set(data)
       .andWhere('dict_id = :dictId', { dictId: sysDictType.dictId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -211,7 +212,7 @@ export class SysDictTypeRepository {
       .set({ delFlag: '1' })
       .andWhere('dict_id in (:dictIds)', { dictIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Inject, Put } from '@midwayjs/core';
 import { Valid } from '@midwayjs/validation';
 import * as Joi from 'joi';
-import { Context } from '@midwayjs/koa';
+import type { Context } from '@midwayjs/koa';
 
 import {
   validEmail,

@@ -4,6 +4,7 @@ import { DeleteResult, InsertResult } from 'typeorm';
 import { parseNumber } from '../../../framework/utils/parse/parse';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysJobLog } from '../model/sys_job_log';
+import { ResultSetHeader } from '../../../typings/commont';
 
 /**调度任务日志表 数据层处理 */
 @Provide()
@@ -177,7 +178,7 @@ export class SysJobLogRepository {
       .from(SysJobLog)
       .andWhere('log_id in (:logIds)', { logIds: logIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -192,6 +193,6 @@ export class SysJobLogRepository {
       .delete()
       .from(SysJobLog)
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 }

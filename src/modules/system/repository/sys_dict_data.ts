@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysDictData } from '../model/sys_dict_data';
@@ -158,10 +159,10 @@ export class SysDictDataRepository {
       sysDictData.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysDictData);
-    delete data.dataId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysDictData>).dataId;
+    delete (data as Partial<SysDictData>).delFlag;
+    delete (data as Partial<SysDictData>).createBy;
+    delete (data as Partial<SysDictData>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -170,7 +171,7 @@ export class SysDictDataRepository {
       .set(data)
       .andWhere('data_id = :dataId', { dataId: sysDictData.dataId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -188,7 +189,7 @@ export class SysDictDataRepository {
       .set({ delFlag: '1' })
       .andWhere('data_id in (:dataIds)', { dataIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -271,6 +272,6 @@ export class SysDictDataRepository {
       .set({ dictType: newDictType })
       .andWhere('dict_type = :oldDictType', { oldDictType })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 }

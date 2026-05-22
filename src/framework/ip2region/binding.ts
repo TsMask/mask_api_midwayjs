@@ -19,7 +19,7 @@ class Searcher {
   private _dbFile: any;
   private _vectorIndex: any;
   private _buffer: any;
-  constructor(dbFile, vectorIndex, buffer) {
+  constructor(dbFile: any, vectorIndex: any, buffer: any) {
     this._dbFile = dbFile;
     this._vectorIndex = vectorIndex;
     this._buffer = buffer;
@@ -29,7 +29,7 @@ class Searcher {
     }
   }
 
-  async [getStartEndPtr](idx, fd, ioStatus) {
+  async [getStartEndPtr](idx: any, fd: any, ioStatus: any) {
     if (this._vectorIndex) {
       const sPtr = this._vectorIndex.readUInt32LE(idx);
       const ePtr = this._vectorIndex.readUInt32LE(idx + 4);
@@ -42,14 +42,14 @@ class Searcher {
     }
   }
 
-  async [getBuffer](offset, length, fd, ioStatus) {
+  async [getBuffer](offset: any, length: any, fd: any, ioStatus: any) {
     if (this._buffer) {
       return this._buffer.subarray(offset, offset + length);
     } else {
       const buf = Buffer.alloc(length);
       return new Promise((resolve, reject) => {
         ioStatus.ioCount += 1;
-        fs.read(fd, buf, 0, length, offset, err => {
+        fs.read(fd, buf, 0, length, offset, (err: any) => {
           if (err) {
             reject(err);
           } else {
@@ -60,9 +60,9 @@ class Searcher {
     }
   }
 
-  [openFilePromise](fileName) {
+  [openFilePromise](fileName: any) {
     return new Promise((resolve, reject) => {
-      fs.open(fileName, 'r', (err, fd) => {
+      fs.open(fileName, 'r', (err: any, fd: any) => {
         if (err) {
           reject(err);
         } else {
@@ -72,7 +72,7 @@ class Searcher {
     });
   }
 
-  async search(ip) {
+  async search(ip: any) {
     const startTime = process.hrtime();
     const ioStatus = {
       ioCount: 0,
@@ -136,7 +136,7 @@ class Searcher {
   }
 }
 
-const _checkFile = dbPath => {
+const _checkFile = (dbPath: any) => {
   try {
     fs.accessSync(dbPath, fs.constants.F_OK);
   } catch (err) {
@@ -154,17 +154,17 @@ const _checkFile = dbPath => {
   }
 };
 
-const isValidIp = ip => {
+const isValidIp = (ip: any) => {
   return IP_REGEX.test(ip);
 };
 
-const newWithFileOnly = dbPath => {
+const newWithFileOnly = (dbPath: any) => {
   _checkFile(dbPath);
 
   return new Searcher(dbPath, null, null);
 };
 
-const newWithVectorIndex = (dbPath, vectorIndex) => {
+const newWithVectorIndex = (dbPath: any, vectorIndex: any) => {
   _checkFile(dbPath);
 
   if (!Buffer.isBuffer(vectorIndex)) {
@@ -174,7 +174,7 @@ const newWithVectorIndex = (dbPath, vectorIndex) => {
   return new Searcher(dbPath, vectorIndex, null);
 };
 
-const newWithBuffer = buffer => {
+const newWithBuffer = (buffer: any) => {
   if (!Buffer.isBuffer(buffer)) {
     throw new Error('buffer is invalid');
   }
@@ -182,7 +182,7 @@ const newWithBuffer = buffer => {
   return new Searcher(null, null, buffer);
 };
 
-const loadVectorIndexFromFile = dbPath => {
+const loadVectorIndexFromFile = (dbPath: any) => {
   const fd = fs.openSync(dbPath, 'r');
   const buffer = Buffer.alloc(VectorIndexLength);
   fs.readSync(fd, buffer, 0, VectorIndexLength, 256);
@@ -190,7 +190,7 @@ const loadVectorIndexFromFile = dbPath => {
   return buffer;
 };
 
-const loadContentFromFile = dbPath => {
+const loadContentFromFile = (dbPath: any) => {
   const stats = fs.statSync(dbPath);
   const buffer = Buffer.alloc(stats.size);
   const fd = fs.openSync(dbPath, 'r');

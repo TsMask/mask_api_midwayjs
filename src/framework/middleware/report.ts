@@ -1,5 +1,5 @@
 import { IMiddleware, Middleware } from '@midwayjs/core';
-import { NextFunction, Context } from '@midwayjs/koa';
+import { Context, NextFunction } from '@midwayjs/koa';
 
 /**请求响应日志-中间件 */
 @Middleware()
@@ -12,7 +12,7 @@ export class ReportMiddleware implements IMiddleware<Context, NextFunction> {
 
       // 计算请求处理时间，并打印日志
       const duration = Date.now() - c.startTime;
-      c.logger.info('\n访问接口: %s \n总耗时: %dms', c.path, duration);
+      c.logger.info(`总耗时: ${duration}ms 访问接口: ${c.path}`);
 
       return res;
     };

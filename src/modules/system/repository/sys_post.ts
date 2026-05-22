@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysPost } from '../model/sys_post';
@@ -158,10 +159,10 @@ export class SysPostRepository {
       sysPost.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysPost);
-    delete data.postId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysPost>).postId;
+    delete (data as Partial<SysPost>).delFlag;
+    delete (data as Partial<SysPost>).createBy;
+    delete (data as Partial<SysPost>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -170,7 +171,7 @@ export class SysPostRepository {
       .set(data)
       .andWhere('post_id = :postId', { postId: sysPost.postId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -188,7 +189,7 @@ export class SysPostRepository {
       .set({ delFlag: '1' })
       .andWhere('post_id in (:postIds)', { postIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

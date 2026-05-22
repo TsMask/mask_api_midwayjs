@@ -4,6 +4,7 @@ import { DeleteResult, InsertResult } from 'typeorm';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
 import { SysLogLogin } from '../model/sys_log_login';
+import { ResultSetHeader } from '../../../typings/commont';
 
 /**系统登录访问表 数据层处理 */
 @Provide()
@@ -153,6 +154,6 @@ export class SysLogLoginRepository {
       .delete()
       .from(SysLogLogin)
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 }

@@ -99,10 +99,14 @@ export class UserTokenService {
         return [jwtToken as Record<string, any>, ''];
       }
     } catch (e) {
-      console.error(e.name, '=>', e.message);
-      return [null, 'token invalid'];
+      console.error(
+        e instanceof Error ? e.name : 'Error',
+        '=>',
+        e instanceof Error ? e.message : String(e)
+      );
+      return [null as unknown as Record<string, any>, 'token invalid'];
     }
-    return [null, 'token valid error'];
+    return [null as unknown as Record<string, any>, 'token valid error'];
   }
 
   /**
@@ -195,7 +199,11 @@ export class UserTokenService {
         try {
           return JSON.parse(infoStr) as UserInfo;
         } catch (e) {
-          console.error(e.name, 'parse =>', e.message);
+          console.error(
+            e instanceof Error ? e.name : 'Error',
+            'parse =>',
+            e instanceof Error ? e.message : String(e)
+          );
         }
       }
     }

@@ -121,7 +121,7 @@ export class FileUtil {
       range: '',
       chunkSize: 0,
       fileSize: 0,
-      data: null,
+      data: null as Buffer | null,
     };
 
     // 文件大小

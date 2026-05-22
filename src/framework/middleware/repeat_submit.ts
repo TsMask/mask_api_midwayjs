@@ -4,7 +4,7 @@ import {
   MidwayWebRouterService,
   createMiddleware,
 } from '@midwayjs/core';
-import { NextFunction, Context } from '@midwayjs/koa';
+import { Context, NextFunction } from '@midwayjs/koa';
 
 import { CACHE_REPEAT_SUBMIT } from '../constants/cache_key';
 import { RedisCache } from '../datasource/redis/redis';
@@ -41,7 +41,10 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
         c.path,
         c.method
       );
-      const funcName = routerInfo.funcHandlerName;
+      if (!routerInfo) {
+        return await next();
+      }
+      const funcName = routerInfo.funcHandlerName!;
       // 唯一标识（指定key + 客户端IP + 请求地址）
       const funcMd5 = md5(`${clientIP(c.ip)}:${funcName}`);
       const cacheKey = `${CACHE_REPEAT_SUBMIT}:${funcMd5}`;
@@ -94,5 +97,9 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
  * @param interval 间隔时间(单位秒) 默认:5
  */
 export function RepeatSubmitMiddleware(interval = 5) {
-  return createMiddleware(RepeatSubmit, interval, RepeatSubmit.getName());
+  return createMiddleware(
+    RepeatSubmit as any,
+    interval,
+    RepeatSubmit.getName()
+  );
 }

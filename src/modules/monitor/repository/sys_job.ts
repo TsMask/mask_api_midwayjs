@@ -3,6 +3,7 @@ import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysJob } from '../model/sys_job';
+import { ResultSetHeader } from '../../../typings/commont';
 
 /**调度任务表 数据层处理 */
 @Provide()
@@ -161,9 +162,9 @@ export class SysJobRepository {
       sysJob.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysJob);
-    delete data.jobId;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysJob>).jobId;
+    delete (data as Partial<SysJob>).createBy;
+    delete (data as Partial<SysJob>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -172,7 +173,7 @@ export class SysJobRepository {
       .set(data)
       .andWhere('jobId = :jobId', { jobId: sysJob.jobId })
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 
   /**
@@ -190,7 +191,7 @@ export class SysJobRepository {
       .from(SysJob)
       .andWhere('jobId in (:jobIds)', { jobIds })
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 
   /**
