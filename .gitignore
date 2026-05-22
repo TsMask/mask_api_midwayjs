@@ -13,8 +13,6 @@ logs/
 npm-debug.log
 yarn-error.log
 node_modules/
-package-lock.json
-yarn.lock
 coverage/
 dist/
 .idea/
@@ -25,4 +23,16 @@ run/
 .tsbuildinfo
 .tsbuildinfo.*
 
+# mask ignore
 docs/
+package-lock.json
+yarn.lock
+
+
+# env file
+.env
+.env.local
+.env.development
+.env.production
+.env.*.local
+!.env.example
