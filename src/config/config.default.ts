@@ -1,10 +1,10 @@
 import { resolve, normalize, join } from 'node:path';
-import { MidwayConfig } from '@midwayjs/core';
+import { MidwayAppInfo, MidwayConfig } from '@midwayjs/core';
 import joi from '@midwayjs/validation-joi';
 
-export default (): MidwayConfig => {
+export default (appInfo: MidwayAppInfo): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级
-  const filePath = resolve(process.cwd(), '../mask_file');
+  const filePath = resolve(appInfo.appDir, '../mask_file');
   return {
     // use for cookie sign key, should change to your own and keep security
     keys: '1662290627179_89234',
@@ -12,7 +12,7 @@ export default (): MidwayConfig => {
     /**核心服务配置 http://www.midwayjs.org/docs/extensions/koa */
     koa: {
       /**服务端口 */
-      port: 6275,
+      port: Number(process.env.PORT),
       /**是否开启代理 */
       proxy: false,
     },
@@ -170,11 +170,11 @@ export default (): MidwayConfig => {
       /**令牌算法 HS256 HS384 HS512 */
       algorithm: 'HS512',
       /**令牌密钥 */
-      secret: 'abcdefghijklmnopqrstuvwxyz',
+      secret: process.env.JWT_SECRET,
       /**访问令牌有效期（默认15分钟） */
-      expiresIn: 15,
+      expiresIn: process.env.JWT_EXPIRES_IN,
       /**刷新令牌有效期（默认7*24*60分钟） */
-      refreshIn: 10080,
+      refreshIn: process.env.JWT_REFRESH_EXPIRES_IN,
     },
 
     /**TypeORM 数据源 https://midwayjs.org/docs/extensions/orm */
@@ -184,12 +184,12 @@ export default (): MidwayConfig => {
         default: {
           /**数据库类型 */
           type: 'mysql',
-          host: '127.0.0.1',
-          port: 3306,
-          username: '<mysql username>',
-          password: '<mysql password>',
-          database: '<mysql database>',
-          logging: false, // 输出sql日志
+          host: process.env.DB_HOST,
+          port: Number(process.env.DB_PORT),
+          username: process.env.DB_USERNAME,
+          password: process.env.DB_PASSWORD,
+          database: process.env.DB_DATABASE,
+          logging: process.env.DB_LOGGING === 'true', // 输出sql日志
           /**配置实体模型以扫描形式 */
           entities: ['modules/*/model/*{.ts,.js}'],
           /**连接池配置 */
@@ -206,22 +206,22 @@ export default (): MidwayConfig => {
     /**Redis 缓存数据 http://www.midwayjs.org/docs/extensions/redis */
     redis: {
       client: {
-        port: 6379,
-        host: '127.0.0.1',
-        password: '<redis password>',
-        db: 0,
+        port: Number(process.env.REDIS_PORT),
+        host: process.env.REDIS_HOST,
+        password: process.env.REDIS_PASSWORD,
+        db: Number(process.env.REDIS_DB),
       },
     },
 
     /**BullMQ 任务队列 https://www.midwayjs.org/docs/extensions/bullmq */
     bullmq: {
       defaultConnection: {
-        port: 6379,
-        host: '127.0.0.1',
-        password: '<redis password>',
-        db: 0,
+        port: Number(process.env.REDIS_PORT),
+        host: process.env.REDIS_HOST,
+        password: process.env.REDIS_PASSWORD,
+        db: Number(process.env.REDIS_DB),
       },
-      defaultPrefix: 'bull_queue', // Redis key
+      defaultPrefix: 'bullmq_queue', // Redis key
       // 默认的任务配置
       defaultQueueOptions: {
         defaultJobOptions: {
