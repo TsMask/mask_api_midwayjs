@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:24-alpine
 
 RUN npm config set registry https://registry.npmmirror.com
 
@@ -9,8 +9,7 @@ ENV LANG="en_US.UTF-8"
 ## 工作目录存放程序源码
 WORKDIR /app
 
-## 复制实际需要的文件到工作目录
-COPY ./assets ./assets
+# 复制项目文件
 COPY ./src ./src
 COPY ./bootstrap.js ./
 COPY ./package.json ./
@@ -29,5 +28,5 @@ EXPOSE 6275
 CMD ["npm", "run", "start:docker"]
 
 # 构建 约817MB
-# docker build -t mask_api:0.0.1 .
+# docker build -f script/Dockerfile -t mask_api:0.0.1 .
 # docker run -it mask_api:0.0.1 sh
