@@ -1,4 +1,4 @@
-import { resolve, normalize, join, extname } from 'node:path';
+import { normalize, join, extname } from 'node:path';
 
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { UploadFileInfo } from '@midwayjs/busboy';
@@ -18,6 +18,7 @@ import {
   UPLOAD_EXPORT,
   UPLOAD_IMPORT,
 } from '../../constants/upload_sub_path';
+import { assetsPath } from '../assets-path';
 import { replace } from '../regular/regular';
 import { parseDatePath } from '../date/data';
 import { readSheet, writeSheet } from './execl';
@@ -310,16 +311,16 @@ export class FileUtil {
 
   /**
    * 内部文件读取 assets 目录
-   * @param asserPath 内部文件相对地址，如：/template/excel/xxx.xlsx
+   * @param filePath 内部文件相对地址，如：/template/excel/xxx.xlsx
    * @return [文件读取流, 错误信息]
    */
-  async readAssetsFileStream(asserPath: string): Promise<[Buffer, string]> {
+  async readAssetsFileStream(filePath: string): Promise<[Buffer, string]> {
     // 检查文件允许访问
-    const err = this.isAllowRead(asserPath);
+    const err = this.isAllowRead(filePath);
     if (err) {
       return [Buffer.from(''), err];
     }
-    const absPath = resolve(__dirname, '../../../assets', asserPath);
+    const absPath = assetsPath(filePath);
     return await getFileStream(absPath);
   }
 

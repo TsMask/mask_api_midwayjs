@@ -10,7 +10,12 @@ export default {
   security: {
     csrf: {
       // 允许调用的域名地址的，例如：http://<Referer>/mask-api
-      refererWhiteList: ['Referer'],
+      refererWhiteList: [
+        'localhost:6275',
+        '127.0.0.1:6275',
+        'localhost:6265',
+        '127.0.0.1:6265',
+      ],
     },
   },
 

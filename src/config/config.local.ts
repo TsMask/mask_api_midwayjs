@@ -12,7 +12,12 @@ export default {
   security: {
     csrf: {
       // 允许调用的域名地址的，例如：http://192.168.56.101/mask-antd/
-      refererWhiteList: ['localhost:6265', '127.0.0.1:6265'],
+      refererWhiteList: [
+        'localhost:6275',
+        '127.0.0.1:6275',
+        'localhost:6265',
+        '127.0.0.1:6265',
+      ],
     },
   },
 

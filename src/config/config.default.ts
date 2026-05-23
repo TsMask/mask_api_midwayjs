@@ -1,6 +1,7 @@
 import { resolve, normalize, join } from 'node:path';
 import { MidwayAppInfo, MidwayConfig } from '@midwayjs/core';
 import joi from '@midwayjs/validation-joi';
+import { entities } from '../typings/entities';
 
 export default (appInfo: MidwayAppInfo): MidwayConfig => {
   // 程序资源文件路径，与项目目录同级
@@ -139,7 +140,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       csrf: {
         enable: true,
         type: 'referer',
-        refererWhiteList: ['127.0.0.1:6275'],
+        refererWhiteList: ['localhost:6275', '127.0.0.1:6275'],
       },
       xframe: {
         enable: true,
@@ -191,7 +192,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
           database: process.env.DB_DATABASE,
           logging: process.env.DB_LOGGING === 'true', // 输出sql日志
           /**配置实体模型以扫描形式 */
-          entities: ['modules/*/model/*{.ts,.js}'],
+          entities,
           /**连接池配置 */
           extra: {
             connectionLimit: 10,
