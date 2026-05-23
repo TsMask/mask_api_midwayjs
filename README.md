@@ -2,7 +2,7 @@
 
 [![star](https://gitee.com/TsMask/mask_api_midwayjs/badge/star.svg?theme=dark)](https://gitee.com/TsMask/mask_api_midwayjs/stargazers)
 ![Build Midwayjs](https://img.shields.io/badge/Build-Midway-green.svg)
-![Release V0.6.4](https://img.shields.io/badge/Release-V0.6.4-orange.svg)
+![Release V0.7.0](https://img.shields.io/badge/Release-V0.7.0-orange.svg)
 ![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 
 ## 介绍
@@ -48,33 +48,34 @@
 
 ```text
 mask_api_midwayjs
-├── assets                      目录-程序内部静态资源文件
-├── script                      目录-程序可用脚本
 ├── src                         目录-源代码
-├   ├── config                  目录-程序相关运行参数配置
-├   ├── framework               目录-程序核心通用代码
-├   ├── modules                 目录-业务模块
-├   ├   ├── system              目录-系统内部接口模块
-├   ├   ├   ├── controller      目录-接口路由控制层
-├   ├   ├   ├── model           目录-数据对象模型层
-├   ├   ├   ├── repository      目录-CURD数据存储层
-├   ├   ├   ├── service         目录-业务逻辑服务层
-├   ├   └── ...
-├   ├── typings                 目录-程序通用类型定义
-├   ├── configuration.ts        文件-程序框架启动入口
-├   └── interface.ts            文件-程序通用接口函数自定义声明
+│   ├── assets                  目录-程序内部静态资源文件
+│   ├── config                  目录-程序相关运行参数配置
+│   ├── framework               目录-程序核心通用代码
+│   │   ├── utils               目录-通用工具函数
+│   │   ├── ip2region           目录-IP归属地查询
+│   │   └── ...
+│   ├── modules                 目录-业务模块
+│   │   ├── system              目录-系统内部接口模块
+│   │   │   ├── controller      目录-接口路由控制层
+│   │   │   ├── model           目录-数据对象模型层
+│   │   │   ├── repository      目录-CURD数据存储层
+│   │   │   ├── service         目录-业务逻辑服务层
+│   │   │   └── middleware       目录-中间件
+│   │   └── ...
+│   ├── typings                 目录-程序通用类型定义
+│   ├── configuration.ts        文件-程序框架启动入口
+│   └── interface.ts            文件-程序通用接口函数自定义声明
+├── docs                        目录-项目文档
+├── script                      目录-数据库脚本与部署配置
 ├── test                        目录-测试单元
-├── .editorconfig
-├── .eslintrc.json
-├── .gitignore
-├── .prettierrc.js
+├── .env                        文件-本地环境变量配置（不提交）
+├── .env.example                文件-环境变量模板
 ├── bootstrap.js                文件-程序部署PM2启动运行入口
-├── jest.config.js
-├── LICENSE
+├── eslint.config.js            文件-ESLint代码规范配置
+├── jest.config.js              文件-单元测试配置
 ├── package.json                文件-程序依赖及启动命令信息
-├── README.en.md
-├── README.md
-└── tsconfig.json               文件-typescript配置
+└── tsconfig.json               文件-TypeScript编译配置
 ```
 
 ## 快速启动
@@ -85,15 +86,23 @@ mask_api_midwayjs
 
 | 技术 | 说明 | 版本 |
 | ---- | ---- | ---- |
-| Nodejs | node项目的运行环境 | 18+ |
+| Node.js | node项目的运行环境 | 24+ |
 | Redis | 缓存存储程序 | 6+ |
-| Mysql | 数据存储程序 | 8+ |
+| MySQL | 数据存储程序 | 8+ |
 
 程序可用脚本 `script` 目录内含初始化数据库SQL脚本文件
 
+### 环境变量
+
+复制 `.env.example` 为 `.env`，根据实际情况修改数据库、Redis、JWT等配置参数。
+
+```bash
+cp .env.example .env
+```
+
 ### 程序命令
 
-#### 本地开发-Window/Liunx
+#### 本地开发
 
 ```bash
 # 修改配置参数 /src/connfig/config.local.ts
@@ -103,7 +112,7 @@ npm run dev                 # 开发模式启动项目
 open http://localhost:6275  # 启动成功后得到服务访问地址
 ```
 
-#### 生产部署-Liunx
+#### 生产部署
 
 ```bash
 # 修改配置参数 /src/connfig/config.prod.ts
@@ -111,27 +120,30 @@ npm install             # 安装项目所需依赖
 npm run build           # 构建生产项目代码
 
 npm prune --omit=dev    # 清理开发依赖包，缩减生产环境体积大小（可选）
-npm install --omit=dev  # 重新安装生产依赖包（可选）
 
 npm run start           # 窗口当前启动项目
-npm run start:pm2       # PM2常驻启动项目（可选）
+npm run start:pm2       # PM2常驻启动项目（推荐）
 ```
-
-更多部署信息请移步 [Midway-启动和部署](http://www.midwayjs.org/docs/deployment)。
 
 #### 内置指令
 
-- 使用 `npm run lint` 来做代码风格检查。
-- 使用 `npm run lint:fix` 来做代码风格检查并修复格式。
-- 使用 `npm run ci` 来做代码盖率信息检查。
-- 使用 `npm run test` 来执行单元测试。
+| 命令 | 说明 |
+| ---- | ---- |
+| `npm run dev` | 开发模式启动 |
+| `npm run build` | TypeScript编译构建 |
+| `npm run start` | 生产模式启动 |
+| `npm run start:pm2` | PM2常驻启动 |
+| `npm run test` | 执行单元测试 |
+| `npm run cov` | 代码覆盖率检查 |
+| `npm run lint` | 代码风格检查 |
+| `npm run lint:fix` | 代码风格检查并修复 |
 
-> 有任何问题或者建议，可以在 [_Issues_](https://gitee.com/TsMask/mask_api_midwayjs/issues) 或通过QQ群：[_57242844_](https://jq.qq.com/?_wv=1027&k=z6Y4YQcB) 提出想法。  
+更多部署信息请移步 [Midway-启动和部署](http://www.midwayjs.org/docs/deployment)。
+
+> 有任何问题或者建议，可以在 [_Issues_](https://gitee.com/TsMask/mask_api_midwayjs/issues) 或通过QQ群：[_57242844_](https://jq.qq.com/?_wv=1027&k=z6Y4YQcB) 提出想法。
 > 如果觉得项目对您有帮助，可以来个Star ⭐
 
 ## 相关框架
-
-JAVA-**SpringBoot**
 
 | 名称 | 说明 | 地址 |
 | ---- | ---- | ---- |
