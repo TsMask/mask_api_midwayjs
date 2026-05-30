@@ -25,7 +25,7 @@ export class ErrorCatch {
     // 过滤已经知道的错误
     const errMsgs = [
       { k: 'QueryFailedError', v: '访问数据权限错误' },
-      { k: 'CSRFError', v: `无效 Referer ${c.header.referer || '未知'}` },
+      { k: 'CSRFError', v: '无效的请求来源' },
       { k: 'PayloadTooLargeError', v: '超出最大上传文件大小范围' },
       { k: 'MultipartInvalidFilenameError', v: '上传文件拓展格式不支持' },
     ];

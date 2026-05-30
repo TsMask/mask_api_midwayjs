@@ -118,7 +118,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       // 设置 Access-Control-Max-Age
       maxAge: 31536000,
       // 允许跨域的方法，【默认值】为 GET,HEAD,PUT,POST,DELETE,PATCH
-      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELET'],
+      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELETE'],
       // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
       allowHeaders: [
         'X-App-Code',
@@ -132,7 +132,9 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         'Range',
       ],
       // 设置 Access-Control-Expose-Headers 的值
-      exposeHeaders: ['"X-RepeatSubmit-Rest'],
+      exposeHeaders: ['X-RepeatSubmit-Rest'],
+      // 是否在执行报错的时候，把跨域的 header 信息写入到 error 对的 headers 属性中，【默认值】false
+      keepHeadersOnError: false,
     },
 
     /**安全 https://midwayjs.org/docs/extensions/security */
@@ -195,8 +197,10 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
           entities,
           /**连接池配置 */
           extra: {
-            connectionLimit: 10,
-            queueLimit: 0,
+            connectionLimit: 20, // 单进程最大连接数，配合PM2集群需留余量
+            queueLimit: 50, // 排队上限，超过直接报错而非无限等待
+            connectTimeout: 10000, // 建立连接超时 10秒，拿不到快速失败
+            idleTimeout: 300000, // 空闲连接 5分钟回收
           },
         },
       },
