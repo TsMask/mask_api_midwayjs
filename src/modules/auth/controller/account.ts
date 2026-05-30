@@ -56,7 +56,7 @@ export class AccountController {
 
   /**系统登录 */
   @Post('/auth/login', {
-    middleware: [RateLimitMiddleware({ time: 180, count: 15, type: LIMIT_IP })],
+    middleware: [RateLimitMiddleware({ time: 120, count: 12, type: LIMIT_IP })],
   })
   public async login(@Body() body: LoginBody): Promise<Resp> {
     // 当前请求信息
