@@ -168,7 +168,7 @@ export class SysDictDataController {
     // 检查字典键值唯一
     const uniqueValue = await this.sysDictDataService.checkUniqueTypeByValue(
       body.dictType,
-      body.dataLabel,
+      body.dataValue,
       body.dataId
     );
     if (!uniqueValue) {

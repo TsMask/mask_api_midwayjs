@@ -201,7 +201,7 @@ export class SysDictTypeService {
     let data: SysDictData[];
     const key = CACHE_SYS_DICT + ':' + dictType;
     const jsonStr = await this.redisCache.get('', key);
-    if (jsonStr.length > 7) {
+    if (jsonStr && jsonStr !== '' && jsonStr !== '[]') {
       data = JSON.parse(jsonStr);
     } else {
       const sysDictData = new SysDictData();
@@ -209,7 +209,6 @@ export class SysDictTypeService {
       sysDictData.dictType = dictType;
       data = await this.sysDictDataRepository.select(sysDictData);
       if (data.length > 0) {
-        await this.redisCache.del('', key);
         await this.redisCache.set('', key, JSON.stringify(data));
       }
     }
