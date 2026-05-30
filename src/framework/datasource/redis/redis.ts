@@ -430,22 +430,11 @@ export class RedisCache {
     const rdb = await this.rdb(source);
     if (!rdb) return 0;
 
-    // MULTI/EXEC 原子执行 INCR + EXPIRE
-    const results = await rdb
-      .multi()
-      .incr(limitKey)
-      .expire(limitKey, time)
-      .exec();
-    if (!results || results.length < 2) return 0;
-
-    // ioredis exec() returns [Error | null, Result][]
-    const [incrErr, incrResult] = results[0];
-    const [expireErr] = results[1];
-
-    if (incrErr || expireErr) {
-      return 0;
+    // INCR 后仅在 key 首次创建时设置过期时间，避免每次请求重置窗口
+    const count = await rdb.incr(limitKey);
+    if (count === 1) {
+      await rdb.expire(limitKey, time);
     }
-
-    return Number(incrResult);
+    return count;
   }
 }
