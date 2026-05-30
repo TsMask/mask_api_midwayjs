@@ -49,7 +49,7 @@ export class SysUser {
 
   /**密码 */
   @Rule(Joi.string().allow(''))
-  @Column({ name: 'password' })
+  @Column({ name: 'password', select: false })
   password: string;
 
   /**帐号状态（0停用 1正常） */

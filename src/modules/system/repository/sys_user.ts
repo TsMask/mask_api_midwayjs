@@ -290,7 +290,7 @@ export class SysUserRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s')
+      .select('s.user_id')
       .from(SysUser, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
@@ -327,11 +327,12 @@ export class SysUserRepository {
       return new SysUser();
     }
 
-    // 查询数据
+    // 查询数据（登录查询需要显式选择密码字段）
     const item = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
+      .addSelect('s.password')
       .from(SysUser, 's')
       .andWhere("s.user_name = :userName and s.del_flag = '0'", { userName })
       .getOne();
