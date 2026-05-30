@@ -48,6 +48,9 @@ export class UserTokenService {
     }
     // 生成令牌设置密钥
     let secret: string = this.config.get('jwt.secret');
+    if (!secret) {
+      return ['', 0];
+    }
     // 设置令牌过期时间
     const now = Math.round(Date.now() / 1000);
     let exp = now;
@@ -87,14 +90,30 @@ export class UserTokenService {
   ): Promise<[Record<string, any>, string]> {
     try {
       // 判断加密算法是预期的加密算法
+      const algorithm: string = this.config.get('jwt.algorithm');
+      let method: Algorithm;
+      switch (algorithm) {
+        case 'HS512':
+          method = 'HS512';
+          break;
+        case 'HS384':
+          method = 'HS384';
+          break;
+        case 'HS256':
+        default:
+          method = 'HS256';
+      }
       let secret: string = this.config.get('jwt.secret');
+      if (!secret) {
+        return [{}, 'jwt secret not configured'];
+      }
       if (tokenType === 'access') {
         secret = 'User_Access:' + secret;
       }
       if (tokenType === 'refresh') {
         secret = 'User_Refresh:' + secret;
       }
-      const jwtToken = verify(token, secret);
+      const jwtToken = verify(token, secret, { algorithms: [method] });
       if (jwtToken) {
         return [jwtToken as Record<string, any>, ''];
       }
@@ -104,9 +123,9 @@ export class UserTokenService {
         '=>',
         e instanceof Error ? e.message : String(e)
       );
-      return [null as unknown as Record<string, any>, 'token invalid'];
+      return [{}, 'token invalid'];
     }
-    return [null as unknown as Record<string, any>, 'token valid error'];
+    return [{}, 'token valid error'];
   }
 
   /**
