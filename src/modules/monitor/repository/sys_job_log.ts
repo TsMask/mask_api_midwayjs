@@ -79,6 +79,30 @@ export class SysJobLogRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
+
+    // 排序
+    // 排序，格式: sort=createTime,logId:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      jobName: 's.job_name',
+      jobGroup: 's.job_group',
+      statusFlag: 's.status_flag',
+      createTime: 's.create_time',
+      costTime: 's.cost_time',
+      logId: 's.log_id',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.log_id', 'DESC');
+    }
+
     const rows = await tx.getMany();
     return [rows, total];
   }

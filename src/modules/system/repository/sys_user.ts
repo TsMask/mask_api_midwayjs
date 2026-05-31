@@ -102,7 +102,32 @@ export class SysUserRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    const rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
+    // 排序，格式: sort=createTime,userName:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      userId: 's.user_id',
+      userName: 's.user_name',
+      nickName: 's.nick_name',
+      email: 's.email',
+      phone: 's.phone',
+      statusFlag: 's.status_flag',
+      deptId: 's.dept_id',
+      loginTime: 's.login_time',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.user_id', 'DESC');
+    }
+
+    const rows = await tx.getMany();
     return [rows, total];
   }
 

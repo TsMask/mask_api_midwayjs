@@ -97,35 +97,34 @@ export class SysLogOperateRepository {
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
-    // 排序
-    if (query.sortBy && query.sortOrder) {
-      const sortByArr = query.sortBy.split(',');
-      const sortOrderArr = query.sortOrder.split(',');
-      for (let i = 0; i < sortByArr.length; i++) {
-        const sortBy = sortByArr[i];
-        const sortOrder = sortOrderArr[i];
-        // 排序字段
-        let sort = 's.id';
-        if (sortBy === 'operaBy') {
-          sort = 's.opera_by';
-        } else if (sortBy === 'operaTime') {
-          sort = 's.opera_time';
-        } else if (sortBy === 'costTime') {
-          sort = 's.cost_time';
-        }
-        // 排序方式
-        let order: 'ASC' | 'DESC' = 'ASC';
-        if (sortOrder.startsWith('asc')) {
-          order = 'ASC';
-        } else if (sortOrder.startsWith('desc')) {
-          order = 'DESC';
-        }
-        tx.addOrderBy(sort, order);
+    // 排序，格式: sort=operaTime,operaBy:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      id: 's.id',
+      title: 's.title',
+      businessType: 's.business_type',
+      operaUrl: 's.opera_url',
+      operaUrlMethod: 's.opera_url_method',
+      operaIp: 's.opera_ip',
+      operaLocation: 's.opera_location',
+      operaMethod: 's.opera_method',
+      operaBy: 's.opera_by',
+      operaTime: 's.opera_time',
+      statusFlag: 's.status_flag',
+      costTime: 's.cost_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
       }
     } else {
       tx.addOrderBy('s.id', 'DESC');
     }
-    // 查询数据
+
     const rows = await tx.getMany();
     return [rows, total];
   }

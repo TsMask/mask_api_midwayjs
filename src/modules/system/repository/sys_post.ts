@@ -56,7 +56,29 @@ export class SysPostRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    const rows = await tx.addOrderBy('s.post_sort', 'ASC').getMany();
+    // 排序，格式: sort=postSort,postName:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      postId: 's.post_id',
+      postCode: 's.post_code',
+      postName: 's.post_name',
+      postSort: 's.post_sort',
+      statusFlag: 's.status_flag',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.post_sort', 'ASC');
+    }
+
+    const rows = await tx.getMany();
     return [rows, total];
   }
 

@@ -56,6 +56,29 @@ export class SysDictDataRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
+    // 排序，格式: sort=dataSort,dataLabel:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      dataId: 's.data_id',
+      dictType: 's.dict_type',
+      dataLabel: 's.data_label',
+      dataValue: 's.data_value',
+      dataSort: 's.data_sort',
+      statusFlag: 's.status_flag',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.data_sort', 'ASC');
+    }
+
     const rows = await tx.getMany();
     return [rows, total];
   }

@@ -84,6 +84,28 @@ export class SysNoticeRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
+    // 排序，格式: sort=createTime,noticeTitle:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      noticeId: 's.notice_id',
+      noticeTitle: 's.notice_title',
+      noticeType: 's.notice_type',
+      statusFlag: 's.status_flag',
+      createBy: 's.create_by',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.notice_id', 'DESC');
+    }
+
     const rows = await tx.getMany();
     return [rows, total];
   }
