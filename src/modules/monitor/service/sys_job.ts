@@ -100,13 +100,11 @@ export class SysJobService {
   public async update(sysJob: SysJob): Promise<number> {
     const rows = await this.sysJobRepository.update(sysJob);
     if (rows > 0) {
-      // 状态正常添加队列任务
+      // 更新时始终先移除旧的队列任务
+      await this.deleteQueueJob(sysJob);
+      // 状态正常时重新添加队列任务
       if (sysJob.statusFlag === STATUS_YES) {
         await this.insertQueueJob(sysJob, true);
-      }
-      // 状态禁用删除队列任务
-      if (sysJob.statusFlag === STATUS_NO) {
-        await this.deleteQueueJob(sysJob);
       }
     }
     return rows;
@@ -171,36 +169,36 @@ export class SysJobService {
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
     if (!queue) return false;
 
-    const jobId = String(sysJob.jobId);
+    // BullMQ v5 拒绝纯数字字符串和非三段式冒号格式作为自定义 jobId
+    const jobId = `job_${sysJob.jobId}`;
 
-    // 判断是否给队列添加完成和失败的监听事件
-    const completedOnCount = queue.listenerCount('completed');
-    if (completedOnCount === 0) {
-      // 添加完成监听
-      queue.addListener(
-        'completed',
-        async (job: Job, Result: ProcessorData) => {
-          // 读取任务信息进行保存日志
+    // BullMQ 的 completed/failed 事件由 Worker 发出，Queue 不会发出这些事件
+    const worker = this.bullFramework.getWorker(sysJob.invokeTarget);
+    if (worker) {
+      const completedOnCount = worker.listenerCount('completed');
+      if (completedOnCount === 0) {
+        worker.addListener(
+          'completed',
+          async (job: Job, Result: ProcessorData) => {
+            const jobLog = {
+              timestamp: job.timestamp,
+              data: job.data,
+              Result: Result,
+            };
+            await this.saveJobLog(jobLog, STATUS_YES);
+            await job.remove();
+          }
+        );
+        worker.addListener('failed', async (job: Job, error: Error) => {
           const jobLog = {
             timestamp: job.timestamp,
             data: job.data,
-            Result: Result,
+            Result: error,
           };
-          await this.saveJobLog(jobLog, STATUS_YES);
+          await this.saveJobLog(jobLog, STATUS_NO);
           await job.remove();
-        }
-      );
-      // 添加失败监听
-      queue.addListener('failed', async (job: Job, error: Error) => {
-        // 读取任务信息进行保存日志
-        const jobLog = {
-          timestamp: job.timestamp,
-          data: job.data,
-          Result: error,
-        };
-        await this.saveJobLog(jobLog, STATUS_NO);
-        await job.remove();
-      });
+        });
+      }
     }
 
     // 给执行任务数据参数
@@ -229,24 +227,42 @@ export class SysJobService {
       return isActive || isWaiting;
     }
 
-    // 移除重复任务，在执行中的无法移除
+    // 移除旧的调度器
     const repeatableJobs = await queue.getJobSchedulers();
     for (const repeatable of repeatableJobs) {
-      if (`${jobId}` === `${repeatable.id}`) {
-        await queue.removeJobScheduler(`${repeatable.id}`);
+      if (repeatable.key === jobId) {
+        await queue.removeJobScheduler(repeatable.key);
       }
     }
-    // 清除任务记录
-    await queue.clean(5000, 10, 'active');
-    await queue.clean(5000, 10, 'wait');
+
+    // 清除旧的单次执行任务（repeat 任务由 removeJobScheduler 自动清理）
+    const oldJobs = await queue.getJobs([
+      'active',
+      'wait',
+      'delayed',
+      'waiting-children',
+      'prioritized',
+    ]);
+    for (const oldJob of oldJobs) {
+      if (!oldJob.id) continue;
+      if (oldJob.id === jobId) {
+        await oldJob.remove();
+      }
+    }
 
     // 添加重复任务
-    await queue.addJobToQueue(options, {
-      jobId: jobId,
-      repeat: {
+    // 直接调用 upsertJobScheduler，用 jobId 作为调度器 ID
+    // 不能用 addJobToQueue，因为它会用队列名作为调度器 ID，导致 deleteQueueJob 无法匹配移除
+    await queue.upsertJobScheduler(
+      jobId,
+      {
         pattern: sysJob.cronExpression,
       },
-    });
+      {
+        name: sysJob.jobName,
+        data: options,
+      }
+    );
     return true;
   }
 
@@ -260,18 +276,33 @@ export class SysJobService {
     const queue = this.bullFramework.getQueue(sysJob.invokeTarget);
     if (!queue) return;
 
-    const jobId = sysJob.jobId;
+    const jobId = `job_${sysJob.jobId}`;
 
-    // 移除重复任务，在执行中的无法移除
+    // 移除调度器，停止未来的定时调度
+    // BullMQ v5 中 upsertJobScheduler 创建的调度器，key 字段才是调度器 ID
     const repeatableJobs = await queue.getJobSchedulers();
     for (const repeatable of repeatableJobs) {
-      if (`${jobId}` === `${repeatable.id}`) {
-        await queue.removeJobScheduler(`${repeatable.id}`);
+      if (repeatable.key === jobId) {
+        await queue.removeJobScheduler(repeatable.key);
       }
     }
-    // 清除任务记录
-    await queue.clean(5000, 10, 'active');
-    await queue.clean(5000, 10, 'wait');
+
+    // 获取所有未完成的任务并逐个移除
+    // 注意：repeat: 前缀的调度器任务不能直接 remove，由 removeJobScheduler 自动清理
+    // 这里只处理单次执行产生的任务
+    const jobs = await queue.getJobs([
+      'active',
+      'wait',
+      'delayed',
+      'waiting-children',
+      'prioritized',
+    ]);
+    for (const job of jobs) {
+      if (!job.id) continue;
+      if (job.id === jobId) {
+        await job.remove();
+      }
+    }
   }
 
   /**

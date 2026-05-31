@@ -30,7 +30,7 @@ export class BarProcessor implements IProcessor {
       await new Promise(r => setTimeout(r, 1000));
       // 程序中途执行错误
       if (i > 3) {
-        throw new Error('程序中途执行错误');
+        throw new Error(`jonId: ${sysJob.jobId} 任务中途执行错误`);
       }
       // 改变任务进度
       await ctxJob.updateProgress(i++);
