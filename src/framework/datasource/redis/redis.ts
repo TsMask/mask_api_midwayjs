@@ -430,9 +430,10 @@ export class RedisCache {
     const rdb = await this.rdb(source);
     if (!rdb) return 0;
 
-    // INCR 后仅在 key 首次创建时设置过期时间，避免每次请求重置窗口
+    // INCR 后检查 TTL，若 key 无过期时间则补设，自愈并发竞态导致的 key 永不过期
     const count = await rdb.incr(limitKey);
-    if (count === 1) {
+    const limitTime = await rdb.ttl(limitKey);
+    if (limitTime === -1) {
       await rdb.expire(limitKey, time);
     }
     return count;
