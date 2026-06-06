@@ -9,8 +9,9 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   parseNumber,
@@ -52,7 +53,7 @@ export class SysPostController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:post:query'] })],
   })
   public async info(
-    @Valid(RuleType.number()) @Param('postId') postId: number
+    @Valid(Joi.number()) @Param('postId') postId: number
   ): Promise<Resp> {
     if (postId <= 0) {
       this.c.status = 422;
@@ -169,7 +170,7 @@ export class SysPostController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('postId') postId: string
+    @Valid(Joi.string().allow('')) @Param('postId') postId: string
   ): Promise<Resp> {
     if (postId === '') {
       this.c.status = 422;

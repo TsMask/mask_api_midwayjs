@@ -1,6 +1,6 @@
 import { Context } from '@midwayjs/koa';
 import { Catch, HttpStatus } from '@midwayjs/core';
-import { MidwayValidationError } from '@midwayjs/validate';
+import { MidwayValidationError } from '@midwayjs/validation';
 
 import { Resp } from '../resp/api';
 import { CODE_PARAM_PARSER } from '../resp/code';

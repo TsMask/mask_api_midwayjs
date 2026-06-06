@@ -1,5 +1,5 @@
 import { IMiddleware, Middleware, createMiddleware } from '@midwayjs/core';
-import { NextFunction, Context } from '@midwayjs/koa';
+import { Context, NextFunction } from '@midwayjs/koa';
 
 import {
   SYS_PERMISSION_SYSTEM,
@@ -31,7 +31,7 @@ interface Options {
 /**用户身份授权认证校验-中间件 */
 @Middleware()
 export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
-  resolve(_: any, options: Options) {
+  resolve(_: any, options?: Options) {
     return async (c: Context, next: NextFunction) => {
       const token: UserTokenService =
         await c.requestContext.getAsync(UserTokenService);
@@ -91,7 +91,11 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
  * @param options 授权限制参数
  */
 export function AuthorizeUserMiddleware(options?: Options) {
-  return createMiddleware(AuthorizeUser, options, AuthorizeUser.getName());
+  return createMiddleware(
+    AuthorizeUser as any,
+    options,
+    AuthorizeUser.getName()
+  );
 }
 
 /**

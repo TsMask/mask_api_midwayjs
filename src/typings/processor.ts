@@ -1,11 +1,11 @@
 /**调度任务处理接收参数 */
-type ProcessorOptions = {
+export type ProcessorOptions = {
   /**触发执行cron重复多次 */
   repeat: boolean;
   /**定时任务调度表记录信息 */
   sysJob: {
     /**任务ID */
-    jobId: string;
+    jobId: number;
 
     /**任务名称 */
     jobName: string;
@@ -52,8 +52,7 @@ type ProcessorOptions = {
 };
 
 /**调度任务处理结果参数 */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ProcessorData = Partial<ProcessorOptions> & {
+export type ProcessorData = Partial<ProcessorOptions> & {
   /**其余自定义属性 */
   [key: string]: any;
 };

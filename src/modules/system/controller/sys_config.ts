@@ -9,8 +9,9 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   parseNumber,
@@ -59,7 +60,7 @@ export class SysConfigController {
     ],
   })
   public async info(
-    @Valid(RuleType.number().required()) @Param('configId') configId: number
+    @Valid(Joi.number().required()) @Param('configId') configId: number
   ): Promise<Resp> {
     if (configId <= 0) {
       this.c.status = 422;
@@ -164,7 +165,7 @@ export class SysConfigController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('configId') configId: string
+    @Valid(Joi.string().allow('')) @Param('configId') configId: string
   ) {
     if (configId === '') {
       this.c.status = 422;
@@ -211,7 +212,7 @@ export class SysConfigController {
     ],
   })
   public async configKey(
-    @Valid(RuleType.string().allow('')) @Param('configKey') configKey: string
+    @Valid(Joi.string().allow('')) @Param('configKey') configKey: string
   ): Promise<Resp> {
     if (configKey === '') {
       this.c.status = 422;

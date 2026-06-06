@@ -9,8 +9,9 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   parseCronExpression,
@@ -55,7 +56,7 @@ export class SysJobController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:job:query'] })],
   })
   public async info(
-    @Valid(RuleType.number()) @Param('jobId') jobId: number
+    @Valid(Joi.number()) @Param('jobId') jobId: number
   ): Promise<Resp> {
     if (jobId <= 0) {
       this.c.status = 422;
@@ -205,7 +206,7 @@ export class SysJobController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('jobId') jobId: string
+    @Valid(Joi.string().allow('')) @Param('jobId') jobId: string
   ): Promise<Resp> {
     if (jobId === '') {
       this.c.status = 422;
@@ -236,9 +237,9 @@ export class SysJobController {
     ],
   })
   public async status(
-    @Valid(RuleType.number().required()) @Body('jobId') jobId: number,
+    @Valid(Joi.number().required()) @Body('jobId') jobId: number,
     @Valid(
-      RuleType.string()
+      Joi.string()
         .required()
         .pattern(/^[01]$/)
     )
@@ -275,7 +276,7 @@ export class SysJobController {
     ],
   })
   public async run(
-    @Valid(RuleType.number()) @Param('jobId') jobId: number
+    @Valid(Joi.number()) @Param('jobId') jobId: number
   ): Promise<Resp> {
     if (jobId <= 0) {
       this.c.status = 422;

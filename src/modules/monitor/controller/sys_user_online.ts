@@ -1,13 +1,17 @@
 import { Controller, Del, Get, Inject, Param, Query } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
 } from '../../../framework/middleware/operate_log';
 import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { parseRemoveDuplicatesToArray } from '../../../framework/utils/parse/parse';
+import {
+  parseNumber,
+  parseRemoveDuplicatesToArray,
+} from '../../../framework/utils/parse/parse';
 import { CACHE_TOKEN_DEVICE } from '../../../framework/constants/cache_key';
 import { RedisCache } from '../../../framework/datasource/redis/redis';
 import { UserInfo } from '../../../framework/token/user_info';
@@ -39,78 +43,81 @@ export class SysUserOnlineController {
       AuthorizeUserMiddleware({ hasPerms: ['monitor:online:list'] }),
     ],
   })
-  public async list(
-    @Query('loginIp') loginIp: string,
-    @Query('userName') userName: string
-  ): Promise<Resp> {
-    // 获取所有在线用户key
+  public async list(@Query() query: Record<string, string>): Promise<Resp> {
+    // SCAN 获取所有 key（仅名称，10万级也很快）
     const keys = await this.redisCache.getKeys('', `${CACHE_TOKEN_DEVICE}:*`);
+    keys.sort(); // 排序保证顺序确定性
 
-    // 分批获取
-    const arr: string[] = [];
-    for (let i = 0; i < keys.length; i += 20) {
-      let end = i + 20;
-      if (end > keys.length) {
-        end = keys.length;
-      }
-      const chunk = keys.slice(i, end);
-      const values = await this.redisCache.getBatch('', chunk);
-      if (values.length > 0) {
-        arr.push(...values);
-      }
+    const total = keys.length;
+    if (total <= 0) {
+      return Resp.okData({ total: 0, rows: [] });
     }
 
-    // 遍历字符串信息解析组合可用对象
-    const userOnlines: SysUserOnline[] = [];
-    for (const str of arr) {
+    // 分页：只取当前页的 key，避免 10 万级全量 mget
+    const pn = Math.max(parseNumber(query.pageNum || '1'), 1);
+    const ps = Math.max(parseNumber(query.pageSize || '10'), 1);
+    const pageKeys = keys.slice((pn - 1) * ps, pn * ps);
+    const values = await this.redisCache.getBatch('', pageKeys);
+
+    // 解析当前页数据
+    let list: SysUserOnline[] = [];
+    for (const str of values) {
       if (!str) continue;
-
-      let info: UserInfo;
       try {
-        info = JSON.parse(str);
+        const info: UserInfo = JSON.parse(str);
+        const onlineUser =
+          await this.sysUserOnlineService.userInfoToUserOnline(info);
+        if (onlineUser.tokenId !== '') {
+          list.push(onlineUser);
+        }
       } catch {
-        continue;
-      }
-
-      const onlineUser =
-        await this.sysUserOnlineService.userInfoToUserOnline(info);
-      if (onlineUser.tokenId !== '') {
-        userOnlines.push(onlineUser);
+        // ignore invalid JSON
       }
     }
 
-    // 根据查询条件过滤
-    let filteredUserOnline: SysUserOnline[] = [];
-    if (loginIp && userName) {
-      for (const o of userOnlines) {
-        if (o.loginIp.includes(loginIp) && o.userName.includes(userName)) {
-          filteredUserOnline.push(o);
+    // 过滤
+    if (query.tokenId)
+      list = list.filter(o => o.tokenId.includes(query.tokenId));
+    if (query.userName)
+      list = list.filter(o => o.userName.includes(query.userName));
+    if (query.loginIp)
+      list = list.filter(o => o.loginIp.includes(query.loginIp));
+    if (query.deptName)
+      list = list.filter(o => o.deptName?.includes(query.deptName));
+    if (query.browser)
+      list = list.filter(o => o.browser.includes(query.browser));
+    if (query.os) list = list.filter(o => o.os.includes(query.os));
+
+    // 排序，格式: sort=loginTime,userName:asc（不加方向默认 DESC）
+    const sortFns: Record<
+      string,
+      (a: SysUserOnline, b: SysUserOnline) => number
+    > = {
+      tokenId: (a, b) => a.tokenId.localeCompare(b.tokenId),
+      userName: (a, b) => a.userName.localeCompare(b.userName),
+      loginIp: (a, b) => a.loginIp.localeCompare(b.loginIp),
+      deptName: (a, b) => (a.deptName ?? '').localeCompare(b.deptName ?? ''),
+      browser: (a, b) => a.browser.localeCompare(b.browser),
+      os: (a, b) => a.os.localeCompare(b.os),
+      loginTime: (a, b) => a.loginTime - b.loginTime,
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      list.sort((a, b) => {
+        for (const item of items) {
+          const [field, dir] = item.split(':');
+          const cmp = sortFns[field]?.(a, b) ?? 0;
+          if (cmp !== 0) return dir === 'asc' ? cmp : -cmp;
         }
-      }
-    } else if (loginIp) {
-      for (const o of userOnlines) {
-        if (o.loginIp.includes(loginIp)) {
-          filteredUserOnline.push(o);
-        }
-      }
-    } else if (userName) {
-      for (const o of userOnlines) {
-        if (o.userName.includes(userName)) {
-          filteredUserOnline.push(o);
-        }
-      }
+        return 0;
+      });
     } else {
-      filteredUserOnline = userOnlines;
+      list.sort((a, b) => b.loginTime - a.loginTime);
     }
-
-    // 按登录时间排序
-    filteredUserOnline = filteredUserOnline.sort(
-      (a, b) => b.loginTime - a.loginTime
-    );
 
     return Resp.okData({
-      total: filteredUserOnline.length,
-      rows: filteredUserOnline,
+      total,
+      rows: list,
     });
   }
 
@@ -127,7 +134,7 @@ export class SysUserOnlineController {
     ],
   })
   public async logout(
-    @Valid(RuleType.string().allow('')) @Param('tokenId') tokenId: string
+    @Valid(Joi.string().allow('')) @Param('tokenId') tokenId: string
   ): Promise<Resp> {
     if (tokenId === '' || tokenId.indexOf('*') >= 0) {
       this.c.status = 422;

@@ -10,9 +10,10 @@ import {
   Param,
   Post,
 } from '@midwayjs/core';
-import { UploadFileInfo } from '@midwayjs/upload';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { UploadFileInfo, UploadMiddleware } from '@midwayjs/busboy';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   UPLOAD_COMMON,
@@ -39,7 +40,7 @@ export class FileController {
     middleware: [AuthorizeUserMiddleware()],
   })
   public async download(
-    @Valid(RuleType.string().required()) @Param('filePath') filePath: string
+    @Valid(Joi.string().required()) @Param('filePath') filePath: string
   ) {
     if (filePath.length < 8) {
       this.c.status = 422;
@@ -83,10 +84,10 @@ export class FileController {
 
   /**上传文件 */
   @Post('/upload', {
-    middleware: [AuthorizeUserMiddleware()],
+    middleware: [AuthorizeUserMiddleware(), UploadMiddleware],
   })
   public async upload(
-    @Files('file') files: UploadFileInfo<string>[],
+    @Files('file') files: UploadFileInfo[],
     @Fields('subPath') subPath: string
   ) {
     if (files.length !== 1) {
@@ -114,7 +115,7 @@ export class FileController {
       return Resp.errMsg(err);
     }
 
-    await this.c.cleanupRequestFiles();
+    await this.c.cleanupRequestFiles?.();
     return Resp.okData({
       url: `//${this.c.host}${uploadFilePath}`,
       filePath: uploadFilePath,
@@ -129,9 +130,9 @@ export class FileController {
   })
   public async chunkCheck(
     /**唯一标识 */
-    @Valid(RuleType.string().required()) @Body('identifier') identifier: string,
+    @Valid(Joi.string().required()) @Body('identifier') identifier: string,
     /**文件名 */
-    @Valid(RuleType.string().required()) @Body('fileName') fileName: string
+    @Valid(Joi.string().required()) @Body('fileName') fileName: string
   ) {
     // 读取标识目录
     const [chunks, err] = await this.fileUtil.chunkCheckFile(
@@ -150,11 +151,11 @@ export class FileController {
   })
   public async chunkMerge(
     /**唯一标识 */
-    @Valid(RuleType.string().required()) @Body('identifier') identifier: string,
+    @Valid(Joi.string().required()) @Body('identifier') identifier: string,
     /**文件名 */
-    @Valid(RuleType.string().required()) @Body('fileName') fileName: string,
+    @Valid(Joi.string().required()) @Body('fileName') fileName: string,
     /**子路径类型 */
-    @Valid(RuleType.string().allow('')) @Body('subPath') subPath: string
+    @Valid(Joi.string().allow('')) @Body('subPath') subPath: string
   ) {
     // 子路径需要在指定范围内
     const ok = UPLOAD_SUB_PATH[subPath];
@@ -186,14 +187,14 @@ export class FileController {
 
   /**切片文件上传 */
   @Post('/chunk-upload', {
-    middleware: [AuthorizeUserMiddleware()],
+    middleware: [AuthorizeUserMiddleware(), UploadMiddleware],
   })
   public async chunkUpload(
     /**上传的文件 */
-    @Files('file') files: UploadFileInfo<string>[],
-    /**切片编号 */
+    @Files('file') files: UploadFileInfo[],
+    /**切片文件序号 */
     @Fields('index') index: string,
-    /**切片唯一标识 */
+    /**切片文件唯一标识 */
     @Fields('identifier') identifier: string
   ) {
     if (index === '' || identifier === '') {
@@ -219,7 +220,7 @@ export class FileController {
       this.c.status = 200;
       return Resp.errMsg(err);
     }
-    await this.c.cleanupRequestFiles();
+    await this.c.cleanupRequestFiles?.();
     this.c.status = 206;
     return Resp.okData(chunkFilePath);
   }

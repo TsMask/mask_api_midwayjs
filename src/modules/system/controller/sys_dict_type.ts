@@ -9,8 +9,9 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   parseNumber,
@@ -51,7 +52,7 @@ export class SysDictTypeController {
   @Get('/:dictId', {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:query'] })],
   })
-  public async info(@Valid(RuleType.number()) @Param('dictId') dictId: number) {
+  public async info(@Valid(Joi.number()) @Param('dictId') dictId: number) {
     if (dictId <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId is empty');
@@ -169,7 +170,7 @@ export class SysDictTypeController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('dictId') dictId: string
+    @Valid(Joi.string().allow('')) @Param('dictId') dictId: string
   ): Promise<Resp> {
     if (dictId === '') {
       this.c.status = 422;

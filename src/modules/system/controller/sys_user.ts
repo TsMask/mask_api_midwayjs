@@ -9,8 +9,9 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   validUsername,
@@ -92,7 +93,7 @@ export class SysUserController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:query'] })],
   })
   public async info(
-    @Valid(RuleType.number()) @Param('userId') userId: number
+    @Valid(Joi.number()) @Param('userId') userId: number
   ): Promise<Resp> {
     if (userId < 0) {
       this.c.status = 422;
@@ -120,7 +121,7 @@ export class SysUserController {
     if (userInfo.userId !== userId) {
       return Resp.errMsg('没有权限访问用户数据');
     }
-    delete userInfo.password;
+    delete (userInfo as Partial<SysUser>).password;
 
     // 角色ID组
     const roleIds = userInfo.roles.map(r => r.roleId);
@@ -321,7 +322,7 @@ export class SysUserController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('userId') userId: string
+    @Valid(Joi.string().allow('')) @Param('userId') userId: string
   ): Promise<Resp> {
     if (userId === '') {
       this.c.status = 422;
@@ -363,8 +364,8 @@ export class SysUserController {
     ],
   })
   public async password(
-    @Valid(RuleType.number().required()) @Body('userId') userId: number,
-    @Valid(RuleType.string().required()) @Body('password') password: string
+    @Valid(Joi.number().required()) @Body('userId') userId: number,
+    @Valid(Joi.string().required()) @Body('password') password: string
   ): Promise<Resp> {
     // 检查是否系统管理员用户
     if (this.config.isSystemUser(userId)) {
@@ -404,8 +405,8 @@ export class SysUserController {
     ],
   })
   public async status(
-    @Valid(RuleType.number().required()) @Body('userId') userId: number,
-    @Valid(RuleType.string().required()) @Body('statusFlag') statusFlag: string
+    @Valid(Joi.number().required()) @Body('userId') userId: number,
+    @Valid(Joi.string().required()) @Body('statusFlag') statusFlag: string
   ): Promise<Resp> {
     // 检查是否系统管理员用户
     if (this.config.isSystemUser(userId)) {
@@ -443,7 +444,7 @@ export class SysUserController {
     ],
   })
   public async unlock(
-    @Valid(RuleType.string().allow('')) @Param('userName') userName: string
+    @Valid(Joi.string().allow('')) @Param('userName') userName: string
   ): Promise<Resp> {
     if (!userName) {
       this.c.status = 422;
@@ -523,8 +524,8 @@ export class SysUserController {
     ],
   })
   public async import(
-    @Valid(RuleType.string().required()) @Body('filePath') filePath: string,
-    @Valid(RuleType.boolean().required()) @Body('update') update: boolean
+    @Valid(Joi.string().required()) @Body('filePath') filePath: string,
+    @Valid(Joi.boolean().required()) @Body('update') update: boolean
   ): Promise<Resp> {
     // 表格文件绝对地址
     const fileAbsPath = this.fileUtil.parseUploadFileAbsPath(filePath);

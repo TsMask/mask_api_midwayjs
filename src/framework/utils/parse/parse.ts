@@ -143,7 +143,9 @@ export function parseStringToObject(str: string): Record<string, any> | null {
       return obj as Record<string, any>;
     }
   } catch (error) {
-    console.error(`failed parse json "${str}": ${error.message}`);
+    console.error(
+      `failed parse json "${str}": ${error instanceof Error ? error.message : String(error)}`
+    );
   }
   return null;
 }
@@ -158,7 +160,9 @@ export function parseCronExpression(cron: string): number {
     const interval = CronExpressionParser.parse(cron);
     return interval.next().getTime();
   } catch (err) {
-    console.error(`failed parse cron "${cron}": ${err.message}`);
+    console.error(
+      `failed parse cron "${cron}": ${err instanceof Error ? err.message : String(err)}`
+    );
     return 0;
   }
 }
@@ -226,13 +230,13 @@ export function parseDataToTree<T>(
   const tree: T[] = [];
 
   for (const item of data) {
-    const parentId = item[fieldParentId];
+    const parentId = (item as any)[fieldParentId];
     // 分组
     const mapItem = map.get(parentId) ?? [];
     mapItem.push(item);
     map.set(parentId, mapItem);
     // 记录节点id
-    treeIds.push(item[fieldId]);
+    treeIds.push((item as any)[fieldId]);
   }
 
   for (const [key, value] of map) {
@@ -248,13 +252,13 @@ export function parseDataToTree<T>(
 
   /**闭包递归函数 */
   function componet(iterator: T) {
-    const id = iterator[fieldId];
+    const id = (iterator as any)[fieldId];
     const item = map.get(id);
     if (item) {
-      iterator[fieldChildren] = item;
+      (iterator as any)[fieldChildren] = item;
     }
-    if (iterator[fieldChildren]) {
-      for (const i of iterator[fieldChildren]) {
+    if ((iterator as any)[fieldChildren]) {
+      for (const i of (iterator as any)[fieldChildren]) {
         componet(i);
       }
     }

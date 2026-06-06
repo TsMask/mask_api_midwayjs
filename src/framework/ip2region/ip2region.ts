@@ -2,9 +2,8 @@
 
 // 读取xdb工具包
 import { loadContentFromFile, newWithBuffer } from './binding';
-import { resolve } from 'node:path';
-// 指定ip2region数据文件路径
-const dbPath = resolve(__dirname, '../../assets/ip2region.xdb');
+import { assetsPath } from "../utils/assets-path";
+const dbPath = assetsPath('ip2region.xdb');
 // 读取文件Buffer缓存
 const ip2regionBuffer = loadContentFromFile(dbPath);
 // 检索实例
@@ -31,7 +30,10 @@ export async function regionSearchByIp(ip: string): Promise<{
   try {
     data = await searcher.search(ip);
   } catch (e) {
-    console.error('failed to RegionSearchByIp err =>', e.message);
+    console.error(
+      'failed to RegionSearchByIp err =>',
+      e instanceof Error ? e.message : String(e)
+    );
   }
   return data;
 }
@@ -59,7 +61,10 @@ export async function realAddressByIp(ip: string): Promise<string> {
       return `${province} ${city}`;
     }
   } catch (e) {
-    console.error('failed to RealAddressByIp err =>', e.message);
+    console.error(
+      'failed to RealAddressByIp err =>',
+      e instanceof Error ? e.message : String(e)
+    );
   }
   // 未知IP
   return '未知';

@@ -4,7 +4,7 @@ import {
   MidwayWebRouterService,
   createMiddleware,
 } from '@midwayjs/core';
-import { NextFunction, Context } from '@midwayjs/koa';
+import { Context, NextFunction } from '@midwayjs/koa';
 
 import { CACHE_RATE_LIMIT } from '../constants/cache_key';
 import { loginUserToUserID } from '../reqctx/auth';
@@ -60,7 +60,10 @@ export class RateLimit implements IMiddleware<Context, NextFunction> {
         c.path,
         c.method
       );
-      const funcName = routerInfo.funcHandlerName;
+      if (!routerInfo) {
+        return await next();
+      }
+      const funcName = routerInfo.funcHandlerName!;
       // 生成限流key
       let limitKey = `${CACHE_RATE_LIMIT}:${md5(funcName)}`;
 
@@ -87,11 +90,7 @@ export class RateLimit implements IMiddleware<Context, NextFunction> {
       // 在Redis查询并记录请求次数
       const redisCacheServer: RedisCache =
         await c.requestContext.getAsync(RedisCache);
-      const rateCount = await redisCacheServer.rateLimit(
-        '',
-        limitKey,
-        time
-      );
+      const rateCount = await redisCacheServer.rateLimit('', limitKey, time);
       const rateTime = await redisCacheServer.getExpire('', limitKey);
 
       // 设置限流声明响应头
@@ -126,5 +125,5 @@ export class RateLimit implements IMiddleware<Context, NextFunction> {
  * @param options 限流参数
  */
 export function RateLimitMiddleware(options: RateLimitOptions) {
-  return createMiddleware(RateLimit, options, RateLimit.getName());
+  return createMiddleware(RateLimit as any, options, RateLimit.getName());
 }

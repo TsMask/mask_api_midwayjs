@@ -9,8 +9,9 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   parseNumber,
@@ -54,7 +55,7 @@ export class SysNoticeController {
     ],
   })
   public async info(
-    @Valid(RuleType.number()) @Param('noticeId') noticeId: number
+    @Valid(Joi.number()) @Param('noticeId') noticeId: number
   ): Promise<Resp> {
     if (noticeId <= 0) {
       this.c.status = 422;
@@ -137,7 +138,7 @@ export class SysNoticeController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('noticeId') noticeId: string
+    @Valid(Joi.string().allow('')) @Param('noticeId') noticeId: string
   ): Promise<Resp> {
     if (noticeId === '') {
       this.c.status = 422;

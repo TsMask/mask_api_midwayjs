@@ -9,8 +9,9 @@ import {
   Post,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   loginUserToDataScopeSQL,
@@ -43,10 +44,10 @@ export class SysDeptController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dept:list'] })],
   })
   public async list(
-    @Valid(RuleType.number()) @Query('deptId') deptId: number,
-    @Valid(RuleType.number()) @Query('parentId') parentId: number,
-    @Valid(RuleType.string()) @Query('deptName') deptName: string,
-    @Valid(RuleType.string().pattern(/^[01]$/))
+    @Valid(Joi.number()) @Query('deptId') deptId: number,
+    @Valid(Joi.number()) @Query('parentId') parentId: number,
+    @Valid(Joi.string()) @Query('deptName') deptName: string,
+    @Valid(Joi.string().pattern(/^[01]$/))
     @Query('statusFlag')
     statusFlag: string
   ): Promise<Resp> {
@@ -65,7 +66,7 @@ export class SysDeptController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dept:query'] })],
   })
   public async info(
-    @Valid(RuleType.number().required()) @Param('deptId') deptId: number
+    @Valid(Joi.number().required()) @Param('deptId') deptId: number
   ): Promise<Resp> {
     if (deptId <= 0) {
       this.c.status = 422;
@@ -218,7 +219,7 @@ export class SysDeptController {
     ],
   })
   public async remove(
-    @Valid(RuleType.number()) @Param('deptId') deptId: number
+    @Valid(Joi.number()) @Param('deptId') deptId: number
   ): Promise<Resp> {
     if (deptId <= 0) {
       this.c.status = 422;
@@ -255,7 +256,7 @@ export class SysDeptController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dept:list'] })],
   })
   public async excludeChild(
-    @Valid(RuleType.number()) @Param('deptId') deptId: number
+    @Valid(Joi.number()) @Param('deptId') deptId: number
   ): Promise<Resp> {
     if (deptId <= 0) {
       this.c.status = 422;
@@ -287,10 +288,10 @@ export class SysDeptController {
     ],
   })
   public async tree(
-    @Valid(RuleType.number().allow(0)) @Query('deptId') deptId: number,
-    @Valid(RuleType.number().allow(0)) @Query('parentId') parentId: number,
-    @Valid(RuleType.string().allow('')) @Query('deptName') deptName: string,
-    @Valid(RuleType.string().pattern(/^[01]$/))
+    @Valid(Joi.number().allow(0)) @Query('deptId') deptId: number,
+    @Valid(Joi.number().allow(0)) @Query('parentId') parentId: number,
+    @Valid(Joi.string().allow('')) @Query('deptName') deptName: string,
+    @Valid(Joi.string().pattern(/^[01]$/))
     @Query('statusFlag')
     statusFlag: string
   ): Promise<Resp> {
@@ -309,7 +310,7 @@ export class SysDeptController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:role:query'] })],
   })
   public async treeRole(
-    @Valid(RuleType.number().required()) @Param('roleId') roleId: number
+    @Valid(Joi.number().required()) @Param('roleId') roleId: number
   ): Promise<Resp> {
     if (roleId <= 0) {
       this.c.status = 422;

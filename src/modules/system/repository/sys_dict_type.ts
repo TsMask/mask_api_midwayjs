@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
@@ -78,6 +79,28 @@ export class SysDictTypeRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
+    // 排序，格式: sort=createTime,dictName:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      dictId: 's.dict_id',
+      dictName: 's.dict_name',
+      dictType: 's.dict_type',
+      statusFlag: 's.status_flag',
+      createBy: 's.create_by',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.dict_id', 'DESC');
+    }
+
     const rows = await tx.getMany();
     return [rows, total];
   }
@@ -181,10 +204,10 @@ export class SysDictTypeRepository {
       sysDictType.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysDictType);
-    delete data.dictId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysDictType>).dictId;
+    delete (data as Partial<SysDictType>).delFlag;
+    delete (data as Partial<SysDictType>).createBy;
+    delete (data as Partial<SysDictType>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -193,7 +216,7 @@ export class SysDictTypeRepository {
       .set(data)
       .andWhere('dict_id = :dictId', { dictId: sysDictType.dictId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -211,7 +234,7 @@ export class SysDictTypeRepository {
       .set({ delFlag: '1' })
       .andWhere('dict_id in (:dictIds)', { dictIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

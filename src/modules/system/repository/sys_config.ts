@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
@@ -78,6 +79,28 @@ export class SysConfigRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
+    // 排序，格式: sort=createTime,configName:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      configId: 's.config_id',
+      configName: 's.config_name',
+      configKey: 's.config_key',
+      configType: 's.config_type',
+      createBy: 's.create_by',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.config_id', 'DESC');
+    }
+
     const rows = await tx.getMany();
     return [rows, total];
   }
@@ -187,10 +210,10 @@ export class SysConfigRepository {
       sysConfig.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysConfig);
-    delete data.configId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysConfig>).configId;
+    delete (data as Partial<SysConfig>).delFlag;
+    delete (data as Partial<SysConfig>).createBy;
+    delete (data as Partial<SysConfig>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -199,7 +222,7 @@ export class SysConfigRepository {
       .set(data)
       .andWhere('config_id = :configId', { configId: sysConfig.configId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -217,7 +240,7 @@ export class SysConfigRepository {
       .set({ delFlag: '1' })
       .andWhere('config_id in (:configIds)', { configIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

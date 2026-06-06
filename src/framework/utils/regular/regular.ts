@@ -18,7 +18,7 @@ export function validHttp(s: string): boolean {
  */
 export function validUsername(s: string): boolean {
   if (!s) return false;
-  return /[a-z0-9A-Z]{3,}$/.test(s);
+  return /^[a-zA-Z0-9]{3,}$/.test(s);
 }
 
 /**

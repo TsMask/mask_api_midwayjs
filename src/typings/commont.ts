@@ -1,6 +1,5 @@
 /**列表信息查询分页 */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ListQueryPageOptions = {
+export type ListQueryPageOptions = {
   /**当前记录起始索引,默认1 */
   pageNum?: number;
 
@@ -15,8 +14,7 @@ type ListQueryPageOptions = {
  * ResultSetHeader 对象包含了一些额外的信息，例如影响的行数、警告状态等。
  * 来自：import { ResultSetHeader } from 'mysql2';
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ResultSetHeader = {
+export type ResultSetHeader = {
   affectedRows: number;
   fieldCount: number;
   info: string;

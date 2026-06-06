@@ -307,7 +307,9 @@ export class SysRoleService {
     const arr: Record<string, any>[] = [];
     for (const row of rows) {
       // 数据范围
-      let dataScope = ROLE_SCOPE_DATA[row.dataScope];
+      let dataScope = (ROLE_SCOPE_DATA as Record<string, string>)[
+        row.dataScope
+      ];
       if (!dataScope) {
         dataScope = '';
       }

@@ -24,7 +24,7 @@ export async function getFileSize(filePath: string): Promise<number> {
   let fileInfo: Stats;
   try {
     fileInfo = await stat(filePath);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`failed stat ${filePath} : ${error.message}`);
     return -1;
   }
@@ -41,7 +41,7 @@ export async function checkExists(filePath: string): Promise<string> {
   try {
     await access(filePath, constants.F_OK);
     return '';
-  } catch (error) {
+  } catch (error: any) {
     console.error(`failed access error: ${error.message}`);
     return error.message;
   }
@@ -56,13 +56,13 @@ export async function checkDirPathExists(dirPath: string): Promise<string> {
   try {
     await access(dirPath, constants.F_OK);
     return '';
-  } catch (error) {
+  } catch (error: any) {
     try {
       await mkdir(dirPath, { recursive: true });
       console.warn(`failed access to mkdir error: ${error.message}`);
       return '';
-    } catch (e) {
-      console.error(`failed mkdir error: ${e.message}`);
+    } catch (error: any) {
+      console.error(`failed mkdir error: ${error.message}`);
       return error.message;
     }
   }
@@ -85,7 +85,7 @@ export async function deleteFile(absPath: string): Promise<boolean> {
       await rmdir(absPath);
       return true;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`failed delete "${absPath}": ${error.message}`);
   }
   return false;
@@ -103,7 +103,7 @@ export async function getFileStream(
   startOffset = 0,
   endOffset = -1
 ): Promise<[Buffer, string]> {
-  let fd: FileHandle = null;
+  let fd: FileHandle | null = null;
   try {
     // 打开文件
     fd = await open(filePath, 'r');
@@ -125,9 +125,9 @@ export async function getFileStream(
     const buffer = Buffer.alloc(chunkSize);
     await fd.read(buffer, 0, chunkSize, startOffset);
     return [buffer, ''];
-  } catch (error) {
+  } catch (error: any) {
     console.error(`failed ${filePath} err: ${error.message}`);
-    return [null, error.message];
+    return [Buffer.from(''), error.message];
   } finally {
     if (fd) {
       await fd.close();
@@ -151,7 +151,7 @@ export async function getDirFileNameList(dirPath: string): Promise<string[]> {
       }
     }
     return fileNames;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`failed opendir "${dirPath}": ${error.message}`);
     return [];
   }
@@ -174,7 +174,7 @@ export async function writeBufferFile(
   // 写入到新路径文件
   try {
     await writeFile(filePath, buf);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`failed write file "${filePath}": ${error.message}`);
   }
   return filePath;
@@ -211,7 +211,7 @@ export async function transferToNewFile(
     const data = await readFile(filePath);
     await writeFile(newFilePath, data);
     return '';
-  } catch (error) {
+  } catch (error: any) {
     console.error(`failed transfer file "${newFilePath}": ${error.message}`);
     return error.message;
   }
@@ -258,7 +258,7 @@ export async function mergeToNewFile(
     // 写入新文件
     await writeFile(newFilePath, Buffer.concat(fileBuffers));
     return '';
-  } catch (error) {
+  } catch (error: any) {
     console.error(`failed merge file "${newFilePath}": ${error.message}`);
     return error.message;
   } finally {

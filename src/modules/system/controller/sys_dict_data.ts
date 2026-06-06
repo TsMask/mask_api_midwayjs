@@ -9,8 +9,9 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
-import { RuleType, Valid } from '@midwayjs/validate';
-import { Context } from '@midwayjs/koa';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
+import type { Context } from '@midwayjs/koa';
 
 import {
   parseNumber,
@@ -57,7 +58,7 @@ export class SysDictDataController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:query'] })],
   })
   public async info(
-    @Valid(RuleType.number()) @Param('dataId') dataId: number
+    @Valid(Joi.number()) @Param('dataId') dataId: number
   ): Promise<Resp> {
     if (dataId <= 0) {
       this.c.status = 422;
@@ -167,7 +168,7 @@ export class SysDictDataController {
     // 检查字典键值唯一
     const uniqueValue = await this.sysDictDataService.checkUniqueTypeByValue(
       body.dictType,
-      body.dataLabel,
+      body.dataValue,
       body.dataId
     );
     if (!uniqueValue) {
@@ -203,7 +204,7 @@ export class SysDictDataController {
     ],
   })
   public async remove(
-    @Valid(RuleType.string().allow('')) @Param('dataId') dataId: string
+    @Valid(Joi.string().allow('')) @Param('dataId') dataId: string
   ): Promise<Resp> {
     if (dataId === '') {
       this.c.status = 422;
@@ -227,7 +228,7 @@ export class SysDictDataController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:query'] })],
   })
   public async dictType(
-    @Valid(RuleType.string().allow('')) @Param('dictType') dictType: string
+    @Valid(Joi.string().allow('')) @Param('dictType') dictType: string
   ): Promise<Resp> {
     if (dictType === '') {
       this.c.status = 422;

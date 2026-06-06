@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysPost } from '../model/sys_post';
@@ -55,7 +56,29 @@ export class SysPostRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    const rows = await tx.addOrderBy('s.post_sort', 'ASC').getMany();
+    // 排序，格式: sort=postSort,postName:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      postId: 's.post_id',
+      postCode: 's.post_code',
+      postName: 's.post_name',
+      postSort: 's.post_sort',
+      statusFlag: 's.status_flag',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.post_sort', 'ASC');
+    }
+
+    const rows = await tx.getMany();
     return [rows, total];
   }
 
@@ -158,10 +181,10 @@ export class SysPostRepository {
       sysPost.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysPost);
-    delete data.postId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysPost>).postId;
+    delete (data as Partial<SysPost>).delFlag;
+    delete (data as Partial<SysPost>).createBy;
+    delete (data as Partial<SysPost>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -170,7 +193,7 @@ export class SysPostRepository {
       .set(data)
       .andWhere('post_id = :postId', { postId: sysPost.postId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -188,7 +211,7 @@ export class SysPostRepository {
       .set({ delFlag: '1' })
       .andWhere('post_id in (:postIds)', { postIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

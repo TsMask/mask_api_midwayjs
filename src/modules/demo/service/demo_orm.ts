@@ -1,6 +1,7 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { ResultSetHeader } from '../../../typings/commont';
 import { DemoORM } from '../model/demo_orm';
 
 /**
@@ -47,6 +48,27 @@ export class DemoORMService {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
+    // 排序，格式: sort=title:asc,createTime（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      id: 'd.id',
+      title: 'd.title',
+      ormType: 'd.orm_type',
+      statusFlag: 'd.status_flag',
+      createTime: 'd.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('d.id', 'DESC');
+    }
+
     const rows = await tx.getMany();
     return [rows, total];
   }
@@ -161,7 +183,7 @@ export class DemoORMService {
       .set(setColumns)
       .andWhere('id = :id', { id: item.id })
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 
   /**
@@ -179,7 +201,7 @@ export class DemoORMService {
       .from(DemoORM)
       .andWhere('id in (:ids)', { ids })
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 
   /**
@@ -192,6 +214,6 @@ export class DemoORMService {
       .delete()
       .from(DemoORM)
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 }

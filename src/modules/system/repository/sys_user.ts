@@ -14,6 +14,7 @@ import {
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysUser } from '../model/sys_user';
 import { bcryptHash } from '../../../framework/utils/crypto/bcrypt';
+import { ResultSetHeader } from '../../../typings/commont';
 
 /**用户表 数据层处理 */
 @Provide()
@@ -101,7 +102,32 @@ export class SysUserRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    const rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
+    // 排序，格式: sort=createTime,userName:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      userId: 's.user_id',
+      userName: 's.user_name',
+      nickName: 's.nick_name',
+      email: 's.email',
+      phone: 's.phone',
+      statusFlag: 's.status_flag',
+      deptId: 's.dept_id',
+      loginTime: 's.login_time',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.user_id', 'DESC');
+    }
+
+    const rows = await tx.getMany();
     return [rows, total];
   }
 
@@ -223,24 +249,24 @@ export class SysUserRepository {
       const password = await bcryptHash(sysUser.password);
       sysUser.password = password;
     } else {
-      delete sysUser.password;
+      delete (sysUser as Partial<SysUser>).password;
     }
     const data = Object.assign({}, sysUser);
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
-    delete data.dept;
-    delete data.roles;
-    delete data.roleId;
-    delete data.roleIds;
-    delete data.postIds;
+    delete (data as Partial<SysUser>).delFlag;
+    delete (data as Partial<SysUser>).createBy;
+    delete (data as Partial<SysUser>).createTime;
+    delete (data as Partial<SysUser>).dept;
+    delete (data as Partial<SysUser>).roles;
+    delete (data as Partial<SysUser>).roleId;
+    delete (data as Partial<SysUser>).roleIds;
+    delete (data as Partial<SysUser>).postIds;
     if (entityManager) {
       const result: UpdateResult = await entityManager.update(
         SysUser,
         { userId: sysUser.userId },
         data
       );
-      return result.affected;
+      return result.affected ?? 0;
     }
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -249,7 +275,7 @@ export class SysUserRepository {
       .set(data)
       .andWhere('user_id = :userId', { userId: sysUser.userId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -269,7 +295,7 @@ export class SysUserRepository {
         { userId: In(userIds) },
         { delFlag: '1' }
       );
-      return result.affected;
+      return result.affected ?? 0;
     }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
@@ -277,7 +303,7 @@ export class SysUserRepository {
       .set({ delFlag: '1' })
       .andWhere('user_id in (:userIds)', { userIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -289,7 +315,7 @@ export class SysUserRepository {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s')
+      .select('s.user_id')
       .from(SysUser, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
@@ -326,11 +352,12 @@ export class SysUserRepository {
       return new SysUser();
     }
 
-    // 查询数据
+    // 查询数据（登录查询需要显式选择密码字段）
     const item = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
+      .addSelect('s.password')
       .from(SysUser, 's')
       .andWhere("s.user_name = :userName and s.del_flag = '0'", { userName })
       .getOne();

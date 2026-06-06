@@ -95,10 +95,10 @@ export class SysUserService {
       roleMap = await this.sysRoleRepository.selectByUserIds(userIds);
     }
     for (const v of rows) {
-      delete v.password;
-      delete v.delFlag;
-      delete v.postIds;
-      v.dept = deptMap.get(v.deptId);
+      delete (v as Partial<SysUser>).password;
+      delete (v as Partial<SysUser>).delFlag;
+      delete (v as Partial<SysUser>).postIds;
+      v.dept = deptMap.get(v.deptId)!;
       v.roles = roleMap.get(v.userId) || [];
       v.roleIds = v.roles.map(r => r.roleId);
     }
@@ -139,7 +139,7 @@ export class SysUserService {
     const roleMap = await this.sysRoleRepository.selectByUserIds([
       userInfo.userId,
     ]);
-    userInfo.dept = deptMap.get(userInfo.deptId);
+    userInfo.dept = deptMap.get(userInfo.deptId)!;
     userInfo.roles = roleMap.get(userInfo.userId) || [];
     userInfo.roleIds = userInfo.roles.map(r => r.roleId);
     return userInfo;
@@ -340,7 +340,7 @@ export class SysUserService {
     const roleMap = await this.sysRoleRepository.selectByUserIds([
       userInfo.userId,
     ]);
-    userInfo.dept = deptMap.get(userInfo.deptId);
+    userInfo.dept = deptMap.get(userInfo.deptId)!;
     userInfo.roles = roleMap.get(userInfo.userId) || [];
     userInfo.roleIds = userInfo.roles.map(r => r.roleId);
     return userInfo;
@@ -377,10 +377,10 @@ export class SysUserService {
       roleMap = await this.sysRoleRepository.selectByUserIds(userIds);
     }
     for (const v of rows) {
-      delete v.password;
-      delete v.delFlag;
-      delete v.postIds;
-      v.dept = deptMap.get(v.deptId);
+      delete (v as Partial<SysUser>).password;
+      delete (v as Partial<SysUser>).delFlag;
+      delete (v as Partial<SysUser>).postIds;
+      v.dept = deptMap.get(v.deptId)!;
       v.roles = roleMap.get(v.userId) || [];
       v.roleIds = v.roles.map(r => r.roleId);
     }

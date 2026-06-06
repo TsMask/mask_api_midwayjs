@@ -3,6 +3,7 @@ import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysJob } from '../model/sys_job';
+import { ResultSetHeader } from '../../../typings/commont';
 
 /**调度任务表 数据层处理 */
 @Provide()
@@ -57,6 +58,29 @@ export class SysJobRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
+    // 排序，格式: sort=createTime,jobName:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      jobId: 's.job_id',
+      jobName: 's.job_name',
+      jobGroup: 's.job_group',
+      invokeTarget: 's.invoke_target',
+      statusFlag: 's.status_flag',
+      createBy: 's.create_by',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.job_id', 'DESC');
+    }
+
     const rows = await tx.getMany();
     return [rows, total];
   }
@@ -161,9 +185,9 @@ export class SysJobRepository {
       sysJob.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysJob);
-    delete data.jobId;
-    delete data.createBy;
-    delete data.createTime;
+    delete (data as Partial<SysJob>).jobId;
+    delete (data as Partial<SysJob>).createBy;
+    delete (data as Partial<SysJob>).createTime;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -172,7 +196,7 @@ export class SysJobRepository {
       .set(data)
       .andWhere('jobId = :jobId', { jobId: sysJob.jobId })
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 
   /**
@@ -190,7 +214,7 @@ export class SysJobRepository {
       .from(SysJob)
       .andWhere('jobId in (:jobIds)', { jobIds })
       .execute();
-    return tx.affected;
+    return tx.affected || 0;
   }
 
   /**

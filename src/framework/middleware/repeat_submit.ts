@@ -4,7 +4,7 @@ import {
   MidwayWebRouterService,
   createMiddleware,
 } from '@midwayjs/core';
-import { NextFunction, Context } from '@midwayjs/koa';
+import { Context, NextFunction } from '@midwayjs/koa';
 
 import { CACHE_REPEAT_SUBMIT } from '../constants/cache_key';
 import { RedisCache } from '../datasource/redis/redis';
@@ -12,6 +12,18 @@ import { clientIP } from '../ip2region/ip2region';
 import { diffSeconds } from '../utils/date/data';
 import { md5 } from '../utils/crypto/hash';
 import { Resp } from '../resp/api';
+
+/**递归排序对象键，保证 JSON.stringify 结果稳定 */
+function sortKeys(obj: any): any {
+  if (typeof obj !== 'object' || obj === null) return obj;
+  if (Array.isArray(obj)) return obj.map(sortKeys);
+  return Object.keys(obj)
+    .sort()
+    .reduce((acc: Record<string, any>, key) => {
+      acc[key] = sortKeys(obj[key]);
+      return acc;
+    }, {});
+}
 
 /**重复参数Redis格式数据类型 */
 type RepeatParamType = {
@@ -41,32 +53,38 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
         c.path,
         c.method
       );
-      const funcName = routerInfo.funcHandlerName;
+      if (!routerInfo) {
+        return await next();
+      }
+      const funcName = routerInfo.funcHandlerName!;
       // 唯一标识（指定key + 客户端IP + 请求地址）
       const funcMd5 = md5(`${clientIP(c.ip)}:${funcName}`);
       const cacheKey = `${CACHE_REPEAT_SUBMIT}:${funcMd5}`;
 
-      // 原子获取并删除上一次保存的请求时间和参数
       const redisCacheServer: RedisCache =
         await c.requestContext.getAsync(RedisCache);
-      const rpStr = await redisCacheServer.getDel('', cacheKey);
+      const rpStr = await redisCacheServer.get('', cacheKey);
       if (rpStr) {
-        const rpObj: RepeatParamType = JSON.parse(rpStr);
-        const compareTime = diffSeconds(Date.now(), rpObj.time);
-        const compareParams =
-          JSON.stringify(rpObj.params) === JSON.stringify(params);
-        // 设置重复提交声明响应头（毫秒）
-        c.set('X-RepeatSubmit-Rest', `${Date.now() + compareTime * 1000}`);
-        // 小于间隔时间 且 参数内容一致
-        if (compareTime < interval && compareParams) {
-          // 恢复key，因为已被getdel删除
-          await redisCacheServer.set('', cacheKey, rpStr, interval);
-          c.status = 200;
-          return Resp.errMsg('不允许重复提交，请稍候再试');
+        try {
+          const rpObj: RepeatParamType = JSON.parse(rpStr);
+          const elapsed = diffSeconds(Date.now(), rpObj.time);
+          const paramsMatch =
+            JSON.stringify(sortKeys(rpObj.params)) ===
+            JSON.stringify(sortKeys(params));
+          // 小于间隔时间 且 参数内容一致 → 视为重复提交
+          if (elapsed < interval && paramsMatch) {
+            // 响应头：可重试的时间点（毫秒）
+            const retryAt = rpObj.time + interval * 1000;
+            c.set('X-RepeatSubmit-Rest', `${retryAt}`);
+            c.status = 200;
+            return Resp.errMsg('不允许重复提交，请稍候再试');
+          }
+        } catch {
+          // 缓存数据损坏，忽略并继续放行
         }
       }
 
-      // 保存请求时间和参数
+      // 请求合法，保存当前请求时间和参数
       await redisCacheServer.set(
         '',
         cacheKey,
@@ -94,5 +112,9 @@ export class RepeatSubmit implements IMiddleware<Context, NextFunction> {
  * @param interval 间隔时间(单位秒) 默认:5
  */
 export function RepeatSubmitMiddleware(interval = 5) {
-  return createMiddleware(RepeatSubmit, interval, RepeatSubmit.getName());
+  return createMiddleware(
+    RepeatSubmit as any,
+    interval,
+    RepeatSubmit.getName()
+  );
 }

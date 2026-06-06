@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
@@ -87,7 +88,29 @@ export class SysRoleRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    const rows = await tx.addOrderBy('s.role_sort', 'ASC').getMany();
+    // 排序，格式: sort=roleSort,roleName:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      roleId: 's.role_id',
+      roleName: 's.role_name',
+      roleKey: 's.role_key',
+      roleSort: 's.role_sort',
+      statusFlag: 's.status_flag',
+      createTime: 's.create_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
+      }
+    } else {
+      tx.addOrderBy('s.role_sort', 'ASC');
+    }
+
+    const rows = await tx.getMany();
     return [rows, total];
   }
 
@@ -190,12 +213,12 @@ export class SysRoleRepository {
       sysRole.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysRole);
-    delete data.roleId;
-    delete data.delFlag;
-    delete data.createBy;
-    delete data.createTime;
-    delete data.deptIds;
-    delete data.menuIds;
+    delete (data as Partial<SysRole>).roleId;
+    delete (data as Partial<SysRole>).delFlag;
+    delete (data as Partial<SysRole>).createBy;
+    delete (data as Partial<SysRole>).createTime;
+    delete (data as Partial<SysRole>).deptIds;
+    delete (data as Partial<SysRole>).menuIds;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -204,7 +227,7 @@ export class SysRoleRepository {
       .set(data)
       .andWhere('role_id = :roleId', { roleId: sysRole.roleId })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -222,7 +245,7 @@ export class SysRoleRepository {
       .set({ delFlag: '1' })
       .andWhere('role_id in (:roleIds)', { roleIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

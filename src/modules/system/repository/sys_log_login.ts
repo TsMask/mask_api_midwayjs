@@ -4,6 +4,7 @@ import { DeleteResult, InsertResult } from 'typeorm';
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { parseNumber } from '../../../framework/utils/parse/parse';
 import { SysLogLogin } from '../model/sys_log_login';
+import { ResultSetHeader } from '../../../typings/commont';
 
 /**系统登录访问表 数据层处理 */
 @Provide()
@@ -86,35 +87,31 @@ export class SysLogLoginRepository {
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
-    // 排序
-    if (query.sortBy && query.sortOrder) {
-      const sortByArr = query.sortBy.split(',');
-      const sortOrderArr = query.sortOrder.split(',');
-      for (let i = 0; i < sortByArr.length; i++) {
-        const sortBy = sortByArr[i];
-        const sortOrder = sortOrderArr[i];
-        // 排序字段
-        let sort = 's.id';
-        if (sortBy === 'loginIp') {
-          sort = 's.login_ip';
-        } else if (sortBy === 'userName') {
-          sort = 's.user_name';
-        } else if (sortBy === 'createTime') {
-          sort = 's.create_time';
-        }
-        // 排序方式
-        let order: 'ASC' | 'DESC' = 'ASC';
-        if (sortOrder.startsWith('asc')) {
-          order = 'ASC';
-        } else if (sortOrder.startsWith('desc')) {
-          order = 'DESC';
-        }
-        tx.addOrderBy(sort, order);
+    // 排序，格式: sort=createTime,loginIp:asc（不加方向默认 DESC）
+    const columnMap: Record<string, string> = {
+      id: 's.id',
+      loginIp: 's.login_ip',
+      userName: 's.user_name',
+      loginLocation: 's.login_location',
+      browser: 's.browser',
+      os: 's.os',
+      statusFlag: 's.status_flag',
+      msg: 's.msg',
+      loginTime: 's.login_time',
+    };
+    if (query.sort) {
+      const items = query.sort.split(',');
+      for (const item of items) {
+        const [field, dir] = item.split(':');
+        const column = columnMap[field];
+        if (!column) continue;
+        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
+        tx.addOrderBy(column, order);
       }
     } else {
       tx.addOrderBy('s.id', 'DESC');
     }
-    // 查询数据
+
     const rows = await tx.getMany();
     return [rows, total];
   }
@@ -153,6 +150,6 @@ export class SysLogLoginRepository {
       .delete()
       .from(SysLogLogin)
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 }

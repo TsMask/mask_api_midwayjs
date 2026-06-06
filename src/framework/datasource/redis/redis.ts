@@ -425,27 +425,17 @@ export class RedisCache {
   public async rateLimit(
     source: string,
     limitKey: string,
-    time: number,
+    time: number
   ): Promise<number> {
     const rdb = await this.rdb(source);
     if (!rdb) return 0;
 
-    // MULTI/EXEC 原子执行 INCR + EXPIRE
-    const results = await rdb
-      .multi()
-      .incr(limitKey)
-      .expire(limitKey, time)
-      .exec();
-    if (!results || results.length < 2) return 0;
-
-    // ioredis exec() returns [Error | null, Result][]
-    const [incrErr, incrResult] = results[0];
-    const [expireErr] = results[1];
-
-    if (incrErr || expireErr) {
-      return 0;
+    // INCR 后检查 TTL，若 key 无过期时间则补设，自愈并发竞态导致的 key 永不过期
+    const count = await rdb.incr(limitKey);
+    const limitTime = await rdb.ttl(limitKey);
+    if (limitTime === -1) {
+      await rdb.expire(limitKey, time);
     }
-
-    return Number(incrResult);
+    return count;
   }
 }

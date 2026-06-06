@@ -1,0 +1,84 @@
+services:
+  # ---- 后端应用 ----
+  api:
+    container_name: mask_api:1.0.0
+    restart: always
+    ports:
+      - "6275:6275"
+    environment:
+      - NODE_ENV=production
+      - PORT=6275
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-25}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-10080}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-your-db-password}
+      - DB_DATABASE=${DB_DATABASE:-mask_api}
+      - DB_LOGGING=false
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-your-redis-password}
+      - REDIS_DB=0
+    volumes:
+      - mask_file:/app/mask_file
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - mask_net
+
+  # ---- MySQL 数据库 ----
+  mysql:
+    image: mysql:8.0
+    container_name: mask_mysql
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-your-db-password}
+      - MYSQL_DATABASE=${DB_DATABASE:-mask_api}
+      - MYSQL_CHARSET=utf8mb4
+      - TZ=Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mask_net
+
+  # ---- Redis 缓存 ----
+  redis:
+    image: redis:7-alpine
+    container_name: mask_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-your-redis-password}
+    volumes:
+      - redis_data:/data
+    networks:
+      - mask_net
+
+volumes:
+  mysql_data:/data/mysql
+  redis_data:/data/redis
+  mask_file:/data/mask_file
+
+networks:
+  mask_net:
+    driver: bridge
+
+# docker-compose up -d
+# docker-compose down
+# docker-compose logs -f app

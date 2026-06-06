@@ -1,5 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult } from 'typeorm';
+import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../framework/datasource/db/db';
 import { SysRoleMenu } from '../model/sys_role_menu';
@@ -45,7 +46,7 @@ export class SysRoleMenuRepository {
       .from(SysRoleMenu)
       .andWhere('role_id in (:roleIds)', { roleIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**
@@ -63,7 +64,7 @@ export class SysRoleMenuRepository {
       .from(SysRoleMenu)
       .andWhere('menu_id in (:menuIds)', { menuIds })
       .execute();
-    return tx.affected;
+    return tx.affected ?? 0;
   }
 
   /**

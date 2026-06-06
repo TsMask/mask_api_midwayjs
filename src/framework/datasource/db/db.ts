@@ -104,6 +104,11 @@ export class DynamicDataSource {
     if (size <= 0) {
       size = 10;
     }
+    
+    // 最大分页限制
+    if (size > 500) {
+      size = 500;
+    }
     return [num - 1, size];
   }
 }
