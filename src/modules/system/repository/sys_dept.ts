@@ -55,6 +55,7 @@ export class SysDeptRepository {
       tx.andWhere(filter.sql, filter.params);
     }
     // 查询数据
+    tx.addOrderBy('s.dept_sort', 'ASC');
     return await tx.getMany();
   }
 
