@@ -7,7 +7,7 @@ import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/author
 /**服务器监控信息 控制层处理 */
 @Controller('/api/v1/monitor')
 export class SystemInfoController {
-  /**在线用户服务 */
+  /**服务器系统相关信息服务 */
   @Inject()
   private systemInfoService: SystemInfoService;
 

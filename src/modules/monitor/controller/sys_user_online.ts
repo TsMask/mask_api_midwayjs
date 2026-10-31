@@ -18,8 +18,6 @@ import { UserTokenService } from '../../../internal/web/token/user_token';
 import { UserInfo } from '../../../internal/web/token/user_info';
 import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
 import { Resp } from '../../../internal/web/resp/api';
-import { SysUserOnlineService } from '../service/sys_user_online';
-import { SysUserOnline } from '../model/sys_user_online';
 
 /**在线用户信息 控制层处理 */
 @Controller('/api/v1/monitor/online-users')
@@ -33,9 +31,6 @@ export class SysUserOnlineController {
   @Inject()
   private token: UserTokenService;
 
-  @Inject()
-  private sysUserOnlineService: SysUserOnlineService;
-
   /**
    * 在线用户列表
    */
@@ -46,92 +41,45 @@ export class SysUserOnlineController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const keys = await this.redisCache.getKeys('', `${CACHE_TOKEN_SESSION}:*`);
+    keys.sort();
     if (keys.length === 0) {
       return Resp.okData({ total: 0, rows: [] });
     }
 
     const values = await this.redisCache.getBatch('', keys);
-    let list: SysUserOnline[] = [];
+    let list: Record<string, any>[] = [];
     for (const value of values) {
       if (!value) continue;
       try {
         const info = JSON.parse(value) as UserInfo;
-        const onlineUser =
-          await this.sysUserOnlineService.userInfoToUserOnline(info);
-        if (onlineUser.sessionId !== '') {
-          list.push(onlineUser);
+        if (info.sessionId !== '') {
+          list.push(this.userOnlineRow(info));
         }
       } catch {
         continue;
       }
     }
 
-    const sessionFilter = query.session_id || query.sessionId || query.tokenId;
-    const userNameFilter = query.user_name || query.userName;
-    const loginIpFilter = query.login_ip || query.loginIp;
-    const deptNameFilter = query.dept_name || query.deptName;
-    if (sessionFilter) {
-      list = list.filter(item => item.sessionId.includes(sessionFilter));
-    }
-    if (userNameFilter) {
-      list = list.filter(item => item.userName.includes(userNameFilter));
-    }
-    if (loginIpFilter) {
-      list = list.filter(item => item.loginIp.includes(loginIpFilter));
-    }
-    if (deptNameFilter) {
-      list = list.filter(item =>
-        (item.deptName ?? '').includes(deptNameFilter)
+    list = this.filterContains(list, 'device_id', query.device_id);
+    list = this.filterContains(list, 'session_id', query.session_id);
+    list = this.filterContains(list, 'user_name', query.user_name);
+    list = this.filterContains(list, 'login_ip', query.login_ip);
+    list = this.filterContains(list, 'login_location', query.login_location);
+    list = this.filterContains(list, 'login_browser', query.browser);
+    list = this.filterContains(list, 'login_os', query.os);
+
+    if (query.sort) {
+      const sort = query.sort;
+      list.sort((a, b) => this.compareUserOnline(a, b, sort));
+    } else {
+      list.sort(
+        (a, b) => parseNumber(b.login_time) - parseNumber(a.login_time)
       );
     }
-    if (query.browser) {
-      list = list.filter(item => item.browser.includes(query.browser));
-    }
-    if (query.os) {
-      list = list.filter(item => item.os.includes(query.os));
-    }
 
-    const sortFns: Record<
-      string,
-      (a: SysUserOnline, b: SysUserOnline) => number
-    > = {
-      session_id: (a, b) => a.sessionId.localeCompare(b.sessionId),
-      sessionId: (a, b) => a.sessionId.localeCompare(b.sessionId),
-      user_name: (a, b) => a.userName.localeCompare(b.userName),
-      userName: (a, b) => a.userName.localeCompare(b.userName),
-      login_ip: (a, b) => a.loginIp.localeCompare(b.loginIp),
-      loginIp: (a, b) => a.loginIp.localeCompare(b.loginIp),
-      dept_name: (a, b) => (a.deptName ?? '').localeCompare(b.deptName ?? ''),
-      deptName: (a, b) => (a.deptName ?? '').localeCompare(b.deptName ?? ''),
-      browser: (a, b) => a.browser.localeCompare(b.browser),
-      os: (a, b) => a.os.localeCompare(b.os),
-      login_time: (a, b) => a.loginTime - b.loginTime,
-      loginTime: (a, b) => a.loginTime - b.loginTime,
-    };
-    if (query.sort) {
-      const items = query.sort.split(',');
-      list.sort((a, b) => {
-        for (const item of items) {
-          const [field, direction] = item.split(':');
-          const compared = sortFns[field]?.(a, b) ?? 0;
-          if (compared !== 0) {
-            return direction === 'asc' ? compared : -compared;
-          }
-        }
-        return 0;
-      });
-    } else {
-      list.sort((a, b) => b.loginTime - a.loginTime);
-    }
-
-    const pageNum = Math.max(
-      parseNumber(query.pageNum || query.page_num || '1'),
-      1
-    );
-    const pageSize = Math.min(
-      Math.max(parseNumber(query.pageSize || query.page_size || '10'), 1),
-      500
-    );
+    const pageNum = Math.max(Math.trunc(parseNumber(query.page_num)), 1);
+    const parsedPageSize = Math.trunc(parseNumber(query.page_size));
+    const pageSize = parsedPageSize < 1 ? 10 : parsedPageSize;
     return Resp.okData({
       total: list.length,
       rows: list.slice((pageNum - 1) * pageSize, pageNum * pageSize),
@@ -161,5 +109,75 @@ export class SysUserOnlineController {
     const sessionIds = parseRemoveDuplicatesToArray(sessionId, ',');
     await this.token.removeBySessionIds(sessionIds);
     return Resp.ok();
+  }
+
+  /**将令牌信息转换为列表行 */
+  private userOnlineRow(info: UserInfo): Record<string, any> {
+    return {
+      session_id: info.sessionId,
+      device_id: info.deviceId,
+      user_id: info.userId,
+      user_name: info.userName,
+      login_ip: info.loginIp,
+      login_location: info.loginLocation,
+      login_browser: info.browser,
+      login_os: info.os,
+      login_time: info.loginTime,
+      role_keys: info.roleKeys,
+    };
+  }
+
+  /**按值模糊匹配保留命中的行 */
+  private filterContains(
+    list: Record<string, any>[],
+    key: string,
+    value: string
+  ): Record<string, any>[] {
+    if (!value) {
+      return list;
+    }
+    return list.filter(item => String(item[key]).includes(value));
+  }
+
+  /**多字段排序比较 */
+  private compareUserOnline(
+    a: Record<string, any>,
+    b: Record<string, any>,
+    sort: string
+  ): number {
+    const sortFns: Record<
+      string,
+      (x: Record<string, any>, y: Record<string, any>) => number
+    > = {
+      session_id: (x, y) => this.compareText(x.session_id, y.session_id),
+      device_id: (x, y) => this.compareText(x.device_id, y.device_id),
+      user_name: (x, y) => this.compareText(x.user_name, y.user_name),
+      login_ip: (x, y) => this.compareText(x.login_ip, y.login_ip),
+      login_location: (x, y) =>
+        this.compareText(x.login_location, y.login_location),
+      login_browser: (x, y) =>
+        this.compareText(x.login_browser, y.login_browser),
+      login_os: (x, y) => this.compareText(x.login_os, y.login_os),
+      login_time: (x, y) =>
+        parseNumber(x.login_time) - parseNumber(y.login_time),
+    };
+
+    for (const item of sort.split(',')) {
+      const trimmed = item.trim();
+      if (!trimmed) continue;
+      const [field, direction] = trimmed.split(':');
+      const compared = sortFns[field.trim()]?.(a, b) ?? 0;
+      if (compared !== 0) {
+        return direction.trim().toLowerCase() === 'asc' ? compared : -compared;
+      }
+    }
+    return 0;
+  }
+
+  /**文本比较 */
+  private compareText(a: any, b: any): number {
+    const left = String(a);
+    const right = String(b);
+    return left < right ? -1 : left > right ? 1 : 0;
   }
 }
