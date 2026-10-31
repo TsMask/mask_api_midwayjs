@@ -1,4 +1,4 @@
-import { Provide, Inject, Singleton, Init } from '@midwayjs/core';
+import { Provide, Inject, Singleton } from '@midwayjs/core';
 
 import { SysJob } from '../model/sys_job';
 import { SysJobLog } from '../model/sys_job_log';
@@ -9,9 +9,10 @@ import {
   STATUS_YES,
 } from '../../../internal/shared/constants/common';
 import { FileUtil } from '../../../internal/shared/file/file';
-import { CronManager } from '../../../internal/infra/cron/cron_manager';
+import { CronManager } from '../../../internal/infra/cron/cron';
+import { CronJobState } from '../../../internal/infra/cron/job';
+import type { JobLogRecord } from '../../../internal/infra/cron/log';
 import { SysDictDataService } from '../../system/service/sys_dict_data';
-import type { ProcessorOptions } from '../../../typings/processor';
 
 /**调度任务 服务层处理 */
 @Provide()
@@ -36,22 +37,6 @@ export class SysJobService {
   /**文件服务 */
   @Inject()
   private fileUtil!: FileUtil;
-
-  /**初始化 */
-  @Init()
-  public async init() {
-    // 引擎与业务解耦：执行事件统一交给持久化钩子处理。
-    this.cronManager.setOnJobLog(async record => {
-      await this.saveJobLog(
-        {
-          timestamp: record.timestamp,
-          data: record.data,
-          Result: record.result,
-        },
-        record.status
-      );
-    });
-  }
 
   /**
    * 分页查询
@@ -176,13 +161,14 @@ export class SysJobService {
     sysJob: SysJob,
     repeat: boolean
   ): Promise<boolean> {
-    return await this.cronManager.run({
-      queue: sysJob.jobInvokeTarget,
+    const queue = this.cronManager.getQueue<SysJob>(sysJob.jobInvokeTarget);
+    if (!queue) return false;
+    const state = await queue.runJob(sysJob, {
       id: String(sysJob.id),
       cron: repeat ? sysJob.jobCron : undefined,
-      data: { repeat, sysJob },
       concurrent: sysJob.jobConcurrent === '1',
     });
+    return state === CronJobState.Waiting || state === CronJobState.Active;
   }
 
   /**
@@ -191,7 +177,9 @@ export class SysJobService {
    * @returns 结果
    */
   private async deleteQueueJob(sysJob: SysJob): Promise<void> {
-    await this.cronManager.remove(sysJob.jobInvokeTarget, String(sysJob.id));
+    await this.cronManager
+      .getQueue<SysJob>(sysJob.jobInvokeTarget)
+      ?.removeJob(String(sysJob.id));
   }
 
   /**
@@ -200,16 +188,9 @@ export class SysJobService {
    * @param status 日志状态
    * @returns
    */
-  private async saveJobLog(
-    jld: {
-      timestamp: number;
-      data: ProcessorOptions;
-      Result: any;
-    },
-    status: string
-  ) {
+  public async saveJobLog(jld: JobLogRecord<SysJob>) {
     // 读取任务信息
-    const sysJob = jld.data.sysJob;
+    const sysJob = jld.data;
 
     // 任务日志不需要记录
     if (sysJob.jobSaveLog === '' || sysJob.jobSaveLog === STATUS_NO) {
@@ -218,16 +199,16 @@ export class SysJobService {
 
     // 结果信息key的Name
     let resultName = 'failed';
-    if (status === STATUS_YES) {
+    if (jld.status === STATUS_YES) {
       resultName = 'completed';
     }
 
     // 结果信息序列化字符串
     let jobMsg = JSON.stringify({
-      cron: jld.data.sysJob.jobCron,
-      invoke_target: jld.data.sysJob.jobInvokeTarget,
+      cron: sysJob.jobCron,
+      invoke_target: sysJob.jobInvokeTarget,
       result: resultName,
-      message: jld.Result,
+      message: jld.result,
     });
     if (jobMsg.length >= 2048) {
       jobMsg = jobMsg.substring(0, 2048);
@@ -240,7 +221,7 @@ export class SysJobService {
     sysJobLog.jobGroup = sysJob.jobGroup;
     sysJobLog.jobInvokeTarget = sysJob.jobInvokeTarget;
     sysJobLog.jobTargetParams = sysJob.jobTargetParams;
-    sysJobLog.logStatus = status;
+    sysJobLog.logStatus = jld.status;
     sysJobLog.logMsg = jobMsg;
     sysJobLog.logCostTime = now - jld.timestamp;
     sysJobLog.createTime = now;

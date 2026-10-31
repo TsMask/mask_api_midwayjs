@@ -3,13 +3,14 @@ import {
   Inject,
   type IMidwayApplication,
   type IMidwayContainer,
-  type LifeCycleInvokeOptions,
 } from '@midwayjs/core';
 import * as bullmq from '@midwayjs/bullmq';
 
-import { CronManager } from '../../internal/infra/cron/cron_manager';
-import { MonitorCronProcessors } from './service/cron_processors';
+import { CronManager } from '../../internal/infra/cron/cron';
 import { SysJobService } from './service/sys_job';
+import { basic } from './processors/examples/basic';
+import { progress } from './processors/examples/progress';
+import { errorProcessor } from './processors/examples/error';
 
 @Configuration({
   imports: [bullmq],
@@ -19,27 +20,33 @@ export class JobModule {
   private cronManager!: CronManager;
 
   @Inject()
-  private jobCronProcessors!: MonitorCronProcessors;
-
-  @Inject()
   private sysJobService!: SysJobService;
 
   async onServerReady(
     _: IMidwayContainer,
-    app: IMidwayApplication,
-    __?: LifeCycleInvokeOptions
+    app: IMidwayApplication
   ): Promise<void> {
-    this.cronManager.setOnError(event => {
+    // 引擎与业务解耦：执行事件统一交给持久化钩子处理。
+    this.cronManager.setOnJobLog(async record => {
+      await this.sysJobService.saveJobLog(record);
+    });
+    this.cronManager.setOnEngineError(event => {
       app
         .getLogger()
         .error(
-          'cron task error queue=%s id=%s message=%s',
+          'cron engine error queue=%s id=%s message=%s',
           event.queue,
           event.id,
-          event.message
+          event.error.message
         );
     });
-    this.jobCronProcessors.register();
+
+    this.cronManager.createQueue('test_job', basic);
+    this.cronManager.createQueue('test_progress', progress);
+    this.cronManager.createQueue('test_error', errorProcessor);
+  
+  
+    // 初始化定时任务
     await this.sysJobService.reset();
   }
 }

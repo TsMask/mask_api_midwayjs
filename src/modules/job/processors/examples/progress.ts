@@ -1,12 +1,15 @@
-import type { ProcessorData, ProcessorOptions } from '../../../../typings/processor';
+import type { SysJob } from '../../model/sys_job';
 
-import { basic } from './basic';
-
-export async function progress(options: ProcessorOptions): Promise<ProcessorData> {
+export async function progress(sysJob: SysJob): Promise<Record<string, any>> {
   for (let progress = 0; progress < 20; progress += 1) {
     await sleep(2000);
   }
-  return basic(options);
+
+  return {
+    job_name: sysJob.jobName,
+    invoke_target: sysJob.jobInvokeTarget,
+    target_params: sysJob.jobTargetParams,
+  };
 }
 
 function sleep(milliseconds: number): Promise<void> {
