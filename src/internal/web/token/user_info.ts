@@ -15,6 +15,9 @@ export class UserInfo {
   /**部门ID */
   deptId = 0;
 
+  /**用户账号 */
+  userName = '';
+
   /**登录时间时间戳 */
   loginTime = 0;
 
@@ -35,6 +38,9 @@ export class UserInfo {
 
   /**权限列表 */
   permissions: string[] = [];
+
+  /**角色key列表 */
+  roleKeys: string[] = [];
 
   /**用户信息 */
   user: Record<string, any> = {};

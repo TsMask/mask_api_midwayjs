@@ -10,7 +10,10 @@ import {
   SYS_PERMISSION_SYSTEM,
   SYS_ROLE_SYSTEM_KEY,
 } from '../../../internal/shared/constants/system';
-import { STATUS_NO, STATUS_YES } from '../../../internal/shared/constants/common';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../internal/shared/constants/common';
 import {
   parseBoolean,
   parseNumber,
@@ -313,6 +316,8 @@ export class AccountService {
     }
     info.userId = sysUser.id;
     info.deptId = sysUser.deptId;
+    info.userName = sysUser.userName;
+    info.roleKeys = (sysUser.roles ?? []).map(role => role.roleKey);
     info.user = sysUser;
     if (this.config.isSystemUser(sysUser.id)) {
       info.permissions = [SYS_PERMISSION_SYSTEM];
