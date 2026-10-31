@@ -13,7 +13,7 @@ export class RegisterBody {
 
   /**用户密码确认 */
   @Rule(Joi.string().required().min(6).max(26))
-  confirmPassword: string;
+  confirm_password: string;
 
   /**验证码 */
   @Rule(Joi.string().min(1).max(6))

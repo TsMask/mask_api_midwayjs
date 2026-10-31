@@ -1,8 +1,8 @@
 import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
 
-import { CACHE_SYS_CONFIG } from '../../../framework/constants/cache_key';
-import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { FileUtil } from '../../../framework/utils/file/file';
+import { CACHE_SYS_CONFIG } from '../../../internal/shared/constants/cache_key';
+import { RedisCache } from '../../../internal/infra/cache/redis';
+import { FileUtil } from '../../../internal/shared/file/file';
 import { SysConfigRepository } from '../repository/sys_config';
 import { SysConfig } from '../model/sys_config';
 
@@ -46,11 +46,11 @@ export class SysConfigService {
    * @param configId ID
    * @returns 结果
    */
-  public async findById(configId: number): Promise<SysConfig> {
-    if (configId < 0) {
+  public async findById(id: number): Promise<SysConfig> {
+    if (id <= 0) {
       return new SysConfig();
     }
-    const configs = await this.sysConfigRepository.selectByIds([configId]);
+    const configs = await this.sysConfigRepository.selectByIds([id]);
     if (configs.length > 0) {
       return configs[0];
     }
@@ -63,11 +63,11 @@ export class SysConfigService {
    * @returns ID
    */
   public async insert(sysConfig: SysConfig): Promise<number> {
-    const configId = await this.sysConfigRepository.insert(sysConfig);
-    if (configId > 0) {
+    const id = await this.sysConfigRepository.insert(sysConfig);
+    if (id > 0) {
       await this.cacheLoad(sysConfig.configKey);
     }
-    return configId;
+    return id;
   }
 
   /**
@@ -95,10 +95,6 @@ export class SysConfigService {
       return [0, '没有权限访问参数配置数据！'];
     }
     for (const config of configs) {
-      // 检查是否为内置参数
-      if (config.configType === 'Y') {
-        return [0, '该配置参数属于内置参数，禁止删除！'];
-      }
       // 清除缓存
       this.cacheClean(config.configKey);
     }
@@ -110,8 +106,33 @@ export class SysConfigService {
   }
 
   /**
+   * 校验参数键值类型
+   * @param valueType 参数键值类型
+   * @param value 参数键值
+   * @returns 错误信息
+   */
+  public checkValidateValueType(valueType: string, value: string): string {
+    const allowedTypes = ['string', 'number', 'boolean', 'json'];
+    if (!valueType) {
+      return '';
+    }
+    if (!allowedTypes.includes(valueType)) {
+      return `参数键值类型不支持。「${valueType}」，仅支持 string/number/boolean/json`;
+    }
+    if (valueType === 'json') {
+      try {
+        JSON.parse(value);
+      } catch {
+        return '参数键值类型为 json 时，键值必须为合法 JSON';
+      }
+    }
+    return '';
+  }
+
+  /**
    * 检查参数键名是否唯一
    * @param configKey 配置Key
+   * @param legacyConfigKey 兼容旧命名Key
    * @param configId 配置ID
    * @returns 结果
    */
@@ -133,7 +154,10 @@ export class SysConfigService {
    * @param configKey 配置Key
    * @returns 结果
    */
-  public async findValueByKey(configKey: string): Promise<string> {
+  public async findValueByKey(
+    configKey: string,
+    legacyConfigKey = ''
+  ): Promise<string> {
     const cacheKey = CACHE_SYS_CONFIG + ':' + configKey;
     // 从缓存中读取
     const cacheValue = await this.redisCache.get('', cacheKey);
@@ -146,6 +170,13 @@ export class SysConfigService {
     if (configValue) {
       await this.redisCache.set('', cacheKey, configValue);
       return configValue;
+    }
+
+    if (legacyConfigKey && legacyConfigKey !== configKey) {
+      const legacyValue = await this.findValueByKey(legacyConfigKey);
+      if (legacyValue) {
+        return legacyValue;
+      }
     }
     return '';
   }
@@ -195,23 +226,19 @@ export class SysConfigService {
    * @returns 结果
    */
   public async exportData(rows: SysConfig[], fileName: string) {
-    // 导出数据组装
-    const arr: Record<string, any>[] = [];
+    // 第一行表头标题
+    const data: string[][] = [
+      ['参数编号', '参数名称', '参数键名', '参数键值', '参数类型'],
+    ];
     for (const row of rows) {
-      // 系统内置
-      let configType = '否';
-      if (row.configType === 'Y') {
-        configType = '是';
-      }
-      const data = {
-        参数编号: row.configId,
-        参数名称: row.configName,
-        参数键名: row.configKey,
-        参数键值: row.configValue,
-        系统内置: configType,
-      };
-      arr.push(data);
+      data.push([
+        `${row.id ?? 0}`,
+        row.configName ?? '',
+        row.configKey ?? '',
+        row.configValue ?? '',
+        row.configValueType ?? '',
+      ]);
     }
-    return await this.fileUtil.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.csvWriteRecord(data, fileName);
   }
 }

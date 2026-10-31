@@ -1,0 +1,45 @@
+import { Catch, HttpStatus } from '@midwayjs/core';
+import { Context } from '@midwayjs/koa';
+
+import { Resp } from '../resp/api';
+import { CODE_INTERNAL, MSG_INTERNAL } from '../resp/code';
+import { loginUserToUserID } from '../reqctx/auth';
+
+/**
+ * 默认全局错误统一捕获
+ *
+ * 所有的未分类错误会到这里
+ */
+@Catch()
+export class ErrorCatch {
+  async catch(err: Error, c: Context) {
+    const userId = loginUserToUserID(c);
+    c.logger.error(
+      '[Recovery][%d] panic recovered: %s => %s %s',
+      userId,
+      c.url,
+      err.name,
+      err.message
+    );
+
+    // 过滤已经知道的错误
+    const errMsgs = [
+      { k: 'QueryFailedError', v: '访问数据权限错误' },
+      { k: 'CSRFError', v: '无效的请求来源' },
+      { k: 'PayloadTooLargeError', v: '超出最大上传文件大小范围' },
+      { k: 'MultipartInvalidFilenameError', v: '上传文件拓展格式不支持' },
+    ];
+    const msgItem = errMsgs.find(n => n.k === err.name);
+    if (msgItem) {
+      // 返回400，提示错误信息
+      c.body = Resp.codeMsg(CODE_INTERNAL, msgItem.v);
+      c.status = HttpStatus.BAD_REQUEST;
+      return;
+    }
+
+    // 返回错误响应给客户端 500
+    c.body = Resp.codeMsg(CODE_INTERNAL, MSG_INTERNAL);
+    c.status = HttpStatus.INTERNAL_SERVER_ERROR;
+    return;
+  }
+}

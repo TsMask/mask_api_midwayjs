@@ -1,45 +1,45 @@
-import { Controller, Inject, Get, Del, Query } from '@midwayjs/core';
+import { Controller, Del, Get, Inject, Query } from '@midwayjs/core';
 import type { Context } from '@midwayjs/koa';
 
 import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
-} from '../../../framework/middleware/operate_log';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { loginUserToDataScopeSQL } from '../../../framework/reqctx/auth';
-import { Resp } from '../../../framework/resp/api';
-import { SysLogLoginService } from '../service/sys_log_login';
+} from '../../../internal/web/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { loginUserToDataScopeSQL } from '../../../internal/web/reqctx/auth';
+import { Resp } from '../../../internal/web/resp/api';
+import { SysLoginLogService } from '../service/sys_login_log';
 
 /**系统登录日志信息 控制层处理 */
-@Controller('/system/log/login')
-export class SysLogLoginController {
-  /**上下文 */
+@Controller('/api/v1/system/logs/login')
+export class SysLoginLogController {
   @Inject('ctx')
   private c: Context;
 
-  /**系统登录日志服务 */
   @Inject()
-  private sysLogLoginService: SysLogLoginService;
+  private sysLoginLogService: SysLoginLogService;
 
-  /**系统登录日志列表 */
   @Get('/list', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:log:login:list'] }),
+      AuthorizeUserMiddleware({
+        hasPerms: ['system:login:log:list'],
+      }),
     ],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
-    const [rows, total] = await this.sysLogLoginService.findByPage(
+    const [rows, total] = await this.sysLoginLogService.findByPage(
       query,
       filter
     );
     return Resp.okData({ rows, total });
   }
 
-  /**系统登录日志清空 */
   @Del('/clean', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:log:login:remove'] }),
+      AuthorizeUserMiddleware({
+        hasPerms: ['system:login:log:remove'],
+      }),
       OperateLogMiddleware({
         title: '系统登录信息',
         businessType: BUSINESS_TYPE.CLEAN,
@@ -47,14 +47,15 @@ export class SysLogLoginController {
     ],
   })
   public async clean(): Promise<Resp> {
-    const rows = await this.sysLogLoginService.clean();
+    const rows = await this.sysLoginLogService.clean();
     return Resp.okData(rows);
   }
 
-  /**导出系统登录日志信息 */
   @Get('/export', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:log:login:export'] }),
+      AuthorizeUserMiddleware({
+        hasPerms: ['system:login:log:export'],
+      }),
       OperateLogMiddleware({
         title: '系统登录信息',
         businessType: BUSINESS_TYPE.EXPORT,
@@ -62,9 +63,8 @@ export class SysLogLoginController {
     ],
   })
   public async export(@Query() query: Record<string, string>) {
-    // 查询结果，根据查询条件结果，单页最大值限制
     const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
-    const [rows, total] = await this.sysLogLoginService.findByPage(
+    const [rows, total] = await this.sysLoginLogService.findByPage(
       query,
       filter
     );
@@ -72,16 +72,9 @@ export class SysLogLoginController {
       return Resp.errMsg('export data record as empty');
     }
 
-    // 导出文件名称
-    const fileName = `sys_log_login_export_${rows.length}_${Date.now()}.xlsx`;
-    this.c.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    this.c.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.sysLogLoginService.exportData(rows, fileName);
+    const fileName = `sys_login_log_export_${rows.length}_${Date.now()}.csv`;
+    this.c.set('content-Type', 'text/csv; charset=utf-8');
+    this.c.set('content-disposition', `attachment; filename="${fileName}"`);
+    return await this.sysLoginLogService.exportData(rows, fileName);
   }
 }

@@ -4,35 +4,43 @@ import type { Context } from '@midwayjs/koa';
 import {
   HEADER_PREFIX,
   JWT_DEVICE_ID,
+  JWT_SESSION_ID,
   JWT_USER_ID,
-} from '../../../framework/constants/token';
+} from '../../../internal/shared/constants/token';
 import {
   deviceFingerprint,
   ipaddrLocation,
   uaOsBrowser,
-} from '../../../framework/reqctx/param';
+} from '../../../internal/web/reqctx/param';
 import {
   RateLimitMiddleware,
   LIMIT_IP,
-} from '../../../framework/middleware/rate_limit';
+} from '../../../internal/web/middleware/rate_limit';
 import {
   CODE_AUTH_INVALID,
   CODE_PARAM_CHEACK,
-} from '../../../framework/resp/code';
-import { Resp } from '../../../framework/resp/api';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { loginUser, loginUserToUserID } from '../../../framework/reqctx/auth';
-import { STATUS_NO, STATUS_YES } from '../../../framework/constants/common';
-import { authorization } from '../../../framework/reqctx/context';
-import { GlobalConfig } from '../../../framework/config/config';
-import { UserTokenService } from '../../../framework/token/user_token';
-import { parseNumber } from '../../../framework/utils/parse/parse';
-import { SysLogLoginService } from '../../system/service/sys_log_login';
+} from '../../../internal/web/resp/code';
+import { Resp } from '../../../internal/web/resp/api';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { loginUser, loginUserToUserID } from '../../../internal/web/reqctx/auth';
+import { STATUS_NO, STATUS_YES } from '../../../internal/shared/constants/common';
+import { authorization } from '../../../internal/web/reqctx/context';
+import { GlobalConfig } from '../../../internal/config/config';
+import {
+  TokenPair,
+  UserTokenService,
+} from '../../../internal/web/token/user_token';
+import { UserInfo } from '../../../internal/web/token/user_info';
+import { parseNumber } from '../../../internal/shared/parse/parse';
+import { SysLoginLogService } from '../../system/service/sys_login_log';
 import { AccountService } from '../service/account';
 import { LoginBody } from '../model/login_body';
+import { LoginPhoneBody } from '../model/login_phone_body';
+import { serializeSysUser } from '../../system/model/vo/response';
+import { SysUser } from '../../system/model/sys_user';
 
 /**账号身份操作 控制层处理 */
-@Controller()
+@Controller('/api/v1/auth')
 export class AccountController {
   /**上下文 */
   @Inject('ctx')
@@ -52,11 +60,11 @@ export class AccountController {
 
   /**系统登录访问 */
   @Inject()
-  private sysLogLoginService: SysLogLoginService;
+  private sysLoginLogService: SysLoginLogService;
 
   /**系统登录 */
-  @Post('/auth/login', {
-    middleware: [RateLimitMiddleware({ time: 120, count: 12, type: LIMIT_IP })],
+  @Post('/login', {
+    middleware: [RateLimitMiddleware({ time: 180, count: 15, type: LIMIT_IP })],
   })
   public async login(@Body() body: LoginBody): Promise<Resp> {
     // 当前请求信息
@@ -70,7 +78,7 @@ export class AccountController {
     );
     if (errMsg) {
       const msg = `${errMsg} code ${body.code}`;
-      await this.sysLogLoginService.insert(body.username, STATUS_NO, msg, [
+      await this.sysLoginLogService.insert(body.username, STATUS_NO, msg, [
         ipaddr,
         location,
         os,
@@ -85,7 +93,7 @@ export class AccountController {
       body.password
     );
     if (infoErr !== '') {
-      await this.sysLogLoginService.insert(body.username, STATUS_NO, infoErr, [
+      await this.sysLoginLogService.insert(body.username, STATUS_NO, infoErr, [
         ipaddr,
         location,
         os,
@@ -95,48 +103,101 @@ export class AccountController {
     }
     const deviceFingerprintStr = await deviceFingerprint(this.c, info.userId);
 
-    // 生成访问令牌
-    const [accessToken, expiresIn] = await this.token.userTokenCreate(
+    // 同一会话生成访问与刷新令牌；会话缓存与访问令牌同生命周期
+    const [pair, sessionId, tokenErr] = await this.token.createTokenPair(
       info.userId,
-      deviceFingerprintStr,
-      'access'
+      deviceFingerprintStr
     );
-    if (accessToken === '' || expiresIn === 0) {
+    if (tokenErr !== '') {
       return Resp.errMsg('token generation failed');
     }
-    // 生成刷新令牌
-    const [refreshToken, refreshExpiresIn] = await this.token.userTokenCreate(
-      info.userId,
-      deviceFingerprintStr,
-      'refresh'
-    );
+    info.deviceId = deviceFingerprintStr;
+    info.sessionId = sessionId;
 
-    // 记录令牌，创建系统访问记录
-    const userInfo = await this.token.userInfoCreate(
-      info,
-      deviceFingerprintStr,
-      [ipaddr, location, os, browser]
-    );
+    // 记录会话，创建系统访问记录
+    const userInfo = await this.token.userInfoCreate(info, [
+      ipaddr,
+      location,
+      os,
+      browser,
+    ]);
+    if (userInfo.userId <= 0) {
+      return Resp.errMsg('token cache create failed');
+    }
     await this.accountService.updateLoginDateAndIP(userInfo);
-    await this.sysLogLoginService.insert(
+    await this.sysLoginLogService.insert(
       body.username,
       STATUS_YES,
       '登录成功',
       [ipaddr, location, os, browser]
     );
 
-    return Resp.okData({
-      tokenType: HEADER_PREFIX,
-      accessToken: accessToken,
-      expiresIn: expiresIn,
-      refreshToken: refreshToken,
-      refreshExpiresIn: refreshExpiresIn,
-      userId: userInfo.userId,
-    });
+    return Resp.okData(authTokenData(pair, userInfo.userId));
+  }
+
+  /**手机号验证码登录 */
+  @Post('/login-phone', {
+    middleware: [RateLimitMiddleware({ time: 180, count: 15, type: LIMIT_IP })],
+  })
+  public async loginPhone(@Body() body: LoginPhoneBody): Promise<Resp> {
+    const [ipaddr, location] = await ipaddrLocation(this.c);
+    const [os, browser] = await uaOsBrowser(this.c);
+
+    const errMsg = await this.accountService.validateCaptchaSMS(
+      body.phone,
+      body.code,
+      body.uuid
+    );
+    if (errMsg) {
+      await this.sysLoginLogService.insert(body.phone, STATUS_NO, errMsg, [
+        ipaddr,
+        location,
+        os,
+        browser,
+      ]);
+      return Resp.errMsg(errMsg);
+    }
+
+    const [info, infoErr] = await this.accountService.byPhone(body.phone);
+    if (infoErr !== '') {
+      await this.sysLoginLogService.insert(body.phone, STATUS_NO, infoErr, [
+        ipaddr,
+        location,
+        os,
+        browser,
+      ]);
+      return Resp.errMsg(infoErr);
+    }
+
+    const [pair, userInfo, issueErr] = await this.issueSession(info, [
+      ipaddr,
+      location,
+      os,
+      browser,
+    ]);
+    if (issueErr !== '') {
+      await this.sysLoginLogService.insert(
+        info.user.userName,
+        STATUS_NO,
+        issueErr,
+        [ipaddr, location, os, browser]
+      );
+      return Resp.errMsg(issueErr);
+    }
+
+    await this.accountService.updateLoginDateAndIP(userInfo);
+    await this.sysLoginLogService.insert(
+      info.user.userName,
+      STATUS_YES,
+      '手机号登录成功',
+      [ipaddr, location, os, browser]
+    );
+
+    return Resp.okData(authTokenData(pair, userInfo.userId));
   }
 
   /**系统登出 */
-  @Post('/auth/logout', {
+  @Post('/logout', {
     middleware: [RateLimitMiddleware({ time: 120, count: 15, type: LIMIT_IP })],
   })
   public async logout(): Promise<Resp> {
@@ -144,12 +205,12 @@ export class AccountController {
     if (tokenStr) {
       // 存在token时记录退出信息
       const [userName, err] = await this.token.userInfoRemove(tokenStr);
-      if (err !== '') {
+      if (err === '') {
         // 当前请求信息
         const [ipaddr, location] = await ipaddrLocation(this.c);
         const [os, browser] = await uaOsBrowser(this.c);
         // 创建系统访问记录
-        this.sysLogLoginService.insert(
+        this.sysLoginLogService.insert(
           userName,
           STATUS_YES,
           '主动注销登录信息',
@@ -161,20 +222,24 @@ export class AccountController {
   }
 
   /**刷新Token */
-  @Post('/auth/refresh-token', {
+  @Post('/refresh-token', {
     middleware: [RateLimitMiddleware({ time: 60, count: 5, type: LIMIT_IP })],
   })
   public async refreshToken(
     @Body() body: Record<string, string>
   ): Promise<Resp> {
-    if (body.refreshToken === '') {
+    const refreshTokenValue = body.refresh_token;
+    if (!refreshTokenValue) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: refreshToken is empty');
+      return Resp.codeMsg(
+        CODE_PARAM_CHEACK,
+        'bind err: refresh_token is empty'
+      );
     }
 
     // 验证刷新令牌是否有效
     const [claims, err] = await this.token.userTokenVerify(
-      body.refreshToken,
+      refreshTokenValue,
       'refresh'
     );
     if (err !== '') {
@@ -190,63 +255,48 @@ export class AccountController {
     }
 
     // 设备指纹信息是否一致
-    const deviceId = claims[JWT_DEVICE_ID];
+    const deviceId = String(claims[JWT_DEVICE_ID]);
+    const oldSessionId = String(claims[JWT_SESSION_ID]);
     const deviceFingerprintStr = await deviceFingerprint(this.c, userId);
     if (deviceId !== deviceFingerprintStr) {
-      return Resp.errMsg('device fingerprint mismatch');
+      this.c.status = 401;
+      return Resp.codeMsg(CODE_AUTH_INVALID, 'device fingerprint mismatch');
     }
 
-    // 生成访问令牌
-    const [accessToken, expiresIn] = await this.token.userTokenCreate(
+    // 每次刷新轮换会话；旧访问与刷新令牌随旧会话一起失效
+    const [pair, sessionId, tokenErr] = await this.token.createTokenPair(
       userId,
-      deviceFingerprintStr,
-      'access'
+      deviceFingerprintStr
     );
-    if (accessToken === '' || expiresIn === 0) {
+    if (tokenErr !== '') {
       return Resp.errMsg('token generation failed');
     }
-    // 生成刷新令牌
-    const now = Math.round(Date.now() / 1000);
-    const exp = parseNumber(claims['exp']);
-    const iat = parseNumber(claims['iat']);
-    let refreshExpiresIn = Math.round(exp - now);
-    let refreshToken = body.refreshToken;
-
-    // 如果当前时间大于过期时间的一半，则生成新令牌
-    const halfExp = exp - Math.round(now - iat) / 2;
-    if (now > halfExp) {
-      [refreshToken, refreshExpiresIn] = await this.token.userTokenCreate(
-        userId,
-        deviceFingerprintStr,
-        'refresh'
-      );
-    }
+    info.deviceId = deviceFingerprintStr;
+    info.sessionId = sessionId;
 
     // 当前请求信息
     const [ipaddr, location] = await ipaddrLocation(this.c);
     const [os, browser] = await uaOsBrowser(this.c);
     // 记录令牌，创建系统访问记录
-    const userInfo = await this.token.userInfoCreate(
-      info,
-      deviceFingerprintStr,
-      [ipaddr, location, os, browser]
-    );
+    const userInfo = await this.token.userInfoCreate(info, [
+      ipaddr,
+      location,
+      os,
+      browser,
+    ]);
+    if (userInfo.userId <= 0) {
+      return Resp.errMsg('token cache create failed');
+    }
+    await this.token.removeBySessionIds([oldSessionId]);
     await this.accountService.updateLoginDateAndIP(userInfo);
-    await this.sysLogLoginService.insert(
+    await this.sysLoginLogService.insert(
       userInfo.user.userName,
       STATUS_YES,
       '刷新访问令牌成功',
       [ipaddr, location, os, browser]
     );
 
-    return Resp.okData({
-      tokenType: HEADER_PREFIX,
-      accessToken: accessToken,
-      expiresIn: expiresIn,
-      refreshToken: refreshToken,
-      refreshExpiresIn: refreshExpiresIn,
-      userId: userInfo.userId,
-    });
+    return Resp.okData(authTokenData(pair, userInfo.userId));
   }
 
   /**登录用户信息 */
@@ -268,14 +318,14 @@ export class AccountController {
     );
 
     return Resp.okData({
-      user: info.user,
+      user: serializeSysUser(info.user as SysUser),
       roles: roles,
       permissions: perms,
     });
   }
 
   /**登录用户路由信息 */
-  @Get('/router', {
+  @Get('/menus', {
     middleware: [AuthorizeUserMiddleware()],
   })
   public async router(): Promise<Resp> {
@@ -290,4 +340,38 @@ export class AccountController {
 
     return Resp.okData(buildMenus);
   }
+
+  /**生成新会话并写入缓存 */
+  private async issueSession(
+    info: UserInfo,
+    ilobArr: string[]
+  ): Promise<[TokenPair, UserInfo, string]> {
+    const deviceFingerprintStr = await deviceFingerprint(this.c, info.userId);
+    const [pair, sessionId, tokenErr] = await this.token.createTokenPair(
+      info.userId,
+      deviceFingerprintStr
+    );
+    if (tokenErr !== '') {
+      return [pair, info, tokenErr];
+    }
+
+    info.deviceId = deviceFingerprintStr;
+    info.sessionId = sessionId;
+    const userInfo = await this.token.userInfoCreate(info, ilobArr);
+    if (userInfo.userId <= 0) {
+      return [pair, userInfo, 'token cache create failed'];
+    }
+    return [pair, userInfo, ''];
+  }
+}
+
+export function authTokenData(pair: TokenPair, userId: number) {
+  return {
+    token_type: HEADER_PREFIX,
+    access_token: pair.accessToken,
+    expires_in: pair.accessExpiresIn,
+    refresh_token: pair.refreshToken,
+    refresh_expires_in: pair.refreshExpiresIn,
+    user_id: userId,
+  };
 }

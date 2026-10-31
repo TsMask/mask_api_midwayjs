@@ -16,20 +16,21 @@ import type { Context } from '@midwayjs/koa';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/parse/parse';
+} from '../../../internal/shared/parse/parse';
 import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
-} from '../../../framework/middleware/operate_log';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../internal/web/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { loginUserToUserName } from '../../../internal/web/reqctx/auth';
+import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
+import { Resp } from '../../../internal/web/resp/api';
 import { SysNoticeService } from '../service/sys_notice';
 import { SysNotice } from '../model/sys_notice';
+import { serializeSysNotice } from '../model/vo/response';
 
 /**通知公告信息 控制层处理 */
-@Controller('/system/notice')
+@Controller('/api/v1/system/notices')
 export class SysNoticeController {
   /**上下文 */
   @Inject('ctx')
@@ -45,25 +46,25 @@ export class SysNoticeController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysNoticeService.findByPage(query);
-    return Resp.okData({ rows, total });
+    return Resp.okData({ rows: rows.map(serializeSysNotice), total });
   }
 
   /**通知公告信息 */
-  @Get('/:noticeId', {
+  @Get('/:id', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['system:notice:query'] }),
     ],
   })
   public async info(
-    @Valid(Joi.number()) @Param('noticeId') noticeId: number
+    @Valid(Joi.number()) @Param('id') noticeId: number
   ): Promise<Resp> {
     if (noticeId <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId is empty');
     }
     const data = await this.sysNoticeService.findById(noticeId);
-    if (data.noticeId === noticeId) {
-      return Resp.okData(data);
+    if (data.id === noticeId) {
+      return Resp.okData(serializeSysNotice(data));
     }
     return Resp.err();
   }
@@ -79,7 +80,7 @@ export class SysNoticeController {
     ],
   })
   public async add(@Body() body: SysNotice): Promise<Resp> {
-    if (body.noticeId > 0) {
+    if (body.id > 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId not is empty');
     }
@@ -103,21 +104,21 @@ export class SysNoticeController {
     ],
   })
   public async edit(@Body() body: SysNotice): Promise<Resp> {
-    if (body.noticeId <= 0) {
+    if (body.id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId is empty');
     }
 
     // 检查是否存在
-    const noticeInfo = await this.sysNoticeService.findById(body.noticeId);
-    if (noticeInfo.noticeId !== body.noticeId) {
+    const noticeInfo = await this.sysNoticeService.findById(body.id);
+    if (noticeInfo.id !== body.id) {
       return Resp.errMsg('没有权限访问公告信息数据！');
     }
 
     noticeInfo.noticeTitle = body.noticeTitle;
     noticeInfo.noticeType = body.noticeType;
     noticeInfo.noticeContent = body.noticeContent;
-    noticeInfo.statusFlag = body.statusFlag;
+    noticeInfo.noticeStatus = body.noticeStatus;
     noticeInfo.remark = body.remark;
     noticeInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysNoticeService.update(noticeInfo);
@@ -128,7 +129,7 @@ export class SysNoticeController {
   }
 
   /**通知公告删除 */
-  @Del('/:noticeId', {
+  @Del('/:id', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['system:notice:remove'] }),
       OperateLogMiddleware({
@@ -138,7 +139,7 @@ export class SysNoticeController {
     ],
   })
   public async remove(
-    @Valid(Joi.string().allow('')) @Param('noticeId') noticeId: string
+    @Valid(Joi.string().allow('')) @Param('id') noticeId: string
   ): Promise<Resp> {
     if (noticeId === '') {
       this.c.status = 422;

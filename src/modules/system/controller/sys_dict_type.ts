@@ -16,20 +16,21 @@ import type { Context } from '@midwayjs/koa';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/parse/parse';
+} from '../../../internal/shared/parse/parse';
 import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
-} from '../../../framework/middleware/operate_log';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../internal/web/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { loginUserToUserName } from '../../../internal/web/reqctx/auth';
+import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
+import { Resp } from '../../../internal/web/resp/api';
 import { SysDictTypeService } from '../service/sys_dict_type';
 import { SysDictType } from '../model/sys_dict_type';
+import { serializeSysDictType } from '../model/vo/response';
 
 /**字典类型信息 控制层处理 */
-@Controller('/system/dict/type')
+@Controller('/api/v1/system/dict/types')
 export class SysDictTypeController {
   /**上下文 */
   @Inject('ctx')
@@ -41,26 +42,30 @@ export class SysDictTypeController {
 
   /**字典类型列表 */
   @Get('/list', {
-    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:list'] })],
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:type:list'] }),
+    ],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysDictTypeService.findByPage(query);
-    return Resp.okData({ rows, total });
+    return Resp.okData({ rows: rows.map(serializeSysDictType), total });
   }
 
   /**字典类型信息 */
-  @Get('/:dictId', {
-    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:query'] })],
+  @Get('/:id', {
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:type:query'] }),
+    ],
   })
-  public async info(@Valid(Joi.number()) @Param('dictId') dictId: number) {
+  public async info(@Valid(Joi.number()) @Param('id') dictId: number) {
     if (dictId <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId is empty');
     }
 
     const data = await this.sysDictTypeService.findById(dictId);
-    if (data.dictId === dictId) {
-      return Resp.okData(data);
+    if (data.id === dictId) {
+      return Resp.okData(serializeSysDictType(data));
     }
     return Resp.err();
   }
@@ -68,7 +73,7 @@ export class SysDictTypeController {
   /**字典类型新增 */
   @Post('', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:dict:add'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:type:add'] }),
       OperateLogMiddleware({
         title: '字典类型信息',
         businessType: BUSINESS_TYPE.INSERT,
@@ -76,7 +81,7 @@ export class SysDictTypeController {
     ],
   })
   public async add(@Body() body: SysDictType): Promise<Resp> {
-    if (body.dictId > 0) {
+    if (body.id > 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId not is empty');
     }
@@ -96,7 +101,7 @@ export class SysDictTypeController {
       0
     );
     if (!uniqueType) {
-      return Resp.errMsg(`字典新增【${body.dictName}】失败，字典类型已存在`);
+      return Resp.errMsg(`字典新增【${body.dictName}】失败，字典名称已存在`);
     }
 
     body.createBy = loginUserToUserName(this.c);
@@ -110,7 +115,7 @@ export class SysDictTypeController {
   /**字典类型修改 */
   @Put('', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:dict:edit'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:type:edit'] }),
       OperateLogMiddleware({
         title: '字典类型信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -118,21 +123,21 @@ export class SysDictTypeController {
     ],
   })
   public async edit(@Body() body: SysDictType): Promise<Resp> {
-    if (body.dictId <= 0) {
+    if (body.id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId is empty');
     }
 
     // 检查数据是否存在
-    const dictType = await this.sysDictTypeService.findById(body.dictId);
-    if (dictType.dictId !== body.dictId) {
+    const dictType = await this.sysDictTypeService.findById(body.id);
+    if (dictType.id !== body.id) {
       return Resp.errMsg('没有权限访问字典类型数据！');
     }
 
     // 检查字典名称唯一
     const uniqueName = await this.sysDictTypeService.checkUniqueByName(
       body.dictName,
-      body.dictId
+      body.id
     );
     if (!uniqueName) {
       return Resp.errMsg(`字典修改【${body.dictName}】失败，字典名称已存在`);
@@ -141,15 +146,15 @@ export class SysDictTypeController {
     // 检查字典类型唯一
     const uniqueType = await this.sysDictTypeService.checkUniqueByType(
       body.dictType,
-      body.dictId
+      body.id
     );
     if (!uniqueType) {
-      return Resp.errMsg(`字典修改【${dictType}】失败，字典类型已存在`);
+      return Resp.errMsg(`字典修改【${body.dictName}】失败，字典名称已存在`);
     }
 
     dictType.dictName = body.dictName;
     dictType.dictType = body.dictType;
-    dictType.statusFlag = body.statusFlag;
+    dictType.dictStatus = body.dictStatus;
     dictType.remark = body.remark;
     dictType.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysDictTypeService.update(dictType);
@@ -160,9 +165,9 @@ export class SysDictTypeController {
   }
 
   /**字典类型删除 */
-  @Del('/:dictId', {
+  @Del('/:id', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:dict:remove'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:type:remove'] }),
       OperateLogMiddleware({
         title: '字典类型信息',
         businessType: BUSINESS_TYPE.DELETE,
@@ -170,7 +175,7 @@ export class SysDictTypeController {
     ],
   })
   public async remove(
-    @Valid(Joi.string().allow('')) @Param('dictId') dictId: string
+    @Valid(Joi.string().allow('')) @Param('id') dictId: string
   ): Promise<Resp> {
     if (dictId === '') {
       this.c.status = 422;
@@ -192,10 +197,10 @@ export class SysDictTypeController {
   /**字典类型刷新缓存 */
   @Put('/refresh', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:dict:remove'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:type:remove'] }),
       OperateLogMiddleware({
         title: '字典类型信息',
-        businessType: BUSINESS_TYPE.CLEAN,
+        businessType: BUSINESS_TYPE.OTHER,
       }),
     ],
   })
@@ -207,7 +212,9 @@ export class SysDictTypeController {
 
   /**字典类型选择框列表 */
   @Get('/options', {
-    middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dict:query'] })],
+    middleware: [
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:type:query'] }),
+    ],
   })
   public async options() {
     const data = await this.sysDictTypeService.find(new SysDictType());
@@ -226,7 +233,7 @@ export class SysDictTypeController {
   /**字典类型列表导出 */
   @Get('/export', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:dict:export'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:dict:type:export'] }),
       OperateLogMiddleware({
         title: '字典类型信息',
         businessType: BUSINESS_TYPE.EXPORT,
@@ -240,15 +247,9 @@ export class SysDictTypeController {
     }
 
     // 导出文件名称
-    const fileName = `dict_type_export_${rows.length}_${Date.now()}.xlsx`;
-    this.c.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    this.c.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
+    const fileName = `dict_type_export_${rows.length}_${Date.now()}.csv`;
+    this.c.set('content-Type', 'text/csv; charset=utf-8');
+    this.c.set('content-disposition', `attachment; filename="${fileName}"`);
     return await this.sysDictTypeService.exportData(rows, fileName);
   }
 }

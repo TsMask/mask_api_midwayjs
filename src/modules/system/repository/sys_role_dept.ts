@@ -1,8 +1,8 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult } from 'typeorm';
+import { DeleteResult, EntityManager, InsertResult } from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { SysRoleDept } from '../model/sys_role_dept';
 
 /**角色与部门关联表 数据层处理 */
@@ -36,16 +36,24 @@ export class SysRoleDeptRepository {
    * @param deptIds ID数组
    * @return 影响记录数
    */
-  public async deleteByDeptIds(deptIds: number[]): Promise<number> {
+  public async deleteByDeptIds(
+    deptIds: number[],
+    entityManager?: EntityManager
+  ): Promise<number> {
     if (deptIds.length <= 0) return 0;
-    // 执行删除
-    const tx: DeleteResult = await this.db
-      .queryBuilder('')
-      .delete()
-      .from(SysRoleDept)
-      .andWhere('dept_id in (:deptIds)', { deptIds })
-      .execute();
-    return tx.affected ?? 0;
+    const run = async (manager: EntityManager) => {
+      const tx: DeleteResult = await manager
+        .createQueryBuilder()
+        .delete()
+        .from(SysRoleDept)
+        .where('dept_id in (:deptIds)', { deptIds })
+        .execute();
+      return tx.affected ?? 0;
+    };
+    if (entityManager) {
+      return await run(entityManager);
+    }
+    return await this.db.transaction('', run);
   }
 
   /**

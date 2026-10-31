@@ -7,8 +7,8 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysPost {
   /**岗位ID */
   @Rule(Joi.number().allow(0))
-  @PrimaryGeneratedColumn({ name: 'post_id' })
-  postId: number;
+  @PrimaryGeneratedColumn({ name: 'id' })
+  id: number;
 
   /**岗位编码 */
   @Rule(Joi.string().required())
@@ -27,13 +27,8 @@ export class SysPost {
 
   /**状态（0停用 1正常） */
   @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'status_flag' })
-  statusFlag: string;
-
-  /**删除标记（0存在 1删除） */
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'del_flag' })
-  delFlag: string;
+  @Column({ name: 'post_status' })
+  postStatus: string;
 
   /**创建者 */
   @Rule(Joi.string().allow(''))
@@ -58,7 +53,7 @@ export class SysPost {
   /**备注 */
   @Rule(Joi.string().allow(''))
   @Column({
-    length: 200,
+    length: 255,
     name: 'remark',
   })
   remark: string;

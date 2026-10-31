@@ -2,7 +2,7 @@ import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { SysDictData } from '../model/sys_dict_data';
 
 /**字典类型数据表 数据层处理 */
@@ -25,22 +25,21 @@ export class SysDictDataRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysDictData, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysDictData, 's');
     // 查询条件拼接
-    if (query.dictType) {
+    if (query.dict_type) {
       tx.andWhere('s.dict_type = :dictType', {
-        dictType: query.dictType,
+        dictType: query.dict_type,
       });
     }
-    if (query.dataLabel) {
+    if (query.data_label) {
       tx.andWhere('s.data_label like :dataLabel', {
-        dataLabel: query.dataLabel + '%',
+        dataLabel: query.data_label + '%',
       });
     }
-    if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
+    if (query.data_status) {
+      tx.andWhere('s.data_status = :dataStatus', {
+        dataStatus: query.data_status,
       });
     }
 
@@ -52,19 +51,20 @@ export class SysDictDataRepository {
 
     // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num,
+      query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
     // 排序，格式: sort=dataSort,dataLabel:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
-      dataId: 's.data_id',
-      dictType: 's.dict_type',
-      dataLabel: 's.data_label',
-      dataValue: 's.data_value',
-      dataSort: 's.data_sort',
-      statusFlag: 's.status_flag',
-      createTime: 's.create_time',
+      id: 's.id',
+      create_time: 's.create_time',
+      update_time: 's.update_time',
+      dict_type: 's.dict_type',
+      data_sort: 's.data_sort',
+      tag_class: 's.tag_class',
+      tag_type: 's.tag_type',
+      data_status: 's.data_status',
     };
     if (query.sort) {
       const items = query.sort.split(',');
@@ -94,8 +94,7 @@ export class SysDictDataRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysDictData, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysDictData, 's');
     // 构建查询条件
     if (sysDictData.dataLabel) {
       tx.andWhere('s.data_label like :dataLabel', {
@@ -107,9 +106,9 @@ export class SysDictDataRepository {
         dictType: sysDictData.dictType,
       });
     }
-    if (sysDictData.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: sysDictData.statusFlag,
+    if (sysDictData.dataStatus) {
+      tx.andWhere('s.data_status = :dataStatus', {
+        dataStatus: sysDictData.dataStatus,
       });
     }
     // 查询数据
@@ -132,7 +131,7 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
-      .andWhere("s.data_id in (:dataIds) and s.del_flag = '0'", { dataIds })
+      .andWhere('s.id in (:dataIds)', { dataIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -147,7 +146,6 @@ export class SysDictDataRepository {
    * @return ID
    */
   public async insert(sysDictData: SysDictData): Promise<number> {
-    sysDictData.delFlag = '0';
     if (sysDictData.createBy) {
       const ms = Date.now().valueOf();
       sysDictData.updateBy = sysDictData.createBy;
@@ -175,15 +173,14 @@ export class SysDictDataRepository {
    * @return 影响记录数
    */
   public async update(sysDictData: SysDictData): Promise<number> {
-    if (sysDictData.dataId <= 0) {
+    if (sysDictData.id <= 0) {
       return 0;
     }
     if (sysDictData.updateBy) {
       sysDictData.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysDictData);
-    delete (data as Partial<SysDictData>).dataId;
-    delete (data as Partial<SysDictData>).delFlag;
+    delete (data as Partial<SysDictData>).id;
     delete (data as Partial<SysDictData>).createBy;
     delete (data as Partial<SysDictData>).createTime;
     // 执行更新
@@ -192,7 +189,7 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .update(SysDictData)
       .set(data)
-      .andWhere('data_id = :dataId', { dataId: sysDictData.dataId })
+      .andWhere('id = :id', { id: sysDictData.id })
       .execute();
     return tx.affected ?? 0;
   }
@@ -205,12 +202,12 @@ export class SysDictDataRepository {
    */
   public async deleteByIds(dataIds: number[]): Promise<number> {
     if (dataIds.length === 0) return 0;
-    // 执行更新删除标记
+    // Gin uses physical deletion for dictionary data.
     const tx: DeleteResult = await this.db
       .queryBuilder('')
-      .update(SysDictData)
-      .set({ delFlag: '1' })
-      .andWhere('data_id in (:dataIds)', { dataIds })
+      .delete()
+      .from(SysDictData)
+      .andWhere('id in (:dataIds)', { dataIds })
       .execute();
     return tx.affected ?? 0;
   }
@@ -225,8 +222,7 @@ export class SysDictDataRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysDictData, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysDictData, 's');
     // 查询条件拼接
     if (sysDictData.dictType) {
       tx.andWhere('s.dict_type = :dictType', {
@@ -248,7 +244,7 @@ export class SysDictDataRepository {
     if (!item) {
       return 0;
     }
-    return item.dataId;
+    return item.id;
   }
 
   /**
@@ -267,7 +263,6 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
-      .andWhere("s.del_flag = '0'")
       .andWhere('s.dict_type = :dictType', { dictType })
       .getCount();
     return count;

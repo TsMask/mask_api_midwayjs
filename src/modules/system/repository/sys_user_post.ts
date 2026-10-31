@@ -1,7 +1,7 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, EntityManager, In, InsertResult } from 'typeorm';
 
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { SysUserPost } from '../model/sys_user_post';
 
 /**用户与岗位关联表 数据层处理 */

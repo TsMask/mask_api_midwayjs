@@ -1,87 +1,74 @@
-import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { Inject, Provide, Singleton } from '@midwayjs/core';
 
-import { FileUtil } from '../../../framework/utils/file/file';
-import { parseDateToStr } from '../../../framework/utils/date/data';
-import { SysLogOperateRepository } from '../repository/sys_log_operate';
-import { SysLogOperate } from '../model/sys_log_operate';
+import { FileUtil } from '../../../internal/shared/file/file';
+import { parseDateToRFC3339 } from '../../../internal/shared/date/data';
+import { SysOperationLogRepository } from '../repository/sys_operation_log';
+import { SysOperationLog } from '../model/sys_operation_log';
 
-/**操作日志表 服务层处理 */
+/**系统操作日志 服务层处理 */
 @Provide()
 @Singleton()
-export class SysLogOperateService {
-  /**操作日志信息 */
+export class SysOperationLogService {
   @Inject()
-  private sysLogOperateRepository: SysLogOperateRepository;
+  private sysOperationLogRepository: SysOperationLogRepository;
 
-  /**文件服务 */
   @Inject()
   private fileUtil: FileUtil;
 
-  /**
-   * 分页查询列表数据
-   * @param query 参数
-   * @param filter 角色数据范围过滤对象
-   * @returns [rows, total]
-   */
   public async findByPage(
     query: Record<string, string>,
     filter: { sql: string; params: Record<string, any> }
-  ): Promise<[SysLogOperate[], number]> {
-    return await this.sysLogOperateRepository.selectByPage(query, filter);
+  ): Promise<[SysOperationLog[], number]> {
+    return await this.sysOperationLogRepository.selectByPage(query, filter);
   }
 
-  /**
-   * 新增信息
-   * @param sysLogOperate 信息
-   * @returns ID
-   */
-  public async insert(sysLogOperate: SysLogOperate): Promise<number> {
-    return await this.sysLogOperateRepository.insert(sysLogOperate);
+  public async insert(operationLog: SysOperationLog): Promise<number> {
+    return await this.sysOperationLogRepository.insert(operationLog);
   }
 
-  /**
-   * 清空操作日志
-   * @returns 数量
-   */
   public async clean(): Promise<number> {
-    return await this.sysLogOperateRepository.clean();
+    return await this.sysOperationLogRepository.clean();
   }
 
-  /**
-   * 导出数据表格
-   * @param rows 信息
-   * @param fileName 文件名
-   * @returns 结果
-   */
-  public async exportData(rows: SysLogOperate[], fileName: string) {
-    // 导出数据组装
-    const arr: Record<string, any>[] = [];
+  public async exportData(rows: SysOperationLog[], fileName: string) {
+    // 第一行表头标题
+    const data: string[][] = [
+      [
+        '操作序号',
+        '模块标题',
+        '业务类型',
+        '请求URL',
+        '请求方式',
+        '主机地址',
+        '操作地点',
+        '请求参数',
+        '操作消息',
+        '方法名称',
+        '操作人员',
+        '操作时间',
+        '操作状态',
+        '消耗时间',
+      ],
+    ];
     for (const row of rows) {
-      // 业务类型
-      const businessType = '';
-      // 状态
-      let statusValue = '停用';
-      if (row.statusFlag === '1') {
-        statusValue = '正常';
-      }
-      const data = {
-        操作序号: row.id,
-        模块标题: row.title,
-        业务类型: businessType,
-        请求URL: row.operaUrl,
-        请求方式: row.operaUrlMethod,
-        主机地址: row.operaIp,
-        操作地点: row.operaLocation,
-        请求参数: row.operaParam,
-        操作消息: row.operaMsg,
-        方法名称: row.operaMethod,
-        操作人员: row.operaBy,
-        操作时间: parseDateToStr(row.operaTime),
-        操作状态: statusValue,
-        消耗时间: row.costTime,
-      };
-      arr.push(data);
+      const statusValue = row.operationStatus === '1' ? '成功' : '失败';
+      data.push([
+        `${row.id ?? 0}`,
+        row.title ?? '',
+        '',
+        row.operationUrl ?? '',
+        row.operationMethod ?? '',
+        row.operationIp ?? '',
+        row.operationLocation ?? '',
+        row.operationParam ?? '',
+        row.operationMsg ?? '',
+        row.operationFunction ?? '',
+        row.createBy ?? '',
+        parseDateToRFC3339(row.createTime ?? 0),
+        statusValue,
+        `${row.operationCostTime ?? 0}`,
+      ]);
     }
-    return await this.fileUtil.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.csvWriteRecord(data, fileName);
   }
 }

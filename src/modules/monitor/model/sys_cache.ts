@@ -1,13 +1,13 @@
 /**缓存信息对象 */
 export class SysCache {
   /**缓存名称 */
-  cacheName: string;
+  cache_name: string;
 
   /**缓存键名 */
-  cacheKey: string;
+  cache_key: string;
 
   /**缓存内容 */
-  cacheValue: string;
+  cache_value: string;
 
   /**备注 */
   remark: string;
@@ -18,9 +18,9 @@ export class SysCache {
    * @param cacheKey 缓存键名
    */
   public newNames(cacheName: string, cacheKey: string) {
-    this.cacheName = cacheKey;
-    this.cacheKey = '';
-    this.cacheValue = '';
+    this.cache_name = cacheKey;
+    this.cache_key = '';
+    this.cache_value = '';
     this.remark = cacheName;
     return this;
   }
@@ -31,9 +31,9 @@ export class SysCache {
    * @param cacheKey 缓存键名
    */
   public newKeys(cacheName: string, cacheKey: string) {
-    this.cacheName = cacheName;
-    this.cacheKey = cacheKey.replace(cacheName + ':', '');
-    this.cacheValue = '';
+    this.cache_name = cacheName;
+    this.cache_key = cacheKey.replace(cacheName + ':', '');
+    this.cache_value = '';
     this.remark = '';
     return this;
   }
@@ -45,9 +45,9 @@ export class SysCache {
    * @param cacheValue 缓存内容
    */
   public newValue(cacheName: string, cacheKey: string, cacheValue: string) {
-    this.cacheName = cacheName;
-    this.cacheKey = cacheKey;
-    this.cacheValue = cacheValue;
+    this.cache_name = cacheName;
+    this.cache_key = cacheKey;
+    this.cache_value = cacheValue;
     this.remark = '';
     return this;
   }

@@ -1,45 +1,45 @@
-import { Controller, Inject, Get, Del, Query } from '@midwayjs/core';
+import { Controller, Del, Get, Inject, Query } from '@midwayjs/core';
 import type { Context } from '@midwayjs/koa';
 
 import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
-} from '../../../framework/middleware/operate_log';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { loginUserToDataScopeSQL } from '../../../framework/reqctx/auth';
-import { Resp } from '../../../framework/resp/api';
-import { SysLogOperateService } from '../service/sys_log_operate';
+} from '../../../internal/web/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { loginUserToDataScopeSQL } from '../../../internal/web/reqctx/auth';
+import { Resp } from '../../../internal/web/resp/api';
+import { SysOperationLogService } from '../service/sys_operation_log';
 
-/**操作日志记录信息 控制层处理 */
-@Controller('/system/log/operate')
-export class SysLogOperateController {
-  /**上下文 */
+/**系统操作日志信息 控制层处�*/
+@Controller('/api/v1/system/logs/operation')
+export class SysOperationLogController {
   @Inject('ctx')
   private c: Context;
 
-  /**操作日志服务 */
   @Inject()
-  private sysLogOperateService: SysLogOperateService;
+  private sysOperationLogService: SysOperationLogService;
 
-  /**操作日志列表 */
   @Get('/list', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:log:operate:list'] }),
+      AuthorizeUserMiddleware({
+        hasPerms: ['system:operation:log:list'],
+      }),
     ],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
-    const [rows, total] = await this.sysLogOperateService.findByPage(
+    const [rows, total] = await this.sysOperationLogService.findByPage(
       query,
       filter
     );
     return Resp.okData({ rows, total });
   }
 
-  /**操作日志清空 */
   @Del('/clean', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:log:operate:remove'] }),
+      AuthorizeUserMiddleware({
+        hasPerms: ['system:operation:log:remove'],
+      }),
       OperateLogMiddleware({
         title: '操作日志',
         businessType: BUSINESS_TYPE.CLEAN,
@@ -47,14 +47,15 @@ export class SysLogOperateController {
     ],
   })
   public async clean(): Promise<Resp> {
-    const rows = await this.sysLogOperateService.clean();
+    const rows = await this.sysOperationLogService.clean();
     return Resp.okData(rows);
   }
 
-  /**导出操作日志 */
   @Get('/export', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['system:log:operate:export'] }),
+      AuthorizeUserMiddleware({
+        hasPerms: ['system:operation:log:export'],
+      }),
       OperateLogMiddleware({
         title: '操作日志',
         businessType: BUSINESS_TYPE.EXPORT,
@@ -62,9 +63,8 @@ export class SysLogOperateController {
     ],
   })
   public async export(@Query() query: Record<string, string>) {
-    // 查询结果，根据查询条件结果，单页最大值限制
     const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
-    const [rows, total] = await this.sysLogOperateService.findByPage(
+    const [rows, total] = await this.sysOperationLogService.findByPage(
       query,
       filter
     );
@@ -72,16 +72,9 @@ export class SysLogOperateController {
       return Resp.errMsg('export data record as empty');
     }
 
-    // 导出文件名称
-    const fileName = `sys_log_operate_export_${rows.length}_${Date.now()}.xlsx`;
-    this.c.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    this.c.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
-    return await this.sysLogOperateService.exportData(rows, fileName);
+    const fileName = `sys_operation_log_export_${rows.length}_${Date.now()}.csv`;
+    this.c.set('content-Type', 'text/csv; charset=utf-8');
+    this.c.set('content-disposition', `attachment; filename="${fileName}"`);
+    return await this.sysOperationLogService.exportData(rows, fileName);
   }
 }

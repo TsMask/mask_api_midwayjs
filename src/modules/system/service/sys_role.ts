@@ -3,9 +3,9 @@ import { Provide, Inject, Singleton } from '@midwayjs/core';
 import {
   ROLE_SCOPE_CUSTOM,
   ROLE_SCOPE_DATA,
-} from '../../../framework/constants/role_data_scope';
-import { FileUtil } from '../../../framework/utils/file/file';
-import { SYS_ROLE_SYSTEM_ID } from '../../../framework/constants/system';
+} from '../../../internal/shared/constants/role_data_scope';
+import { FileUtil } from '../../../internal/shared/file/file';
+import { SYS_ROLE_SYSTEM_ID } from '../../../internal/shared/constants/system';
 import { SysUserRoleRepository } from '../repository/sys_user_role';
 import { SysRoleDeptRepository } from '../repository/sys_role_dept';
 import { SysRoleMenuRepository } from '../repository/sys_role_menu';
@@ -59,7 +59,7 @@ export class SysRoleService {
     const rows = await this.sysRoleRepository.select(sysRole);
     const arr: SysRole[] = [];
     for (const v of rows) {
-      if (v.roleId === SYS_ROLE_SYSTEM_ID) {
+      if (v.id === SYS_ROLE_SYSTEM_ID) {
         continue;
       }
       arr.push(v);
@@ -113,8 +113,8 @@ export class SysRoleService {
       sysRole.menuIds.length >= 0
     ) {
       // 删除角色与菜单关联
-      await this.sysRoleMenuRepository.deleteByRoleIds([sysRole.roleId]);
-      await this.insertRoleMenu(sysRole.roleId, sysRole.menuIds);
+      await this.sysRoleMenuRepository.deleteByRoleIds([sysRole.id]);
+      await this.insertRoleMenu(sysRole.id, sysRole.menuIds);
     }
     return rows;
   }
@@ -158,12 +158,12 @@ export class SysRoleService {
     }
     for (const role of roles) {
       // 检查是否为内置参数
-      if (role.delFlag === '1') {
-        return [0, `ID:${role.roleId} 角色信息已经删除！`];
+      if (role.roleDel === '1') {
+        return [0, `ID:${role.id} 角色信息已经删除！`];
       }
       // 检查分配用户
       const useCount = await this.sysUserRoleRepository.existUserByRoleId(
-        role.roleId
+        role.id
       );
       if (useCount > 0) {
         return [0, `【${role.roleName}】已分配给用户,不能删除`];
@@ -235,10 +235,10 @@ export class SysRoleService {
     const rows = await this.sysRoleRepository.update(sysRole);
     if (rows > 0) {
       // 删除角色与部门关联
-      await this.sysRoleDeptRepository.deleteByRoleIds([sysRole.roleId]);
+      await this.sysRoleDeptRepository.deleteByRoleIds([sysRole.id]);
       // 新增角色和部门信息
       if (
-        sysRole.dataScope === ROLE_SCOPE_CUSTOM &&
+        sysRole.roleDataScope === ROLE_SCOPE_CUSTOM &&
         sysRole.deptIds.length > 0
       ) {
         const arr: SysRoleDept[] = [];
@@ -247,7 +247,7 @@ export class SysRoleService {
             continue;
           }
           const sysRoleDept = new SysRoleDept();
-          sysRoleDept.roleId = sysRole.roleId;
+          sysRoleDept.roleId = sysRole.id;
           sysRoleDept.deptId = deptId;
           arr.push(sysRoleDept);
         }
@@ -303,31 +303,32 @@ export class SysRoleService {
    * @returns 结果
    */
   public async exportData(rows: SysRole[], fileName: string) {
-    // 导出数据组装
-    const arr: Record<string, any>[] = [];
+    // 第一行表头标题
+    const data: string[][] = [
+      ['角色序号', '角色名称', '角色键值', '角色排序', '数据范围', '角色状态'],
+    ];
     for (const row of rows) {
       // 数据范围
       let dataScope = (ROLE_SCOPE_DATA as Record<string, string>)[
-        row.dataScope
+        row.roleDataScope
       ];
       if (!dataScope) {
-        dataScope = '';
+        dataScope = '空';
       }
       // 角色状态
       let statusValue = '停用';
-      if (row.statusFlag === '1') {
+      if (row.roleStatus === '1') {
         statusValue = '正常';
       }
-      const data = {
-        角色序号: row.roleId,
-        角色名称: row.roleName,
-        角色键值: row.roleKey,
-        角色排序: row.dataScope,
-        数据范围: dataScope,
-        角色状态: statusValue,
-      };
-      arr.push(data);
+      data.push([
+        `${row.id ?? 0}`,
+        row.roleName ?? '',
+        row.roleKey ?? '',
+        `${row.roleSort ?? 0}`,
+        dataScope,
+        statusValue,
+      ]);
     }
-    return await this.fileUtil.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.csvWriteRecord(data, fileName);
   }
 }

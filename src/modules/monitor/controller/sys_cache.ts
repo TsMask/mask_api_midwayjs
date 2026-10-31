@@ -9,15 +9,16 @@ import {
   CACHE_REPEAT_SUBMIT,
   CACHE_RATE_LIMIT,
   CACHE_PWD_ERR_COUNT,
-  CACHE_TOKEN_DEVICE,
-} from '../../../framework/constants/cache_key';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { Resp } from '../../../framework/resp/api';
+  CACHE_TOKEN_SESSION,
+  CACHE_TOKEN_USERS,
+} from '../../../internal/shared/constants/cache_key';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { RedisCache } from '../../../internal/infra/cache/redis';
+import { Resp } from '../../../internal/web/resp/api';
 import { SysCache } from '../model/sys_cache';
 
 /**缓存信息 控制层处理 */
-@Controller('/monitor/cache')
+@Controller('/api/v1/monitor/cache')
 export class CacheController {
   /**缓存服务 */
   @Inject()
@@ -30,8 +31,8 @@ export class CacheController {
   public async info(): Promise<Resp> {
     return Resp.okData({
       info: await this.redisCache.info(''),
-      dbSize: await this.redisCache.keySize(''),
-      commandStats: await this.redisCache.commandStats(''),
+      db_size: await this.redisCache.keySize(''),
+      command_stats: await this.redisCache.commandStats(''),
     });
   }
 
@@ -41,7 +42,8 @@ export class CacheController {
   })
   public async names(): Promise<Resp> {
     const caches: SysCache[] = [
-      new SysCache().newNames('用户令牌', CACHE_TOKEN_DEVICE),
+      new SysCache().newNames('用户令牌', CACHE_TOKEN_SESSION),
+      new SysCache().newNames('用户会话索引', CACHE_TOKEN_USERS),
       new SysCache().newNames('配置信息', CACHE_SYS_CONFIG),
       new SysCache().newNames('数据字典', CACHE_SYS_DICT),
       new SysCache().newNames('用户验证码', CACHE_CAPTCHA_CODE),
@@ -57,7 +59,7 @@ export class CacheController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:list'] })],
   })
   public async keys(
-    @Valid(Joi.string().required()) @Query('cacheName') cacheName: string
+    @Valid(Joi.string().required()) @Query('cache_name') cacheName: string
   ): Promise<Resp> {
     const cacheKeys = await this.redisCache.getKeys('', `${cacheName}:*`);
     const caches: SysCache[] = [];
@@ -74,14 +76,33 @@ export class CacheController {
     ],
   })
   public async value(
-    @Valid(Joi.string().required()) @Query('cacheName') cacheName: string,
-    @Valid(Joi.string().required()) @Query('cacheKey') cacheKey: string
+    @Valid(Joi.string().required()) @Query('cache_name') cacheName: string,
+    @Valid(Joi.string().required()) @Query('cache_key') cacheKey: string
   ): Promise<Resp> {
-    const cacheValue = await this.redisCache.get(
+    const [cacheValue, err] = await this.redisCache.getValue(
       '',
       `${cacheName}:${cacheKey}`
     );
+    if (err) {
+      return Resp.errMsg(err);
+    }
+
+    let displayValue = cacheValue;
+    if (cacheName === CACHE_TOKEN_SESSION && cacheValue) {
+      try {
+        const info = JSON.parse(cacheValue);
+        delete info.permissions;
+        if (info.user && typeof info.user === 'object') {
+          delete info.user.userPassword;
+        }
+        displayValue = JSON.stringify(info);
+      } catch {
+        displayValue = cacheValue;
+      }
+    }
+
     const sysCache = new SysCache().newValue(cacheName, cacheKey, cacheValue);
+    sysCache.cache_value = displayValue;
     return Resp.okData(sysCache);
   }
 
@@ -102,7 +123,7 @@ export class CacheController {
       new SysCache().newNames('密码错误次数', CACHE_PWD_ERR_COUNT),
     ];
     for (const v of caches) {
-      const cacheKeys = await this.redisCache.getKeys('', `${v.cacheName}:*`);
+      const cacheKeys = await this.redisCache.getKeys('', `${v.cache_name}:*`);
       await this.redisCache.delKeys('', cacheKeys);
     }
     return Resp.ok();
@@ -115,17 +136,14 @@ export class CacheController {
     ],
   })
   public async cleanKeys(
-    @Valid(Joi.string().required()) @Query('cacheName') cacheName: string
+    @Valid(Joi.string().required()) @Query('cache_name') cacheName: string
   ): Promise<Resp> {
-    if (cacheName.startsWith(CACHE_TOKEN_DEVICE)) {
-      return Resp.errMsg('不能删除用户信息缓存');
+    if (cacheName === CACHE_TOKEN_SESSION || cacheName === CACHE_TOKEN_USERS) {
+      return Resp.errMsg('不能删除令牌/会话缓存');
     }
     const cacheKeys = await this.redisCache.getKeys('', `${cacheName}:*`);
-    const num = await this.redisCache.delKeys('', cacheKeys);
-    if (num > 0) {
-      return Resp.ok();
-    }
-    return Resp.err();
+    await this.redisCache.delKeys('', cacheKeys);
+    return Resp.ok();
   }
 
   /**缓存内容删除 */
@@ -134,14 +152,14 @@ export class CacheController {
       AuthorizeUserMiddleware({ hasPerms: ['monitor:cache:remove'] }),
     ],
   })
-  public async clearCacheKey(
-    @Valid(Joi.string().required()) @Query('cacheName') cacheName: string,
-    @Valid(Joi.string().required()) @Query('cacheKey') cacheKey: string
+  public async cleanValue(
+    @Valid(Joi.string().required()) @Query('cache_name') cacheName: string,
+    @Valid(Joi.string().required()) @Query('cache_key') cacheKey: string
   ): Promise<Resp> {
-    const num = await this.redisCache.del('', cacheName + ':' + cacheKey);
-    if (num > 0) {
-      return Resp.ok();
+    if (cacheName === CACHE_TOKEN_SESSION || cacheName === CACHE_TOKEN_USERS) {
+      return Resp.errMsg('不能删除令牌/会话缓存');
     }
-    return Resp.err();
+    await this.redisCache.del('', cacheName + ':' + cacheKey);
+    return Resp.ok();
   }
 }

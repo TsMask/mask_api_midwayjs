@@ -1,5 +1,5 @@
 import { Provide, Singleton } from '@midwayjs/core';
-import { UserInfo } from '../../../framework/token/user_info';
+import { UserInfo } from '../../../internal/web/token/user_info';
 import { SysUserOnline } from '../model/sys_user_online';
 
 /**在线用户 服务层处理 */
@@ -18,7 +18,8 @@ export class SysUserOnlineService {
     }
 
     const iten = new SysUserOnline();
-    iten.tokenId = info.deviceId;
+    iten.sessionId = info.sessionId;
+    iten.tokenId = info.sessionId;
     iten.userName = info.user?.userName;
     iten.loginIp = info.loginIp;
     iten.loginLocation = info.loginLocation;

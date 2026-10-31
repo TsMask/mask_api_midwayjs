@@ -1,6 +1,9 @@
 /**当前在线会话对象 */
 export class SysUserOnline {
   /**会话编号 */
+  sessionId: string;
+
+  /**会话编号 */
   tokenId: string;
 
   /**部门名称 */

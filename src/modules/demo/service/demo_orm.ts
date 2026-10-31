@@ -1,6 +1,6 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { ResultSetHeader } from '../../../typings/commont';
 import { DemoORM } from '../model/demo_orm';
 

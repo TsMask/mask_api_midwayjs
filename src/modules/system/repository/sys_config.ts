@@ -1,9 +1,9 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
-import { ResultSetHeader } from '../../../typings/commont';
 
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
-import { parseNumber } from '../../../framework/utils/parse/parse';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
+import { parseNumber } from '../../../internal/shared/parse/parse';
+import { ResultSetHeader } from '../../../typings/commont';
 import { SysConfig } from '../model/sys_config';
 
 /**参数配置表 数据层处理 */
@@ -13,12 +13,6 @@ export class SysConfigRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  /**
-   * 分页查询集合
-   *
-   * @param query 参数
-   * @returns 集合
-   */
   public async selectByPage(
     query: Record<string, string>
   ): Promise<[SysConfig[], number]> {
@@ -26,107 +20,89 @@ export class SysConfigRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysConfig, 's')
-      .andWhere("s.del_flag = '0'");
-    // 查询条件拼接
-    if (query.configName) {
+      .from(SysConfig, 's');
+    if (query.config_name) {
       tx.andWhere('s.config_name like :configName', {
-        configName: query.configName + '%',
+        configName: query.config_name + '%',
       });
     }
-    if (query.configType) {
-      tx.andWhere('s.config_type = :configType', {
-        configType: query.configType,
+    if (query.config_group) {
+      tx.andWhere('s.config_group = :configGroup', {
+        configGroup: query.config_group,
       });
     }
-    if (query.configKey) {
+    if (query.config_key) {
       tx.andWhere('s.config_key like :configKey', {
-        configKey: query.configKey + '%',
+        configKey: query.config_key + '%',
       });
     }
-    if (query.beginTime) {
-      if (`${query.beginTime}`.length === 10) {
-        tx.andWhere('s.create_time >= :beginTime', {
-          beginTime: parseNumber(`${query.beginTime}000`),
-        });
-      } else if (`${query.beginTime}`.length === 13) {
-        tx.andWhere('s.create_time >= :beginTime', {
-          beginTime: parseNumber(query.beginTime),
-        });
+    if (query.create_time_begin) {
+      const beginTime = normalizeTimeRange(query.create_time_begin, '000');
+      if (beginTime > 0) {
+        tx.andWhere('s.create_time >= :beginTime', { beginTime });
       }
     }
-    if (query.endTime) {
-      if (`${query.endTime}`.length === 10) {
-        tx.andWhere('s.create_time <= :endTime', {
-          endTime: parseNumber(`${query.endTime}000`),
-        });
-      } else if (`${query.endTime}`.length === 13) {
-        tx.andWhere('s.create_time <= :endTime', {
-          endTime: parseNumber(query.endTime),
-        });
+    if (query.create_time_end) {
+      const endTime = normalizeTimeRange(query.create_time_end, '999');
+      if (endTime > 0) {
+        tx.andWhere('s.create_time <= :endTime', { endTime });
       }
     }
 
-    // 查询数量为0直接返回
     const total = await tx.getCount();
     if (total <= 0) {
       return [[], total];
     }
 
-    // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num,
+      query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=createTime,configName:asc（不加方向默认 DESC）
+
     const columnMap: Record<string, string> = {
-      configId: 's.config_id',
-      configName: 's.config_name',
-      configKey: 's.config_key',
-      configType: 's.config_type',
-      createBy: 's.create_by',
-      createTime: 's.create_time',
+      id: 's.id',
+      create_time: 's.create_time',
+      update_time: 's.update_time',
+      config_name: 's.config_name',
+      config_key: 's.config_key',
+      config_group: 's.config_group',
+      config_sort: 's.config_sort',
+      config_status: 's.config_status',
     };
+    let sorted = false;
     if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
+      for (const item of query.sort.split(',')) {
         const [field, dir] = item.split(':');
         const column = columnMap[field];
         if (!column) continue;
         const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
         tx.addOrderBy(column, order);
+        sorted = true;
       }
-    } else {
-      tx.addOrderBy('s.config_id', 'DESC');
+    }
+    if (!sorted) {
+      tx.addOrderBy('s.config_sort', 'ASC');
     }
 
     const rows = await tx.getMany();
     return [rows, total];
   }
 
-  /**
-   * 查询集合
-   *
-   * @param sysConfig 信息
-   * @return 列表
-   */
   public async select(sysConfig: SysConfig): Promise<SysConfig[]> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysConfig, 's')
-      .andWhere("s.del_flag = '0'");
-    // 构建查询条件
+      .from(SysConfig, 's');
     if (sysConfig.configName) {
       tx.andWhere('s.config_name like :configName', {
         configName: sysConfig.configName + '%',
       });
     }
-    if (sysConfig.configType) {
-      tx.andWhere('s.config_type = :configType', {
-        configType: sysConfig.configType,
+    if (sysConfig.configGroup) {
+      tx.andWhere('s.config_group = :configGroup', {
+        configGroup: sysConfig.configGroup,
       });
     }
     if (sysConfig.configKey) {
@@ -134,55 +110,34 @@ export class SysConfigRepository {
         configKey: sysConfig.configKey + '%',
       });
     }
-    if (sysConfig.createTime) {
-      tx.andWhere('s.create_time = :createTime', {
+    if (sysConfig.createTime > 0) {
+      tx.andWhere('s.create_time >= :createTime', {
         createTime: sysConfig.createTime,
       });
     }
-    // 查询数据
     return await tx.getMany();
   }
 
-  /**
-   * 通过ID查询
-   *
-   * @param configIds ID数组
-   * @return 信息
-   */
-  public async selectByIds(configIds: number[]): Promise<SysConfig[]> {
-    if (configIds.length <= 0) {
+  public async selectByIds(ids: number[]): Promise<SysConfig[]> {
+    if (ids.length <= 0) {
       return [];
     }
-    // 查询数据
-    const rows = await this.db
+    return await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's')
-      .andWhere("s.config_id in (:configIds) and s.del_flag = '0'", {
-        configIds,
-      })
+      .andWhere('s.id in (:ids)', { ids })
       .getMany();
-    if (rows.length > 0) {
-      return rows;
-    }
-    return [];
   }
 
-  /**
-   * 新增
-   *
-   * @param sysConfig 信息
-   * @return ID
-   */
   public async insert(sysConfig: SysConfig): Promise<number> {
     if (sysConfig.createBy) {
-      const ms = Date.now().valueOf();
+      const ms = Date.now();
       sysConfig.updateBy = sysConfig.createBy;
       sysConfig.updateTime = ms;
       sysConfig.createTime = ms;
     }
-    // 执行插入
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()
@@ -190,75 +145,50 @@ export class SysConfigRepository {
       .values(sysConfig)
       .execute();
     const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
-      return raw.insertId;
-    }
-    return 0;
+    return raw.insertId > 0 ? raw.insertId : 0;
   }
 
-  /**
-   * 更新
-   *
-   * @param sysConfig 信息
-   * @return 影响记录数
-   */
   public async update(sysConfig: SysConfig): Promise<number> {
-    if (sysConfig.configId <= 0) {
+    if (sysConfig.id <= 0) {
       return 0;
     }
     if (sysConfig.updateBy) {
-      sysConfig.updateTime = Date.now().valueOf();
+      sysConfig.updateTime = Date.now();
     }
-    const data = Object.assign({}, sysConfig);
-    delete (data as Partial<SysConfig>).configId;
-    delete (data as Partial<SysConfig>).delFlag;
-    delete (data as Partial<SysConfig>).createBy;
-    delete (data as Partial<SysConfig>).createTime;
-    // 执行更新
+    const data: Partial<SysConfig> = Object.assign({}, sysConfig);
+    delete data.id;
+    delete data.createBy;
+    delete data.createTime;
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysConfig)
       .set(data)
-      .andWhere('config_id = :configId', { configId: sysConfig.configId })
+      .where('id = :id', { id: sysConfig.id })
       .execute();
     return tx.affected ?? 0;
   }
 
-  /**
-   * 批量删除
-   *
-   * @param configIds ID数组
-   * @return 影响记录数
-   */
-  public async deleteByIds(configIds: number[]): Promise<number> {
-    if (configIds.length === 0) return 0;
-    // 执行更新删除标记
+  public async deleteByIds(ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
     const tx: DeleteResult = await this.db
       .queryBuilder('')
-      .update(SysConfig)
-      .set({ delFlag: '1' })
-      .andWhere('config_id in (:configIds)', { configIds })
+      .delete()
+      .from(SysConfig)
+      .where('id in (:ids)', { ids })
       .execute();
     return tx.affected ?? 0;
   }
 
-  /**
-   * 检查信息是否唯一 返回数据ID
-   * @param sysConfig 信息
-   * @returns
-   */
   public async checkUnique(sysConfig: SysConfig): Promise<number> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s')
-      .from(SysConfig, 's')
-      .andWhere("s.del_flag = '0'");
-    // 查询条件拼接
-    if (sysConfig.configType) {
-      tx.andWhere('s.config_type = :configType', {
-        configType: sysConfig.configType,
+      .select('s.id', 'id')
+      .from(SysConfig, 's');
+    if (sysConfig.configGroup) {
+      tx.andWhere('s.config_group = :configGroup', {
+        configGroup: sysConfig.configGroup,
       });
     }
     if (sysConfig.configKey) {
@@ -266,33 +196,29 @@ export class SysConfigRepository {
         configKey: sysConfig.configKey,
       });
     }
-    // 查询数据
-    const item = await tx.getOne();
-    if (!item) {
-      return 0;
-    }
-    return item.configId;
+    const row = await tx.getRawOne();
+    return Number(row?.id ?? 0);
   }
 
-  /**
-   * 通过Key查询Value
-   * @param configKey 数据Key
-   * @returns
-   */
   public async selectValueByKey(configKey: string): Promise<string> {
     if (!configKey) return '';
-
-    // 查询数据
-    const item = await this.db
+    const row = await this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s')
+      .select('s.config_value', 'configValue')
       .from(SysConfig, 's')
-      .andWhere("s.config_key = :configKey and s.del_flag = '0'", { configKey })
-      .getOne();
-    if (!item) {
-      return '';
-    }
-    return item.configValue;
+      .andWhere('s.config_key = :configKey', { configKey })
+      .getRawOne();
+    return row?.configValue ?? '';
   }
+}
+
+function normalizeTimeRange(value: string, suffix: string): number {
+  if (value.length === 10) {
+    return parseNumber(`${value}${suffix}`);
+  }
+  if (value.length === 13) {
+    return parseNumber(value);
+  }
+  return 0;
 }

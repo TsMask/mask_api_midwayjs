@@ -8,8 +8,8 @@ import {
 import {
   RateLimitMiddleware,
   LIMIT_IP,
-} from '../../../framework/middleware/rate_limit';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../internal/web/middleware/rate_limit';
+import { Resp } from '../../../internal/web/resp/api';
 
 /**路由主页 控制层处理 */
 @Controller('/')
@@ -20,7 +20,7 @@ export class IndexController {
 
   /**根路由 */
   @Get('', {
-    middleware: [RateLimitMiddleware({ time: 300, count: 60, type: LIMIT_IP })],
+    middleware: [RateLimitMiddleware({ time: 300, count: 10, type: LIMIT_IP })],
   })
   public async index(): Promise<Resp> {
     const pkg = this.midwayInformationService.getPkg();

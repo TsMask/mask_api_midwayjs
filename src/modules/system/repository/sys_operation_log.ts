@@ -1,127 +1,98 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult } from 'typeorm';
 
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
-import { parseNumber } from '../../../framework/utils/parse/parse';
-import { SysLogOperate } from '../model/sys_log_operate';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
+import { parseNumber } from '../../../internal/shared/parse/parse';
 import { ResultSetHeader } from '../../../typings/commont';
+import { SysOperationLog } from '../model/sys_operation_log';
 
-/**操作日志表 数据层处理 */
+/**系统操作日志表 数据层处理 */
 @Provide()
 @Singleton()
-export class SysLogOperateRepository {
+export class SysOperationLogRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  /**
-   * 分页查询集合
-   *
-   * @param query 参数
-   * @param filter 角色数据范围过滤对象
-   * @returns 集合
-   */
   public async selectByPage(
     query: Record<string, string>,
     filter: { sql: string; params: Record<string, any> }
-  ): Promise<[SysLogOperate[], number]> {
+  ): Promise<[SysOperationLog[], number]> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysLogOperate, 's');
-    // 查询条件拼接
+      .from(SysOperationLog, 's');
     if (query.title) {
-      tx.andWhere('s.title like :title', {
-        title: query.title + '%',
+      tx.andWhere('s.title like :title', { title: query.title + '%' });
+    }
+    if (query.operation_type) {
+      const operationTypes = query.operation_type.split(',');
+      tx.andWhere('s.operation_type in (:operationTypes)', {
+        operationTypes,
       });
     }
-    if (query.businessType) {
-      tx.andWhere('s.business_type = :businessType', {
-        businessType: query.businessType,
+    if (query.create_by) {
+      tx.andWhere('s.create_by like :createBy', {
+        createBy: query.create_by + '%',
       });
     }
-    if (query.operaBy) {
-      tx.andWhere('s.opera_by like :operaBy', {
-        operaBy: query.operaBy + '%',
+    if (query.operation_ip) {
+      tx.andWhere('s.operation_ip like :operationIp', {
+        operationIp: query.operation_ip + '%',
       });
     }
-    if (query.operaIp) {
-      tx.andWhere('s.opera_ip like :operaIp', {
-        operaIp: query.operaIp + '%',
+    if (query.operation_status) {
+      tx.andWhere('s.operation_status = :operationStatus', {
+        operationStatus: query.operation_status,
       });
     }
-    if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
-      });
+    const beginTime = normalizeTimeRange(query.create_time_begin, '000');
+    if (beginTime > 0) {
+      tx.andWhere('s.create_time >= :beginTime', { beginTime });
     }
-    if (query.beginTime) {
-      if (`${query.beginTime}`.length === 10) {
-        tx.andWhere('s.opera_time >= :beginTime', {
-          beginTime: parseNumber(`${query.beginTime}000`),
-        });
-      } else if (`${query.beginTime}`.length === 13) {
-        tx.andWhere('s.opera_time >= :beginTime', {
-          beginTime: parseNumber(query.beginTime),
-        });
-      }
-    }
-    if (query.endTime) {
-      if (`${query.endTime}`.length === 10) {
-        tx.andWhere('s.opera_time <= :endTime', {
-          endTime: parseNumber(`${query.endTime}000`),
-        });
-      } else if (`${query.endTime}`.length === 13) {
-        tx.andWhere('s.opera_time <= :endTime', {
-          endTime: parseNumber(query.endTime),
-        });
-      }
+    const endTime = normalizeTimeRange(query.create_time_end, '999');
+    if (endTime > 0) {
+      tx.andWhere('s.create_time <= :endTime', { endTime });
     }
     if (filter?.sql) {
       tx.andWhere(
-        `s.opera_by in (select distinct user_name from sys_user where ${filter.sql})`,
+        `s.create_by in (select distinct user_name from sys_user where ${filter.sql})`,
         filter.params
       );
     }
 
-    // 查询数量为0直接返回
     const total = await tx.getCount();
     if (total <= 0) {
       return [[], total];
     }
 
-    // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num,
+      query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
-    // 排序，格式: sort=operaTime,operaBy:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
+      create_by: 's.create_by',
+      create_time: 's.create_time',
       title: 's.title',
-      businessType: 's.business_type',
-      operaUrl: 's.opera_url',
-      operaUrlMethod: 's.opera_url_method',
-      operaIp: 's.opera_ip',
-      operaLocation: 's.opera_location',
-      operaMethod: 's.opera_method',
-      operaBy: 's.opera_by',
-      operaTime: 's.opera_time',
-      statusFlag: 's.status_flag',
-      costTime: 's.cost_time',
+      operation_type: 's.operation_type',
+      operation_cost_time: 's.operation_cost_time',
+      operation_status: 's.operation_status',
     };
+    let sorted = false;
     if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
+      for (const item of query.sort.split(',')) {
         const [field, dir] = item.split(':');
         const column = columnMap[field];
         if (!column) continue;
         const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
         tx.addOrderBy(column, order);
+        sorted = true;
       }
-    } else {
+    }
+    if (!sorted) {
       tx.addOrderBy('s.id', 'DESC');
     }
 
@@ -129,42 +100,38 @@ export class SysLogOperateRepository {
     return [rows, total];
   }
 
-  /**
-   * 新增
-   *
-   * @param sysLogOperate 信息
-   * @return ID
-   */
-  public async insert(sysLogOperate: SysLogOperate): Promise<number> {
-    if (sysLogOperate.operaBy) {
-      sysLogOperate.operaTime = Date.now().valueOf();
+  public async insert(operationLog: SysOperationLog): Promise<number> {
+    if (operationLog.createBy) {
+      operationLog.createTime = Date.now();
     }
-    // 执行插入
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()
-      .into(SysLogOperate)
-      .values(sysLogOperate)
+      .into(SysOperationLog)
+      .values(operationLog)
       .execute();
     const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
-      return raw.insertId;
-    }
-    return 0;
+    return raw.insertId > 0 ? raw.insertId : 0;
   }
 
-  /**
-   * 清空信息
-   *
-   * @return 影响记录数
-   */
   public async clean(): Promise<number> {
-    // 执行删除
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .delete()
-      .from(SysLogOperate)
+      .from(SysOperationLog)
+      .where('1 = 1')
       .execute();
     return tx.affected ?? 0;
   }
+}
+
+function normalizeTimeRange(value: string, suffix: string): number {
+  if (!value) return 0;
+  if (value.length === 10) {
+    return parseNumber(`${value}${suffix}`);
+  }
+  if (value.length === 13) {
+    return parseNumber(value);
+  }
+  return 0;
 }

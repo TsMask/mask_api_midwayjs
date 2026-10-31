@@ -2,23 +2,17 @@ import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
-import { parseNumber } from '../../../framework/utils/parse/parse';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
+import { parseNumber } from '../../../internal/shared/parse/parse';
 import { SysRole } from '../model/sys_role';
 
-/**角色表 数据层处理 */
+/** Role data access. */
 @Provide()
 @Singleton()
 export class SysRoleRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  /**
-   * 分页查询集合
-   *
-   * @param query 参数
-   * @returns 集合
-   */
   public async selectByPage(
     query: Record<string, string>
   ): Promise<[SysRole[], number]> {
@@ -27,107 +21,97 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere("s.del_flag = '0'");
-    // 查询条件拼接
-    if (query.roleName) {
+      .andWhere("s.role_del = '0'");
+    if (query.role_name) {
       tx.andWhere('s.role_name like :roleName', {
-        roleName: query.roleName + '%',
+        roleName: query.role_name + '%',
       });
     }
-    if (query.roleKey) {
+    if (query.role_key) {
       tx.andWhere('s.role_key like :roleKey', {
-        roleKey: query.roleKey + '%',
+        roleKey: query.role_key + '%',
       });
     }
-    if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
+    if (query.role_status) {
+      tx.andWhere('s.role_status = :roleStatus', {
+        roleStatus: query.role_status,
       });
     }
-    if (query.beginTime) {
-      if (`${query.beginTime}`.length === 10) {
+    if (query.create_time_begin) {
+      if (`${query.create_time_begin}`.length === 10) {
         tx.andWhere('s.create_time >= :beginTime', {
-          beginTime: parseNumber(`${query.beginTime}000`),
+          beginTime: parseNumber(`${query.create_time_begin}000`),
         });
-      } else if (`${query.beginTime}`.length === 13) {
+      } else if (`${query.create_time_begin}`.length === 13) {
         tx.andWhere('s.create_time >= :beginTime', {
-          beginTime: parseNumber(query.beginTime),
+          beginTime: parseNumber(query.create_time_begin),
         });
       }
     }
-    if (query.endTime) {
-      if (`${query.endTime}`.length === 10) {
+    if (query.create_time_end) {
+      if (`${query.create_time_end}`.length === 10) {
         tx.andWhere('s.create_time <= :endTime', {
-          endTime: parseNumber(`${query.endTime}000`),
+          endTime: parseNumber(`${query.create_time_end}999`),
         });
-      } else if (`${query.endTime}`.length === 13) {
+      } else if (`${query.create_time_end}`.length === 13) {
         tx.andWhere('s.create_time <= :endTime', {
-          endTime: parseNumber(query.endTime),
+          endTime: parseNumber(query.create_time_end),
         });
       }
     }
-    if (query.deptId) {
+    const deptId = query.dept_id ?? query.deptId;
+    if (deptId) {
       tx.andWhere(
-        `s.role_id in ( 
-        select distinct role_id from sys_role_dept where sys_role_dept.dept_id IN ( 
-        SELECT dept_id FROM sys_dept WHERE dept_id = :deptId or find_in_set(:deptId , ancestors ) 
-        ))`,
-        { deptId: query.deptId }
+        `s.id in (
+          select distinct role_id from sys_role_dept
+          where sys_role_dept.dept_id in (
+            select descendant_id from sys_dept_closure where ancestor_id = :deptId
+          )
+        )`,
+        { deptId }
       );
     }
 
-    // 查询数量为0直接返回
     const total = await tx.getCount();
     if (total <= 0) {
       return [[], total];
     }
 
-    // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num ?? query.pageNum,
+      query.page_size ?? query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=roleSort,roleName:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
-      roleId: 's.role_id',
-      roleName: 's.role_name',
-      roleKey: 's.role_key',
-      roleSort: 's.role_sort',
-      statusFlag: 's.status_flag',
-      createTime: 's.create_time',
+      id: 's.id',
+      create_time: 's.create_time',
+      update_time: 's.update_time',
+      role_name: 's.role_name',
+      role_key: 's.role_key',
+      role_sort: 's.role_sort',
+      role_status: 's.role_status',
+      role_data_scope: 's.role_data_scope',
     };
     if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
+      for (const item of query.sort.split(',')) {
         const [field, dir] = item.split(':');
         const column = columnMap[field];
         if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
+        tx.addOrderBy(column, dir === 'asc' ? 'ASC' : 'DESC');
       }
     } else {
       tx.addOrderBy('s.role_sort', 'ASC');
     }
-
-    const rows = await tx.getMany();
-    return [rows, total];
+    return [await tx.getMany(), total];
   }
 
-  /**
-   * 查询集合
-   *
-   * @param sysRole 信息
-   * @return 列表
-   */
   public async select(sysRole: SysRole): Promise<SysRole[]> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere("s.del_flag = '0'");
-    // 构建查询条件
+      .andWhere("s.role_del = '0'");
     if (sysRole.roleKey) {
       tx.andWhere('s.role_key like :roleKey', {
         roleKey: sysRole.roleKey + '%',
@@ -138,54 +122,35 @@ export class SysRoleRepository {
         roleName: sysRole.roleName + '%',
       });
     }
-    if (sysRole.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: sysRole.statusFlag,
+    if (sysRole.roleStatus) {
+      tx.andWhere('s.role_status = :roleStatus', {
+        roleStatus: sysRole.roleStatus,
       });
     }
-    // 查询数据
     return await tx.addOrderBy('s.role_sort', 'ASC').getMany();
   }
 
-  /**
-   * 通过ID查询
-   *
-   * @param roleIds ID数组
-   * @return 信息
-   */
   public async selectByIds(roleIds: number[]): Promise<SysRole[]> {
     if (roleIds.length <= 0) {
       return [];
     }
-    // 查询数据
-    const rows = await this.db
+    return await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere("s.role_id in (:roleIds) and s.del_flag = '0'", { roleIds })
+      .andWhere("s.id in (:roleIds) and s.role_del = '0'", { roleIds })
       .getMany();
-    if (rows.length > 0) {
-      return rows;
-    }
-    return [];
   }
 
-  /**
-   * 新增
-   *
-   * @param sysConfig 信息
-   * @return ID
-   */
   public async insert(sysRole: SysRole): Promise<number> {
-    sysRole.delFlag = '0';
+    sysRole.roleDel = '0';
     if (sysRole.createBy) {
       const ms = Date.now().valueOf();
       sysRole.updateBy = sysRole.createBy;
       sysRole.updateTime = ms;
       sysRole.createTime = ms;
     }
-    // 执行插入
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()
@@ -193,119 +158,82 @@ export class SysRoleRepository {
       .values(sysRole)
       .execute();
     const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
-      return raw.insertId;
-    }
-    return 0;
+    return raw.insertId > 0 ? raw.insertId : 0;
   }
 
-  /**
-   * 更新
-   *
-   * @param sysRole 信息
-   * @return 影响记录数
-   */
   public async update(sysRole: SysRole): Promise<number> {
-    if (sysRole.roleId <= 0) {
+    if (sysRole.id <= 0) {
       return 0;
     }
     if (sysRole.updateBy) {
       sysRole.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysRole);
-    delete (data as Partial<SysRole>).roleId;
-    delete (data as Partial<SysRole>).delFlag;
+    delete (data as Partial<SysRole>).id;
+    delete (data as Partial<SysRole>).roleDel;
     delete (data as Partial<SysRole>).createBy;
     delete (data as Partial<SysRole>).createTime;
     delete (data as Partial<SysRole>).deptIds;
     delete (data as Partial<SysRole>).menuIds;
-    // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysRole)
       .set(data)
-      .andWhere('role_id = :roleId', { roleId: sysRole.roleId })
+      .andWhere('id = :id', { id: sysRole.id })
       .execute();
     return tx.affected ?? 0;
   }
 
-  /**
-   * 批量删除
-   *
-   * @param roleIds ID数组
-   * @return 影响记录数
-   */
   public async deleteByIds(roleIds: number[]): Promise<number> {
     if (roleIds.length === 0) return 0;
-    // 执行更新删除标记
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .update(SysRole)
-      .set({ delFlag: '1' })
-      .andWhere('role_id in (:roleIds)', { roleIds })
+      .set({ roleDel: '1' })
+      .andWhere('id in (:roleIds)', { roleIds })
       .execute();
     return tx.affected ?? 0;
   }
 
-  /**
-   * 检查信息是否唯一 返回数据ID
-   * @param sysRole 信息
-   * @returns
-   */
   public async checkUnique(sysRole: SysRole): Promise<number> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s')
+      .select('s.id', 'id')
       .from(SysRole, 's')
-      .andWhere("s.del_flag = '0'");
-    // 查询条件拼接
+      .andWhere("s.role_del = '0'");
     if (sysRole.roleName) {
-      tx.andWhere('s.role_name = :roleName', {
-        roleName: sysRole.roleName,
-      });
+      tx.andWhere('s.role_name = :roleName', { roleName: sysRole.roleName });
     }
     if (sysRole.roleKey) {
-      tx.andWhere('s.role_key = :roleKey', {
-        roleKey: sysRole.roleKey,
-      });
+      tx.andWhere('s.role_key = :roleKey', { roleKey: sysRole.roleKey });
     }
-    // 查询数据
-    const item = await tx.getOne();
-    if (!item) {
-      return 0;
-    }
-    return item.roleId;
+    const row = await tx.getRawOne();
+    return Number(row?.id ?? 0);
   }
 
-  /**
-   * 根据用户ID获取角色信息
-   * @param userId 用户ID
-   * @returns 角色数组
-   */
   public async selectByUserId(userId: number): Promise<SysRole[]> {
     if (userId <= 0) {
       return [];
     }
-    const rows = await this.db
+    return await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .distinct(true)
       .select('r')
       .from(SysRole, 'r')
-      .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.role_id')
-      .leftJoin('sys_user', 'u', 'u.user_id = ur.user_id')
-      .andWhere("u.del_flag = '0' AND ur.user_id = :userId", { userId })
+      .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
+      .leftJoin('sys_user', 'u', 'u.id = ur.user_id')
+      .andWhere(
+        "u.user_del = '0' and r.role_del = '0' and ur.user_id = :userId",
+        {
+          userId,
+        }
+      )
       .getMany();
-    return rows;
   }
 
-  /**
-   * 根据用户ID列表批量获取角色信息
-   * @param userIds 用户ID数组
-   * @returns 用户ID到角色数组的映射
-   */
   public async selectByUserIds(
     userIds: number[]
   ): Promise<Map<number, SysRole[]>> {
@@ -317,27 +245,31 @@ export class SysRoleRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('ur.user_id', 'userId')
-      .addSelect('r.role_id', 'roleId')
+      .addSelect('r.id', 'id')
       .addSelect('r.role_name', 'roleName')
       .addSelect('r.role_key', 'roleKey')
       .addSelect('r.role_sort', 'roleSort')
-      .addSelect('r.data_scope', 'dataScope')
-      .addSelect('r.status_flag', 'statusFlag')
-      .addSelect('r.del_flag', 'delFlag')
+      .addSelect('r.role_data_scope', 'roleDataScope')
+      .addSelect('r.role_menu_check_strictly', 'roleMenuCheckStrictly')
+      .addSelect('r.role_dept_check_strictly', 'roleDeptCheckStrictly')
+      .addSelect('r.role_status', 'roleStatus')
+      .addSelect('r.role_del', 'roleDel')
       .from(SysRole, 'r')
-      .innerJoin('sys_user_role', 'ur', 'ur.role_id = r.role_id')
-      .andWhere("r.del_flag = '0' AND ur.user_id in (:userIds)", { userIds })
+      .innerJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
+      .andWhere("r.role_del = '0' and ur.user_id in (:userIds)", { userIds })
       .getRawMany();
 
     for (const row of rows) {
       const role = new SysRole();
-      role.roleId = Number(row.roleId);
+      role.id = Number(row.id);
       role.roleName = row.roleName;
       role.roleKey = row.roleKey;
       role.roleSort = Number(row.roleSort);
-      role.dataScope = row.dataScope;
-      role.statusFlag = row.statusFlag;
-      role.delFlag = row.delFlag;
+      role.roleDataScope = row.roleDataScope;
+      role.roleMenuCheckStrictly = row.roleMenuCheckStrictly;
+      role.roleDeptCheckStrictly = row.roleDeptCheckStrictly;
+      role.roleStatus = row.roleStatus;
+      role.roleDel = row.roleDel;
 
       const userId = Number(row.userId);
       const existing = roleMap.get(userId) || [];

@@ -4,11 +4,11 @@ import { Body, Controller, Post } from '@midwayjs/core';
 import { Valid } from '@midwayjs/validation';
 import * as Joi from 'joi';
 
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { Resp } from '../../../framework/resp/api';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { Resp } from '../../../internal/web/resp/api';
 
 /**通用请求 控制层处理 */
-@Controller('/common')
+@Controller('/api/v1/common')
 export class CommonController {
   /**哈希编码 */
   @Post('/hash', {

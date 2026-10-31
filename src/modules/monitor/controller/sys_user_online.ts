@@ -6,32 +6,33 @@ import type { Context } from '@midwayjs/koa';
 import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
-} from '../../../framework/middleware/operate_log';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
+} from '../../../internal/web/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/parse/parse';
-import { CACHE_TOKEN_DEVICE } from '../../../framework/constants/cache_key';
-import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { UserInfo } from '../../../framework/token/user_info';
-import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../internal/shared/parse/parse';
+import { CACHE_TOKEN_SESSION } from '../../../internal/shared/constants/cache_key';
+import { RedisCache } from '../../../internal/infra/cache/redis';
+import { UserTokenService } from '../../../internal/web/token/user_token';
+import { UserInfo } from '../../../internal/web/token/user_info';
+import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
+import { Resp } from '../../../internal/web/resp/api';
 import { SysUserOnlineService } from '../service/sys_user_online';
 import { SysUserOnline } from '../model/sys_user_online';
 
 /**在线用户信息 控制层处理 */
-@Controller('/monitor/user-online')
+@Controller('/api/v1/monitor/online-users')
 export class SysUserOnlineController {
-  /**上下文 */
   @Inject('ctx')
   private c: Context;
 
-  /**缓存服务 */
   @Inject()
   private redisCache: RedisCache;
 
-  /**在线用户服务 */
+  @Inject()
+  private token: UserTokenService;
+
   @Inject()
   private sysUserOnlineService: SysUserOnlineService;
 
@@ -40,74 +41,82 @@ export class SysUserOnlineController {
    */
   @Get('/list', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:online:list'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:online:user:list'] }),
     ],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
-    // SCAN 获取所有 key（仅名称，10万级也很快）
-    const keys = await this.redisCache.getKeys('', `${CACHE_TOKEN_DEVICE}:*`);
-    keys.sort(); // 排序保证顺序确定性
-
-    const total = keys.length;
-    if (total <= 0) {
+    const keys = await this.redisCache.getKeys('', `${CACHE_TOKEN_SESSION}:*`);
+    if (keys.length === 0) {
       return Resp.okData({ total: 0, rows: [] });
     }
 
-    // 分页：只取当前页的 key，避免 10 万级全量 mget
-    const pn = Math.max(parseNumber(query.pageNum || '1'), 1);
-    const ps = Math.max(parseNumber(query.pageSize || '10'), 1);
-    const pageKeys = keys.slice((pn - 1) * ps, pn * ps);
-    const values = await this.redisCache.getBatch('', pageKeys);
-
-    // 解析当前页数据
+    const values = await this.redisCache.getBatch('', keys);
     let list: SysUserOnline[] = [];
-    for (const str of values) {
-      if (!str) continue;
+    for (const value of values) {
+      if (!value) continue;
       try {
-        const info: UserInfo = JSON.parse(str);
+        const info = JSON.parse(value) as UserInfo;
         const onlineUser =
           await this.sysUserOnlineService.userInfoToUserOnline(info);
-        if (onlineUser.tokenId !== '') {
+        if (onlineUser.sessionId !== '') {
           list.push(onlineUser);
         }
       } catch {
-        // ignore invalid JSON
+        continue;
       }
     }
 
-    // 过滤
-    if (query.tokenId)
-      list = list.filter(o => o.tokenId.includes(query.tokenId));
-    if (query.userName)
-      list = list.filter(o => o.userName.includes(query.userName));
-    if (query.loginIp)
-      list = list.filter(o => o.loginIp.includes(query.loginIp));
-    if (query.deptName)
-      list = list.filter(o => o.deptName?.includes(query.deptName));
-    if (query.browser)
-      list = list.filter(o => o.browser.includes(query.browser));
-    if (query.os) list = list.filter(o => o.os.includes(query.os));
+    const sessionFilter = query.session_id || query.sessionId || query.tokenId;
+    const userNameFilter = query.user_name || query.userName;
+    const loginIpFilter = query.login_ip || query.loginIp;
+    const deptNameFilter = query.dept_name || query.deptName;
+    if (sessionFilter) {
+      list = list.filter(item => item.sessionId.includes(sessionFilter));
+    }
+    if (userNameFilter) {
+      list = list.filter(item => item.userName.includes(userNameFilter));
+    }
+    if (loginIpFilter) {
+      list = list.filter(item => item.loginIp.includes(loginIpFilter));
+    }
+    if (deptNameFilter) {
+      list = list.filter(item =>
+        (item.deptName ?? '').includes(deptNameFilter)
+      );
+    }
+    if (query.browser) {
+      list = list.filter(item => item.browser.includes(query.browser));
+    }
+    if (query.os) {
+      list = list.filter(item => item.os.includes(query.os));
+    }
 
-    // 排序，格式: sort=loginTime,userName:asc（不加方向默认 DESC）
     const sortFns: Record<
       string,
       (a: SysUserOnline, b: SysUserOnline) => number
     > = {
-      tokenId: (a, b) => a.tokenId.localeCompare(b.tokenId),
+      session_id: (a, b) => a.sessionId.localeCompare(b.sessionId),
+      sessionId: (a, b) => a.sessionId.localeCompare(b.sessionId),
+      user_name: (a, b) => a.userName.localeCompare(b.userName),
       userName: (a, b) => a.userName.localeCompare(b.userName),
+      login_ip: (a, b) => a.loginIp.localeCompare(b.loginIp),
       loginIp: (a, b) => a.loginIp.localeCompare(b.loginIp),
+      dept_name: (a, b) => (a.deptName ?? '').localeCompare(b.deptName ?? ''),
       deptName: (a, b) => (a.deptName ?? '').localeCompare(b.deptName ?? ''),
       browser: (a, b) => a.browser.localeCompare(b.browser),
       os: (a, b) => a.os.localeCompare(b.os),
+      login_time: (a, b) => a.loginTime - b.loginTime,
       loginTime: (a, b) => a.loginTime - b.loginTime,
     };
     if (query.sort) {
       const items = query.sort.split(',');
       list.sort((a, b) => {
         for (const item of items) {
-          const [field, dir] = item.split(':');
-          const cmp = sortFns[field]?.(a, b) ?? 0;
-          if (cmp !== 0) return dir === 'asc' ? cmp : -cmp;
+          const [field, direction] = item.split(':');
+          const compared = sortFns[field]?.(a, b) ?? 0;
+          if (compared !== 0) {
+            return direction === 'asc' ? compared : -compared;
+          }
         }
         return 0;
       });
@@ -115,18 +124,26 @@ export class SysUserOnlineController {
       list.sort((a, b) => b.loginTime - a.loginTime);
     }
 
+    const pageNum = Math.max(
+      parseNumber(query.pageNum || query.page_num || '1'),
+      1
+    );
+    const pageSize = Math.min(
+      Math.max(parseNumber(query.pageSize || query.page_size || '10'), 1),
+      500
+    );
     return Resp.okData({
-      total,
-      rows: list,
+      total: list.length,
+      rows: list.slice((pageNum - 1) * pageSize, pageNum * pageSize),
     });
   }
 
   /**
    * 在线用户强制退出
    */
-  @Del('/logout/:tokenId', {
+  @Del('/logout/:session_id', {
     middleware: [
-      AuthorizeUserMiddleware({ hasPerms: ['monitor:online:logout'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['monitor:online:user:logout'] }),
       OperateLogMiddleware({
         title: '在线用户监控',
         businessType: BUSINESS_TYPE.FORCE,
@@ -134,19 +151,15 @@ export class SysUserOnlineController {
     ],
   })
   public async logout(
-    @Valid(Joi.string().allow('')) @Param('tokenId') tokenId: string
+    @Valid(Joi.string().allow('')) @Param('session_id') sessionId: string
   ): Promise<Resp> {
-    if (tokenId === '' || tokenId.indexOf('*') >= 0) {
+    if (!sessionId || sessionId.includes('*')) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: tokenId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: sessionId is empty');
     }
 
-    // 处理字符转id数组后去重
-    const uniqueIDs = parseRemoveDuplicatesToArray(tokenId, ',');
-    for (const v of uniqueIDs) {
-      const key = `${CACHE_TOKEN_DEVICE}:${v}`;
-      await this.redisCache.del('', key);
-    }
+    const sessionIds = parseRemoveDuplicatesToArray(sessionId, ',');
+    await this.token.removeBySessionIds(sessionIds);
     return Resp.ok();
   }
 }

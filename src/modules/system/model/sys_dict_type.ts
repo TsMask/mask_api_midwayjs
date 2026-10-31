@@ -7,8 +7,8 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysDictType {
   /**字典ID */
   @Rule(Joi.number().allow(0))
-  @PrimaryGeneratedColumn({ name: 'dict_id' })
-  dictId: number;
+  @PrimaryGeneratedColumn({ name: 'id' })
+  id: number;
 
   /**字典名称 */
   @Rule(Joi.string().required())
@@ -22,13 +22,8 @@ export class SysDictType {
 
   /**状态（0停用 1正常） */
   @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'status_flag' })
-  statusFlag: string;
-
-  /**删除标记（0存在 1删除） */
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'del_flag' })
-  delFlag: string;
+  @Column({ name: 'dict_status' })
+  dictStatus: string;
 
   /**创建者 */
   @Rule(Joi.string().allow(''))

@@ -5,10 +5,10 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 /**参数配置表 */
 @Entity('sys_config')
 export class SysConfig {
-  /**参数主键 */
+  /**参数ID */
   @Rule(Joi.number().allow(0))
-  @PrimaryGeneratedColumn({ name: 'config_id' })
-  configId: number;
+  @PrimaryGeneratedColumn({ name: 'id' })
+  id: number;
 
   /**参数名称 */
   @Rule(Joi.string().required())
@@ -25,15 +25,25 @@ export class SysConfig {
   @Column({ name: 'config_value' })
   configValue: string;
 
-  /**系统内置（Y是 N否） */
-  @Rule(Joi.string().pattern(/^[YN]$/))
-  @Column({ name: 'config_type' })
-  configType: string;
+  /**参数键值类型（string/number/boolean/json） */
+  @Rule(Joi.string().valid('string', 'number', 'boolean', 'json').allow(''))
+  @Column({ length: 128, name: 'config_value_type' })
+  configValueType: string;
 
-  /**删除标志（0代表存在 1代表删除） */
+  /**参数分组 */
+  @Rule(Joi.string().allow(''))
+  @Column({ name: 'config_group' })
+  configGroup: string;
+
+  /**排序 */
+  @Rule(Joi.number().allow(0))
+  @Column({ name: 'config_sort' })
+  configSort: number;
+
+  /**状态（0停用 1正常） */
   @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'del_flag' })
-  delFlag: string;
+  @Column({ name: 'config_status' })
+  configStatus: string;
 
   /**创建者 */
   @Rule(Joi.string().allow(''))

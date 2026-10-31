@@ -18,27 +18,26 @@ import {
   validPassword,
   validMobile,
   validEmail,
-} from '../../../framework/utils/regular/regular';
+} from '../../../internal/shared/regular/regular';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/parse/parse';
+} from '../../../internal/shared/parse/parse';
 import {
   loginUserToDataScopeSQL,
   loginUserToUserID,
   loginUserToUserName,
-} from '../../../framework/reqctx/auth';
+} from '../../../internal/web/reqctx/auth';
 import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
-} from '../../../framework/middleware/operate_log';
-import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
-import { Resp } from '../../../framework/resp/api';
-import { RepeatSubmitMiddleware } from '../../../framework/middleware/repeat_submit';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { GlobalConfig } from '../../../framework/config/config';
-import { FileUtil } from '../../../framework/utils/file/file';
-import { readSheet } from '../../../framework/utils/file/execl';
+} from '../../../internal/web/middleware/operate_log';
+import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
+import { Resp } from '../../../internal/web/resp/api';
+import { RepeatSubmitMiddleware } from '../../../internal/web/middleware/repeat_submit';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { GlobalConfig } from '../../../internal/config/config';
+import { FileUtil } from '../../../internal/shared/file/file';
 import { AccountService } from '../../auth/service/account';
 import { SysUserService } from '../service/sys_user';
 import { SysRoleService } from '../service/sys_role';
@@ -46,9 +45,14 @@ import { SysPostService } from '../service/sys_post';
 import { SysRole } from '../model/sys_role';
 import { SysUser } from '../model/sys_user';
 import { SysPost } from '../model/sys_post';
+import {
+  serializeSysPost,
+  serializeSysRole,
+  serializeSysUser,
+} from '../model/vo/response';
 
 /**用户信息 控制层处理 */
-@Controller('/system/user')
+@Controller('/api/v1/system/users')
 export class SysUserController {
   /**上下文 */
   @Inject('ctx')
@@ -85,15 +89,15 @@ export class SysUserController {
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
     const [rows, total] = await this.sysUserService.findByPage(query, filter);
-    return Resp.okData({ rows, total });
+    return Resp.okData({ rows: rows.map(serializeSysUser), total });
   }
 
   /**用户信息详情 */
-  @Get('/:userId', {
+  @Get('/:id', {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:query'] })],
   })
   public async info(
-    @Valid(Joi.number()) @Param('userId') userId: number
+    @Valid(Joi.number()) @Param('id') userId: number
   ): Promise<Resp> {
     if (userId < 0) {
       this.c.status = 422;
@@ -109,33 +113,33 @@ export class SysUserController {
     if (userId === 0) {
       return Resp.okData({
         user: {},
-        roleIds: [],
-        postIds: [],
-        roles: roles,
-        posts: posts,
+        role_ids: [],
+        post_ids: [],
+        roles: roles.map(serializeSysRole),
+        posts: posts.map(serializeSysPost),
       });
     }
 
     // 检查用户是否存在
     const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.userId !== userId) {
+    if (userInfo.id !== userId) {
       return Resp.errMsg('没有权限访问用户数据');
     }
-    delete (userInfo as Partial<SysUser>).password;
+    delete (userInfo as Partial<SysUser>).userPassword;
 
     // 角色ID组
-    const roleIds = userInfo.roles.map(r => r.roleId);
+    const roleIds = userInfo.roles.map(r => r.id);
 
     // 岗位ID组
-    const userPosts = await this.sysPostService.findByUserId(userInfo.userId);
-    const postIds = userPosts.map(p => p.postId);
+    const userPosts = await this.sysPostService.findByUserId(userInfo.id);
+    const postIds = userPosts.map(p => p.id);
 
     return Resp.okData({
-      user: userInfo,
-      roleIds: roleIds,
-      postIds: postIds,
-      roles: roles,
-      posts: posts,
+      user: serializeSysUser(userInfo),
+      role_ids: roleIds,
+      post_ids: postIds,
+      roles: roles.map(serializeSysRole),
+      posts: posts.map(serializeSysPost),
     });
   }
 
@@ -149,8 +153,9 @@ export class SysUserController {
       }),
     ],
   })
-  public async add(@Body() body: SysUser): Promise<Resp> {
-    if (body.userId > 0) {
+  public async add(@Body() rawBody: Record<string, any>): Promise<Resp> {
+    const body = this.parseBody(rawBody);
+    if (body.id > 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId not is empty');
     }
@@ -159,9 +164,9 @@ export class SysUserController {
         `新增用户【${body.userName}】失败，登录账号用户账号只能包含大写小写字母，数字，且不少于4位`
       );
     }
-    if (!validPassword(body.password)) {
+    if (!validPassword(body.userPassword)) {
       return Resp.errMsg(
-        `新增用户【${body.userName}】失败，登录密码至少包含大小写字母、数字、特殊符号，且不少于6位`
+        `新增用户【${body.userName}】失败，登录账号用户账号只能包含大写小写字母，数字，且不少于4位`
       );
     }
 
@@ -175,10 +180,10 @@ export class SysUserController {
     }
 
     // 检查手机号码格式并判断是否唯一
-    if (body.phone) {
-      if (validMobile(body.phone)) {
+    if (body.userPhone) {
+      if (validMobile(body.userPhone)) {
         const uniquePhone = await this.sysUserService.checkUniqueByPhone(
-          body.phone,
+          body.userPhone,
           0
         );
         if (!uniquePhone) {
@@ -194,10 +199,10 @@ export class SysUserController {
     }
 
     // 检查邮箱格式并判断是否唯一
-    if (body.email) {
-      if (validEmail(body.email)) {
+    if (body.userEmail) {
+      if (validEmail(body.userEmail)) {
         const uniqueEmail = await this.sysUserService.checkUniqueByEmail(
-          body.email,
+          body.userEmail,
           0
         );
         if (!uniqueEmail) {
@@ -210,17 +215,17 @@ export class SysUserController {
 
     const sysUser = new SysUser();
     sysUser.userName = body.userName;
-    sysUser.password = body.password;
-    sysUser.nickName = body.nickName;
-    sysUser.email = body.email;
-    sysUser.phone = body.phone;
-    sysUser.sex = body.sex;
-    sysUser.statusFlag = body.statusFlag;
+    sysUser.userPassword = body.userPassword;
+    sysUser.userNick = body.userNick;
+    sysUser.userEmail = body.userEmail;
+    sysUser.userPhone = body.userPhone;
+    sysUser.userGender = body.userGender;
+    sysUser.userStatus = body.userStatus;
     sysUser.remark = body.remark;
     sysUser.deptId = body.deptId; // 部门ID
     sysUser.roleIds = body.roleIds; // 角色ID组
     sysUser.postIds = body.postIds; // 岗位ID组
-    sysUser.avatar = body.avatar;
+    sysUser.userAvatar = body.userAvatar;
     sysUser.createBy = loginUserToUserName(this.c);
     const insertId = await this.sysUserService.insert(sysUser);
     if (insertId > 0) {
@@ -239,29 +244,30 @@ export class SysUserController {
       }),
     ],
   })
-  public async edit(@Body() body: SysUser): Promise<Resp> {
-    if (body.userId <= 0) {
+  public async edit(@Body() rawBody: Record<string, any>): Promise<Resp> {
+    const body = this.parseBody(rawBody);
+    if (body.id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId is empty');
     }
 
     // 检查是否系统管理员用户
-    if (this.config.isSystemUser(body.userId)) {
+    if (this.config.isSystemUser(body.id)) {
       return Resp.errMsg('不允许操作系统管理员用户');
     }
 
     // 检查是否存在
-    const userInfo = await this.sysUserService.findById(body.userId);
-    if (userInfo.userId !== body.userId) {
-      return Resp.errMsg('没有权限访问用户数据！');
+    const userInfo = await this.sysUserService.findById(body.id);
+    if (userInfo.id !== body.id) {
+      return Resp.errMsg('没有权限访问用户数据');
     }
 
     // 检查手机号码格式并判断是否唯一
-    if (body.phone) {
-      if (validMobile(body.phone)) {
+    if (body.userPhone) {
+      if (validMobile(body.userPhone)) {
         const uniquePhone = await this.sysUserService.checkUniqueByPhone(
-          body.phone,
-          body.userId
+          body.userPhone,
+          body.id
         );
         if (!uniquePhone) {
           return Resp.errMsg(
@@ -276,33 +282,36 @@ export class SysUserController {
     }
 
     // 检查邮箱格式并判断是否唯一
-    if (body.email) {
-      if (validEmail(body.email)) {
+    if (body.userEmail) {
+      if (validEmail(body.userEmail)) {
         const uniqueEmail = await this.sysUserService.checkUniqueByEmail(
-          body.email,
-          body.userId
+          body.userEmail,
+          body.id
         );
         if (!uniqueEmail) {
           return Resp.errMsg(
-            `修改用户【${userInfo.userName}】失败，邮箱已存在`
+            `修改用户【${userInfo.userName}】失败，手机号码已存在`
           );
         }
       } else {
         return Resp.errMsg(
-          `修改用户【${userInfo.userName}】失败，邮箱格式错误`
+          `修改用户【${userInfo.userName}】失败，手机号码格式错误`
         );
       }
     }
 
-    userInfo.phone = body.phone;
-    userInfo.email = body.email;
-    userInfo.sex = body.sex;
-    userInfo.statusFlag = body.statusFlag;
+    if (body.userAvatar) {
+      userInfo.userAvatar = body.userAvatar;
+    }
+    userInfo.userPhone = body.userPhone;
+    userInfo.userEmail = body.userEmail;
+    userInfo.userGender = body.userGender;
+    userInfo.userStatus = body.userStatus;
     userInfo.remark = body.remark;
     userInfo.deptId = body.deptId;
     userInfo.roleIds = body.roleIds;
     userInfo.postIds = body.postIds;
-    userInfo.password = ''; // 忽略修改密码
+    userInfo.userPassword = ''; // 忽略修改密码
     userInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysUserService.updateUserAndRolePost(userInfo);
     if (rows > 0) {
@@ -312,7 +321,7 @@ export class SysUserController {
   }
 
   /**用户信息删除 */
-  @Del('/:userId', {
+  @Del('/:id', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['system:user:remove'] }),
       OperateLogMiddleware({
@@ -322,7 +331,7 @@ export class SysUserController {
     ],
   })
   public async remove(
-    @Valid(Joi.string().allow('')) @Param('userId') userId: string
+    @Valid(Joi.string().allow('')) @Param('id') userId: string
   ): Promise<Resp> {
     if (userId === '') {
       this.c.status = 422;
@@ -356,7 +365,7 @@ export class SysUserController {
   @Put('/password', {
     middleware: [
       RepeatSubmitMiddleware(5),
-      AuthorizeUserMiddleware({ hasPerms: ['system:user:resetPwd'] }),
+      AuthorizeUserMiddleware({ hasPerms: ['system:user:passwd'] }),
       OperateLogMiddleware({
         title: '用户信息',
         businessType: BUSINESS_TYPE.UPDATE,
@@ -364,7 +373,7 @@ export class SysUserController {
     ],
   })
   public async password(
-    @Valid(Joi.number().required()) @Body('userId') userId: number,
+    @Valid(Joi.number().required()) @Body('user_id') userId: number,
     @Valid(Joi.string().required()) @Body('password') password: string
   ): Promise<Resp> {
     // 检查是否系统管理员用户
@@ -380,11 +389,11 @@ export class SysUserController {
 
     // 检查是否存在
     const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.userId !== userId) {
-      return Resp.errMsg('没有权限访问用户数据！');
+    if (userInfo.id !== userId) {
+      return Resp.errMsg('没有权限访问用户数据');
     }
 
-    userInfo.password = password;
+    userInfo.userPassword = password;
     userInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
@@ -405,8 +414,8 @@ export class SysUserController {
     ],
   })
   public async status(
-    @Valid(Joi.number().required()) @Body('userId') userId: number,
-    @Valid(Joi.string().required()) @Body('statusFlag') statusFlag: string
+    @Valid(Joi.number().required()) @Body('user_id') userId: number,
+    @Valid(Joi.string().required()) @Body('user_status') userStatus: string
   ): Promise<Resp> {
     // 检查是否系统管理员用户
     if (this.config.isSystemUser(userId)) {
@@ -414,17 +423,17 @@ export class SysUserController {
     }
     // 检查是否存在
     const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.userId !== userId) {
-      return Resp.errMsg('没有权限访问用户数据！');
+    if (userInfo.id !== userId) {
+      return Resp.errMsg('没有权限访问用户数据');
     }
 
     // 与旧值相等不变更
-    if (userInfo.statusFlag === statusFlag) {
+    if (userInfo.userStatus === userStatus) {
       return Resp.errMsg('变更状态与旧值相等！');
     }
 
-    userInfo.statusFlag = statusFlag;
-    userInfo.password = ''; // 密码不更新
+    userInfo.userStatus = userStatus;
+    userInfo.userPassword = ''; // 密码不更�
     userInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
@@ -434,7 +443,7 @@ export class SysUserController {
   }
 
   /**用户账户解锁 */
-  @Put('/unlock/:userName', {
+  @Put('/unlock/:user_name', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['system:user:unlock'] }),
       OperateLogMiddleware({
@@ -444,7 +453,7 @@ export class SysUserController {
     ],
   })
   public async unlock(
-    @Valid(Joi.string().allow('')) @Param('userName') userName: string
+    @Valid(Joi.string().allow('')) @Param('user_name') userName: string
   ): Promise<Resp> {
     if (!userName) {
       this.c.status = 422;
@@ -476,15 +485,9 @@ export class SysUserController {
     }
 
     // 导出文件名称
-    const fileName = `user_export_${rows.length}_${Date.now()}.xlsx`;
-    this.c.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    this.c.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
+    const fileName = `user_export_${rows.length}_${Date.now()}.csv`;
+    this.c.set('content-Type', 'text/csv; charset=utf-8');
+    this.c.set('content-disposition', `attachment; filename="${fileName}"`);
     return await this.sysUserService.exportData(rows, fileName);
   }
 
@@ -493,18 +496,15 @@ export class SysUserController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:import'] })],
   })
   public async template() {
-    const fileName = `user_import_template_${Date.now()}.xlsx`;
-    this.c.set(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
+    const fileName = `user_import_template_${Date.now()}.csv`;
+    this.c.set('Content-Type', 'application/octet-stream');
     this.c.set(
       'Content-disposition',
       `attachment;filename=${encodeURIComponent(fileName)}`
     );
 
     const [fileData, err] = await this.fileUtil.readAssetsFileStream(
-      'template/excel/user_import_template.xlsx'
+      'user_import_template.csv'
     );
     if (err) {
       this.c.status = 400;
@@ -524,13 +524,13 @@ export class SysUserController {
     ],
   })
   public async import(
-    @Valid(Joi.string().required()) @Body('filePath') filePath: string,
+    @Valid(Joi.string().required()) @Body('file_path') filePath: string,
     @Valid(Joi.boolean().required()) @Body('update') update: boolean
   ): Promise<Resp> {
     // 表格文件绝对地址
     const fileAbsPath = this.fileUtil.parseUploadFileAbsPath(filePath);
     // 读取表格数据
-    const [rows, err] = await readSheet(fileAbsPath);
+    const [rows, err] = await this.fileUtil.csvReadFile(fileAbsPath);
     if (err) {
       return Resp.errMsg(err);
     }
@@ -546,5 +546,23 @@ export class SysUserController {
       update
     );
     return Resp.okMsg(message);
+  }
+
+  private parseBody(body: Record<string, any>): SysUser {
+    const user = new SysUser();
+    user.id = Number(body?.id ?? body?.userId ?? body?.ID ?? 0) || 0;
+    user.deptId = Number(body?.dept_id ?? body?.deptId ?? 0) || 0;
+    user.userName = String(body?.user_name ?? body?.userName ?? '');
+    user.userNick = String(body?.user_nick ?? body?.nickName ?? '');
+    user.userEmail = String(body?.user_email ?? body?.email ?? '');
+    user.userPhone = String(body?.user_phone ?? body?.phone ?? '');
+    user.userGender = String(body?.user_gender ?? body?.sex ?? '0');
+    user.userAvatar = String(body?.user_avatar ?? body?.avatar ?? '');
+    user.userPassword = String(body?.password ?? body?.userPassword ?? '');
+    user.userStatus = String(body?.user_status ?? body?.statusFlag ?? '0');
+    user.remark = String(body?.remark ?? '');
+    user.roleIds = body?.role_ids ?? body?.roleIds ?? [];
+    user.postIds = body?.post_ids ?? body?.postIds ?? [];
+    return user;
   }
 }

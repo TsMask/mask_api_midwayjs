@@ -1,11 +1,11 @@
 import { Controller, Get, Inject } from '@midwayjs/core';
 
-import { Resp } from '../../../framework/resp/api';
+import { Resp } from '../../../internal/web/resp/api';
 import { SystemInfoService } from '../service/system_info';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
 
 /**服务器监控信息 控制层处理 */
-@Controller()
+@Controller('/api/v1/monitor')
 export class SystemInfoController {
   /**在线用户服务 */
   @Inject()
@@ -14,7 +14,7 @@ export class SystemInfoController {
   /**
    * 服务器信息
    */
-  @Get('/monitor/system', {
+  @Get('/system', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['monitor:system:info'] }),
     ],

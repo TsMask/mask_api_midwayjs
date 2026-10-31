@@ -10,26 +10,19 @@ import {
 import {
   parseBoolean,
   parseNumber,
-} from '../../../framework/utils/parse/parse';
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
+} from '../../../internal/shared/parse/parse';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { SysUser } from '../model/sys_user';
-import { bcryptHash } from '../../../framework/utils/crypto/bcrypt';
+import { passwordHash } from '../../../internal/shared/crypto/password';
 import { ResultSetHeader } from '../../../typings/commont';
 
-/**用户表 数据层处理 */
+/** User data access. */
 @Provide()
 @Singleton()
 export class SysUserRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  /**
-   * 分页查询集合
-   *
-   * @param query 参数
-   * @param filter 角色数据范围过滤对象
-   * @returns 集合
-   */
   public async selectByPage(
     query: Record<string, string>,
     filter: { sql: string; params: Record<string, any> }
@@ -39,180 +32,149 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere("s.del_flag = '0'");
-    // 查询条件拼接
-    if (query.userId) {
-      tx.andWhere('s.user_id = :userId', { userId: query.userId });
+      .andWhere("s.user_del = '0'");
+    if (query.id) {
+      tx.andWhere('s.id = :id', { id: query.id });
     }
-    if (query.userName) {
+    if (query.user_name) {
       tx.andWhere('s.user_name like :userName', {
-        userName: query.userName + '%',
+        userName: query.user_name + '%',
       });
     }
-    if (query.phone) {
-      tx.andWhere('s.phone like :phone', { phone: query.phone + '%' });
-    }
-    if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
+    if (query.user_phone) {
+      tx.andWhere('s.user_phone like :userPhone', {
+        userPhone: query.user_phone + '%',
       });
     }
-    if (query.beginTime) {
-      if (`${query.beginTime}`.length === 10) {
-        tx.andWhere('s.login_time >= :beginTime', {
-          beginTime: parseNumber(`${query.beginTime}000`),
+    if (query.user_status) {
+      tx.andWhere('s.user_status = :userStatus', {
+        userStatus: query.user_status,
+      });
+    }
+    if (query.login_time_begin) {
+      if (`${query.login_time_begin}`.length === 10) {
+        tx.andWhere('s.user_login_time >= :beginTime', {
+          beginTime: parseNumber(`${query.login_time_begin}000`),
         });
-      } else if (`${query.beginTime}`.length === 13) {
-        tx.andWhere('s.login_time >= :beginTime', {
-          beginTime: parseNumber(query.beginTime),
+      } else if (`${query.login_time_begin}`.length === 13) {
+        tx.andWhere('s.user_login_time >= :beginTime', {
+          beginTime: parseNumber(query.login_time_begin),
         });
       }
     }
-    if (query.endTime) {
-      if (`${query.endTime}`.length === 10) {
-        tx.andWhere('s.login_time <= :endTime', {
-          endTime: parseNumber(`${query.endTime}000`),
+    if (query.login_time_end) {
+      if (`${query.login_time_end}`.length === 10) {
+        tx.andWhere('s.user_login_time <= :endTime', {
+          endTime: parseNumber(`${query.login_time_end}999`),
         });
-      } else if (`${query.endTime}`.length === 13) {
-        tx.andWhere('s.login_time <= :endTime', {
-          endTime: parseNumber(query.endTime),
+      } else if (`${query.login_time_end}`.length === 13) {
+        tx.andWhere('s.user_login_time <= :endTime', {
+          endTime: parseNumber(query.login_time_end),
         });
       }
     }
-    if (query.deptId) {
+    if (query.dept_id) {
       tx.andWhere(
-        `(s.dept_id = :deptId or s.dept_id in ( 
-        select t.dept_id from sys_dept t where find_in_set(:deptId, ancestors) 
+        `(s.dept_id = :deptId or s.dept_id in (
+          select descendant_id from sys_dept_closure where ancestor_id = :deptId
         ))`,
-        { deptId: query.deptId }
+        { deptId: query.dept_id }
       );
     }
     if (filter?.sql) {
       tx.andWhere(filter.sql, filter.params);
     }
-    // 查询数量为0直接返回
     const total = await tx.getCount();
     if (total <= 0) {
       return [[], total];
     }
 
-    // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num ?? query.pageNum,
+      query.page_size ?? query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=createTime,userName:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
-      userId: 's.user_id',
-      userName: 's.user_name',
-      nickName: 's.nick_name',
-      email: 's.email',
-      phone: 's.phone',
-      statusFlag: 's.status_flag',
-      deptId: 's.dept_id',
-      loginTime: 's.login_time',
-      createTime: 's.create_time',
+      id: 's.id',
+      create_time: 's.create_time',
+      update_time: 's.update_time',
+      user_name: 's.user_name',
+      user_nick: 's.user_nick',
+      user_phone: 's.user_phone',
+      user_email: 's.user_email',
+      user_status: 's.user_status',
+      user_login_ip: 's.user_login_ip',
+      user_login_time: 's.user_login_time',
+      dept_id: 's.dept_id',
     };
     if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
+      for (const item of query.sort.split(',')) {
         const [field, dir] = item.split(':');
         const column = columnMap[field];
         if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
+        tx.addOrderBy(column, dir === 'asc' ? 'ASC' : 'DESC');
       }
     } else {
-      tx.addOrderBy('s.user_id', 'DESC');
+      tx.addOrderBy('s.id', 'DESC');
     }
-
-    const rows = await tx.getMany();
-    return [rows, total];
+    return [await tx.getMany(), total];
   }
 
-  /**
-   * 查询集合
-   *
-   * @param sysUser 信息
-   * @return 列表
-   */
   public async select(sysUser: SysUser): Promise<SysUser[]> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere("s.del_flag = '0'");
-    // 构建查询条件
+      .andWhere("s.user_del = '0'");
     if (sysUser.userName) {
       tx.andWhere('s.user_name like :userName', {
         userName: sysUser.userName + '%',
       });
     }
-    if (sysUser.phone) {
-      tx.andWhere('s.phone like :phone', {
-        phone: sysUser.phone + '%',
+    if (sysUser.userPhone) {
+      tx.andWhere('s.user_phone like :userPhone', {
+        userPhone: sysUser.userPhone + '%',
       });
     }
-    if (sysUser.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: sysUser.statusFlag,
+    if (sysUser.userStatus) {
+      tx.andWhere('s.user_status = :userStatus', {
+        userStatus: sysUser.userStatus,
       });
     }
-    if (sysUser.userId) {
-      tx.andWhere('s.user_id = :userId', {
-        userId: sysUser.userId,
-      });
+    if (sysUser.id) {
+      tx.andWhere('s.id = :id', { id: sysUser.id });
     }
-    // 查询数据
-    return await tx.addOrderBy('s.login_time', 'DESC').getMany();
+    return await tx.addOrderBy('s.id', 'DESC').getMany();
   }
 
-  /**
-   * 通过ID查询
-   *
-   * @param userIds ID数组
-   * @return 信息
-   */
   public async selectByIds(userIds: number[]): Promise<SysUser[]> {
     if (userIds.length <= 0) {
       return [];
     }
-    // 查询数据
-    const rows = await this.db
+    return await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
+      .addSelect('s.userPassword')
       .from(SysUser, 's')
-      .andWhere("s.user_id in (:userIds) and s.del_flag = '0'", { userIds })
+      .andWhere("s.id in (:userIds) and s.user_del = '0'", { userIds })
       .getMany();
-    if (rows.length > 0) {
-      return rows;
-    }
-    return [];
   }
 
-  /**
-   * 新增
-   * @param sysUser 信息
-   * @param entityManager 事务EntityManager（可选）
-   * @returns ID
-   */
   public async insert(
     sysUser: SysUser,
     entityManager?: EntityManager
   ): Promise<number> {
-    sysUser.delFlag = '0';
+    sysUser.userDel = '0';
     if (sysUser.createBy) {
       const ms = Date.now().valueOf();
       sysUser.updateBy = sysUser.createBy;
       sysUser.updateTime = ms;
       sysUser.createTime = ms;
     }
-    if (sysUser.password) {
-      const password = await bcryptHash(sysUser.password);
-      sysUser.password = password;
+    if (sysUser.userPassword) {
+      sysUser.userPassword = await passwordHash(sysUser.userPassword);
     }
     if (entityManager) {
       const result: InsertResult = await entityManager.insert(SysUser, sysUser);
@@ -229,41 +191,33 @@ export class SysUserRepository {
     return raw.insertId > 0 ? raw.insertId : 0;
   }
 
-  /**
-   * 更新
-   * @param sysUser 信息
-   * @param entityManager 事务EntityManager（可选）
-   * @returns 影响记录数
-   */
   public async update(
     sysUser: SysUser,
     entityManager?: EntityManager
   ): Promise<number> {
-    if (sysUser.userId <= 0) {
+    if (sysUser.id <= 0) {
       return 0;
     }
     if (sysUser.updateBy) {
       sysUser.updateTime = Date.now().valueOf();
     }
-    if (sysUser.password) {
-      const password = await bcryptHash(sysUser.password);
-      sysUser.password = password;
+    if (sysUser.userPassword) {
+      sysUser.userPassword = await passwordHash(sysUser.userPassword);
     } else {
-      delete (sysUser as Partial<SysUser>).password;
+      delete (sysUser as Partial<SysUser>).userPassword;
     }
     const data = Object.assign({}, sysUser);
-    delete (data as Partial<SysUser>).delFlag;
+    delete (data as Partial<SysUser>).userDel;
     delete (data as Partial<SysUser>).createBy;
     delete (data as Partial<SysUser>).createTime;
     delete (data as Partial<SysUser>).dept;
     delete (data as Partial<SysUser>).roles;
-    delete (data as Partial<SysUser>).roleId;
     delete (data as Partial<SysUser>).roleIds;
     delete (data as Partial<SysUser>).postIds;
     if (entityManager) {
       const result: UpdateResult = await entityManager.update(
         SysUser,
-        { userId: sysUser.userId },
+        sysUser.id,
         data
       );
       return result.affected ?? 0;
@@ -273,17 +227,11 @@ export class SysUserRepository {
       .createQueryBuilder()
       .update(SysUser)
       .set(data)
-      .andWhere('user_id = :userId', { userId: sysUser.userId })
+      .andWhere('id = :id', { id: sysUser.id })
       .execute();
     return tx.affected ?? 0;
   }
 
-  /**
-   * 批量删除（软删除）
-   * @param userIds ID数组
-   * @param entityManager 事务EntityManager（可选）
-   * @returns 影响记录数
-   */
   public async deleteByIds(
     userIds: number[],
     entityManager?: EntityManager
@@ -292,88 +240,74 @@ export class SysUserRepository {
     if (entityManager) {
       const result: UpdateResult = await entityManager.update(
         SysUser,
-        { userId: In(userIds) },
-        { delFlag: '1' }
+        { id: In(userIds) },
+        { userDel: '1' }
       );
       return result.affected ?? 0;
     }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .update(SysUser)
-      .set({ delFlag: '1' })
-      .andWhere('user_id in (:userIds)', { userIds })
+      .set({ userDel: '1' })
+      .andWhere('id in (:userIds)', { userIds })
       .execute();
     return tx.affected ?? 0;
   }
 
-  /**
-   * 检查信息是否唯一 返回数据ID
-   * @param sysUser 信息
-   * @returns
-   */
   public async checkUnique(sysUser: SysUser): Promise<number> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.user_id')
+      .select('s.id', 'id')
       .from(SysUser, 's')
-      .andWhere("s.del_flag = '0'");
-    // 查询条件拼接
+      .andWhere("s.user_del = '0'");
     if (sysUser.userName) {
-      tx.andWhere('s.user_name = :userName', {
-        userName: sysUser.userName,
+      tx.andWhere('s.user_name = :userName', { userName: sysUser.userName });
+    }
+    if (sysUser.userPhone) {
+      tx.andWhere('s.user_phone = :userPhone', {
+        userPhone: sysUser.userPhone,
       });
     }
-    if (sysUser.phone) {
-      tx.andWhere('s.phone = :phone', {
-        phone: sysUser.phone,
+    if (sysUser.userEmail) {
+      tx.andWhere('s.user_email = :userEmail', {
+        userEmail: sysUser.userEmail,
       });
     }
-    if (sysUser.email) {
-      tx.andWhere('s.email = :email', {
-        email: sysUser.email,
-      });
-    }
-    // 查询数据
-    const item = await tx.getOne();
-    if (!item) {
-      return 0;
-    }
-    return item.userId;
+    const row = await tx.getRawOne();
+    return Number(row?.id ?? 0);
   }
 
-  /**
-   * 通过登录账号查询信息
-   * @param userName 用户账号
-   * @returns
-   */
   public async selectByUserName(userName: string): Promise<SysUser> {
     if (!userName) {
       return new SysUser();
     }
-
-    // 查询数据（登录查询需要显式选择密码字段）
     const item = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .addSelect('s.password')
+      .addSelect('s.userPassword')
       .from(SysUser, 's')
-      .andWhere("s.user_name = :userName and s.del_flag = '0'", { userName })
+      .andWhere("s.user_name = :userName and s.user_del = '0'", { userName })
       .getOne();
-    if (!item) {
-      return new SysUser();
-    }
-    return item;
+    return item ?? new SysUser();
   }
 
-  /**
-   * 分页查询集合By分配用户角色
-   *
-   * @param query 参数
-   * @param filter 角色数据范围过滤对象
-   * @returns 集合
-   */
+  public async selectByPhone(phone: string): Promise<SysUser> {
+    if (!phone) {
+      return new SysUser();
+    }
+    const item = await this.db
+      .queryBuilder('')
+      .createQueryBuilder()
+      .select('s')
+      .addSelect('s.userPassword')
+      .from(SysUser, 's')
+      .andWhere("s.user_phone = :phone and s.user_del = '0'", { phone })
+      .getOne();
+    return item ?? new SysUser();
+  }
+
   public async selectAuthUsersByPage(
     query: Record<string, string>,
     filter: { sql: string; params: Record<string, any> }
@@ -383,63 +317,47 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere("s.del_flag = '0'");
-    // 查询条件拼接
-    if (query.userName) {
+      .andWhere("s.user_del = '0'");
+    if (query.user_name) {
       tx.andWhere('s.user_name like :userName', {
-        userName: query.userName + '%',
+        userName: query.user_name + '%',
       });
     }
-    if (query.phone) {
-      tx.andWhere('s.phone like :phone', {
-        phone: query.phone + '%',
+    if (query.user_phone) {
+      tx.andWhere('s.user_phone like :userPhone', {
+        userPhone: query.user_phone + '%',
       });
     }
-    if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
+    if (query.user_status) {
+      tx.andWhere('s.user_status = :userStatus', {
+        userStatus: query.user_status,
       });
     }
-    // 分配角色的用户
-    if (query.roleId) {
+    if (query.role_id) {
       const auth = parseBoolean(query.auth);
-      if (auth) {
-        tx.andWhere(
-          `s.user_id in (
-            select distinct u.user_id from sys_user u 
-            inner join sys_user_role ur on u.user_id = ur.user_id 
-            and ur.role_id = :roleId
-          )`,
-          { roleId: query.roleId }
-        );
-      } else {
-        tx.andWhere(
-          `s.user_id not in (
-            select distinct u.user_id from sys_user u 
-            inner join sys_user_role ur on u.user_id = ur.user_id 
-            and ur.role_id = :roleId
-          )`,
-          { roleId: query.roleId }
-        );
-      }
+      const action = auth ? 'in' : 'not in';
+      tx.andWhere(
+        `s.id ${action} (
+          select distinct u.id from sys_user u
+          inner join sys_user_role ur on u.id = ur.user_id
+          and ur.role_id = :roleId
+        )`,
+        { roleId: query.role_id }
+      );
     }
     if (filter?.sql) {
       tx.andWhere(filter.sql, filter.params);
     }
 
-    // 查询结果
     const total = await tx.getCount();
     if (total <= 0) {
       return [[], total];
     }
-
-    // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num ?? query.pageNum,
+      query.page_size ?? query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    const rows = await tx.addOrderBy('s.user_id', 'DESC').getMany();
-    return [rows, total];
+    return [await tx.addOrderBy('s.id', 'DESC').getMany(), total];
   }
 }

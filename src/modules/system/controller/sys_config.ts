@@ -16,25 +16,25 @@ import type { Context } from '@midwayjs/koa';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/parse/parse';
+} from '../../../internal/shared/parse/parse';
 import {
   LIMIT_IP,
   RateLimitMiddleware,
-} from '../../../framework/middleware/rate_limit';
+} from '../../../internal/web/middleware/rate_limit';
 import {
   BUSINESS_TYPE,
   OperateLogMiddleware,
-} from '../../../framework/middleware/operate_log';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { RepeatSubmitMiddleware } from '../../../framework/middleware/repeat_submit';
-import { loginUserToUserName } from '../../../framework/reqctx/auth';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../internal/web/middleware/operate_log';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { RepeatSubmitMiddleware } from '../../../internal/web/middleware/repeat_submit';
+import { loginUserToUserName } from '../../../internal/web/reqctx/auth';
+import { Resp } from '../../../internal/web/resp/api';
 import { SysConfigService } from '../service/sys_config';
 import { SysConfig } from '../model/sys_config';
-import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
+import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
 
 /**参数配置信息 控制层处理 */
-@Controller('/system/config')
+@Controller('/api/v1/system/configs')
 export class SysConfigController {
   /**上下文 */
   @Inject('ctx')
@@ -54,20 +54,20 @@ export class SysConfigController {
   }
 
   /**参数配置信息 */
-  @Get('/:configId', {
+  @Get('/:id', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['system:config:query'] }),
     ],
   })
   public async info(
-    @Valid(Joi.number().required()) @Param('configId') configId: number
+    @Valid(Joi.number().required()) @Param('id') configId: number
   ): Promise<Resp> {
     if (configId <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configId is empty');
     }
     const data = await this.sysConfigService.findById(configId);
-    if (data.configId === configId) {
+    if (data.id === configId) {
       return Resp.okData(data);
     }
     return Resp.err();
@@ -84,9 +84,23 @@ export class SysConfigController {
     ],
   })
   public async add(@Body() body: SysConfig) {
-    if (body.configId > 0) {
+    if (body.id > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id not is empty');
+    }
+    const bindErr = this.validateConfigBody(body);
+    if (bindErr) {
+      this.c.status = 422;
+      return Resp.codeMsg(CODE_PARAM_CHEACK, bindErr);
+    }
+
+    const valueTypeErr = this.sysConfigService.checkValidateValueType(
+      body.configValueType,
+      body.configValue
+    );
+    if (valueTypeErr) {
+      this.c.status = 422;
+      return Resp.codeMsg(CODE_PARAM_CHEACK, valueTypeErr);
     }
 
     // 检查属性值唯一
@@ -119,21 +133,35 @@ export class SysConfigController {
     ],
   })
   public async edit(@Body() body: SysConfig) {
-    if (body.configId <= 0) {
+    if (body.id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
+    }
+    const bindErr = this.validateConfigBody(body);
+    if (bindErr) {
+      this.c.status = 422;
+      return Resp.codeMsg(CODE_PARAM_CHEACK, bindErr);
     }
 
     // 检查是否存在
-    const configInfo = await this.sysConfigService.findById(body.configId);
-    if (configInfo.configId !== body.configId) {
+    const configInfo = await this.sysConfigService.findById(body.id);
+    if (configInfo.id !== body.id) {
       return Resp.errMsg('没有权限访问参数配置数据！');
+    }
+
+    const valueTypeErr = this.sysConfigService.checkValidateValueType(
+      body.configValueType,
+      body.configValue
+    );
+    if (valueTypeErr) {
+      this.c.status = 422;
+      return Resp.codeMsg(CODE_PARAM_CHEACK, valueTypeErr);
     }
 
     // 检查属性值唯一
     const uniqueConfigKey = await this.sysConfigService.checkUniqueByKey(
       body.configKey,
-      body.configId
+      body.id
     );
     if (!uniqueConfigKey) {
       return Resp.errMsg(
@@ -141,7 +169,10 @@ export class SysConfigController {
       );
     }
 
-    configInfo.configType = body.configType;
+    configInfo.configValueType = body.configValueType;
+    configInfo.configGroup = body.configGroup;
+    configInfo.configSort = body.configSort;
+    configInfo.configStatus = body.configStatus;
     configInfo.configName = body.configName;
     configInfo.configKey = body.configKey;
     configInfo.configValue = body.configValue;
@@ -155,7 +186,7 @@ export class SysConfigController {
   }
 
   /**参数配置删除 */
-  @Del('/:configId', {
+  @Del('/:id', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['system:config:remove'] }),
       OperateLogMiddleware({
@@ -165,7 +196,7 @@ export class SysConfigController {
     ],
   })
   public async remove(
-    @Valid(Joi.string().allow('')) @Param('configId') configId: string
+    @Valid(Joi.string().allow('')) @Param('id') configId: string
   ) {
     if (configId === '') {
       this.c.status = 422;
@@ -191,7 +222,7 @@ export class SysConfigController {
       AuthorizeUserMiddleware({ hasPerms: ['system:config:remove'] }),
       OperateLogMiddleware({
         title: '参数配置信息',
-        businessType: BUSINESS_TYPE.CLEAN,
+        businessType: BUSINESS_TYPE.OTHER,
       }),
     ],
   })
@@ -202,7 +233,7 @@ export class SysConfigController {
   }
 
   /**参数配置根据参数键名 */
-  @Get('/config-key/:configKey', {
+  @Get('/config-key/:config_key', {
     middleware: [
       RateLimitMiddleware({
         time: 120,
@@ -212,14 +243,17 @@ export class SysConfigController {
     ],
   })
   public async configKey(
-    @Valid(Joi.string().allow('')) @Param('configKey') configKey: string
+    @Valid(Joi.string().allow('')) @Param('config_key') configKey: string
   ): Promise<Resp> {
     if (configKey === '') {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configKey is empty');
     }
     const key = await this.sysConfigService.findValueByKey(configKey);
-    return Resp.okData(key);
+    if (key) {
+      return Resp.okData(key);
+    }
+    return Resp.err();
   }
 
   /**导出参数配置信息 */
@@ -240,15 +274,16 @@ export class SysConfigController {
     }
 
     // 导出文件名称
-    const fileName = `config_export_${rows.length}_${Date.now()}.xlsx`;
-    this.c.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    this.c.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
+    const fileName = `config_export_${rows.length}_${Date.now()}.csv`;
+    this.c.set('content-Type', 'text/csv; charset=utf-8');
+    this.c.set('content-disposition', `attachment; filename="${fileName}"`);
     return await this.sysConfigService.exportData(rows, fileName);
+  }
+
+  private validateConfigBody(body: SysConfig): string {
+    if (!body.configName) return 'bind err: configName is required';
+    if (!body.configKey) return 'bind err: configKey is required';
+    if (!body.configValue) return 'bind err: configValue is required';
+    return '';
   }
 }

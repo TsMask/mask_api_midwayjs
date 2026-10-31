@@ -18,14 +18,14 @@ import type { Context } from '@midwayjs/koa';
 import {
   UPLOAD_COMMON,
   UPLOAD_SUB_PATH,
-} from '../../../framework/constants/upload_sub_path';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { FileUtil } from '../../../framework/utils/file/file';
-import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../internal/shared/constants/upload_sub_path';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { FileUtil } from '../../../internal/shared/file/file';
+import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
+import { Resp } from '../../../internal/web/resp/api';
 
-/**文件操作 控制层处理*/
-@Controller('/file')
+/**文件操作 控制层处理 */
+@Controller('/api/v1/files')
 export class FileController {
   /**上下文 */
   @Inject('ctx')
@@ -36,11 +36,11 @@ export class FileController {
   private fileUtil: FileUtil;
 
   /**下载文件 */
-  @Get('/download/:filePath', {
+  @Get('/download/:file_path', {
     middleware: [AuthorizeUserMiddleware()],
   })
   public async download(
-    @Valid(Joi.string().required()) @Param('filePath') filePath: string
+    @Valid(Joi.string().required()) @Param('file_path') filePath: string
   ) {
     if (filePath.length < 8) {
       this.c.status = 422;
@@ -50,13 +50,29 @@ export class FileController {
       );
     }
     // base64解析出地址
-    const routerPath = Buffer.from(filePath, 'base64').toString('utf-8');
+    const [routerPath, decodeErr] = this.decodeFilePath(filePath);
+    if (decodeErr) {
+      this.c.status = 422;
+      return Resp.codeMsg(CODE_PARAM_CHEACK, decodeErr);
+    }
 
     // 断点续传
     const headerRange = this.c.headers.range;
+    let start = 0;
+    let end = 0;
+    let rangeErr = '';
+    if (headerRange) {
+      [start, end, rangeErr] = this.fileUtil.parseByteRange(headerRange);
+      if (rangeErr) {
+        this.c.status = 416;
+        return Resp.codeMsg(CODE_PARAM_CHEACK, rangeErr);
+      }
+    }
+
     const [resultMap, errMsg] = await this.fileUtil.readUploadFileStream(
       routerPath,
-      headerRange
+      start,
+      end
     );
     if (errMsg) {
       return Resp.errMsg(errMsg);
@@ -66,8 +82,8 @@ export class FileController {
     this.c.set('Accept-Ranges', 'bytes');
     this.c.set('Content-Type', 'application/octet-stream');
     this.c.set(
-      'Content-disposition',
-      `attachment;filename=${encodeURIComponent(basename(routerPath))}`
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(basename(routerPath))}"`
     );
 
     if (headerRange) {
@@ -108,8 +124,7 @@ export class FileController {
 
     const [uploadFilePath, err] = await this.fileUtil.transferUploadFile(
       formFile,
-      subPath,
-      []
+      subPath
     );
     if (err) {
       return Resp.errMsg(err);
@@ -118,9 +133,9 @@ export class FileController {
     await this.c.cleanupRequestFiles?.();
     return Resp.okData({
       url: `//${this.c.host}${uploadFilePath}`,
-      filePath: uploadFilePath,
-      newFileName: basename(uploadFilePath),
-      originalFileName: formFile.filename,
+      file_path: uploadFilePath,
+      file_name: basename(uploadFilePath),
+      file_name_original: formFile.filename,
     });
   }
 
@@ -132,7 +147,7 @@ export class FileController {
     /**唯一标识 */
     @Valid(Joi.string().required()) @Body('identifier') identifier: string,
     /**文件名 */
-    @Valid(Joi.string().required()) @Body('fileName') fileName: string
+    @Valid(Joi.string().required()) @Body('file_name') fileName: string
   ) {
     // 读取标识目录
     const [chunks, err] = await this.fileUtil.chunkCheckFile(
@@ -153,9 +168,9 @@ export class FileController {
     /**唯一标识 */
     @Valid(Joi.string().required()) @Body('identifier') identifier: string,
     /**文件名 */
-    @Valid(Joi.string().required()) @Body('fileName') fileName: string,
+    @Valid(Joi.string().required()) @Body('file_name') fileName: string,
     /**子路径类型 */
-    @Valid(Joi.string().allow('')) @Body('subPath') subPath: string
+    @Valid(Joi.string().allow('')) @Body('sub_path') subPath: string
   ) {
     // 子路径需要在指定范围内
     const ok = UPLOAD_SUB_PATH[subPath];
@@ -179,9 +194,9 @@ export class FileController {
 
     return Resp.okData({
       url: `//${this.c.host}${mergeFilePath}`,
-      filePath: mergeFilePath,
-      newFileName: basename(mergeFilePath),
-      originalFileName: fileName,
+      file_path: mergeFilePath,
+      file_name: basename(mergeFilePath),
+      file_name_original: fileName,
     });
   }
 
@@ -223,5 +238,21 @@ export class FileController {
     await this.c.cleanupRequestFiles?.();
     this.c.status = 206;
     return Resp.okData(chunkFilePath);
+  }
+
+  private decodeFilePath(value: string): [string, string] {
+    const decodedBytes = Buffer.from(value, 'base64');
+    const isValidBase64 =
+      /^[A-Za-z0-9+/]+={0,2}$/.test(value) &&
+      decodedBytes.toString('base64') === value;
+    if (!isValidBase64) {
+      return ['', 'decode err: filePath not is base64 string'];
+    }
+
+    const decodedPath = decodedBytes.toString('utf-8');
+    if (decodedPath.length > 500) {
+      return ['', 'file path too long'];
+    }
+    return [decodedPath, ''];
   }
 }

@@ -3,50 +3,45 @@ import * as Joi from 'joi';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 /**系统登录日志表 */
-@Entity('sys_log_login')
-export class SysLogLogin {
-  /**登录ID */
+@Entity('sys_login_log')
+export class SysLoginLog {
   @Rule(Joi.number().allow(0))
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  /**用户账号 */
   @Rule(Joi.string().allow(''))
-  @Column({ name: 'user_name' })
-  userName: string;
+  @Column({ name: 'create_by' })
+  createBy: string;
 
-  /**登录IP地址 */
+  @Rule(Joi.number().allow(0))
+  @Column({ name: 'create_time' })
+  createTime: number;
+
+  @Rule(Joi.string().allow(''))
+  @Column({ name: 'login_user_name' })
+  loginUserName: string;
+
   @Rule(Joi.string().allow(''))
   @Column({ name: 'login_ip' })
   loginIp: string;
 
-  /**登录地点 */
   @Rule(Joi.string().allow(''))
   @Column({ name: 'login_location' })
   loginLocation: string;
 
-  /**浏览器类型 */
   @Rule(Joi.string().allow(''))
-  @Column({ name: 'browser' })
-  browser: string;
+  @Column({ name: 'login_browser' })
+  loginBrowser: string;
 
-  /**操作系统 */
   @Rule(Joi.string().allow(''))
-  @Column({ name: 'os' })
-  os: string;
+  @Column({ name: 'login_os' })
+  loginOs: string;
 
-  /**登录状态（0失败 1成功） */
   @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'status_flag' })
-  statusFlag: string;
+  @Column({ name: 'login_status' })
+  loginStatus: string;
 
-  /**提示消息 */
   @Rule(Joi.string().allow(''))
-  @Column({ name: 'msg' })
-  msg: string;
-
-  /**登录时间 */
-  @Rule(Joi.number().allow(0))
-  @Column({ name: 'login_time' })
-  loginTime: number;
+  @Column({ name: 'login_msg' })
+  loginMsg: string;
 }

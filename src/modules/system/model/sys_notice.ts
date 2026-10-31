@@ -7,8 +7,8 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 export class SysNotice {
   /**公告ID */
   @Rule(Joi.number().allow(0))
-  @PrimaryGeneratedColumn({ name: 'notice_id' })
-  noticeId: number;
+  @PrimaryGeneratedColumn({ name: 'id' })
+  id: number;
 
   /**公告标题 */
   @Rule(Joi.string().required())
@@ -25,15 +25,15 @@ export class SysNotice {
   @Column({ name: 'notice_content' })
   noticeContent: string;
 
-  /**状态（0停用 1正常） */
+  /**公告状态（0关闭 1正常） */
   @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'status_flag' })
-  statusFlag: string;
+  @Column({ name: 'notice_status' })
+  noticeStatus: string;
 
   /**删除标记（0存在 1删除） */
   @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'del_flag' })
-  delFlag: string;
+  @Column({ name: 'notice_del' })
+  noticeDel: string;
 
   /**创建者 */
   @Rule(Joi.string().allow(''))
@@ -58,7 +58,7 @@ export class SysNotice {
   /**备注 */
   @Rule(Joi.string().allow(''))
   @Column({
-    length: 200,
+    length: 255,
     name: 'remark',
   })
   remark: string;

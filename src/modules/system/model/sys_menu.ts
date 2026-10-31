@@ -2,109 +2,84 @@ import { Rule } from '@midwayjs/validation';
 import * as Joi from 'joi';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-/**菜单权限表 */
+/** Menu table. */
 @Entity('sys_menu')
 export class SysMenu {
-  /**菜单ID */
   @Rule(Joi.number().allow(0))
-  @PrimaryGeneratedColumn({ name: 'menu_id' })
-  menuId: number;
+  @PrimaryGeneratedColumn({ name: 'id' })
+  id: number;
 
-  /**菜单名称 */
-  @Rule(Joi.string().required())
-  @Column({ name: 'menu_name' })
-  menuName: string;
-
-  /**父菜单ID 默认0 */
-  @Rule(Joi.number().allow(0))
-  @Column({ name: 'parent_id' })
-  parentId: number;
-
-  /**显示顺序 */
-  @Rule(Joi.number().allow(0))
-  @Column({ name: 'menu_sort' })
-  menuSort: number;
-
-  /**路由地址 */
-  @Rule(Joi.string().allow(''))
-  @Column({ name: 'menu_path' })
-  menuPath: string;
-
-  /**组件路径 */
-  @Rule(Joi.string().allow(''))
-  @Column({ name: 'component' })
-  component: string;
-
-  /**是否内部跳转（0否 1是） */
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'frame_flag' })
-  frameFlag: string;
-
-  /**是否缓存（0不缓存 1缓存） */
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'cache_flag' })
-  cacheFlag: string;
-
-  /**菜单类型（D目录 M菜单 A权限） */
-  @Rule(Joi.string().pattern(/^[DMA]$/))
-  @Column({ name: 'menu_type' })
-  menuType: string;
-
-  /**是否显示（0隐藏 1显示） */
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'visible_flag' })
-  visibleFlag: string;
-
-  /**菜单状态（0停用 1正常） */
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'status_flag' })
-  statusFlag: string;
-
-  /**权限标识 */
-  @Rule(Joi.string().allow(''))
-  @Column({ name: 'perms' })
-  perms: string;
-
-  /**菜单图标（#无图标） */
-  @Rule(Joi.string().allow(''))
-  @Column({ name: 'icon' })
-  icon: string;
-
-  /**删除标记（0存在 1删除） */
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'del_flag' })
-  delFlag: string;
-
-  /**创建者 */
   @Rule(Joi.string().allow(''))
   @Column({ name: 'create_by' })
   createBy: string;
 
-  /**创建时间 */
   @Rule(Joi.number().allow(0))
   @Column({ name: 'create_time' })
   createTime: number;
 
-  /**更新者 */
   @Rule(Joi.string().allow(''))
   @Column({ name: 'update_by' })
   updateBy: string;
 
-  /**更新时间 */
   @Rule(Joi.number().allow(0))
   @Column({ name: 'update_time' })
   updateTime: number;
 
-  /**备注 */
   @Rule(Joi.string().allow(''))
-  @Column({
-    length: 200,
-    name: 'remark',
-  })
+  @Column({ name: 'remark', length: 255 })
   remark: string;
 
-  // ====== 非数据库字段属性 ======
+  @Rule(Joi.number().allow(0))
+  @Column({ name: 'parent_id' })
+  parentId: number;
 
-  /**子菜单 */
+  @Rule(Joi.string().required())
+  @Column({ name: 'menu_name' })
+  menuName: string;
+
+  @Rule(Joi.number().allow(0))
+  @Column({ name: 'menu_sort' })
+  menuSort: number;
+
+  @Rule(Joi.string().allow(''))
+  @Column({ name: 'menu_path' })
+  menuPath: string;
+
+  @Rule(Joi.string().allow(''))
+  @Column({ name: 'menu_component' })
+  menuComponent: string;
+
+  @Rule(Joi.string().allow(''))
+  @Column({ name: 'menu_perms' })
+  menuPerms: string;
+
+  @Rule(Joi.string().allow(''))
+  @Column({ name: 'menu_icon' })
+  menuIcon: string;
+
+  @Rule(Joi.string().pattern(/^[01]$/))
+  @Column({ name: 'menu_external' })
+  menuExternal: string;
+
+  @Rule(Joi.string().pattern(/^[01]$/))
+  @Column({ name: 'menu_cache' })
+  menuCache: string;
+
+  @Rule(Joi.string().pattern(/^[DMA]$/))
+  @Column({ name: 'menu_type' })
+  menuType: string;
+
+  @Rule(Joi.string().pattern(/^[01]$/))
+  @Column({ name: 'menu_visible' })
+  menuVisible: string;
+
+  @Rule(Joi.string().pattern(/^[01]$/))
+  @Column({ name: 'menu_status' })
+  menuStatus: string;
+
+  @Rule(Joi.string().pattern(/^[01]$/))
+  @Column({ name: 'menu_del' })
+  menuDel: string;
+
   children: SysMenu[];
 }

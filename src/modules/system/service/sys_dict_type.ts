@@ -1,9 +1,9 @@
 import { Provide, Inject, Init, Singleton } from '@midwayjs/core';
 
-import { STATUS_YES } from '../../../framework/constants/common';
-import { CACHE_SYS_DICT } from '../../../framework/constants/cache_key';
-import { RedisCache } from '../../../framework/datasource/redis/redis';
-import { FileUtil } from '../../../framework/utils/file/file';
+import { STATUS_YES } from '../../../internal/shared/constants/common';
+import { CACHE_SYS_DICT } from '../../../internal/shared/constants/cache_key';
+import { RedisCache } from '../../../internal/infra/cache/redis';
+import { FileUtil } from '../../../internal/shared/file/file';
 import { SysDictTypeRepository } from '../repository/sys_dict_type';
 import { SysDictDataRepository } from '../repository/sys_dict_data';
 import { SysDictData } from '../model/sys_dict_data';
@@ -101,9 +101,7 @@ export class SysDictTypeService {
    * @returns 影响记录数
    */
   public async update(sysDictType: SysDictType): Promise<number> {
-    const arr = await this.sysDictTypeRepository.selectByIds([
-      sysDictType.dictId,
-    ]);
+    const arr = await this.sysDictTypeRepository.selectByIds([sysDictType.id]);
     if (arr.length === 0) {
       return 0;
     }
@@ -205,7 +203,7 @@ export class SysDictTypeService {
       data = JSON.parse(jsonStr);
     } else {
       const sysDictData = new SysDictData();
-      sysDictData.statusFlag = STATUS_YES;
+      sysDictData.dataStatus = STATUS_YES;
       sysDictData.dictType = dictType;
       data = await this.sysDictDataRepository.select(sysDictData);
       if (data.length > 0) {
@@ -223,7 +221,7 @@ export class SysDictTypeService {
   public async cacheLoad(dictType: string): Promise<void> {
     const sysDictData = new SysDictData();
     sysDictData.dictType = dictType;
-    sysDictData.statusFlag = STATUS_YES;
+    sysDictData.dataStatus = STATUS_YES;
 
     // 指定字典类型
     if (dictType === '*' || dictType === '') {
@@ -274,21 +272,20 @@ export class SysDictTypeService {
    * @returns 结果
    */
   public async exportData(rows: SysDictType[], fileName: string) {
-    // 导出数据组装
-    const arr: Record<string, any>[] = [];
+    // 第一行表头标题
+    const data: string[][] = [['字典编号', '字典名称', '字典类型', '字典状态']];
     for (const row of rows) {
       let statusValue = '停用';
-      if (row.statusFlag === '1') {
+      if (row.dictStatus === '1') {
         statusValue = '正常';
       }
-      const data = {
-        字典编号: row.dictId,
-        字典名称: row.dictName,
-        字典类型: row.dictType,
-        字典状态: statusValue,
-      };
-      arr.push(data);
+      data.push([
+        `${row.id ?? 0}`,
+        row.dictName ?? '',
+        row.dictType ?? '',
+        statusValue,
+      ]);
     }
-    return await this.fileUtil.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.csvWriteRecord(data, fileName);
   }
 }

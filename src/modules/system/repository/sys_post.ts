@@ -2,7 +2,7 @@ import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { SysPost } from '../model/sys_post';
 
 /**岗位表 数据层处理 */
@@ -25,22 +25,21 @@ export class SysPostRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysPost, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysPost, 's');
     // 查询条件拼接
-    if (query.postCode) {
+    if (query.post_code) {
       tx.andWhere('s.post_code like :postCode', {
-        postCode: query.postCode + '%',
+        postCode: query.post_code + '%',
       });
     }
-    if (query.postName) {
+    if (query.post_name) {
       tx.andWhere('s.post_name like :postName', {
-        postName: query.postName + '%',
+        postName: query.post_name + '%',
       });
     }
-    if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
+    if (query.post_status) {
+      tx.andWhere('s.post_status = :postStatus', {
+        postStatus: query.post_status,
       });
     }
 
@@ -52,18 +51,18 @@ export class SysPostRepository {
 
     // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num,
+      query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
     // 排序，格式: sort=postSort,postName:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
-      postId: 's.post_id',
-      postCode: 's.post_code',
-      postName: 's.post_name',
-      postSort: 's.post_sort',
-      statusFlag: 's.status_flag',
-      createTime: 's.create_time',
+      id: 's.id',
+      post_code: 's.post_code',
+      post_name: 's.post_name',
+      post_sort: 's.post_sort',
+      post_status: 's.post_status',
+      create_time: 's.create_time',
     };
     if (query.sort) {
       const items = query.sort.split(',');
@@ -93,8 +92,7 @@ export class SysPostRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysPost, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysPost, 's');
     // 构建查询条件
     if (sysPost.postCode) {
       tx.andWhere('s.post_code like :postCode', {
@@ -106,9 +104,9 @@ export class SysPostRepository {
         postName: sysPost.postName + '%',
       });
     }
-    if (sysPost.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: sysPost.statusFlag,
+    if (sysPost.postStatus) {
+      tx.andWhere('s.post_status = :postStatus', {
+        postStatus: sysPost.postStatus,
       });
     }
     // 查询数据
@@ -131,7 +129,7 @@ export class SysPostRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysPost, 's')
-      .andWhere("s.post_id in (:postIds) and s.del_flag = '0'", { postIds })
+      .andWhere('s.id in (:postIds)', { postIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -146,7 +144,6 @@ export class SysPostRepository {
    * @return ID
    */
   public async insert(sysPost: SysPost): Promise<number> {
-    sysPost.delFlag = '0';
     if (sysPost.createBy) {
       const ms = Date.now().valueOf();
       sysPost.updateBy = sysPost.createBy;
@@ -174,15 +171,14 @@ export class SysPostRepository {
    * @return 影响记录数
    */
   public async update(sysPost: SysPost): Promise<number> {
-    if (sysPost.postId <= 0) {
+    if (sysPost.id <= 0) {
       return 0;
     }
     if (sysPost.updateBy) {
       sysPost.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysPost);
-    delete (data as Partial<SysPost>).postId;
-    delete (data as Partial<SysPost>).delFlag;
+    delete (data as Partial<SysPost>).id;
     delete (data as Partial<SysPost>).createBy;
     delete (data as Partial<SysPost>).createTime;
     // 执行更新
@@ -191,7 +187,7 @@ export class SysPostRepository {
       .createQueryBuilder()
       .update(SysPost)
       .set(data)
-      .andWhere('post_id = :postId', { postId: sysPost.postId })
+      .andWhere('id = :id', { id: sysPost.id })
       .execute();
     return tx.affected ?? 0;
   }
@@ -204,12 +200,12 @@ export class SysPostRepository {
    */
   public async deleteByIds(postIds: number[]): Promise<number> {
     if (postIds.length === 0) return 0;
-    // 执行更新删除标记
+    // Gin uses physical deletion for posts.
     const tx: DeleteResult = await this.db
       .queryBuilder('')
-      .update(SysPost)
-      .set({ delFlag: '1' })
-      .andWhere('post_id in (:postIds)', { postIds })
+      .delete()
+      .from(SysPost)
+      .andWhere('id in (:postIds)', { postIds })
       .execute();
     return tx.affected ?? 0;
   }
@@ -242,7 +238,7 @@ export class SysPostRepository {
     if (!item) {
       return 0;
     }
-    return item.postId;
+    return item.id;
   }
 
   /**
@@ -261,10 +257,10 @@ export class SysPostRepository {
       .select('s')
       .from(SysPost, 's')
       .andWhere(
-        's.post_id in (select post_id from sys_user_post  where user_id = :userId)',
+        's.id in (select post_id from sys_user_post  where user_id = :userId)',
         { userId }
       )
-      .addOrderBy('s.post_id', 'ASC')
+      .addOrderBy('s.id', 'ASC')
       .getMany();
     if (rows.length > 0) {
       return rows;

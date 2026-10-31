@@ -14,9 +14,9 @@ import type { Context } from '@midwayjs/koa';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/parse/parse';
-import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
-import { Resp } from '../../../framework/resp/api';
+} from '../../../internal/shared/parse/parse';
+import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
+import { Resp } from '../../../internal/web/resp/api';
 import { DemoORMService } from '../service/demo_orm';
 import { DemoORM } from '../model/demo_orm';
 
@@ -25,7 +25,7 @@ import { DemoORM } from '../model/demo_orm';
  *
  * 更多功能需要查阅 https://midwayjs.org/docs/extensions/orm
  */
-@Controller('/demo/orm')
+@Controller('/api/v1/demo/orms')
 export class DemoORMController {
   /**上下文 */
   @Inject('ctx')

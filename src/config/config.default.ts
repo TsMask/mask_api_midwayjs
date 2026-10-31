@@ -70,6 +70,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         '.html',
         '.htm',
         '.txt',
+        '.csv',
         // pdf
         '.pdf',
         // 压缩文件
@@ -114,11 +115,11 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       origin: '*',
       // 设置 Access-Control-Allow-Credentials，【默认值】false
       // 也可以配置为一个回调方法，传入的参数为 request，返回值为 true 或 false
-      credentials: true,
+      credentials: false,
       // 设置 Access-Control-Max-Age
       maxAge: 31536000,
       // 允许跨域的方法，【默认值】为 GET,HEAD,PUT,POST,DELETE,PATCH
-      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELETE'],
+      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
       allowHeaders: [
         'X-App-Code',
@@ -132,7 +133,7 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         'Range',
       ],
       // 设置 Access-Control-Expose-Headers 的值
-      exposeHeaders: ['X-RepeatSubmit-Rest'],
+      exposeHeaders: ['X-RepeatSubmit-Reset'],
       // 是否在执行报错的时候，把跨域的 header 信息写入到 error 对的 headers 属性中，【默认值】false
       keepHeadersOnError: false,
     },
@@ -152,15 +153,15 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         enable: true,
       },
       hsts: {
-        enable: true,
+        enable: false,
         maxAge: 365 * 24 * 3600,
         includeSubdomains: false,
       },
       noopen: {
-        enable: true,
+        enable: false,
       },
       nosniff: {
-        enable: true,
+        enable: false,
       },
       xssProtection: {
         enable: true,

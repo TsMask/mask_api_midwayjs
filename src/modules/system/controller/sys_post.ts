@@ -16,20 +16,21 @@ import type { Context } from '@midwayjs/koa';
 import {
   parseNumber,
   parseRemoveDuplicatesToArray,
-} from '../../../framework/utils/parse/parse';
+} from '../../../internal/shared/parse/parse';
 import {
   OperateLogMiddleware,
   BUSINESS_TYPE,
-} from '../../../framework/middleware/operate_log';
-import { Resp } from '../../../framework/resp/api';
-import { CODE_PARAM_CHEACK } from '../../../framework/resp/code';
-import { AuthorizeUserMiddleware } from '../../../framework/middleware/authorize_user';
-import { loginUserToUserName } from '../../../framework/reqctx/auth';
+} from '../../../internal/web/middleware/operate_log';
+import { Resp } from '../../../internal/web/resp/api';
+import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
+import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
+import { loginUserToUserName } from '../../../internal/web/reqctx/auth';
 import { SysPostService } from '../service/sys_post';
 import { SysPost } from '../model/sys_post';
+import { serializeSysPost } from '../model/vo/response';
 
 /**岗位信息 控制层处理*/
-@Controller('/system/post')
+@Controller('/api/v1/system/posts')
 export class SysPostController {
   /**上下文 */
   @Inject('ctx')
@@ -45,23 +46,23 @@ export class SysPostController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysPostService.findByPage(query);
-    return Resp.okData({ rows, total });
+    return Resp.okData({ rows: rows.map(serializeSysPost), total });
   }
 
   /**岗位信息 */
-  @Get('/:postId', {
+  @Get('/:id', {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:post:query'] })],
   })
   public async info(
-    @Valid(Joi.number()) @Param('postId') postId: number
+    @Valid(Joi.number()) @Param('id') postId: number
   ): Promise<Resp> {
     if (postId <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId is empty');
     }
     const data = await this.sysPostService.findById(postId);
-    if (data.postId === postId) {
-      return Resp.okData(data);
+    if (data.id === postId) {
+      return Resp.okData(serializeSysPost(data));
     }
     return Resp.err();
   }
@@ -77,7 +78,7 @@ export class SysPostController {
     ],
   })
   public async add(@Body() body: SysPost): Promise<Resp> {
-    if (body.postId > 0) {
+    if (body.id > 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId not is empty');
     }
@@ -95,7 +96,7 @@ export class SysPostController {
       0
     );
     if (!uniqueCode) {
-      return Resp.errMsg(`岗位新增【${body.postName}】失败，岗位编码已存在`);
+      return Resp.errMsg(`岗位新增【${body.postName}】失败，岗位名称已存在`);
     }
 
     body.createBy = loginUserToUserName(this.c);
@@ -117,21 +118,21 @@ export class SysPostController {
     ],
   })
   public async edit(@Body() body: SysPost): Promise<Resp> {
-    if (body.postId <= 0) {
+    if (body.id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId is empty');
     }
 
     // 检查是否存在
-    const postInfo = await this.sysPostService.findById(body.postId);
-    if (postInfo.postId !== body.postId) {
+    const postInfo = await this.sysPostService.findById(body.id);
+    if (postInfo.id !== body.id) {
       return Resp.errMsg('没有权限访问岗位数据！');
     }
 
     // 检查名称属性值唯一
     const uniqueuName = await this.sysPostService.checkUniqueByName(
       body.postName,
-      body.postId
+      body.id
     );
     if (!uniqueuName) {
       return Resp.errMsg(`岗位修改【${body.postName}】失败，岗位名称已存在`);
@@ -140,16 +141,16 @@ export class SysPostController {
     // 检查编码属性值唯一
     const uniqueCode = await this.sysPostService.checkUniqueByCode(
       body.postCode,
-      body.postId
+      body.id
     );
     if (!uniqueCode) {
-      return Resp.errMsg(`岗位修改【${body.postName}】失败，岗位编码已存在`);
+      return Resp.errMsg(`岗位修改【${body.postName}】失败，岗位名称已存在`);
     }
 
     postInfo.postCode = body.postCode;
     postInfo.postName = body.postName;
     postInfo.postSort = body.postSort;
-    postInfo.statusFlag = body.statusFlag;
+    postInfo.postStatus = body.postStatus;
     postInfo.remark = body.remark;
     postInfo.updateBy = loginUserToUserName(this.c);
     const rows = await this.sysPostService.update(postInfo);
@@ -160,7 +161,7 @@ export class SysPostController {
   }
 
   /**岗位删除 */
-  @Del('/:postId', {
+  @Del('/:id', {
     middleware: [
       AuthorizeUserMiddleware({ hasPerms: ['system:post:remove'] }),
       OperateLogMiddleware({
@@ -170,7 +171,7 @@ export class SysPostController {
     ],
   })
   public async remove(
-    @Valid(Joi.string().allow('')) @Param('postId') postId: string
+    @Valid(Joi.string().allow('')) @Param('id') postId: string
   ): Promise<Resp> {
     if (postId === '') {
       this.c.status = 422;
@@ -207,15 +208,9 @@ export class SysPostController {
     }
 
     // 导出文件名称
-    const fileName = `post_export_${rows.length}_${Date.now()}.xlsx`;
-    this.c.set(
-      'content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    this.c.set(
-      'content-disposition',
-      `attachment;filename=${encodeURIComponent(fileName)}`
-    );
+    const fileName = `post_export_${rows.length}_${Date.now()}.csv`;
+    this.c.set('content-Type', 'text/csv; charset=utf-8');
+    this.c.set('content-disposition', `attachment; filename="${fileName}"`);
     return await this.sysPostService.exportData(rows, fileName);
   }
 }

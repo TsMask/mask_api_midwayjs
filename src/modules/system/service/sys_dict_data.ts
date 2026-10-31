@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileUtil } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../internal/shared/file/file';
 import { SysDictDataRepository } from '../repository/sys_dict_data';
 import { SysDictTypeService } from './sys_dict_type';
 import { SysDictData } from '../model/sys_dict_data';
@@ -166,23 +166,24 @@ export class SysDictDataService {
    * @returns 结果
    */
   public async exportData(rows: SysDictData[], fileName: string) {
-    // 导出数据组装
-    const dataCells: Record<string, any>[] = [];
+    // 第一行表头标题
+    const data: string[][] = [
+      ['字典类型', '数据排序', '数据编号', '数据标签', '数据键值', '数据状态'],
+    ];
     for (const row of rows) {
       let statusValue = '停用';
-      if (row.statusFlag === '1') {
+      if (row.dataStatus === '1') {
         statusValue = '正常';
       }
-      const data = {
-        字典类型: row.dictType,
-        数据排序: row.dataSort,
-        数据编号: row.dataId,
-        数据标签: row.dataLabel,
-        数据键值: row.dataValue,
-        数据状态: statusValue,
-      };
-      dataCells.push(data);
+      data.push([
+        row.dictType ?? '',
+        `${row.dataSort ?? 0}`,
+        `${row.id ?? 0}`,
+        row.dataLabel ?? '',
+        row.dataValue ?? '',
+        statusValue,
+      ]);
     }
-    return await this.fileUtil.excelWriteRecord(dataCells, fileName);
+    return await this.fileUtil.csvWriteRecord(data, fileName);
   }
 }

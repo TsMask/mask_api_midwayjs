@@ -1,6 +1,6 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
 
-import { FileUtil } from '../../../framework/utils/file/file';
+import { FileUtil } from '../../../internal/shared/file/file';
 import { SysUserPostRepository } from '../repository/sys_user_post';
 import { SysPostRepository } from '../repository/sys_post';
 import { SysPost } from '../model/sys_post';
@@ -87,7 +87,7 @@ export class SysPostService {
     }
     for (const post of posts) {
       const useCount = await this.sysUserPostRepository.existUserByPostId(
-        post.postId
+        post.id
       );
       if (useCount > 0) {
         return [0, `【${post.postName}】已分配给用户,不能删除`];
@@ -154,23 +154,24 @@ export class SysPostService {
    * @returns 结果
    */
   public async exportData(rows: SysPost[], fileName: string) {
-    // 导出数据组装
-    const arr: Record<string, any>[] = [];
+    // 第一行表头标题
+    const data: string[][] = [
+      ['岗位编号', '岗位编码', '岗位名称', '岗位排序', '岗位状态'],
+    ];
     for (const row of rows) {
       // 状态
       let statusValue = '停用';
-      if (row.statusFlag === '1') {
+      if (row.postStatus === '1') {
         statusValue = '正常';
       }
-      const data = {
-        岗位编号: row.postId,
-        岗位编码: row.postCode,
-        岗位名称: row.postName,
-        岗位排序: row.postSort,
-        岗位状态: statusValue,
-      };
-      arr.push(data);
+      data.push([
+        `${row.id ?? 0}`,
+        row.postCode ?? '',
+        row.postName ?? '',
+        `${row.postSort ?? 0}`,
+        statusValue,
+      ]);
     }
-    return await this.fileUtil.excelWriteRecord(arr, fileName);
+    return await this.fileUtil.csvWriteRecord(data, fileName);
   }
 }

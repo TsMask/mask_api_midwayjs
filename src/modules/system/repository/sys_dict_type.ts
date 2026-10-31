@@ -2,8 +2,8 @@ import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
-import { DynamicDataSource } from '../../../framework/datasource/db/db';
-import { parseNumber } from '../../../framework/utils/parse/parse';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
+import { parseNumber } from '../../../internal/shared/parse/parse';
 import { SysDictType } from '../model/sys_dict_type';
 
 /**字典类型表 数据层处理 */
@@ -26,43 +26,42 @@ export class SysDictTypeRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysDictType, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysDictType, 's');
     // 查询条件拼接
-    if (query.dictName) {
+    if (query.dict_name) {
       tx.andWhere('s.dict_name like :dictName', {
-        dictName: query.dictName + '%',
+        dictName: query.dict_name + '%',
       });
     }
-    if (query.dictType) {
+    if (query.dict_type) {
       tx.andWhere('s.dict_type like :dictType', {
-        dictType: query.dictType + '%',
+        dictType: query.dict_type + '%',
       });
     }
-    if (query.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
+    if (query.dict_status) {
+      tx.andWhere('s.dict_status = :dictStatus', {
+        dictStatus: query.dict_status,
       });
     }
-    if (query.beginTime) {
-      if (`${query.beginTime}`.length === 10) {
+    if (query.create_time_begin) {
+      if (`${query.create_time_begin}`.length === 10) {
         tx.andWhere('s.create_time >= :beginTime', {
-          beginTime: parseNumber(`${query.beginTime}000`),
+          beginTime: parseNumber(`${query.create_time_begin}000`),
         });
-      } else if (`${query.beginTime}`.length === 13) {
+      } else if (`${query.create_time_begin}`.length === 13) {
         tx.andWhere('s.create_time >= :beginTime', {
-          beginTime: parseNumber(query.beginTime),
+          beginTime: parseNumber(query.create_time_begin),
         });
       }
     }
-    if (query.endTime) {
-      if (`${query.endTime}`.length === 10) {
+    if (query.create_time_end) {
+      if (`${query.create_time_end}`.length === 10) {
         tx.andWhere('s.create_time <= :endTime', {
-          endTime: parseNumber(`${query.endTime}000`),
+          endTime: parseNumber(`${query.create_time_end}999`),
         });
-      } else if (`${query.endTime}`.length === 13) {
+      } else if (`${query.create_time_end}`.length === 13) {
         tx.andWhere('s.create_time <= :endTime', {
-          endTime: parseNumber(query.endTime),
+          endTime: parseNumber(query.create_time_end),
         });
       }
     }
@@ -75,18 +74,18 @@ export class SysDictTypeRepository {
 
     // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num,
+      query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
     // 排序，格式: sort=createTime,dictName:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
-      dictId: 's.dict_id',
-      dictName: 's.dict_name',
-      dictType: 's.dict_type',
-      statusFlag: 's.status_flag',
-      createBy: 's.create_by',
-      createTime: 's.create_time',
+      id: 's.id',
+      create_time: 's.create_time',
+      update_time: 's.update_time',
+      dict_name: 's.dict_name',
+      dict_type: 's.dict_type',
+      dict_status: 's.dict_status',
     };
     if (query.sort) {
       const items = query.sort.split(',');
@@ -98,7 +97,7 @@ export class SysDictTypeRepository {
         tx.addOrderBy(column, order);
       }
     } else {
-      tx.addOrderBy('s.dict_id', 'DESC');
+      tx.addOrderBy('s.id', 'DESC');
     }
 
     const rows = await tx.getMany();
@@ -116,8 +115,7 @@ export class SysDictTypeRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysDictType, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysDictType, 's');
     // 构建查询条件
     if (sysDictType.dictName) {
       tx.andWhere('s.dict_name like :dictName', {
@@ -129,9 +127,9 @@ export class SysDictTypeRepository {
         dictType: sysDictType.dictType + '%',
       });
     }
-    if (sysDictType.statusFlag) {
-      tx.andWhere('s.status_flag = :statusFlag', {
-        statusFlag: sysDictType.statusFlag,
+    if (sysDictType.dictStatus) {
+      tx.andWhere('s.dict_status = :dictStatus', {
+        dictStatus: sysDictType.dictStatus,
       });
     }
     // 查询数据
@@ -154,7 +152,7 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictType, 's')
-      .andWhere("s.dict_id in (:dictIds) and s.del_flag = '0'", { dictIds })
+      .andWhere('s.id in (:dictIds)', { dictIds })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -169,7 +167,6 @@ export class SysDictTypeRepository {
    * @return ID
    */
   public async insert(sysDictType: SysDictType): Promise<number> {
-    sysDictType.delFlag = '0';
     if (sysDictType.createBy) {
       const ms = Date.now().valueOf();
       sysDictType.updateBy = sysDictType.createBy;
@@ -197,15 +194,14 @@ export class SysDictTypeRepository {
    * @return 影响记录数
    */
   public async update(sysDictType: SysDictType): Promise<number> {
-    if (sysDictType.dictId <= 0) {
+    if (sysDictType.id <= 0) {
       return 0;
     }
     if (sysDictType.updateBy) {
       sysDictType.updateTime = Date.now().valueOf();
     }
     const data = Object.assign({}, sysDictType);
-    delete (data as Partial<SysDictType>).dictId;
-    delete (data as Partial<SysDictType>).delFlag;
+    delete (data as Partial<SysDictType>).id;
     delete (data as Partial<SysDictType>).createBy;
     delete (data as Partial<SysDictType>).createTime;
     // 执行更新
@@ -214,7 +210,7 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .update(SysDictType)
       .set(data)
-      .andWhere('dict_id = :dictId', { dictId: sysDictType.dictId })
+      .andWhere('id = :id', { id: sysDictType.id })
       .execute();
     return tx.affected ?? 0;
   }
@@ -227,12 +223,12 @@ export class SysDictTypeRepository {
    */
   public async deleteByIds(dictIds: number[]): Promise<number> {
     if (dictIds.length === 0) return 0;
-    // 执行更新删除标记
+    // Gin uses physical deletion for dictionary types.
     const tx: DeleteResult = await this.db
       .queryBuilder('')
-      .update(SysDictType)
-      .set({ delFlag: '1' })
-      .andWhere('dict_id in (:dictIds)', { dictIds })
+      .delete()
+      .from(SysDictType)
+      .andWhere('id in (:dictIds)', { dictIds })
       .execute();
     return tx.affected ?? 0;
   }
@@ -247,8 +243,7 @@ export class SysDictTypeRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysDictType, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysDictType, 's');
     // 查询条件拼接
     if (sysDictType.dictName) {
       tx.andWhere('s.dict_name = :dictName', {
@@ -265,7 +260,7 @@ export class SysDictTypeRepository {
     if (!item) {
       return 0;
     }
-    return item.dictId;
+    return item.id;
   }
 
   /**
@@ -284,7 +279,6 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictType, 's')
-      .andWhere("s.del_flag = '0'")
       .andWhere('s.dict_type = :dictType', { dictType })
       .getOne();
     if (!item) {

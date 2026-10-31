@@ -69,8 +69,8 @@ export class SysNoticeService {
     }
     for (const notice of notices) {
       // 检查是否为已删除
-      if (notice.delFlag === '1') {
-        return [0, `ID:${notice.noticeId} 公告信息已经删除！`];
+      if (notice.noticeDel === '1') {
+        return [0, `ID:${notice.id} 公告信息已经删除！`];
       }
     }
     if (notices.length === noticeIds.length) {
