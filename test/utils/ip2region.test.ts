@@ -1,7 +1,7 @@
 import {
   realAddressByIp,
   regionSearchByIp,
-} from '../../src/framework/ip2region/ip2region';
+} from '../../src/internal/infra/ip2region/ip2region';
 
 describe('test/utils/ip2region.test.ts', () => {
   it('should realAddressByIp', async () => {

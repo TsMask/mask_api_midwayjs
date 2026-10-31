@@ -1,4 +1,4 @@
-import { uaInfo } from '../../src/framework/utils/ua/ua';
+import { uaInfo } from '../../src/internal/web/reqctx/ua';
 
 describe('test/utils/UAParserUtils.test.ts', () => {
   const user_agent =

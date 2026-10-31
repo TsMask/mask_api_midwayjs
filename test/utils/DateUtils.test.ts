@@ -4,7 +4,7 @@ import {
   diffSeconds,
   parseDatePath,
   YYYY_MM_DD,
-} from '../../src/framework/utils/date/data';
+} from '../../src/internal/shared/date/data';
 
 describe('test/utils/DateUtils.test.ts', () => {
   it('should parseStrToDate', () => {

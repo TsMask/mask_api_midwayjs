@@ -2,7 +2,7 @@ import {
   generateCode,
   generateNumber,
   generateString,
-} from '../../src/framework/utils/generate/generate';
+} from '../../src/internal/shared/generate/generate';
 
 describe('test/utils/GenIdUtils.test.ts', () => {
   it('should generateHash', () => {
