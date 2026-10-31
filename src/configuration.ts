@@ -1,4 +1,8 @@
-import { Configuration, App, CommonJSFileDetector } from '@midwayjs/core';
+import {
+  Configuration,
+  App,
+  CommonJSFileDetector,
+} from '@midwayjs/core';
 // 核心服务
 import * as koa from '@midwayjs/koa';
 import * as validation from '@midwayjs/validation';
@@ -6,7 +10,6 @@ import * as typeorm from '@midwayjs/typeorm';
 import * as redis from '@midwayjs/redis';
 import * as busboy from '@midwayjs/busboy';
 import * as staticFile from '@midwayjs/static-file';
-import * as bullmq from '@midwayjs/bullmq';
 import * as crossDomain from '@midwayjs/cross-domain';
 import * as security from '@midwayjs/security';
 // 配置文件
@@ -16,9 +19,10 @@ import * as UnittestConfig from './config/config.unittest';
 import * as dotenv from 'dotenv';
 dotenv.config();
 // 工具函数
-import { checkDirPathExists } from './framework/utils/file/utils';
-import { ReportMiddleware } from './framework/middleware/report';
-import { ErrorCatchFilters } from './framework/catch';
+import { checkDirPathExists } from './internal/shared/file/utils';
+import { ReportMiddleware } from './internal/web/middleware/report';
+import { ErrorCatchFilters } from './internal/web/middleware/error_filter';
+import { JobConfiguration } from './modules/job/job';
 
 @Configuration({
   imports: [
@@ -30,7 +34,7 @@ import { ErrorCatchFilters } from './framework/catch';
     staticFile, // 静态文件映射
     typeorm, // 数据库ORM
     redis, // 缓存数据Redis
-    bullmq, // 任务队列BullMQ
+    JobConfiguration, // 调度任务模块
   ],
   detector: new CommonJSFileDetector({ conflictCheck: false }),
   importConfigs: [
