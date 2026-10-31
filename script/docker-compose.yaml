@@ -1,7 +1,10 @@
 services:
   # ---- 后端应用 ----
   api:
-    container_name: mask_api:1.0.0
+    build:
+      context: ..
+      dockerfile: script/Dockerfile
+    container_name: mask_api
     restart: always
     ports:
       - "6275:6275"
@@ -22,7 +25,7 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-your-redis-password}
       - REDIS_DB=0
     volumes:
-      - mask_file:/app/mask_file
+      - mask_file:/mask_file
     depends_on:
       mysql:
         condition: service_healthy
@@ -71,9 +74,9 @@ services:
       - mask_net
 
 volumes:
-  mysql_data:/data/mysql
-  redis_data:/data/redis
-  mask_file:/data/mask_file
+  mysql_data:
+  redis_data:
+  mask_file:
 
 networks:
   mask_net:

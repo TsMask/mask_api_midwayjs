@@ -40,28 +40,29 @@ modules/
 
 - `auth` — 认证（登录、注册、验证码）
 - `system` — 系统管理（用户、角色、菜单、部门、岗位、字典、参数、通知）
-- `monitor` — 监控（定时任务、操作日志、在线用户、缓存）
+- `monitor` — 监控（操作日志、在线用户、缓存）
+- `job` — 调度任务（任务、任务日志、BullMQ 处理器）
 - `common` — 公共接口（文件上传、通用查询）
 - `demo` — 示例模块
 
-### 框架层 (`src/framework/`)
+### 框架层 (src/internal/)
 
-存放与业务无关的基础设施代码：
+存放与业务无关的基础设施代码，目录结构按 Go 版本同步：
 
-- `middleware/` — 全局中间件：`ReportMiddleware`（请求日志）、`AuthorizeUserMiddleware`（鉴权）、`OperateLogMiddleware`（操作日志）、`RepeatSubmitMiddleware`（防重复提交）
-- `catch/` — 全局异常过滤器 `ErrorCatchFilters`，统一处理 404、参数校验、业务异常
-- `resp/` — 统一响应格式：`Resp.ok()` / `Resp.okData(data)` / `Resp.errMsg(msg)`，状态码见 `code.ts`
-- `token/` — JWT 令牌签发与验证（HS512 算法，access + refresh 双令牌）
-- `reqctx/auth` — 请求上下文获取当前登录用户信息（`loginUserToUserID`、`loginUserToDataScopeSQL` 等）
-- `utils/` — 工具函数（加解密、日期、文件操作、正则校验、ID 生成、IP 归属地等）
-- `constants/` — 常量定义（缓存 key、菜单类型、角色权限、令牌前缀等）
+- config/ — 全局配置类型定义（config.ts）
+- infra/cache/ — Redis 缓存读写封装；infra/database/ — TypeORM 数据源绑定；infra/cron/ — 基于 @midwayjs/bullmq 的定时任务封装（队列注册、Job Scheduler 定时调度、单次执行与执行日志回调）；infra/ip2region/ — IP 地址归属解析
+- shared/constants/ — 常量定义；shared/crypto/ — 加密/哈希/密码处理；shared/file/ — 文件上下文、csv/excel、上传、静态资源路径；shared/parse/ 解析；shared/regular/ 正则；shared/date/ 日期；shared/generate/ ID 生成
+- web/middleware/ — HTTP 中间件：ReportMiddleware、AuthorizeUserMiddleware、OperateLogMiddleware、RepeatSubmitMiddleware、RateLimitMiddleware，以及全局错误过滤器 ErrorCatch、ValidateError、NotFound（通过 error_filter.ts 聚合导出）
+- web/reqctx/ — 请求上下文：loginUserToUserID、loginUserToDataScopeSQL、authorization、isSystemUser、uaOsBrowser 等
+- web/resp/ — 统一响应格式：Resp.ok() / Resp.okData(data) / Resp.errMsg(msg)
+- web/token/ — JWT 令牌签发与校验（HS512 算法，access + refresh 双令牌）
 
 ## 编码约定
 
 ### 控制器模式
 
 ```typescript
-@Controller('/system/user')
+@Controller('/system/users')
 export class SysUserController {
   @Inject('ctx')
   private c: Context;

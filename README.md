@@ -51,7 +51,7 @@ mask_api_midwayjs
 ├── src                         目录-源代码
 │   ├── assets                  目录-程序内部静态资源文件
 │   ├── config                  目录-程序相关运行参数配置
-│   ├── framework               目录-程序核心通用代码
+│   ├── internal          目录-程序核心通用代码
 │   │   ├── utils               目录-通用工具函数
 │   │   ├── ip2region           目录-IP归属地查询
 │   │   └── ...
