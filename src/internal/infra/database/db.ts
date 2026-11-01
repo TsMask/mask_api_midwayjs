@@ -111,4 +111,66 @@ export class DynamicDataSource {
     }
     return [num - 1, size];
   }
+
+  /**
+   * 解析统一排序字符串
+   *
+   * 格式: sort=field1,field2:asc,field3:desc
+   *
+   * 不加方向默认 DESC，方向不区分大小写；未匹配字段直接忽略
+   *
+   * @param sort 排序字符串
+   * @param fieldMapping 前端字段与数据库字段映射
+   * @returns 排序项
+   */
+  public sortParse(
+    sort: string | undefined,
+    fieldMapping: Record<string, string>
+  ): Array<{ field: string; asc: boolean }> {
+    if (!sort) {
+      return [];
+    }
+    const orders: Array<{ field: string; asc: boolean }> = [];
+    for (const part of sort.split(',')) {
+      const trimmed = part.trim();
+      if (!trimmed) continue;
+      const [field, rawDirection = ''] = trimmed.split(':');
+      const key = field.trim();
+      const mapped = fieldMapping[key];
+      if (!mapped) continue;
+      orders.push({
+        field: mapped,
+        asc: rawDirection.trim().toLowerCase() === 'asc',
+      });
+    }
+    return orders;
+  }
+
+  /**
+   * 应用排序项，无排序项时使用默认排序
+   *
+   * @param tx 查询构造器
+   * @param orders 排序项
+   * @param defaultOrder 默认排序，格式: field asc|desc
+   * @returns 查询构造器
+   */
+  public sortOrDefault(
+    tx: SelectQueryBuilder<any>,
+    orders: Array<{ field: string; asc: boolean }>,
+    defaultOrder: string
+  ): SelectQueryBuilder<any> {
+    if (orders.length > 0) {
+      for (const order of orders) {
+        tx.addOrderBy(order.field, order.asc ? 'ASC' : 'DESC');
+      }
+      return tx;
+    }
+
+    const match = defaultOrder.trim().match(/^([\w.]+)\s+(asc|desc)$/i);
+    if (!match) {
+      throw new Error(`invalid default order: ${defaultOrder}`);
+    }
+    tx.addOrderBy(match[1], match[2].toUpperCase() as 'ASC' | 'DESC');
+    return tx;
+  }
 }

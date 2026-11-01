@@ -1,219 +1,102 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
-import { DynamicDataSource } from '../../../internal/infra/database/db';
-import { ResultSetHeader } from '../../../typings/commont';
-import { DemoORM } from '../model/demo_orm';
 
-/**
- * 测试ORM信息
- */
+import { DemoORM } from '../model/demo_orm';
+import { DemoORMRepository } from '../repository/demo_orm';
+
+/**测试ORM信息 服务层处理 */
 @Provide()
 @Singleton()
 export class DemoORMService {
+  /**测试ORM数据层 */
   @Inject()
-  private db: DynamicDataSource;
+  private demoORMRepository: DemoORMRepository;
 
   /**
    * 分页查询
+   *
    * @param query 参数
-   * @returns
+   * @returns [集合, 总数]
    */
   public async findByPage(
     query: Record<string, string>
   ): Promise<[DemoORM[], number]> {
-    const tx = this.db
-      .queryBuilder('')
-      .createQueryBuilder()
-      .select('d')
-      .from(DemoORM, 'd');
-    // 查询条件拼接
-    if (query.title) {
-      tx.andWhere('d.title like :title', { title: query.title + '%' });
-    }
-    if (query.statusFlag) {
-      tx.andWhere('d.status_flag = :statusFlag', {
-        statusFlag: query.statusFlag,
-      });
-    }
-
-    // 查询数量为0直接返回
-    const total = await tx.getCount();
-    if (total <= 0) {
-      return [[], total];
-    }
-
-    // 查询数据分页
-    const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
-    );
-    tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=title:asc,createTime（不加方向默认 DESC）
-    const columnMap: Record<string, string> = {
-      id: 'd.id',
-      title: 'd.title',
-      ormType: 'd.orm_type',
-      statusFlag: 'd.status_flag',
-      createTime: 'd.create_time',
-    };
-    if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-      }
-    } else {
-      tx.addOrderBy('d.id', 'DESC');
-    }
-
-    const rows = await tx.getMany();
-    return [rows, total];
+    return await this.demoORMRepository.selectByPage(query);
   }
 
   /**
    * 查询集合
    *
-   * @param param 信息
-   * @return 列表
+   * @param demoORM 信息
+   * @returns 集合
    */
-  public async find(param: DemoORM): Promise<DemoORM[]> {
-    const tx = this.db
-      .queryBuilder('')
-      .createQueryBuilder()
-      .select('d')
-      .from(DemoORM, 'd');
-    // 构建查询条件
-    if (param.title) {
-      tx.andWhere('d.title like :title', { title: param.title + '%' });
-    }
-    if (param.statusFlag) {
-      tx.andWhere('d.status_flag = :statusFlag', {
-        statusFlag: param.statusFlag,
-      });
-    }
-    // 查询数据
-    return await tx.getMany();
+  public async find(demoORM: DemoORM): Promise<DemoORM[]> {
+    return await this.demoORMRepository.select(demoORM);
   }
 
   /**
    * 通过ID查询
    *
    * @param id ID
-   * @return 信息
+   * @returns 信息
    */
   public async findById(id: number): Promise<DemoORM> {
-    if (id <= 0) {
-      return new DemoORM();
-    }
-    // 查询数据
-    const item = await this.db
-      .queryBuilder('')
-      .createQueryBuilder()
-      .select('d')
-      .from(DemoORM, 'd')
-      .andWhere('d.id = :id', { id })
-      .getOne();
-    if (!item) {
-      return new DemoORM();
-    }
-    return item;
+    return await this.demoORMRepository.selectById(id);
   }
 
   /**
    * 新增
    *
-   * @param param 信息
-   * @return ID
+   * @param demoORM 信息
+   * @returns ID
    */
-  public async insert(param: DemoORM): Promise<number> {
-    param.createBy = 'system';
-    param.createTime = Date.now().valueOf();
-    param.updateBy = param.createBy;
-    param.updateTime = param.createTime;
-    // 执行插入
-    const tx: InsertResult = await this.db
-      .queryBuilder('')
-      .insert()
-      .into(DemoORM)
-      .values(param)
-      .execute();
-    const raw: ResultSetHeader = tx.raw;
-    if (raw.insertId > 0) {
-      return raw.insertId;
-    }
-    return 0;
+  public async insert(demoORM: DemoORM): Promise<number> {
+    const ms = Date.now();
+    demoORM.createBy = 'system';
+    demoORM.updateBy = demoORM.createBy;
+    demoORM.createTime = ms;
+    demoORM.updateTime = ms;
+    return await this.demoORMRepository.insert(demoORM);
   }
 
   /**
    * 更新
    *
-   * @param param 信息
-   * @return 影响记录数
+   * @param demoORM 信息
+   * @returns 影响记录数
    */
-  public async update(param: DemoORM): Promise<number> {
-    if (param.id <= 0) {
+  public async update(demoORM: DemoORM): Promise<number> {
+    if (demoORM.id <= 0) {
       return 0;
     }
-    const item = await this.db
-      .queryBuilder('')
-      .createQueryBuilder()
-      .select('d')
-      .from(DemoORM, 'd')
-      .andWhere('d.id = :id', { id: param.id })
-      .getOne();
-    if (!item) return 0;
-
-    // 只改某些属性
-    const setColumns = {
-      title: param.title,
-      ormType: param.ormType,
-      statusFlag: param.statusFlag,
-      remark: param.remark,
-      updateBy: 'system',
-      updateTime: Date.now().valueOf(),
-    };
-    // 执行更新
-    const tx: UpdateResult = await this.db
-      .queryBuilder('')
-      .createQueryBuilder()
-      .update(DemoORM)
-      .set(setColumns)
-      .andWhere('id = :id', { id: item.id })
-      .execute();
-    return tx.affected || 0;
+    const item = await this.demoORMRepository.selectById(demoORM.id);
+    if (item.id <= 0) {
+      return 0;
+    }
+    item.title = demoORM.title;
+    item.ormType = demoORM.ormType;
+    item.ormStatus = demoORM.ormStatus;
+    item.remark = demoORM.remark;
+    item.updateBy = 'system';
+    item.updateTime = Date.now();
+    return await this.demoORMRepository.update(item);
   }
 
   /**
    * 批量删除
    *
    * @param ids ID数组
-   * @return 影响记录数
+   * @returns 影响记录数
    */
   public async deleteByIds(ids: number[]): Promise<number> {
-    if (ids.length === 0) return 0;
-    // 执行删除
-    const tx: DeleteResult = await this.db
-      .queryBuilder('')
-      .delete()
-      .from(DemoORM)
-      .andWhere('id in (:ids)', { ids })
-      .execute();
-    return tx.affected || 0;
+    return await this.demoORMRepository.deleteByIds(ids);
   }
 
   /**
    * 清空测试ORM表
-   * @return 删除记录数
+   *
+   * @returns 影响记录数
    */
   public async clean(): Promise<number> {
-    const tx: DeleteResult = await this.db
-      .queryBuilder('')
-      .delete()
-      .from(DemoORM)
-      .execute();
-    return tx.affected || 0;
+    return await this.demoORMRepository.clean();
   }
 }

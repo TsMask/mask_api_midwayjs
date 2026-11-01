@@ -16,7 +16,7 @@ create table demo_orm (
   remark            varchar(200)    default ''                 comment '备注',
   title             varchar(64)     not null                   comment '测试标题',
   orm_type          varchar(12)     not null                   comment 'orm类型',
-  status_flag       varchar(1)      default '0'                comment '状态（0关闭 1正常）',
+  orm_status        varchar(1)      default '0'                comment '状态（0关闭 1正常）',
   primary key (id)
 ) engine=innodb auto_increment=10 comment = '测试_ORM表';
 

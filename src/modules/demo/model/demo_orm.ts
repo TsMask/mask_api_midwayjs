@@ -14,28 +14,6 @@ export class DemoORM {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  /**测试标题 */
-  @Rule(Joi.string().required())
-  @Column({
-    type: 'varchar',
-    name: 'title',
-  })
-  title: string;
-
-  /**orm类型 */
-  @Rule(Joi.string().required())
-  @Column({ name: 'orm_type' })
-  ormType: string;
-
-  /**状态（0关闭 1正常） */
-  @Rule(
-    Joi.string()
-      .required()
-      .pattern(/^[01]$/)
-  )
-  @Column({ name: 'status_flag' })
-  statusFlag: string;
-
   /**创建者 */
   @Rule(Joi.string().allow(''))
   @Column({ name: 'create_by' })
@@ -58,9 +36,28 @@ export class DemoORM {
 
   /**备注 */
   @Rule(Joi.string().allow(''))
-  @Column({
-    length: 200,
-    name: 'remark',
-  })
+  @Column({ length: 200, name: 'remark' })
   remark: string;
+
+  /**测试标题 */
+  @Rule(Joi.string().required())
+  @Column({
+    type: 'varchar',
+    name: 'title',
+  })
+  title: string;
+
+  /**orm类型 */
+  @Rule(Joi.string().required())
+  @Column({ name: 'orm_type' })
+  ormType: string;
+
+  /**状态（0关闭 1正常） */
+  @Rule(
+    Joi.string()
+      .required()
+      .pattern(/^[01]$/)
+  )
+  @Column({ name: 'orm_status' })
+  ormStatus: string;
 }

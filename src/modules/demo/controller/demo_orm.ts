@@ -9,6 +9,8 @@ import {
   Put,
   Query,
 } from '@midwayjs/core';
+import { Valid } from '@midwayjs/validation';
+import * as Joi from 'joi';
 import type { Context } from '@midwayjs/koa';
 
 import {
@@ -17,12 +19,11 @@ import {
 } from '../../../internal/shared/parse/parse';
 import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
 import { Resp } from '../../../internal/web/resp/api';
-import { DemoORMService } from '../service/demo_orm';
 import { DemoORM } from '../model/demo_orm';
+import { DemoORMService } from '../service/demo_orm';
 
 /**
- * 演示-TypeORM基本使用
- *
+ * 测试ORM 控制层处理 
  * 更多功能需要查阅 https://midwayjs.org/docs/extensions/orm
  */
 @Controller('/api/v1/demo/orms')
@@ -45,15 +46,21 @@ export class DemoORMController {
   /**列表无分页 */
   @Get('/all')
   public async all(
-    @Query('title') title: string,
-    @Query('statusFlag') statusFlag: string
+    @Valid(
+      Joi.object({
+        title: Joi.string().allow(''),
+        orm_status: Joi.string().allow('', '0', '1'),
+      })
+    )
+    @Query()
+    query: Record<string, string>
   ): Promise<Resp> {
     const demoORM = new DemoORM();
-    if (title !== '') {
-      demoORM.title = title;
+    if (query.title !== '') {
+      demoORM.title = query.title;
     }
-    if (statusFlag !== '') {
-      demoORM.statusFlag = statusFlag;
+    if (query.orm_status !== '') {
+      demoORM.ormStatus = query.orm_status;
     }
     const data = await this.demoORMService.find(demoORM);
     return Resp.okData(data);
@@ -61,14 +68,15 @@ export class DemoORMController {
 
   /**信息 */
   @Get('/:id')
-  async info(@Param('id') id: number): Promise<Resp> {
-    if (id <= 0) {
+  public async info(@Param('id') id: string): Promise<Resp> {
+    const parsedId = parseNumber(id);
+    if (parsedId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(422001, 'bind err: id is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
     }
 
-    const data = await this.demoORMService.findById(id);
-    if (data.id === id) {
+    const data = await this.demoORMService.findById(parsedId);
+    if (data.id === parsedId) {
       return Resp.okData(data);
     }
     return Resp.err();
@@ -76,28 +84,26 @@ export class DemoORMController {
 
   /**新增 */
   @Post()
-  public async add(@Body() demoORM: DemoORM): Promise<Resp> {
-    if (demoORM.id > 0) {
+  public async add(@Body() body: DemoORM): Promise<Resp> {
+    if (body.id > 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id not is empty');
     }
-    const insertId = await this.demoORMService.insert(demoORM);
+    const insertId = await this.demoORMService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
     }
     return Resp.err();
   }
 
-  /**
-   * 更新
-   */
+  /**更新 */
   @Put()
-  public async update(@Body() demoORM: DemoORM): Promise<Resp> {
-    if (demoORM.id <= 0) {
+  public async edit(@Body() body: DemoORM): Promise<Resp> {
+    if (body.id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
     }
-    const rowsAffected = await this.demoORMService.update(demoORM);
+    const rowsAffected = await this.demoORMService.update(body);
     if (rowsAffected > 0) {
       return Resp.ok();
     }
@@ -112,11 +118,8 @@ export class DemoORMController {
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
     }
 
-    // 处理字符转id数组后去重
     const uniqueIDs = parseRemoveDuplicatesToArray(id, ',');
-    // 转换成number数组类型
-    const ids = uniqueIDs.map(id => parseNumber(id));
-
+    const ids = uniqueIDs.map(item => parseNumber(item));
     const rowsAffected = await this.demoORMService.deleteByIds(ids);
     if (rowsAffected > 0) {
       return Resp.okMsg(`删除成功：${rowsAffected}`);
