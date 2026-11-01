@@ -4,23 +4,11 @@ import dayjs = require('dayjs');
 require('dayjs/locale/zh-cn');
 dayjs.locale('zh-cn');
 
-/**年 列如：2022 */
-export const YYYY = 'YYYY';
-
-/**年-月 列如：2022-12 */
-export const YYYY_MM = 'YYYY-MM';
-
-/**年-月-日 列如：2022-12-30 */
-export const YYYY_MM_DD = 'YYYY-MM-DD';
-
-/**年月日时分秒 列如：20221230010159 */
-export const YYYYMMDDHHMMSS = 'YYYYMMDDHHmmss';
-
 /**年-月-日 时:分:秒 列如：2022-12-30 01:01:59 */
 export const YYYY_MM_DD_HH_MM_SS = 'YYYY-MM-DD HH:mm:ss';
 
-/**RFC3339 时间，与 Go time.RFC3339 输出格式保持一致 */
-export const YYYY_MM_DD_T_HH_MM_SS_Z = 'YYYY-MM-DDTHH:mm:ssZ';
+/**RFC3339 时间格式 */
+export const RFC3339 = 'YYYY-MM-DDTHH:mm:ssZ';
 
 /**
  * 格式时间字符串
@@ -49,8 +37,7 @@ export function parseDateToStr(
 }
 
 /**
- * 将项目时间数字格式化为 RFC3339。
- * Go 的零时间不是 Unix epoch，导出 CSV 时保持相同输出。
+ * 将时间数字格式化为 RFC3339
  */
 export function parseDateToRFC3339(date: string | number | Date): string {
   if (date === '' || date === null || date === undefined) {
@@ -60,7 +47,7 @@ export function parseDateToRFC3339(date: string | number | Date): string {
   if (Number.isFinite(value) && value === 0) {
     return '0001-01-01T00:00:00Z';
   }
-  return dayjs(date).format(YYYY_MM_DD_T_HH_MM_SS_Z);
+  return dayjs(date).format(RFC3339);
 }
 
 /**
@@ -71,19 +58,4 @@ export function parseDateToRFC3339(date: string | number | Date): string {
  */
 export function parseDatePath(date: number | Date = Date.now()): string {
   return dayjs(date).format('YYYY/MM');
-}
-
-/**
- * 判断两次时间差
- * @param endDate 结束时间
- * @param startDate 开始时间
- * @returns 单位秒
- */
-export function diffSeconds(
-  endDate: number | Date,
-  startDate: number | Date
-): number {
-  const value = Math.ceil(dayjs(endDate).diff(startDate, 'seconds'));
-  if (Number.isNaN(value)) return 0;
-  return value;
 }
