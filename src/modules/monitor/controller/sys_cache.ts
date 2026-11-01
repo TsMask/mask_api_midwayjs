@@ -93,7 +93,7 @@ export class CacheController {
         const info = JSON.parse(cacheValue);
         delete info.permissions;
         if (info.user && typeof info.user === 'object') {
-          delete info.user.userPassword;
+          delete info.user.user_password;
         }
         displayValue = JSON.stringify(info);
       } catch {

@@ -52,7 +52,7 @@ export class SysUserOnlineController {
       if (!value) continue;
       try {
         const info = JSON.parse(value) as UserInfo;
-        if (info.sessionId !== '') {
+        if (info.session_id !== '') {
           list.push(this.userOnlineRow(info));
         }
       } catch {
@@ -114,16 +114,16 @@ export class SysUserOnlineController {
   /**将令牌信息转换为列表行 */
   private userOnlineRow(info: UserInfo): Record<string, any> {
     return {
-      session_id: info.sessionId,
-      device_id: info.deviceId,
-      user_id: info.userId,
-      user_name: info.userName,
-      login_ip: info.loginIp,
-      login_location: info.loginLocation,
-      login_browser: info.browser,
-      login_os: info.os,
-      login_time: info.loginTime,
-      role_keys: info.roleKeys,
+      session_id: info.session_id,
+      device_id: info.device_id,
+      user_id: info.user_id,
+      user_name: info.user_name,
+      login_ip: info.login_ip,
+      login_location: info.login_location,
+      login_browser: info.login_browser,
+      login_os: info.login_os,
+      login_time: info.login_time,
+      role_keys: info.role_keys,
     };
   }
 
