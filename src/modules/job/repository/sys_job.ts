@@ -58,7 +58,8 @@ export class SysJobRepository {
       query.pageSize
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=createTime,jobName:asc（不加方向默认 DESC）
+
+    // 排序，格式: sort=createTime,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       job_name: 's.job_name',
@@ -68,22 +69,11 @@ export class SysJobRepository {
       job_misfire_policy: 's.job_misfire_policy',
       job_concurrent: 's.job_concurrent',
       job_status: 's.job_status',
-      create_by: 's.create_by',
       create_time: 's.create_time',
       update_time: 's.update_time',
     };
-    if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-      }
-    } else {
-      tx.addOrderBy('s.id', 'DESC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.id DESC');
 
     const rows = await tx.getMany();
     return [rows, total];

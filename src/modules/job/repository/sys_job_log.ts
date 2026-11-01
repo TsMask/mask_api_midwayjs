@@ -80,28 +80,17 @@ export class SysJobLogRepository {
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
-    // 排序
-    // 排序，格式: sort=createTime,logId:asc（不加方向默认 DESC）
+    // 排序，格式: sort=createTime,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       job_name: 's.job_name',
       job_group: 's.job_group',
+      job_invoke_target: 's.job_invoke_target',
       log_status: 's.log_status',
       create_time: 's.create_time',
-      log_cost_time: 's.log_cost_time',
     };
-    if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-      }
-    } else {
-      tx.addOrderBy('s.id', 'DESC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.id DESC');
 
     const rows = await tx.getMany();
     return [rows, total];

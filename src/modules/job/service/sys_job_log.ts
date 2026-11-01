@@ -95,8 +95,8 @@ export class SysJobLogService {
       // 任务组名
       let sysJobGroup = '';
       for (const v of dictSysJobGroup) {
-        if (item.jobGroup === v.dataValue) {
-          sysJobGroup = v.dataLabel;
+        if (item.jobGroup === v.data_value) {
+          sysJobGroup = v.data_label;
           break;
         }
       }
