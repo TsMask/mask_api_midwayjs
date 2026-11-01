@@ -1,14 +1,19 @@
-import type { SysJob } from '../../model/sys_job';
-
-export async function progress(sysJob: SysJob): Promise<Record<string, any>> {
+/**
+ * 进度任务处理器
+ * @param data 调度任务信息
+ * @returns 处理结果
+ */
+export async function progressProcessor(
+  data: any
+): Promise<Record<string, any>> {
   for (let progress = 0; progress < 20; progress += 1) {
     await sleep(2000);
   }
 
   return {
-    job_name: sysJob.jobName,
-    invoke_target: sysJob.jobInvokeTarget,
-    target_params: sysJob.jobTargetParams,
+    job_name: data?.jobName,
+    invoke_target: data?.jobInvokeTarget,
+    target_params: data?.jobTargetParams,
   };
 }
 

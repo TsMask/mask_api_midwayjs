@@ -8,8 +8,8 @@ import * as bullmq from '@midwayjs/bullmq';
 
 import { CronManager } from '../../internal/infra/cron/cron';
 import { SysJobService } from './service/sys_job';
-import { basic } from './processors/examples/basic';
-import { progress } from './processors/examples/progress';
+import { basicProcessor } from './processors/examples/basic';
+import { progressProcessor } from './processors/examples/progress';
 import { errorProcessor } from './processors/examples/error';
 
 @Configuration({
@@ -41,10 +41,10 @@ export class JobModule {
         );
     });
 
-    this.cronManager.createQueue('test_job', basic);
-    this.cronManager.createQueue('test_progress', progress);
+    // 注册队列
+    this.cronManager.createQueue('test_job', basicProcessor);
+    this.cronManager.createQueue('test_progress', progressProcessor);
     this.cronManager.createQueue('test_error', errorProcessor);
-  
   
     // 初始化定时任务
     await this.sysJobService.reset();

@@ -1,9 +1,12 @@
-import type { SysJob } from '../../model/sys_job';
-
-export function basic(sysJob: SysJob): Record<string, any> {
+/**
+ * 基本任务处理器
+ * @param data 调度任务信息
+ * @returns 处理结果
+ */
+export function basicProcessor(data: any): Record<string, any> {
   return {
-    job_name: sysJob?.jobName,
-    invoke_target: sysJob?.jobInvokeTarget,
-    target_params: sysJob?.jobTargetParams,
+    job_name: data?.jobName,
+    invoke_target: data?.jobInvokeTarget,
+    target_params: data?.jobTargetParams,
   };
 }

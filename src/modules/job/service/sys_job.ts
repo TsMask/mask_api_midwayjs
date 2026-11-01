@@ -11,8 +11,8 @@ import {
 import { FileUtil } from '../../../internal/shared/file/file';
 import { CronManager } from '../../../internal/infra/cron/cron';
 import { CronJobState } from '../../../internal/infra/cron/job';
-import type { JobLogRecord } from '../../../internal/infra/cron/log';
 import { SysDictDataService } from '../../system/service/sys_dict_data';
+import type { JobLogRecord } from '../../../internal/infra/cron/log';
 
 /**调度任务 服务层处理 */
 @Provide()
@@ -184,13 +184,12 @@ export class SysJobService {
 
   /**
    * 日志记录保存
-   * @param jld 日志记录数据
-   * @param status 日志状态
-   * @returns
+   * @param record 日志记录数据
+   * @returns 结果
    */
-  public async saveJobLog(jld: JobLogRecord<SysJob>) {
+  public async saveJobLog(record: JobLogRecord<SysJob>) {
     // 读取任务信息
-    const sysJob = jld.data;
+    const sysJob = record.data;
 
     // 任务日志不需要记录
     if (sysJob.jobSaveLog === '' || sysJob.jobSaveLog === STATUS_NO) {
@@ -199,7 +198,7 @@ export class SysJobService {
 
     // 结果信息key的Name
     let resultName = 'failed';
-    if (jld.status === STATUS_YES) {
+    if (record.status === STATUS_YES) {
       resultName = 'completed';
     }
 
@@ -208,7 +207,7 @@ export class SysJobService {
       cron: sysJob.jobCron,
       invoke_target: sysJob.jobInvokeTarget,
       result: resultName,
-      message: jld.result,
+      message: record.result,
     });
     if (jobMsg.length >= 2048) {
       jobMsg = jobMsg.substring(0, 2048);
@@ -221,9 +220,9 @@ export class SysJobService {
     sysJobLog.jobGroup = sysJob.jobGroup;
     sysJobLog.jobInvokeTarget = sysJob.jobInvokeTarget;
     sysJobLog.jobTargetParams = sysJob.jobTargetParams;
-    sysJobLog.logStatus = jld.status;
+    sysJobLog.logStatus = record.status;
     sysJobLog.logMsg = jobMsg;
-    sysJobLog.logCostTime = now - jld.timestamp;
+    sysJobLog.logCostTime = now - record.timestamp;
     sysJobLog.createTime = now;
     // 插入数据
     await this.sysJobLogRepository.insert(sysJobLog);
