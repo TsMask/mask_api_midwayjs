@@ -66,8 +66,7 @@ export class AccountService {
   public async validateCaptcha(code: string, uuid: string): Promise<string> {
     // 验证码检查，从数据库配置获取验证码开关 true开启，false关闭
     const captchaEnabledStr = await this.sysConfigService.findValueByKey(
-      'sys.account.captcha_enabled',
-      'sys.account.captchaEnabled'
+      'sys.account.captcha_enabled'
     );
     if (!parseBoolean(captchaEnabledStr)) {
       return '';
@@ -139,21 +138,21 @@ export class AccountService {
 
     // 查询用户登录账号
     const sysUser = await this.sysUserService.findByUserName(username);
-    if (sysUser.userName !== username) {
+    if (sysUser.user_name !== username) {
       return [info, 'user does not exist or password is incorrect'];
     }
-    if (sysUser.userDel === STATUS_YES) {
+    if (sysUser.user_del === STATUS_YES) {
       return [info, 'sorry, your account has been deleted'];
     }
-    if (sysUser.userStatus === STATUS_NO) {
+    if (sysUser.user_status === STATUS_NO) {
       return [info, 'sorry, your account has been disabled'];
     }
 
     // 检验用户密码
-    const compareBool = await passwordVerify(password, sysUser.userPassword);
+    const compareBool = await passwordVerify(password, sysUser.user_password);
     if (compareBool) {
-      if (!sysUser.userPassword.startsWith('$argon2')) {
-        sysUser.userPassword = password;
+      if (!sysUser.user_password.startsWith('$argon2')) {
+        sysUser.user_password = password;
         await this.sysUserService.update(sysUser);
       }
       await this.clearLoginRecordCache(username);
@@ -182,7 +181,7 @@ export class AccountService {
    */
   public async byPhone(phone: string): Promise<[UserInfo, string]> {
     const sysUser = await this.sysUserService.findByPhone(phone);
-    if (sysUser.userPhone !== phone || sysUser.id <= 0) {
+    if (sysUser.user_phone !== phone || sysUser.id <= 0) {
       return [new UserInfo(), 'user does not exist'];
     }
     return this.buildUserInfo(sysUser);
@@ -194,10 +193,10 @@ export class AccountService {
    * @returns 记录完成
    */
   public async updateLoginDateAndIP(info: UserInfo): Promise<boolean> {
-    const item = await this.sysUserService.findById(info.userId);
-    item.userPassword = ''; // 密码不更新
-    item.userLoginIp = info.loginIp;
-    item.userLoginTime = info.loginTime;
+    const item = await this.sysUserService.findById(info.user_id);
+    item.user_password = ''; // 密码不更新
+    item.user_login_ip = info.login_ip;
+    item.user_login_time = info.login_time;
     const rows = await this.sysUserService.update(item);
     return rows > 0;
   }
@@ -227,13 +226,10 @@ export class AccountService {
     username: string
   ): Promise<[string, number, number, string]> {
     const maxRetryCountStr = await this.sysConfigService.findValueByKey(
-      'sys.user.max_retry_count',
-      'sys.account.passwordRetryMaxCount'
+      'sys.user.max_retry_count'
     );
-    const lockTimeStr = await this.sysConfigService.findValueByKey(
-      'sys.user.lock_time',
-      'sys.account.passwordRetryLockTime'
-    );
+    const lockTimeStr =
+      await this.sysConfigService.findValueByKey('sys.user.lock_time');
     const maxRetryCount: number = parseNumber(maxRetryCountStr);
     const lockTime: number = parseNumber(lockTimeStr);
 
@@ -270,7 +266,7 @@ export class AccountService {
     const roleGroup: string[] = [];
     const roles = await this.sysRoleService.findByUserId(userId);
     for (const role of roles) {
-      roleGroup.push(role.roleKey);
+      roleGroup.push(role.role_key);
     }
     // 菜单权限key
     const perms = await this.sysMenuService.findPermsByUserId(userId);
@@ -305,19 +301,19 @@ export class AccountService {
    */
   private async buildUserInfo(sysUser: SysUser): Promise<[UserInfo, string]> {
     const info = new UserInfo();
-    if (sysUser.userDel === STATUS_YES) {
+    if (sysUser.user_del === STATUS_YES) {
       return [
         info,
         'sorry, your account has been deleted. Sorry, your account has been deleted',
       ];
     }
-    if (sysUser.userStatus === STATUS_NO) {
+    if (sysUser.user_status === STATUS_NO) {
       return [info, 'sorry, your account has been disabled'];
     }
-    info.userId = sysUser.id;
-    info.deptId = sysUser.deptId;
-    info.userName = sysUser.userName;
-    info.roleKeys = (sysUser.roles ?? []).map(role => role.roleKey);
+    info.user_id = sysUser.id;
+    info.dept_id = sysUser.dept_id;
+    info.user_name = sysUser.user_name;
+    info.role_keys = (sysUser.roles ?? []).map(role => role.role_key);
     info.user = sysUser;
     if (this.config.isSystemUser(sysUser.id)) {
       info.permissions = [SYS_PERMISSION_SYSTEM];

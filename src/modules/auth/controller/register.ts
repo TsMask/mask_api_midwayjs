@@ -10,8 +10,14 @@ import {
   RateLimitMiddleware,
   LIMIT_IP,
 } from '../../../internal/web/middleware/rate_limit';
-import { ipaddrLocation, uaOsBrowser } from '../../../internal/web/reqctx/param';
-import { STATUS_NO, STATUS_YES } from '../../../internal/shared/constants/common';
+import {
+  ipaddrLocation,
+  uaOsBrowser,
+} from '../../../internal/web/reqctx/param';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../internal/shared/constants/common';
 import { Resp } from '../../../internal/web/resp/api';
 import { SysLoginLogService } from '../../system/service/sys_login_log';
 import { RegisterService } from '../service/register';

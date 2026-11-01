@@ -22,8 +22,14 @@ import {
 } from '../../../internal/web/resp/code';
 import { Resp } from '../../../internal/web/resp/api';
 import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
-import { loginUser, loginUserToUserID } from '../../../internal/web/reqctx/auth';
-import { STATUS_NO, STATUS_YES } from '../../../internal/shared/constants/common';
+import {
+  loginUser,
+  loginUserToUserID,
+} from '../../../internal/web/reqctx/auth';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../internal/shared/constants/common';
 import { authorization } from '../../../internal/web/reqctx/context';
 import { GlobalConfig } from '../../../internal/config/config';
 import {
@@ -36,8 +42,6 @@ import { SysLoginLogService } from '../../system/service/sys_login_log';
 import { AccountService } from '../service/account';
 import { LoginBody } from '../model/login_body';
 import { LoginPhoneBody } from '../model/login_phone_body';
-import { serializeSysUser } from '../../system/model/vo/response';
-import { SysUser } from '../../system/model/sys_user';
 
 /**账号身份操作 控制层处理 */
 @Controller('/api/v1/auth')
@@ -101,18 +105,18 @@ export class AccountController {
       ]);
       return Resp.errMsg(infoErr);
     }
-    const deviceFingerprintStr = await deviceFingerprint(this.c, info.userId);
+    const deviceFingerprintStr = await deviceFingerprint(this.c, info.user_id);
 
     // 同一会话生成访问与刷新令牌；会话缓存与访问令牌同生命周期
     const [pair, sessionId, tokenErr] = await this.token.createTokenPair(
-      info.userId,
+      info.user_id,
       deviceFingerprintStr
     );
     if (tokenErr !== '') {
       return Resp.errMsg('token generation failed');
     }
-    info.deviceId = deviceFingerprintStr;
-    info.sessionId = sessionId;
+    info.device_id = deviceFingerprintStr;
+    info.session_id = sessionId;
 
     // 记录会话，创建系统访问记录
     const userInfo = await this.token.userInfoCreate(info, [
@@ -121,7 +125,7 @@ export class AccountController {
       os,
       browser,
     ]);
-    if (userInfo.userId <= 0) {
+    if (userInfo.user_id <= 0) {
       return Resp.errMsg('token cache create failed');
     }
     await this.accountService.updateLoginDateAndIP(userInfo);
@@ -132,7 +136,7 @@ export class AccountController {
       [ipaddr, location, os, browser]
     );
 
-    return Resp.okData(authTokenData(pair, userInfo.userId));
+    return Resp.okData(authTokenData(pair, userInfo.user_id));
   }
 
   /**手机号验证码登录 */
@@ -177,7 +181,7 @@ export class AccountController {
     ]);
     if (issueErr !== '') {
       await this.sysLoginLogService.insert(
-        info.user.userName,
+        info.user_name,
         STATUS_NO,
         issueErr,
         [ipaddr, location, os, browser]
@@ -187,13 +191,13 @@ export class AccountController {
 
     await this.accountService.updateLoginDateAndIP(userInfo);
     await this.sysLoginLogService.insert(
-      info.user.userName,
+      info.user_name,
       STATUS_YES,
       '手机号登录成功',
       [ipaddr, location, os, browser]
     );
 
-    return Resp.okData(authTokenData(pair, userInfo.userId));
+    return Resp.okData(authTokenData(pair, userInfo.user_id));
   }
 
   /**系统登出 */
@@ -271,8 +275,8 @@ export class AccountController {
     if (tokenErr !== '') {
       return Resp.errMsg('token generation failed');
     }
-    info.deviceId = deviceFingerprintStr;
-    info.sessionId = sessionId;
+    info.device_id = deviceFingerprintStr;
+    info.session_id = sessionId;
 
     // 当前请求信息
     const [ipaddr, location] = await ipaddrLocation(this.c);
@@ -284,19 +288,19 @@ export class AccountController {
       os,
       browser,
     ]);
-    if (userInfo.userId <= 0) {
+    if (userInfo.user_id <= 0) {
       return Resp.errMsg('token cache create failed');
     }
     await this.token.removeBySessionIds([oldSessionId]);
     await this.accountService.updateLoginDateAndIP(userInfo);
     await this.sysLoginLogService.insert(
-      userInfo.user.userName,
+      userInfo.user_name,
       STATUS_YES,
       '刷新访问令牌成功',
       [ipaddr, location, os, browser]
     );
 
-    return Resp.okData(authTokenData(pair, userInfo.userId));
+    return Resp.okData(authTokenData(pair, userInfo.user_id));
   }
 
   /**登录用户信息 */
@@ -311,14 +315,14 @@ export class AccountController {
     }
 
     // 角色权限集合，系统管理员拥有所有权限
-    const isSystemUser = this.config.isSystemUser(info.userId);
+    const isSystemUser = this.config.isSystemUser(info.user_id);
     const [roles, perms] = await this.accountService.roleAndMenuPerms(
-      info.userId,
+      info.user_id,
       isSystemUser
     );
 
     return Resp.okData({
-      user: serializeSysUser(info.user as SysUser),
+      user: info.user,
       roles: roles,
       permissions: perms,
     });
@@ -346,19 +350,19 @@ export class AccountController {
     info: UserInfo,
     ilobArr: string[]
   ): Promise<[TokenPair, UserInfo, string]> {
-    const deviceFingerprintStr = await deviceFingerprint(this.c, info.userId);
+    const deviceFingerprintStr = await deviceFingerprint(this.c, info.user_id);
     const [pair, sessionId, tokenErr] = await this.token.createTokenPair(
-      info.userId,
+      info.user_id,
       deviceFingerprintStr
     );
     if (tokenErr !== '') {
       return [pair, info, tokenErr];
     }
 
-    info.deviceId = deviceFingerprintStr;
-    info.sessionId = sessionId;
+    info.device_id = deviceFingerprintStr;
+    info.session_id = sessionId;
     const userInfo = await this.token.userInfoCreate(info, ilobArr);
-    if (userInfo.userId <= 0) {
+    if (userInfo.user_id <= 0) {
       return [pair, userInfo, 'token cache create failed'];
     }
     return [pair, userInfo, ''];

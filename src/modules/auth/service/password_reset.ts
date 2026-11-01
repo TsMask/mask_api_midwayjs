@@ -4,7 +4,10 @@ import {
   CACHE_PASSWORD_RESET_CODE,
   CACHE_PASSWORD_RESET_COOLDOWN,
 } from '../../../internal/shared/constants/cache_key';
-import { STATUS_NO, STATUS_YES } from '../../../internal/shared/constants/common';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../internal/shared/constants/common';
 import { RedisCache } from '../../../internal/infra/cache/redis';
 import { UserTokenService } from '../../../internal/web/token/user_token';
 import { GlobalConfig } from '../../../internal/config/config';
@@ -166,8 +169,8 @@ export class PasswordResetService {
     if (user.id !== target.userId) {
       return '用户不存在或账号不可自助找回密码';
     }
-    user.userPassword = password;
-    user.updateBy = username;
+    user.user_password = password;
+    user.update_by = username;
     const rows = await this.sysUserService.update(user);
     if (rows <= 0) {
       return '重置密码失败，请联系系统管理员';
@@ -190,27 +193,27 @@ export class PasswordResetService {
     }
     const user = await this.sysUserService.findByUserName(username);
     if (
-      user.userName !== username ||
+      user.user_name !== username ||
       user.id <= 0 ||
-      user.userDel === STATUS_YES ||
-      user.userStatus === STATUS_NO
+      user.user_del === STATUS_YES ||
+      user.user_status === STATUS_NO
     ) {
       return '用户不存在或账号不可自助找回密码';
     }
-    if (validEmail(user.userEmail)) {
+    if (validEmail(user.user_email)) {
       return {
         userId: user.id,
-        userName: user.userName,
+        userName: user.user_name,
         channel: 'email',
-        contact: user.userEmail,
+        contact: user.user_email,
       };
     }
-    if (validMobile(user.userPhone)) {
+    if (validMobile(user.user_phone)) {
       return {
         userId: user.id,
-        userName: user.userName,
+        userName: user.user_name,
         channel: 'phone',
-        contact: user.userPhone,
+        contact: user.user_phone,
       };
     }
     return '账号未绑定邮箱或手机号，请联系系统管理员';

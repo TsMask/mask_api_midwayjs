@@ -39,8 +39,7 @@ export class RegisterService {
   public async validateCaptcha(code: string, uuid: string): Promise<string> {
     // 验证码检查，从数据库配置获取验证码开关 true开启，false关闭
     const captchaEnabledStr = await this.sysConfigService.findValueByKey(
-      'sys.account.captcha_enabled',
-      'sys.account.captchaEnabled'
+      'sys.account.captcha_enabled'
     );
     if (!parseBoolean(captchaEnabledStr)) {
       return '';
@@ -85,10 +84,8 @@ export class RegisterService {
     password: string
   ): Promise<[number, string]> {
     // 是否开启用户注册功能 true开启，false关闭
-    const registerUserStr = await this.sysConfigService.findValueByKey(
-      'sys.user.register',
-      'sys.account.registerUser'
-    );
+    const registerUserStr =
+      await this.sysConfigService.findValueByKey('sys.user.register');
     const captchaEnabled = parseBoolean(registerUserStr);
     if (!captchaEnabled) {
       return [0, '很抱歉，系统已关闭外部用户注册通道'];
@@ -104,18 +101,18 @@ export class RegisterService {
     }
 
     const sysUser = new SysUser();
-    sysUser.userName = username;
-    sysUser.userNick = username; // 昵称使用名称账号
-    sysUser.userPassword = password; // 原始密码
-    sysUser.userGender = '0'; // 性别未选择
-    sysUser.userStatus = STATUS_YES; // 账号状态激活
-    sysUser.deptId = 100; // 归属部门为根节点
-    sysUser.createBy = 'reg-user'; // 创建来源
+    sysUser.user_name = username;
+    sysUser.user_nick = username; // 昵称使用名称账号
+    sysUser.user_password = password; // 原始密码
+    sysUser.user_gender = '0'; // 性别未选择
+    sysUser.user_status = STATUS_YES; // 账号状态激活
+    sysUser.dept_id = 100; // 归属部门为根节点
+    sysUser.create_by = 'reg-user'; // 创建来源
 
     // 新增用户的角色管理
-    sysUser.roleIds = this.registerRoleInit();
+    sysUser.role_ids = this.registerRoleInit();
     // 新增用户的岗位管理
-    sysUser.postIds = this.registerPostInit();
+    sysUser.post_ids = this.registerPostInit();
 
     const insertId = await this.sysUserService.insert(sysUser);
     if (insertId) {
@@ -130,10 +127,8 @@ export class RegisterService {
    * @returns [用户ID, 错误信息]
    */
   public async byPhone(phone: string): Promise<[number, string]> {
-    const registerUserStr = await this.sysConfigService.findValueByKey(
-      'sys.user.register',
-      'sys.account.registerUser'
-    );
+    const registerUserStr =
+      await this.sysConfigService.findValueByKey('sys.user.register');
     if (!parseBoolean(registerUserStr)) {
       return [0, '很抱歉，系统已关闭外部用户注册通道'];
     }
@@ -151,16 +146,16 @@ export class RegisterService {
     }
 
     const sysUser = new SysUser();
-    sysUser.userName = phone;
-    sysUser.userPhone = phone;
-    sysUser.userNick = phone;
-    sysUser.userPassword = generateString(32);
-    sysUser.userGender = '0';
-    sysUser.userStatus = STATUS_YES;
-    sysUser.deptId = 100;
-    sysUser.createBy = 'reg-phone';
-    sysUser.roleIds = this.registerRoleInit();
-    sysUser.postIds = this.registerPostInit();
+    sysUser.user_name = phone;
+    sysUser.user_phone = phone;
+    sysUser.user_nick = phone;
+    sysUser.user_password = generateString(32);
+    sysUser.user_gender = '0';
+    sysUser.user_status = STATUS_YES;
+    sysUser.dept_id = 100;
+    sysUser.create_by = 'reg-phone';
+    sysUser.role_ids = this.registerRoleInit();
+    sysUser.post_ids = this.registerPostInit();
 
     const insertId = await this.sysUserService.insert(sysUser);
     if (insertId > 0) {

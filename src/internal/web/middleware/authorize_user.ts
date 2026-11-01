@@ -52,7 +52,7 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
 
       // 获取缓存的用户信息
       const info = await token.userInfoGet(claims);
-      if (info.userId <= 0) {
+      if (info.user_id <= 0) {
         c.status = 401;
         return Resp.codeMsg(
           CODE_AUTH_INVALID,
@@ -63,7 +63,7 @@ export class AuthorizeUser implements IMiddleware<Context, NextFunction> {
 
       // 登录用户角色权限校验
       if (options) {
-        const roles = (info.user.roles as Array<{ roleKey: string }>).map(item => item.roleKey);
+        const roles = info.role_keys;
         const perms = info.permissions;
         const verifyOk = verifyRolePermission(roles, perms, options);
         if (!verifyOk) {

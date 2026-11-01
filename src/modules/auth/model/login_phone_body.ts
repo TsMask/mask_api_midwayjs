@@ -3,7 +3,11 @@ import * as Joi from 'joi';
 
 /**手机号验证码登录对象 */
 export class LoginPhoneBody {
-  @Rule(Joi.string().required().pattern(/^1[3-9]\d{9}$/))
+  @Rule(
+    Joi.string()
+      .required()
+      .pattern(/^1[3-9]\d{9}$/)
+  )
   phone: string;
 
   @Rule(Joi.string().required().length(6))

@@ -18,8 +18,8 @@ import { isSystemUser } from './context';
  */
 export function loginUser(c: Context): [UserInfo, string] {
   const value = c.getAttr<UserInfo>(CTX_LOGIN_USER);
-  if (value && value.userId > 0) {
-    delete (value.user as Partial<UserInfo['user']>).userPassword;
+  if (value && value.user_id > 0) {
+    delete value.user.user_password;
     return [value, ''];
   }
   return [new UserInfo(), 'invalid login user information'];
@@ -35,7 +35,7 @@ export function loginUserToUserID(c: Context): number {
   if (err) {
     return 0;
   }
-  return info.userId;
+  return info.user_id;
 }
 
 /**
@@ -48,7 +48,7 @@ export function loginUserToUserName(c: Context): string {
   if (err) {
     return '';
   }
-  return info.user.userName;
+  return info.user_name;
 }
 
 /**
@@ -61,15 +61,11 @@ export function loginUserByContainRoles(c: Context, target: string): boolean {
   if (err) {
     return false;
   }
-  if (isSystemUser(c, info.userId)) {
+  if (isSystemUser(c, info.user_id)) {
     return true;
   }
-  if (Array.isArray(info.user.roles)) {
-    for (const item of info.user.roles) {
-      if (item.roleKey === target) {
-        return true;
-      }
-    }
+  if (info.role_keys.includes(target)) {
+    return true;
   }
   return false;
 }
@@ -84,7 +80,7 @@ export function loginUserByContainPerms(c: Context, target: string): boolean {
   if (err) {
     return false;
   }
-  if (isSystemUser(c, info.userId)) {
+  if (isSystemUser(c, info.user_id)) {
     return true;
   }
   if (Array.isArray(info.permissions)) {
@@ -140,7 +136,7 @@ export function loginUserToDataScopeSQL(
   let paramIndex = 0;
 
   for (const role of userInfo.roles) {
-    const dataScope = role.roleDataScope;
+    const dataScope = role.role_data_scope;
 
     if (ROLE_SCOPE_ALL === dataScope) {
       break;
@@ -169,13 +165,13 @@ export function loginUserToDataScopeSQL(
 
     if (ROLE_SCOPE_DEPT === dataScope) {
       const deptParam = `ds_deptId_${paramIndex++}`;
-      allParams[deptParam] = userInfo.deptId;
+      allParams[deptParam] = userInfo.dept_id;
       conditions.push(`${deptAlias}.${deptRefCol} = :${deptParam}`);
     }
 
     if (ROLE_SCOPE_DEPT_CHILD === dataScope) {
       const deptParam = `ds_deptId_${paramIndex++}`;
-      allParams[deptParam] = userInfo.deptId;
+      allParams[deptParam] = userInfo.dept_id;
       const sql = `${deptAlias}.${deptRefCol} IN (
         SELECT descendant_id FROM sys_dept_closure
         WHERE ancestor_id = :${deptParam}
@@ -186,7 +182,7 @@ export function loginUserToDataScopeSQL(
     if (ROLE_SCOPE_SELF === dataScope) {
       if (userAlias === '') {
         const deptParam = `ds_deptId_${paramIndex++}`;
-        allParams[deptParam] = userInfo.deptId;
+        allParams[deptParam] = userInfo.dept_id;
         conditions.push(`${deptAlias}.${deptRefCol} = :${deptParam}`);
       } else {
         const userParam = `ds_userId_${paramIndex++}`;

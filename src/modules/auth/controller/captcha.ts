@@ -53,8 +53,7 @@ export class CaptchaController {
   public async image(): Promise<Resp> {
     // 从数据库配置获取验证码开关 true开启，false关闭
     const captchaEnabledStr = await this.sysConfigService.findValueByKey(
-      'sys.account.captcha_enabled',
-      'sys.account.captchaEnabled'
+      'sys.account.captcha_enabled'
     );
     const captchaEnabled = parseBoolean(captchaEnabledStr);
     if (!captchaEnabled) {
@@ -73,8 +72,7 @@ export class CaptchaController {
     const captchaExpiration = 2 * 60;
     // 从数据库配置获取验证码类型 math 数值计算 char 字符验证
     const captchaType = await this.sysConfigService.findValueByKey(
-      'sys.account.captcha_type',
-      'sys.account.captchaType'
+      'sys.account.captcha_type'
     );
     if (captchaType === 'math') {
       const uuid = generateCode(20);

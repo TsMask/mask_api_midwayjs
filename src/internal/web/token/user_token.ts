@@ -3,8 +3,15 @@ import { randomBytes } from 'node:crypto';
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 import { sign, verify, Algorithm } from 'jsonwebtoken';
 
-import { CACHE_TOKEN_SESSION, CACHE_TOKEN_USERS } from '../../shared/constants/cache_key';
-import { JWT_DEVICE_ID, JWT_SESSION_ID, JWT_USER_ID } from '../../shared/constants/token';
+import {
+  CACHE_TOKEN_SESSION,
+  CACHE_TOKEN_USERS,
+} from '../../shared/constants/cache_key';
+import {
+  JWT_DEVICE_ID,
+  JWT_SESSION_ID,
+  JWT_USER_ID,
+} from '../../shared/constants/token';
 import { RedisCache } from '../../infra/cache/redis';
 import { GlobalConfig } from '../../config/config';
 import { parseNumber } from '../../shared/parse/parse';
@@ -178,17 +185,17 @@ export class UserTokenService {
       return ['', err];
     }
     const info = await this.userInfoGet(claims);
-    if (info.userId <= 0) {
+    if (info.user_id <= 0) {
       return ['', 'session not found'];
     }
 
     const sessionId = String(claims[JWT_SESSION_ID]);
     const rows = await this.redis.del('', this.sessionKey(sessionId));
     if (rows <= 0) {
-      return [info.user.userName, 'session not found'];
+      return [info.user_name, 'session not found'];
     }
-    await this.redis.zRem('', this.userIndexKey(info.userId), sessionId);
-    return [info.user.userName, ''];
+    await this.redis.zRem('', this.userIndexKey(info.user_id), sessionId);
+    return [info.user_name, ''];
   }
 
   /**
@@ -201,26 +208,26 @@ export class UserTokenService {
     info: UserInfo,
     ilobArr: string[]
   ): Promise<UserInfo> {
-    if (info.userId <= 0 || info.sessionId.length !== 32) {
+    if (info.user_id <= 0 || info.session_id.length !== 32) {
       return new UserInfo();
     }
 
-    info.loginIp = ilobArr[0];
-    info.loginLocation = ilobArr[1];
-    info.os = ilobArr[2];
-    info.browser = ilobArr[3];
+    info.login_ip = ilobArr[0];
+    info.login_location = ilobArr[1];
+    info.login_os = ilobArr[2];
+    info.login_browser = ilobArr[3];
 
     const accessTTL = this.tokenMinutes('access') * 60;
     const now = Date.now();
-    info.loginTime = now;
-    info.expireTime = now + accessTTL * 1000;
-    info.user.userLoginIp = info.loginIp;
-    info.user.userLoginTime = info.loginTime;
-    info.user.userPassword = '';
+    info.login_time = now;
+    info.expire_time = now + accessTTL * 1000;
+    info.user.user_login_ip = info.login_ip;
+    info.user.user_login_time = info.login_time;
+    info.user.user_password = '';
 
     const created = await this.redis.set(
       '',
-      this.sessionKey(info.sessionId),
+      this.sessionKey(info.session_id),
       JSON.stringify(info),
       accessTTL
     );
@@ -230,13 +237,13 @@ export class UserTokenService {
 
     const indexed = await this.redis.zAddAfterRemoveByScore(
       '',
-      this.userIndexKey(info.userId),
+      this.userIndexKey(info.user_id),
       now,
       accessTTL,
-      info.sessionId
+      info.session_id
     );
     if (!indexed) {
-      await this.redis.del('', this.sessionKey(info.sessionId));
+      await this.redis.del('', this.sessionKey(info.session_id));
       return new UserInfo();
     }
     return info;
@@ -247,13 +254,13 @@ export class UserTokenService {
    * @param info 登录用户信息
    */
   public async UserInfoUpdate(info: UserInfo): Promise<void> {
-    if (info.sessionId.length !== 32) {
+    if (info.session_id.length !== 32) {
       return;
     }
-    info.user.userPassword = '';
+    info.user.user_password = '';
     await this.redis.setWithExistingTTL(
       '',
-      this.sessionKey(info.sessionId),
+      this.sessionKey(info.session_id),
       JSON.stringify(info)
     );
   }
@@ -278,10 +285,10 @@ export class UserTokenService {
     try {
       const saved = JSON.parse(infoStr) as UserInfo;
       if (
-        saved.sessionId === sessionId &&
-        saved.deviceId === deviceId &&
-        saved.userId === parseNumber(claims[JWT_USER_ID]) &&
-        saved.expireTime > Date.now()
+        saved.session_id === sessionId &&
+        saved.device_id === deviceId &&
+        saved.user_id === parseNumber(claims[JWT_USER_ID]) &&
+        saved.expire_time > Date.now()
       ) {
         return saved;
       }
@@ -331,12 +338,12 @@ export class UserTokenService {
       }
       try {
         const info = JSON.parse(infoStr) as UserInfo;
-        if (info.userId > 0) {
+        if (info.user_id > 0) {
           const rows = await this.redis.del('', this.sessionKey(sessionId));
           if (rows > 0) {
             await this.redis.zRem(
               '',
-              this.userIndexKey(info.userId),
+              this.userIndexKey(info.user_id),
               sessionId
             );
           }
