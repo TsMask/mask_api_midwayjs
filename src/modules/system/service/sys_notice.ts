@@ -2,7 +2,6 @@ import { Provide, Inject, Singleton } from '@midwayjs/core';
 
 import { SysNotice } from '../model/sys_notice';
 import { SysNoticeRepository } from '../repository/sys_notice';
-
 /**公告 服务层处理 */
 @Provide()
 @Singleton()
@@ -69,7 +68,7 @@ export class SysNoticeService {
     }
     for (const notice of notices) {
       // 检查是否为已删除
-      if (notice.noticeDel === '1') {
+      if (notice.notice_del === '1') {
         return [0, `ID:${notice.id} 公告信息已经删除！`];
       }
     }

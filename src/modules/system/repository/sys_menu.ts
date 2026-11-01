@@ -21,38 +21,35 @@ export class SysMenuRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  public async select(
-    sysMenu: SysMenu,
-    userId: number
-  ): Promise<SysMenu[]> {
+  public async select(sysMenu: SysMenu, user_id: number): Promise<SysMenu[]> {
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
       .from(SysMenu, 's')
       .andWhere("s.menu_del = '0'");
-    if (sysMenu.menuName) {
-      tx.andWhere('s.menu_name like :menuName', {
-        menuName: sysMenu.menuName + '%',
+    if (sysMenu.menu_name) {
+      tx.andWhere('s.menu_name like :menu_name', {
+        menu_name: sysMenu.menu_name + '%',
       });
     }
-    if (sysMenu.menuVisible) {
-      tx.andWhere('s.menu_visible = :menuVisible', {
-        menuVisible: sysMenu.menuVisible,
+    if (sysMenu.menu_visible) {
+      tx.andWhere('s.menu_visible = :menu_visible', {
+        menu_visible: sysMenu.menu_visible,
       });
     }
-    if (sysMenu.menuStatus) {
-      tx.andWhere('s.menu_status = :menuStatus', {
-        menuStatus: sysMenu.menuStatus,
+    if (sysMenu.menu_status) {
+      tx.andWhere('s.menu_status = :menu_status', {
+        menu_status: sysMenu.menu_status,
       });
     }
-    if (userId > 0) {
+    if (user_id > 0) {
       tx.andWhere(
         `s.id in (
           select menu_id from sys_role_menu where role_id in (
-          select role_id from sys_user_role where user_id = :userId
+          select role_id from sys_user_role where user_id = :user_id
           ))`,
-        { userId }
+        { user_id }
       );
     }
     return await tx
@@ -61,8 +58,8 @@ export class SysMenuRepository {
       .getMany();
   }
 
-  public async selectByIds(menuIds: number[]): Promise<SysMenu[]> {
-    if (menuIds.length <= 0) {
+  public async selectByIds(menu_ids: number[]): Promise<SysMenu[]> {
+    if (menu_ids.length <= 0) {
       return [];
     }
     return await this.db
@@ -70,7 +67,7 @@ export class SysMenuRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysMenu, 's')
-      .andWhere("s.id in (:menuIds) and s.menu_del = '0'", { menuIds })
+      .andWhere("s.id in (:menu_ids) and s.menu_del = '0'", { menu_ids })
       .getMany();
   }
 
@@ -78,7 +75,7 @@ export class SysMenuRepository {
     sysMenu: SysMenu,
     entityManager?: EntityManager
   ): Promise<number> {
-    sysMenu.menuDel = '0';
+    sysMenu.menu_del = '0';
     if (sysMenu.id > 0) {
       return 0;
     }
@@ -106,9 +103,9 @@ export class SysMenuRepository {
     }
     const data = Object.assign({}, sysMenu);
     delete (data as Partial<SysMenu>).id;
-    delete (data as Partial<SysMenu>).menuDel;
-    delete (data as Partial<SysMenu>).createBy;
-    delete (data as Partial<SysMenu>).createTime;
+    delete (data as Partial<SysMenu>).menu_del;
+    delete (data as Partial<SysMenu>).create_by;
+    delete (data as Partial<SysMenu>).create_time;
     delete (data as Partial<SysMenu>).children;
     if (entityManager) {
       const result: UpdateResult = await entityManager.update(
@@ -129,23 +126,23 @@ export class SysMenuRepository {
   }
 
   public async deleteById(
-    menuId: number,
+    menu_id: number,
     entityManager?: EntityManager
   ): Promise<number> {
-    if (menuId <= 0) return 0;
+    if (menu_id <= 0) return 0;
     if (entityManager) {
       const result: UpdateResult = await entityManager.update(
         SysMenu,
-        { id: menuId },
-        { menuDel: '1' }
+        { id: menu_id },
+        { menu_del: '1' }
       );
       return result.affected ?? 0;
     }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .update(SysMenu)
-      .set({ menuDel: '1' })
-      .andWhere('id = :id', { id: menuId })
+      .set({ menu_del: '1' })
+      .andWhere('id = :id', { id: menu_id })
       .execute();
     return tx.affected ?? 0;
   }
@@ -157,24 +154,24 @@ export class SysMenuRepository {
       .select('s.id', 'id')
       .from(SysMenu, 's')
       .andWhere("s.menu_del = '0'");
-    if (sysMenu.parentId >= 0) {
-      tx.andWhere('s.parent_id = :parentId', { parentId: sysMenu.parentId });
+    if (sysMenu.parent_id >= 0) {
+      tx.andWhere('s.parent_id = :parent_id', { parent_id: sysMenu.parent_id });
     }
-    if (sysMenu.menuName) {
-      tx.andWhere('s.menu_name = :menuName', { menuName: sysMenu.menuName });
+    if (sysMenu.menu_name) {
+      tx.andWhere('s.menu_name = :menu_name', { menu_name: sysMenu.menu_name });
     }
-    if (sysMenu.menuPath) {
-      tx.andWhere('s.menu_path = :menuPath', { menuPath: sysMenu.menuPath });
+    if (sysMenu.menu_path) {
+      tx.andWhere('s.menu_path = :menu_path', { menu_path: sysMenu.menu_path });
     }
     const row = await tx.getRawOne();
     return Number(row?.id ?? 0);
   }
 
   public async checkUniqueMenuPath(
-    menuPath: string,
-    menuId: number
+    menu_path: string,
+    menu_id: number
   ): Promise<number> {
-    if (!menuPath) {
+    if (!menu_path) {
       return 0;
     }
     const row = await this.db
@@ -183,65 +180,61 @@ export class SysMenuRepository {
       .select('s.id', 'id')
       .from(SysMenu, 's')
       .andWhere(
-        "s.menu_del = '0' and s.menu_type in (:menuTypes) and s.menu_path = :menuPath",
-        { menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU], menuPath }
+        "s.menu_del = '0' and s.menu_type in (:menuTypes) and s.menu_path = :menu_path",
+        { menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU], menu_path }
       )
       .getRawOne();
     const id = Number(row?.id ?? 0);
-    return id === menuId ? 0 : id;
+    return id === menu_id ? 0 : id;
   }
 
   public async existChildrenByMenuIdAndStatus(
-    menuId: number,
-    menuStatus: string
+    menu_id: number,
+    menu_status: string
   ): Promise<number> {
-    if (menuId <= 0) {
+    if (menu_id <= 0) {
       return 0;
     }
     const tx = this.db
       .queryBuilder('')
       .createQueryBuilder()
       .from(SysMenu, 's')
-      .andWhere("s.parent_id = :menuId and s.menu_del = '0'", { menuId });
-    if (menuStatus) {
+      .andWhere("s.parent_id = :menu_id and s.menu_del = '0'", { menu_id });
+    if (menu_status) {
       tx.andWhere(
-        's.menu_status = :menuStatus and s.menu_type in (:menuTypes)',
-        { menuStatus, menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU] }
+        's.menu_status = :menu_status and s.menu_type in (:menuTypes)',
+        { menu_status, menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU] }
       );
     }
     return await tx.getCount();
   }
 
-  public async selectPermsByUserId(userId: number): Promise<string[]> {
-    if (userId <= 0) {
+  public async selectPermsByUserId(user_id: number): Promise<string[]> {
+    if (user_id <= 0) {
       return [];
     }
     const rows = await this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('m.menuPerms', 'menuPerms')
+      .select('m.menu_perms', 'menu_perms')
       .distinct(true)
       .from(SysMenu, 'm')
       .leftJoin('sys_role_menu', 'rm', 'rm.menu_id = m.id')
       .leftJoin('sys_user_role', 'ur', 'rm.role_id = ur.role_id')
-      .leftJoin(
-        'sys_role',
-        'r',
-        "r.id = ur.role_id and r.role_status = '1'"
-      )
+      .leftJoin('sys_role', 'r', "r.id = ur.role_id and r.role_status = '1'")
       .andWhere(
-        "m.menu_status = '1' and m.menu_perms != '' and ur.user_id = :userId",
-        { userId }
+        "m.menu_status = '1' and m.menu_perms != '' and ur.user_id = :user_id",
+        { user_id }
       )
       .getRawMany();
-    return rows.map(row => String(row.menuPerms));
+    return rows.map(row => String(row.menu_perms));
   }
 
   public async selectByRoleId(
-    roleId: number,
+    role_id: number,
     menuCheckStrictly: boolean
   ): Promise<number[]> {
-    if (roleId <= 0) {
+    if (role_id <= 0) {
       return [];
     }
     const tx = this.db
@@ -252,25 +245,25 @@ export class SysMenuRepository {
       .from(SysMenu, 's')
       .andWhere("s.menu_del = '0'")
       .andWhere(
-        's.id in (select menu_id from sys_role_menu where role_id = :roleId)',
-        { roleId }
+        's.id in (select menu_id from sys_role_menu where role_id = :role_id)',
+        { role_id }
       );
     if (menuCheckStrictly) {
       tx.andWhere(
         `s.id not in (
           select m.parent_id from sys_menu m
           inner join sys_role_menu rm on m.id = rm.menu_id
-          and rm.role_id = :roleId
+          and rm.role_id = :role_id
         )`,
-        { roleId }
+        { role_id }
       );
     }
     const rows = await tx.getRawMany();
     return rows.map(row => Number(row.id));
   }
 
-  public async selectTreeByUserId(userId: number): Promise<SysMenu[]> {
-    if (userId < 0) {
+  public async selectTreeByUserId(user_id: number): Promise<SysMenu[]> {
+    if (user_id < 0) {
       return [];
     }
     const tx = this.db
@@ -279,7 +272,7 @@ export class SysMenuRepository {
       .select('s')
       .from(SysMenu, 's')
       .andWhere("s.menu_del = '0'");
-    if (userId === 0) {
+    if (user_id === 0) {
       tx.andWhere("s.menu_type in (:menuTypes) and s.menu_status = '1'", {
         menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU],
       });
@@ -288,9 +281,9 @@ export class SysMenuRepository {
         `s.menu_type in (:menuTypes) and s.menu_status = '1'
         and s.id in (
         select menu_id from sys_role_menu where role_id in (
-        select role_id from sys_user_role where user_id = :userId
+        select role_id from sys_user_role where user_id = :user_id
         ))`,
-        { menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU], userId }
+        { menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU], user_id }
       );
     }
     return await tx

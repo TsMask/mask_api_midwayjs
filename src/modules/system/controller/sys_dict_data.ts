@@ -28,7 +28,6 @@ import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
 import { SysDictTypeService } from '../service/sys_dict_type';
 import { SysDictDataService } from '../service/sys_dict_data';
 import { SysDictData } from '../model/sys_dict_data';
-import { serializeSysDictData } from '../model/vo/response';
 
 /**字典类型对应的字典数据信息 控制层处理 */
 @Controller('/api/v1/system/dict/datas')
@@ -53,7 +52,7 @@ export class SysDictDataController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysDictDataService.findByPage(query);
-    return Resp.okData({ rows: rows.map(serializeSysDictData), total });
+    return Resp.okData({ rows: rows, total });
   }
 
   /**字典数据详情 */
@@ -67,11 +66,11 @@ export class SysDictDataController {
   ): Promise<Resp> {
     if (dataId <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dept_id is empty');
     }
     const data = await this.sysDictDataService.findById(dataId);
     if (data.id === dataId) {
-      return Resp.okData(serializeSysDictData(data));
+      return Resp.okData(data);
     }
     return Resp.err();
   }
@@ -91,38 +90,37 @@ export class SysDictDataController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dataId not is empty');
     }
-
     // 检查字典类型是否存在
-    const dictType = await this.sysDictTypeService.findByType(body.dictType);
-    if (dictType.dictType !== body.dictType) {
+    const dict_type = await this.sysDictTypeService.findByType(body.dict_type);
+    if (dict_type.dict_type !== body.dict_type) {
       return Resp.errMsg('没有权限访问字典类型数据！');
     }
 
     // 检查字典标签唯一
     const uniqueLabel = await this.sysDictDataService.checkUniqueTypeByLabel(
-      body.dictType,
-      body.dataLabel,
+      body.dict_type,
+      body.data_label,
       0
     );
     if (!uniqueLabel) {
       return Resp.errMsg(
-        `数据新增【${body.dataLabel}】失败，该字典类型下标签名已存在`
+        `数据新增【${body.data_label}】失败，该字典类型下标签名已存在`
       );
     }
 
     // 检查字典键值唯一
     const uniqueValue = await this.sysDictDataService.checkUniqueTypeByValue(
-      body.dictType,
-      body.dataValue,
+      body.dict_type,
+      body.data_value,
       0
     );
     if (!uniqueValue) {
       return Resp.errMsg(
-        `数据新增【${body.dataLabel}】失败，该字典类型下标签名已存在`
+        `数据新增【${body.data_value}】失败，该字典类型下标签值已存在`
       );
     }
 
-    body.createBy = loginUserToUserName(this.c);
+    body.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysDictDataService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -145,10 +143,9 @@ export class SysDictDataController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dataId is empty');
     }
-
     // 检查字典类型是否存在
-    const dictType = await this.sysDictTypeService.findByType(body.dictType);
-    if (dictType.dictType !== body.dictType) {
+    const dict_type = await this.sysDictTypeService.findByType(body.dict_type);
+    if (dict_type.dict_type !== body.dict_type) {
       return Resp.errMsg('没有权限访问字典类型数据！');
     }
 
@@ -160,37 +157,37 @@ export class SysDictDataController {
 
     // 检查字典标签唯一
     const uniqueLabel = await this.sysDictDataService.checkUniqueTypeByLabel(
-      body.dictType,
-      body.dataLabel,
+      body.dict_type,
+      body.data_label,
       body.id
     );
     if (!uniqueLabel) {
       return Resp.errMsg(
-        `数据修改【${body.dataLabel}】失败，该字典类型下标签名已存在`
+        `数据修改【${body.data_label}】失败，该字典类型下标签名已存在`
       );
     }
 
     // 检查字典键值唯一
     const uniqueValue = await this.sysDictDataService.checkUniqueTypeByValue(
-      body.dictType,
-      body.dataValue,
+      body.dict_type,
+      body.data_value,
       body.id
     );
     if (!uniqueValue) {
       return Resp.errMsg(
-        `数据修改【${body.dataLabel}】失败，该字典类型下标签名已存在`
+        `数据修改【${body.data_label}】失败，该字典类型下标签名已存在`
       );
     }
 
-    dictData.dictType = body.dictType;
-    dictData.dataLabel = body.dataLabel;
-    dictData.dataValue = body.dataValue;
-    dictData.dataSort = body.dataSort;
-    dictData.tagClass = body.tagClass;
-    dictData.tagType = body.tagType;
-    dictData.dataStatus = body.dataStatus;
+    dictData.dict_type = body.dict_type;
+    dictData.data_label = body.data_label;
+    dictData.data_value = body.data_value;
+    dictData.data_sort = body.data_sort;
+    dictData.tag_class = body.tag_class;
+    dictData.tag_type = body.tag_type;
+    dictData.data_status = body.data_status;
     dictData.remark = body.remark;
-    dictData.updateBy = loginUserToUserName(this.c);
+    dictData.update_by = loginUserToUserName(this.c);
     const rows = await this.sysDictDataService.update(dictData);
     if (rows > 0) {
       return Resp.ok();
@@ -225,7 +222,7 @@ export class SysDictDataController {
     if (err) {
       return Resp.errMsg(err);
     }
-    return Resp.okMsg(`删除成功: ${rows}`);
+    return Resp.okMsg(`删除成功：${rows}`);
   }
 
   /**字典数据列表（指定字典类型） */
@@ -234,15 +231,15 @@ export class SysDictDataController {
       AuthorizeUserMiddleware({ hasPerms: ['system:dict:data:query'] }),
     ],
   })
-  public async dictType(
-    @Valid(Joi.string().allow('')) @Param('dict_type') dictType: string
+  public async dict_type(
+    @Valid(Joi.string().allow('')) @Param('dict_type') dict_type: string
   ): Promise<Resp> {
-    if (dictType === '') {
+    if (dict_type === '') {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictType is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dict_type is empty');
     }
-    const data = await this.sysDictDataService.findByType(dictType);
-    return Resp.okData(data.map(serializeSysDictData));
+    const data = await this.sysDictDataService.findByType(dict_type);
+    return Resp.okData(data);
   }
 
   /**字典数据列表导出 */

@@ -8,10 +8,10 @@ export class SysRoleDept {
   /**角色ID */
   @Rule(Joi.number().allow(0))
   @PrimaryColumn({ name: 'role_id' })
-  roleId: number;
+  role_id: number;
 
   /**部门ID */
   @Rule(Joi.number().allow(0))
   @PrimaryColumn({ name: 'dept_id' })
-  deptId: number;
+  dept_id: number;
 }

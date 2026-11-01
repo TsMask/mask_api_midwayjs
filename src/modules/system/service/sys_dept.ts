@@ -1,7 +1,10 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 
 import { DynamicDataSource } from '../../../internal/infra/database/db';
-import { STATUS_NO, STATUS_YES } from '../../../internal/shared/constants/common';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../internal/shared/constants/common';
 import { SysRoleDeptRepository } from '../repository/sys_role_dept';
 import { SysDeptRepository } from '../repository/sys_dept';
 import { SysRoleRepository } from '../repository/sys_role';
@@ -32,14 +35,14 @@ export class SysDeptService {
   }
 
   public async findExcludeChildren(
-    deptId: number,
+    dept_id: number,
     filter: { sql: string; params: Record<string, any> }
   ): Promise<SysDept[]> {
-    return await this.sysDeptRepository.selectExcludeChildren(deptId, filter);
+    return await this.sysDeptRepository.selectExcludeChildren(dept_id, filter);
   }
 
-  public async findById(deptId: number): Promise<SysDept> {
-    return await this.sysDeptRepository.selectById(deptId);
+  public async findById(dept_id: number): Promise<SysDept> {
+    return await this.sysDeptRepository.selectById(dept_id);
   }
 
   public async insert(sysDept: SysDept): Promise<number> {
@@ -52,27 +55,27 @@ export class SysDeptService {
       return 0;
     }
     const parentDept = await this.sysDeptRepository.selectById(
-      sysDept.parentId
+      sysDept.parent_id
     );
-    if (sysDept.parentId > 0 && parentDept.id !== sysDept.parentId) {
+    if (sysDept.parent_id > 0 && parentDept.id !== sysDept.parent_id) {
       return 0;
     }
 
-    const moved = dept.parentId !== sysDept.parentId;
+    const moved = dept.parent_id !== sysDept.parent_id;
     return await this.db.transaction('', async manager => {
       if (moved) {
         const moveErr = await this.sysDeptRepository.moveDeptSubtree(
           manager,
           sysDept.id,
-          sysDept.parentId
+          sysDept.parent_id
         );
         if (moveErr !== '') {
           throw new Error(moveErr);
         }
       }
       if (
-        sysDept.deptStatus === STATUS_YES &&
-        parentDept.deptStatus === STATUS_NO
+        sysDept.dept_status === STATUS_YES &&
+        parentDept.dept_status === STATUS_NO
       ) {
         await this.sysDeptRepository.updateDeptStatusNormal(
           sysDept.id,
@@ -84,43 +87,43 @@ export class SysDeptService {
     });
   }
 
-  public async deleteById(deptId: number): Promise<number> {
+  public async deleteById(dept_id: number): Promise<number> {
     return await this.db.transaction('', async manager => {
-      await this.sysRoleDeptRepository.deleteByDeptIds([deptId], manager);
-      return await this.sysDeptRepository.deleteById(deptId, manager);
+      await this.sysRoleDeptRepository.deleteByDeptIds([dept_id], manager);
+      return await this.sysDeptRepository.deleteById(dept_id, manager);
     });
   }
 
-  public async findDeptIdsByRoleId(roleId: number): Promise<number[]> {
-    const roles = await this.sysRoleRepository.selectByIds([roleId]);
+  public async findDeptIdsByRoleId(role_id: number): Promise<number[]> {
+    const roles = await this.sysRoleRepository.selectByIds([role_id]);
     const role = roles[0];
-    if (!role || role.id !== roleId) {
+    if (!role || role.id !== role_id) {
       return [];
     }
     return await this.sysDeptRepository.selectDeptIdsByRoleId(
       role.id,
-      role.roleDeptCheckStrictly === '1'
+      role.role_dept_check_strictly === '1'
     );
   }
 
-  public async existChildrenByDeptId(deptId: number): Promise<number> {
-    return await this.sysDeptRepository.existChildrenByDeptId(deptId);
+  public async existChildrenByDeptId(dept_id: number): Promise<number> {
+    return await this.sysDeptRepository.existChildrenByDeptId(dept_id);
   }
 
-  public async existUserByDeptId(deptId: number): Promise<number> {
-    return await this.sysDeptRepository.existUserByDeptId(deptId);
+  public async existUserByDeptId(dept_id: number): Promise<number> {
+    return await this.sysDeptRepository.existUserByDeptId(dept_id);
   }
 
   public async checkUniqueParentIdByDeptName(
-    parentId: number,
-    deptName: string,
-    deptId: number
+    parent_id: number,
+    dept_name: string,
+    dept_id: number
   ): Promise<boolean> {
     const sysDept = new SysDept();
-    sysDept.deptName = deptName;
-    sysDept.parentId = parentId;
+    sysDept.dept_name = dept_name;
+    sysDept.parent_id = parent_id;
     const uniqueId = await this.sysDeptRepository.checkUnique(sysDept);
-    return uniqueId === deptId || uniqueId === 0;
+    return uniqueId === dept_id || uniqueId === 0;
   }
 
   public async buildTreeSelect(
@@ -131,23 +134,23 @@ export class SysDeptService {
     return this.parseDataToTree(rows).map(item => sysDeptTreeSelect(item));
   }
 
-  public async selectDescendantIds(deptId: number): Promise<number[]> {
-    return await this.sysDeptRepository.selectDescendantIds(deptId);
+  public async selectDescendantIds(dept_id: number): Promise<number[]> {
+    return await this.sysDeptRepository.selectDescendantIds(dept_id);
   }
 
   private parseDataToTree(rows: SysDept[]): SysDept[] {
     const childrenMap = new Map<number, SysDept[]>();
-    const deptIds: number[] = [];
+    const dept_ids: number[] = [];
     for (const item of rows) {
-      const group = childrenMap.get(item.parentId) ?? [];
+      const group = childrenMap.get(item.parent_id) ?? [];
       group.push(item);
-      childrenMap.set(item.parentId, group);
-      deptIds.push(item.id);
+      childrenMap.set(item.parent_id, group);
+      dept_ids.push(item.id);
     }
 
     const tree: SysDept[] = [];
-    for (const [parentId, children] of childrenMap) {
-      if (!deptIds.includes(parentId)) {
+    for (const [parent_id, children] of childrenMap) {
+      if (!dept_ids.includes(parent_id)) {
         tree.push(...children);
       }
     }

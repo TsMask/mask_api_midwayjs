@@ -59,11 +59,11 @@ export class SysDictDataService {
 
   /**
    * 根据字典类型查询信息
-   * @param dictType 字典类型
+   * @param dict_type 字典类型
    * @returns []
    */
-  public async findByType(dictType: string): Promise<SysDictData[]> {
-    return await this.sysDictTypeService.findDataByType(dictType);
+  public async findByType(dict_type: string): Promise<SysDictData[]> {
+    return await this.sysDictTypeService.findDataByType(dict_type);
   }
 
   /**
@@ -74,7 +74,7 @@ export class SysDictDataService {
   public async insert(sysDictData: SysDictData): Promise<number> {
     const insertId = await this.sysDictDataRepository.insert(sysDictData);
     if (insertId > 0) {
-      await this.sysDictTypeService.cacheLoad(sysDictData.dictType);
+      await this.sysDictTypeService.cacheLoad(sysDictData.dict_type);
     }
     return insertId;
   }
@@ -87,7 +87,7 @@ export class SysDictDataService {
   public async update(sysDictData: SysDictData): Promise<number> {
     const rows = await this.sysDictDataRepository.update(sysDictData);
     if (rows > 0) {
-      await this.sysDictTypeService.cacheLoad(sysDictData.dictType);
+      await this.sysDictTypeService.cacheLoad(sysDictData.dict_type);
     }
     return rows;
   }
@@ -106,8 +106,8 @@ export class SysDictDataService {
     if (dicts.length === dictIds.length) {
       for (const v of dicts) {
         // 刷新缓存
-        await this.sysDictTypeService.cacheClean(v.dictType);
-        await this.sysDictTypeService.cacheLoad(v.dictType);
+        await this.sysDictTypeService.cacheClean(v.dict_type);
+        await this.sysDictTypeService.cacheLoad(v.dict_type);
       }
       const rows = await this.sysDictDataRepository.deleteByIds(dictIds);
       return [rows, ''];
@@ -117,19 +117,19 @@ export class SysDictDataService {
 
   /**
    * 检查同字典类型下字典标签是否唯一
-   * @param dictType 字典类型
-   * @param dataLabel 数据标签
+   * @param dict_type 字典类型
+   * @param data_label 数据标签
    * @param dataId 数据ID
    * @returns 结果
    */
   public async checkUniqueTypeByLabel(
-    dictType: string,
-    dataLabel: string,
+    dict_type: string,
+    data_label: string,
     dataId: number
   ): Promise<boolean> {
     const sysDictData = new SysDictData();
-    sysDictData.dictType = dictType;
-    sysDictData.dataLabel = dataLabel;
+    sysDictData.dict_type = dict_type;
+    sysDictData.data_label = data_label;
     const uniqueId = await this.sysDictDataRepository.checkUnique(sysDictData);
     if (uniqueId === dataId) {
       return true;
@@ -139,21 +139,21 @@ export class SysDictDataService {
 
   /**
    * 检查同字典类型下字典键值是否唯一
-   * @param dictType 字典类型
-   * @param dataValue 数据键值
+   * @param dict_type 字典类型
+   * @param data_value 数据键值
    * @param dataId 数据ID
    * @returns 结果
    */
   public async checkUniqueTypeByValue(
-    dictType: string,
-    dataValue: string,
-    dataId: number
+    dict_type: string,
+    data_value: string,
+    id: number
   ): Promise<boolean> {
     const sysDictData = new SysDictData();
-    sysDictData.dictType = dictType;
-    sysDictData.dataValue = dataValue;
+    sysDictData.dict_type = dict_type;
+    sysDictData.data_value = data_value;
     const uniqueId = await this.sysDictDataRepository.checkUnique(sysDictData);
-    if (uniqueId === dataId) {
+    if (uniqueId === id) {
       return true;
     }
     return uniqueId === 0;
@@ -172,15 +172,15 @@ export class SysDictDataService {
     ];
     for (const row of rows) {
       let statusValue = '停用';
-      if (row.dataStatus === '1') {
+      if (row.data_status === '1') {
         statusValue = '正常';
       }
       data.push([
-        row.dictType ?? '',
-        `${row.dataSort ?? 0}`,
+        row.dict_type ?? '',
+        `${row.data_sort ?? 0}`,
         `${row.id ?? 0}`,
-        row.dataLabel ?? '',
-        row.dataValue ?? '',
+        row.data_label ?? '',
+        row.data_value ?? '',
         statusValue,
       ]);
     }

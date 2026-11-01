@@ -22,18 +22,18 @@ export class SysConfigRepository {
       .select('s')
       .from(SysConfig, 's');
     if (query.config_name) {
-      tx.andWhere('s.config_name like :configName', {
-        configName: query.config_name + '%',
+      tx.andWhere('s.config_name like :config_name', {
+        config_name: query.config_name + '%',
       });
     }
     if (query.config_group) {
-      tx.andWhere('s.config_group = :configGroup', {
-        configGroup: query.config_group,
+      tx.andWhere('s.config_group = :config_group', {
+        config_group: query.config_group,
       });
     }
     if (query.config_key) {
-      tx.andWhere('s.config_key like :configKey', {
-        configKey: query.config_key + '%',
+      tx.andWhere('s.config_key like :config_key', {
+        config_key: query.config_key + '%',
       });
     }
     if (query.create_time_begin) {
@@ -60,6 +60,7 @@ export class SysConfigRepository {
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       create_time: 's.create_time',
@@ -70,20 +71,8 @@ export class SysConfigRepository {
       config_sort: 's.config_sort',
       config_status: 's.config_status',
     };
-    let sorted = false;
-    if (query.sort) {
-      for (const item of query.sort.split(',')) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-        sorted = true;
-      }
-    }
-    if (!sorted) {
-      tx.addOrderBy('s.config_sort', 'ASC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.config_sort ASC');
 
     const rows = await tx.getMany();
     return [rows, total];
@@ -95,24 +84,24 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysConfig, 's');
-    if (sysConfig.configName) {
-      tx.andWhere('s.config_name like :configName', {
-        configName: sysConfig.configName + '%',
+    if (sysConfig.config_name) {
+      tx.andWhere('s.config_name like :config_name', {
+        config_name: sysConfig.config_name + '%',
       });
     }
-    if (sysConfig.configGroup) {
-      tx.andWhere('s.config_group = :configGroup', {
-        configGroup: sysConfig.configGroup,
+    if (sysConfig.config_group) {
+      tx.andWhere('s.config_group = :config_group', {
+        config_group: sysConfig.config_group,
       });
     }
-    if (sysConfig.configKey) {
-      tx.andWhere('s.config_key like :configKey', {
-        configKey: sysConfig.configKey + '%',
+    if (sysConfig.config_key) {
+      tx.andWhere('s.config_key like :config_key', {
+        config_key: sysConfig.config_key + '%',
       });
     }
-    if (sysConfig.createTime > 0) {
-      tx.andWhere('s.create_time >= :createTime', {
-        createTime: sysConfig.createTime,
+    if (sysConfig.create_time > 0) {
+      tx.andWhere('s.create_time >= :create_time', {
+        create_time: sysConfig.create_time,
       });
     }
     return await tx.getMany();
@@ -132,11 +121,11 @@ export class SysConfigRepository {
   }
 
   public async insert(sysConfig: SysConfig): Promise<number> {
-    if (sysConfig.createBy) {
+    if (sysConfig.create_by) {
       const ms = Date.now();
-      sysConfig.updateBy = sysConfig.createBy;
-      sysConfig.updateTime = ms;
-      sysConfig.createTime = ms;
+      sysConfig.update_by = sysConfig.create_by;
+      sysConfig.update_time = ms;
+      sysConfig.create_time = ms;
     }
     const tx: InsertResult = await this.db
       .queryBuilder('')
@@ -152,13 +141,13 @@ export class SysConfigRepository {
     if (sysConfig.id <= 0) {
       return 0;
     }
-    if (sysConfig.updateBy) {
-      sysConfig.updateTime = Date.now();
+    if (sysConfig.update_by) {
+      sysConfig.update_time = Date.now();
     }
     const data: Partial<SysConfig> = Object.assign({}, sysConfig);
     delete data.id;
-    delete data.createBy;
-    delete data.createTime;
+    delete data.create_by;
+    delete data.create_time;
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
@@ -186,30 +175,30 @@ export class SysConfigRepository {
       .createQueryBuilder()
       .select('s.id', 'id')
       .from(SysConfig, 's');
-    if (sysConfig.configGroup) {
-      tx.andWhere('s.config_group = :configGroup', {
-        configGroup: sysConfig.configGroup,
+    if (sysConfig.config_group) {
+      tx.andWhere('s.config_group = :config_group', {
+        config_group: sysConfig.config_group,
       });
     }
-    if (sysConfig.configKey) {
-      tx.andWhere('s.config_key = :configKey', {
-        configKey: sysConfig.configKey,
+    if (sysConfig.config_key) {
+      tx.andWhere('s.config_key = :config_key', {
+        config_key: sysConfig.config_key,
       });
     }
     const row = await tx.getRawOne();
     return Number(row?.id ?? 0);
   }
 
-  public async selectValueByKey(configKey: string): Promise<string> {
-    if (!configKey) return '';
+  public async selectValueByKey(config_key: string): Promise<string> {
+    if (!config_key) return '';
     const row = await this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('s.config_value', 'configValue')
+      .select('s.config_value', 'config_value')
       .from(SysConfig, 's')
-      .andWhere('s.config_key = :configKey', { configKey })
+      .andWhere('s.config_key = :config_key', { config_key })
       .getRawOne();
-    return row?.configValue ?? '';
+    return row?.config_value ?? '';
   }
 }
 

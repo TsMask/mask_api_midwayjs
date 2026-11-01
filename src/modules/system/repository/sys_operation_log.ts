@@ -32,18 +32,18 @@ export class SysOperationLogRepository {
       });
     }
     if (query.create_by) {
-      tx.andWhere('s.create_by like :createBy', {
-        createBy: query.create_by + '%',
+      tx.andWhere('s.create_by like :create_by', {
+        create_by: query.create_by + '%',
       });
     }
     if (query.operation_ip) {
-      tx.andWhere('s.operation_ip like :operationIp', {
-        operationIp: query.operation_ip + '%',
+      tx.andWhere('s.operation_ip like :operation_ip', {
+        operation_ip: query.operation_ip + '%',
       });
     }
     if (query.operation_status) {
-      tx.andWhere('s.operation_status = :operationStatus', {
-        operationStatus: query.operation_status,
+      tx.andWhere('s.operation_status = :operation_status', {
+        operation_status: query.operation_status,
       });
     }
     const beginTime = normalizeTimeRange(query.create_time_begin, '000');
@@ -72,6 +72,7 @@ export class SysOperationLogRepository {
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       create_by: 's.create_by',
@@ -81,29 +82,14 @@ export class SysOperationLogRepository {
       operation_cost_time: 's.operation_cost_time',
       operation_status: 's.operation_status',
     };
-    let sorted = false;
-    if (query.sort) {
-      for (const item of query.sort.split(',')) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-        sorted = true;
-      }
-    }
-    if (!sorted) {
-      tx.addOrderBy('s.id', 'DESC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.id DESC');
 
     const rows = await tx.getMany();
     return [rows, total];
   }
 
   public async insert(operationLog: SysOperationLog): Promise<number> {
-    if (operationLog.createBy) {
-      operationLog.createTime = Date.now();
-    }
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()

@@ -1,5 +1,5 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, EntityManager, InsertResult } from 'typeorm';
+import { DeleteResult, EntityManager, In, InsertResult } from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../internal/infra/database/db';
@@ -15,17 +15,26 @@ export class SysRoleDeptRepository {
   /**
    * 批量删除信息By角色
    *
-   * @param roleIds ID数组
+   * @param role_ids ID数组
    * @return 影响记录数
    */
-  public async deleteByRoleIds(roleIds: number[]): Promise<number> {
-    if (roleIds.length <= 0) return 0;
+  public async deleteByRoleIds(
+    role_ids: number[],
+    entityManager?: EntityManager
+  ): Promise<number> {
+    if (role_ids.length <= 0) return 0;
+    if (entityManager) {
+      const result: DeleteResult = await entityManager.delete(SysRoleDept, {
+        role_id: In(role_ids),
+      });
+      return result.affected ?? 0;
+    }
     // 执行删除
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .delete()
       .from(SysRoleDept)
-      .andWhere('role_id in (:roleIds)', { roleIds })
+      .andWhere('role_id in (:role_ids)', { role_ids })
       .execute();
     return tx.affected ?? 0;
   }
@@ -33,20 +42,20 @@ export class SysRoleDeptRepository {
   /**
    * 批量删除信息By部门
    *
-   * @param deptIds ID数组
+   * @param dept_ids ID数组
    * @return 影响记录数
    */
   public async deleteByDeptIds(
-    deptIds: number[],
+    dept_ids: number[],
     entityManager?: EntityManager
   ): Promise<number> {
-    if (deptIds.length <= 0) return 0;
+    if (dept_ids.length <= 0) return 0;
     const run = async (manager: EntityManager) => {
       const tx: DeleteResult = await manager
         .createQueryBuilder()
         .delete()
         .from(SysRoleDept)
-        .where('dept_id in (:deptIds)', { deptIds })
+        .where('dept_id in (:dept_ids)', { dept_ids })
         .execute();
       return tx.affected ?? 0;
     };
@@ -62,8 +71,19 @@ export class SysRoleDeptRepository {
    * @param sysRoleDepts 信息
    * @return 影响记录数
    */
-  public async batchInsert(sysRoleDepts: SysRoleDept[]): Promise<number> {
+  public async batchInsert(
+    sysRoleDepts: SysRoleDept[],
+    entityManager?: EntityManager
+  ): Promise<number> {
     if (sysRoleDepts.length <= 0) return 0;
+    if (entityManager) {
+      const result: InsertResult = await entityManager.insert(
+        SysRoleDept,
+        sysRoleDepts
+      );
+      const raw: ResultSetHeader = result.raw;
+      return raw.affectedRows > 0 ? raw.affectedRows : 0;
+    }
     // 执行插入
     const tx: InsertResult = await this.db
       .queryBuilder('')

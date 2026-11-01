@@ -27,7 +27,6 @@ import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
 import { Resp } from '../../../internal/web/resp/api';
 import { SysNoticeService } from '../service/sys_notice';
 import { SysNotice } from '../model/sys_notice';
-import { serializeSysNotice } from '../model/vo/response';
 
 /**通知公告信息 控制层处理 */
 @Controller('/api/v1/system/notices')
@@ -46,7 +45,7 @@ export class SysNoticeController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysNoticeService.findByPage(query);
-    return Resp.okData({ rows: rows.map(serializeSysNotice), total });
+    return Resp.okData({ rows: rows, total });
   }
 
   /**通知公告信息 */
@@ -64,7 +63,7 @@ export class SysNoticeController {
     }
     const data = await this.sysNoticeService.findById(noticeId);
     if (data.id === noticeId) {
-      return Resp.okData(serializeSysNotice(data));
+      return Resp.okData(data);
     }
     return Resp.err();
   }
@@ -84,8 +83,7 @@ export class SysNoticeController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId not is empty');
     }
-
-    body.createBy = loginUserToUserName(this.c);
+    body.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysNoticeService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -108,19 +106,18 @@ export class SysNoticeController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: noticeId is empty');
     }
-
     // 检查是否存在
     const noticeInfo = await this.sysNoticeService.findById(body.id);
     if (noticeInfo.id !== body.id) {
       return Resp.errMsg('没有权限访问公告信息数据！');
     }
 
-    noticeInfo.noticeTitle = body.noticeTitle;
-    noticeInfo.noticeType = body.noticeType;
-    noticeInfo.noticeContent = body.noticeContent;
-    noticeInfo.noticeStatus = body.noticeStatus;
+    noticeInfo.notice_title = body.notice_title;
+    noticeInfo.notice_type = body.notice_type;
+    noticeInfo.notice_content = body.notice_content;
+    noticeInfo.notice_status = body.notice_status;
     noticeInfo.remark = body.remark;
-    noticeInfo.updateBy = loginUserToUserName(this.c);
+    noticeInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysNoticeService.update(noticeInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -155,6 +152,6 @@ export class SysNoticeController {
     if (err) {
       return Resp.errMsg(err);
     }
-    return Resp.okMsg(`删除成功: ${rows}`);
+    return Resp.okMsg(`删除成功：${rows}`);
   }
 }

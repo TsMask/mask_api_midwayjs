@@ -6,10 +6,14 @@ import {
   validMobile,
 } from '../../../internal/shared/regular/regular';
 import { SYS_ROLE_SYSTEM_ID } from '../../../internal/shared/constants/system';
-import { STATUS_NO, STATUS_YES } from '../../../internal/shared/constants/common';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../internal/shared/constants/common';
 import { FileUtil } from '../../../internal/shared/file/file';
 import { parseDateToRFC3339 } from '../../../internal/shared/date/data';
 import { parseNumber } from '../../../internal/shared/parse/parse';
+import { passwordHash } from '../../../internal/shared/crypto/password';
 import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { UserTokenService } from '../../../internal/web/token/user_token';
 import { SysUserRoleRepository } from '../repository/sys_user_role';
@@ -85,10 +89,10 @@ export class SysUserService {
     if (total === 0) {
       return [[], 0];
     }
-    const deptIds = rows.map(u => u.deptId).filter(id => id > 0);
+    const dept_ids = rows.map(u => u.dept_id).filter(id => id > 0);
     const deptMap = new Map<number, SysDept>();
-    if (deptIds.length > 0) {
-      const depts = await this.sysDeptRepository.selectByIds(deptIds);
+    if (dept_ids.length > 0) {
+      const depts = await this.sysDeptRepository.selectByIds(dept_ids);
       for (const dept of depts) {
         deptMap.set(dept.id, dept);
       }
@@ -99,12 +103,12 @@ export class SysUserService {
       roleMap = await this.sysRoleRepository.selectByUserIds(userIds);
     }
     for (const v of rows) {
-      delete (v as Partial<SysUser>).userPassword;
-      delete (v as Partial<SysUser>).userDel;
-      delete (v as Partial<SysUser>).postIds;
-      v.dept = deptMap.get(v.deptId)!;
+      delete (v as Partial<SysUser>).user_password;
+      delete (v as Partial<SysUser>).user_del;
+      delete (v as Partial<SysUser>).post_ids;
+      v.dept = deptMap.get(v.dept_id)!;
       v.roles = roleMap.get(v.id) || [];
-      v.roleIds = v.roles.map(r => r.id);
+      v.role_ids = v.roles.map(r => r.id);
     }
     return [rows, total];
   }
@@ -120,30 +124,32 @@ export class SysUserService {
 
   /**
    * 根据ID查询信息
-   * @param userId ID
+   * @param user_id ID
    * @returns 结果
    */
-  public async findById(userId: number): Promise<SysUser> {
-    if (userId <= 0) {
+  public async findById(user_id: number): Promise<SysUser> {
+    if (user_id <= 0) {
       return new SysUser();
     }
-    const users = await this.sysUserRepository.selectByIds([userId]);
+    const users = await this.sysUserRepository.selectByIds([user_id]);
     if (users.length === 0) {
       return new SysUser();
     }
     const userInfo = users[0];
     // 批量查询部门和角色
     const deptMap = new Map<number, SysDept>();
-    if (userInfo.deptId > 0) {
-      const depts = await this.sysDeptRepository.selectByIds([userInfo.deptId]);
+    if (userInfo.dept_id > 0) {
+      const depts = await this.sysDeptRepository.selectByIds([
+        userInfo.dept_id,
+      ]);
       for (const dept of depts) {
         deptMap.set(dept.id, dept);
       }
     }
     const roleMap = await this.sysRoleRepository.selectByUserIds([userInfo.id]);
-    userInfo.dept = deptMap.get(userInfo.deptId)!;
+    userInfo.dept = deptMap.get(userInfo.dept_id)!;
     userInfo.roles = roleMap.get(userInfo.id) || [];
-    userInfo.roleIds = userInfo.roles.map(r => r.id);
+    userInfo.role_ids = userInfo.roles.map(r => r.id);
     return userInfo;
   }
 
@@ -153,34 +159,45 @@ export class SysUserService {
    * @returns ID
    */
   public async insert(sysUser: SysUser): Promise<number> {
+    await this.hashUserPassword(sysUser);
     return await this.db.transaction('', async manager => {
       const insertId = await this.sysUserRepository.insert(sysUser, manager);
       if (insertId > 0) {
-        await this.insertUserRole(insertId, sysUser.roleIds, manager);
-        await this.insertUserPost(insertId, sysUser.postIds, manager);
+        await this.insertUserRole(insertId, sysUser.role_ids, manager);
+        await this.insertUserPost(insertId, sysUser.post_ids, manager);
       }
       return insertId;
     });
   }
 
   /**
+   * 密码加密，非空时生效（加密属于业务层逻辑）
+   * @param sysUser 用户信息
+   */
+  private async hashUserPassword(sysUser: SysUser): Promise<void> {
+    if (sysUser.user_password) {
+      sysUser.user_password = await passwordHash(sysUser.user_password);
+    }
+  }
+
+  /**
    * 新增用户角色关联
-   * @param userId 用户ID
-   * @param roleIds 角色ID数组
+   * @param user_id 用户ID
+   * @param role_ids 角色ID数组
    * @param entityManager 事务EntityManager（可选）
    */
   private async insertUserRole(
-    userId: number,
-    roleIds: number[],
+    user_id: number,
+    role_ids: number[],
     entityManager?: EntityManager
   ): Promise<void> {
-    if (userId <= 0 || !roleIds?.length) return;
+    if (user_id <= 0 || !role_ids?.length) return;
     const arr: SysUserRole[] = [];
-    for (const roleId of roleIds) {
-      if (roleId <= 0 || roleId === SYS_ROLE_SYSTEM_ID) continue;
+    for (const role_id of role_ids) {
+      if (role_id <= 0 || role_id === SYS_ROLE_SYSTEM_ID) continue;
       const ur = new SysUserRole();
-      ur.userId = userId;
-      ur.roleId = roleId;
+      ur.user_id = user_id;
+      ur.role_id = role_id;
       arr.push(ur);
     }
     if (arr.length > 0) {
@@ -190,22 +207,22 @@ export class SysUserService {
 
   /**
    * 新增用户岗位关联
-   * @param userId 用户ID
-   * @param postIds 岗位ID数组
+   * @param user_id 用户ID
+   * @param post_ids 岗位ID数组
    * @param entityManager 事务EntityManager（可选）
    */
   private async insertUserPost(
-    userId: number,
-    postIds: number[],
+    user_id: number,
+    post_ids: number[],
     entityManager?: EntityManager
   ): Promise<void> {
-    if (userId <= 0 || !postIds?.length) return;
+    if (user_id <= 0 || !post_ids?.length) return;
     const arr: SysUserPost[] = [];
-    for (const postId of postIds) {
-      if (postId <= 0) continue;
+    for (const post_id of post_ids) {
+      if (post_id <= 0) continue;
       const up = new SysUserPost();
-      up.userId = userId;
-      up.postId = postId;
+      up.user_id = user_id;
+      up.post_id = post_id;
       arr.push(up);
     }
     if (arr.length > 0) {
@@ -219,6 +236,7 @@ export class SysUserService {
    * @returns 影响记录数
    */
   public async update(sysUser: SysUser): Promise<number> {
+    await this.hashUserPassword(sysUser);
     return await this.sysUserRepository.update(sysUser);
   }
 
@@ -228,11 +246,12 @@ export class SysUserService {
    * @returns 影响记录数
    */
   public async updateUserAndRolePost(sysUser: SysUser): Promise<number> {
+    await this.hashUserPassword(sysUser);
     const rows = await this.db.transaction('', async manager => {
       await this.sysUserRoleRepository.deleteByUserIds([sysUser.id], manager);
-      await this.insertUserRole(sysUser.id, sysUser.roleIds, manager);
+      await this.insertUserRole(sysUser.id, sysUser.role_ids, manager);
       await this.sysUserPostRepository.deleteByUserIds([sysUser.id], manager);
-      await this.insertUserPost(sysUser.id, sysUser.postIds, manager);
+      await this.insertUserPost(sysUser.id, sysUser.post_ids, manager);
       return await this.sysUserRepository.update(sysUser, manager);
     });
     if (rows > 0) {
@@ -267,18 +286,18 @@ export class SysUserService {
 
   /**
    * 检查用户名称是否唯一
-   * @param userName 用户名
-   * @param userId 用户ID
+   * @param user_name 用户名
+   * @param user_id 用户ID
    * @returns 结果
    */
   public async checkUniqueByUserName(
-    userName: string,
-    userId: number
+    user_name: string,
+    user_id: number
   ): Promise<boolean> {
     const sysUser = new SysUser();
-    sysUser.userName = userName;
+    sysUser.user_name = user_name;
     const uniqueId = await this.sysUserRepository.checkUnique(sysUser);
-    if (uniqueId === userId) {
+    if (uniqueId === user_id) {
       return true;
     }
     return uniqueId === 0;
@@ -287,17 +306,17 @@ export class SysUserService {
   /**
    * 检查手机号码是否唯一
    * @param phone 手机号码
-   * @param userId 用户ID
+   * @param user_id 用户ID
    * @returns 结果
    */
   public async checkUniqueByPhone(
     phone: string,
-    userId: number
+    user_id: number
   ): Promise<boolean> {
     const sysUser = new SysUser();
-    sysUser.userPhone = phone;
+    sysUser.user_phone = phone;
     const uniqueId = await this.sysUserRepository.checkUnique(sysUser);
-    if (uniqueId === userId) {
+    if (uniqueId === user_id) {
       return true;
     }
     return uniqueId === 0;
@@ -306,17 +325,17 @@ export class SysUserService {
   /**
    * 检查Email是否唯一
    * @param email 手机号码
-   * @param userId 用户ID
+   * @param user_id 用户ID
    * @returns 结果
    */
   public async checkUniqueByEmail(
     email: string,
-    userId: number
+    user_id: number
   ): Promise<boolean> {
     const sysUser = new SysUser();
-    sysUser.userEmail = email;
+    sysUser.user_email = email;
     const uniqueId = await this.sysUserRepository.checkUnique(sysUser);
-    if (uniqueId === userId) {
+    if (uniqueId === user_id) {
       return true;
     }
     return uniqueId === 0;
@@ -324,26 +343,28 @@ export class SysUserService {
 
   /**
    * 通过用户名查询用户信息
-   * @param userName 用户名
+   * @param user_name 用户名
    * @returns 结果
    */
-  public async findByUserName(userName: string): Promise<SysUser> {
-    const userInfo = await this.sysUserRepository.selectByUserName(userName);
-    if (userInfo.userName !== userName) {
+  public async findByUserName(user_name: string): Promise<SysUser> {
+    const userInfo = await this.sysUserRepository.selectByUserName(user_name);
+    if (userInfo.user_name !== user_name) {
       return userInfo;
     }
     // 批量查询部门和角色
     const deptMap = new Map<number, SysDept>();
-    if (userInfo.deptId > 0) {
-      const depts = await this.sysDeptRepository.selectByIds([userInfo.deptId]);
+    if (userInfo.dept_id > 0) {
+      const depts = await this.sysDeptRepository.selectByIds([
+        userInfo.dept_id,
+      ]);
       for (const dept of depts) {
         deptMap.set(dept.id, dept);
       }
     }
     const roleMap = await this.sysRoleRepository.selectByUserIds([userInfo.id]);
-    userInfo.dept = deptMap.get(userInfo.deptId)!;
+    userInfo.dept = deptMap.get(userInfo.dept_id)!;
     userInfo.roles = roleMap.get(userInfo.id) || [];
-    userInfo.roleIds = userInfo.roles.map(r => r.id);
+    userInfo.role_ids = userInfo.roles.map(r => r.id);
     return userInfo;
   }
 
@@ -354,27 +375,29 @@ export class SysUserService {
    */
   public async findByPhone(phone: string): Promise<SysUser> {
     const userInfo = await this.sysUserRepository.selectByPhone(phone);
-    if (userInfo.userPhone !== phone) {
+    if (userInfo.user_phone !== phone) {
       return userInfo;
     }
 
     const deptMap = new Map<number, SysDept>();
-    if (userInfo.deptId > 0) {
-      const depts = await this.sysDeptRepository.selectByIds([userInfo.deptId]);
+    if (userInfo.dept_id > 0) {
+      const depts = await this.sysDeptRepository.selectByIds([
+        userInfo.dept_id,
+      ]);
       for (const dept of depts) {
         deptMap.set(dept.id, dept);
       }
     }
     const roleMap = await this.sysRoleRepository.selectByUserIds([userInfo.id]);
-    userInfo.dept = deptMap.get(userInfo.deptId)!;
+    userInfo.dept = deptMap.get(userInfo.dept_id)!;
     userInfo.roles = roleMap.get(userInfo.id) || [];
-    userInfo.roleIds = userInfo.roles.map(r => r.id);
+    userInfo.role_ids = userInfo.roles.map(r => r.id);
     return userInfo;
   }
 
   /**
    * 根据条件分页查询分配用户角色列表
-   * @param query 查询信息 { roleId:角色ID,auth:是否已分配 }
+   * @param query 查询信息 { role_id:角色ID,auth:是否已分配 }
    * @param filter 角色数据范围过滤对象
    * @returns 结果
    */
@@ -389,10 +412,10 @@ export class SysUserService {
     if (total === 0) {
       return [[], 0];
     }
-    const deptIds = rows.map(u => u.deptId).filter(id => id > 0);
+    const dept_ids = rows.map(u => u.dept_id).filter(id => id > 0);
     const deptMap = new Map<number, SysDept>();
-    if (deptIds.length > 0) {
-      const depts = await this.sysDeptRepository.selectByIds(deptIds);
+    if (dept_ids.length > 0) {
+      const depts = await this.sysDeptRepository.selectByIds(dept_ids);
       for (const dept of depts) {
         deptMap.set(dept.id, dept);
       }
@@ -403,12 +426,12 @@ export class SysUserService {
       roleMap = await this.sysRoleRepository.selectByUserIds(userIds);
     }
     for (const v of rows) {
-      delete (v as Partial<SysUser>).userPassword;
-      delete (v as Partial<SysUser>).userDel;
-      delete (v as Partial<SysUser>).postIds;
-      v.dept = deptMap.get(v.deptId)!;
+      delete (v as Partial<SysUser>).user_password;
+      delete (v as Partial<SysUser>).user_del;
+      delete (v as Partial<SysUser>).post_ids;
+      v.dept = deptMap.get(v.dept_id)!;
       v.roles = roleMap.get(v.id) || [];
-      v.roleIds = v.roles.map(r => r.id);
+      v.role_ids = v.roles.map(r => r.id);
     }
     return [rows, total];
   }
@@ -444,29 +467,29 @@ export class SysUserService {
       // 用户性别
       let sysUserGender = '未知';
       for (const v of dictSysUserGender) {
-        if (row.userGender === v.dataValue) {
-          sysUserGender = v.dataLabel;
+        if (row.user_gender === v.data_value) {
+          sysUserGender = v.data_label;
           break;
         }
       }
       // 账号状态
       let statusValue = '停用';
-      if (row.userStatus === STATUS_YES) {
+      if (row.user_status === STATUS_YES) {
         statusValue = '正常';
       }
       data.push([
         `${row.id ?? 0}`,
-        row.userName ?? '',
-        row.userNick ?? '',
-        row.userEmail ?? '',
-        row.userPhone ?? '',
+        row.user_name ?? '',
+        row.user_nick ?? '',
+        row.user_email ?? '',
+        row.user_phone ?? '',
         sysUserGender,
         statusValue,
         `${row.dept?.id ?? 0}`,
-        row.dept?.deptName ?? '',
-        row.dept?.deptLeader ?? '',
-        row.userLoginIp ?? '',
-        parseDateToRFC3339(row.userLoginTime ?? 0),
+        row.dept?.dept_name ?? '',
+        row.dept?.dept_leader ?? '',
+        row.user_login_ip ?? '',
+        parseDateToRFC3339(row.user_login_time ?? 0),
       ]);
     }
     return await this.fileUtil.csvWriteRecord(data, fileName);
@@ -486,14 +509,13 @@ export class SysUserService {
   ) {
     // 读取默认初始密码
     const initPassword = await this.sysConfigService.findValueByKey(
-      'sys.user.init_password',
-      'sys.user.initPassword'
+      'sys.user.init_password'
     );
     // 读取用户性别字典数据
     const dictSysUserGender =
       await this.sysDictTypeService.findDataByType('sys_user_gender');
     const genderLabelToValueMap = new Map(
-      dictSysUserGender.map(v => [v.dataLabel, v.dataValue])
+      dictSysUserGender.map(v => [v.data_label, v.data_value])
     );
 
     // 导入记录
@@ -526,35 +548,35 @@ export class SysUserService {
 
       // 验证是否存在这个用户
       const newSysUser = await this.findByUserName(item.username);
-      newSysUser.userPassword = initPassword;
-      newSysUser.userName = item.username;
-      newSysUser.userNick = item.nickname;
-      newSysUser.userPhone = item.phone ?? '';
-      newSysUser.userEmail = item.email ?? '';
-      newSysUser.userStatus = sysUserStatus;
-      newSysUser.userGender = sysUserGender;
-      newSysUser.deptId = sysUserDeptId;
-      newSysUser.roleIds = [];
-      newSysUser.postIds = [];
+      newSysUser.user_password = initPassword;
+      newSysUser.user_name = item.username;
+      newSysUser.user_nick = item.nickname;
+      newSysUser.user_phone = item.phone ?? '';
+      newSysUser.user_email = item.email ?? '';
+      newSysUser.user_status = sysUserStatus;
+      newSysUser.user_gender = sysUserGender;
+      newSysUser.dept_id = sysUserDeptId;
+      newSysUser.role_ids = [];
+      newSysUser.post_ids = [];
 
       // 行用户编号
       const rowNo = item.user_id ?? '';
 
       // 检查手机号码格式并判断是否唯一
-      if (newSysUser.userPhone) {
-        if (validMobile(newSysUser.userPhone)) {
+      if (newSysUser.user_phone) {
+        if (validMobile(newSysUser.user_phone)) {
           const uniquePhone = await this.checkUniqueByPhone(
-            newSysUser.userPhone,
+            newSysUser.user_phone,
             newSysUser.id
           );
           if (!uniquePhone) {
-            const msg = `用户编号：${rowNo} 手机号码：${newSysUser.userPhone} 已存在`;
+            const msg = `用户编号：${rowNo} 手机号码：${newSysUser.user_phone} 已存在`;
             failureNum++;
             failureMsgArr.push(msg);
             continue;
           }
         } else {
-          const msg = `用户编号：${rowNo} 手机号码：${newSysUser.userPhone} 格式错误`;
+          const msg = `用户编号：${rowNo} 手机号码：${newSysUser.user_phone} 格式错误`;
           failureNum++;
           failureMsgArr.push(msg);
           continue;
@@ -562,20 +584,20 @@ export class SysUserService {
       }
 
       // 检查邮箱格式并判断是否唯一
-      if (newSysUser.userEmail) {
-        if (validEmail(newSysUser.userEmail)) {
+      if (newSysUser.user_email) {
+        if (validEmail(newSysUser.user_email)) {
           const uniqueEmail = await this.checkUniqueByEmail(
-            newSysUser.userEmail,
+            newSysUser.user_email,
             newSysUser.id
           );
           if (!uniqueEmail) {
-            const msg = `用户编号：${rowNo} 用户邮箱：${newSysUser.userEmail} 已存在`;
+            const msg = `用户编号：${rowNo} 用户邮箱：${newSysUser.user_email} 已存在`;
             failureNum++;
             failureMsgArr.push(msg);
             continue;
           }
         } else {
-          const msg = `用户编号：${rowNo} 用户邮箱：${newSysUser.userEmail} 格式错误`;
+          const msg = `用户编号：${rowNo} 用户邮箱：${newSysUser.user_email} 格式错误`;
           failureNum++;
           failureMsgArr.push(msg);
           continue;
@@ -583,14 +605,14 @@ export class SysUserService {
       }
 
       if (!newSysUser.id) {
-        newSysUser.createBy = operaName;
+        newSysUser.create_by = operaName;
         const insertId = await this.insert(newSysUser);
         if (insertId > 0) {
-          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.userName} 导入成功`;
+          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.user_name} 导入成功`;
           successNum++;
           successMsgArr.push(msg);
         } else {
-          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.userName} 导入失败`;
+          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.user_name} 导入失败`;
           failureNum++;
           failureMsgArr.push(msg);
         }
@@ -599,15 +621,15 @@ export class SysUserService {
 
       // 如果用户已存在 同时 是否更新支持
       if (newSysUser.id > 0 && updateSupport) {
-        newSysUser.userPassword = ''; // 密码不更新
-        newSysUser.updateBy = operaName;
+        newSysUser.user_password = ''; // 密码不更新
+        newSysUser.update_by = operaName;
         const rows = await this.update(newSysUser);
         if (rows > 0) {
-          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.userName} 更新成功`;
+          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.user_name} 更新成功`;
           successNum++;
           successMsgArr.push(msg);
         } else {
-          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.userName} 更新失败`;
+          const msg = `用户编号：${rowNo} 登录账号：${newSysUser.user_name} 更新失败`;
           failureNum++;
           failureMsgArr.push(msg);
         }

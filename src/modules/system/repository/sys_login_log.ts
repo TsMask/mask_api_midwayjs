@@ -23,18 +23,18 @@ export class SysLoginLogRepository {
       .select('s')
       .from(SysLoginLog, 's');
     if (query.login_ip) {
-      tx.andWhere('s.login_ip like :loginIp', {
-        loginIp: query.login_ip + '%',
+      tx.andWhere('s.login_ip like :login_ip', {
+        login_ip: query.login_ip + '%',
       });
     }
     if (query.login_user_name) {
-      tx.andWhere('s.login_user_name like :loginUserName', {
-        loginUserName: query.login_user_name + '%',
+      tx.andWhere('s.login_user_name like :login_user_name', {
+        login_user_name: query.login_user_name + '%',
       });
     }
     if (query.login_status) {
-      tx.andWhere('s.login_status = :loginStatus', {
-        loginStatus: query.login_status,
+      tx.andWhere('s.login_status = :login_status', {
+        login_status: query.login_status,
       });
     }
     const beginTime = normalizeTimeRange(query.create_time_begin, '000');
@@ -63,6 +63,7 @@ export class SysLoginLogRepository {
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       create_time: 's.create_time',
@@ -70,27 +71,14 @@ export class SysLoginLogRepository {
       login_user_name: 's.login_user_name',
       login_status: 's.login_status',
     };
-    let sorted = false;
-    if (query.sort) {
-      for (const item of query.sort.split(',')) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-        sorted = true;
-      }
-    }
-    if (!sorted) {
-      tx.addOrderBy('s.id', 'DESC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.id DESC');
 
     const rows = await tx.getMany();
     return [rows, total];
   }
 
   public async insert(loginLog: SysLoginLog): Promise<number> {
-    loginLog.createTime = Date.now();
     const tx: InsertResult = await this.db
       .queryBuilder('')
       .insert()

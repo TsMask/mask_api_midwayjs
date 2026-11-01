@@ -5,8 +5,7 @@ import { SysJob } from '../modules/job/model/sys_job';
 import { SysJobLog } from '../modules/job/model/sys_job_log';
 // system
 import { SysConfig } from '../modules/system/model/sys_config';
-import { SysDept } from '../modules/system/model/sys_dept';
-import { SysDeptClosure } from '../modules/system/model/sys_dept_closure';
+import { SysDept, SysDeptClosure } from '../modules/system/model/sys_dept';
 import { SysDictData } from '../modules/system/model/sys_dict_data';
 import { SysDictType } from '../modules/system/model/sys_dict_type';
 import { SysLoginLog } from '../modules/system/model/sys_login_log';

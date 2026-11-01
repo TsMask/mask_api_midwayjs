@@ -42,14 +42,14 @@ export class SysPostService {
 
   /**
    * 根据ID查询信息
-   * @param postId ID
+   * @param post_id ID
    * @returns 结果
    */
-  public async findById(postId: number): Promise<SysPost> {
-    if (postId <= 0) {
+  public async findById(post_id: number): Promise<SysPost> {
+    if (post_id <= 0) {
       return new SysPost();
     }
-    const posts = await this.sysPostRepository.selectByIds([postId]);
+    const posts = await this.sysPostRepository.selectByIds([post_id]);
     if (posts.length > 0) {
       return posts[0];
     }
@@ -76,13 +76,13 @@ export class SysPostService {
 
   /**
    * 批量删除信息
-   * @param postIds ID数组
+   * @param post_ids ID数组
    * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(postIds: number[]): Promise<[number, string]> {
+  public async deleteByIds(post_ids: number[]): Promise<[number, string]> {
     // 检查是否存在
-    const posts = await this.sysPostRepository.selectByIds(postIds);
-    if (posts.length < 0) {
+    const posts = await this.sysPostRepository.selectByIds(post_ids);
+    if (posts.length <= 0) {
       return [0, '没有权限访问岗位数据！'];
     }
     for (const post of posts) {
@@ -90,11 +90,11 @@ export class SysPostService {
         post.id
       );
       if (useCount > 0) {
-        return [0, `【${post.postName}】已分配给用户,不能删除`];
+        return [0, `【${post.post_name}】已分配给用户,不能删除`];
       }
     }
-    if (posts.length === postIds.length) {
-      const rows = await this.sysPostRepository.deleteByIds(postIds);
+    if (posts.length === post_ids.length) {
+      const rows = await this.sysPostRepository.deleteByIds(post_ids);
       return [rows, ''];
     }
     return [0, '删除岗位信息失败！'];
@@ -102,18 +102,18 @@ export class SysPostService {
 
   /**
    * 检查岗位名称是否唯一
-   * @param postName 岗位名称
-   * @param postId 岗位ID
+   * @param post_name 岗位名称
+   * @param post_id 岗位ID
    * @returns 数量
    */
   public async checkUniqueByName(
-    postName: string,
-    postId: number
+    post_name: string,
+    post_id: number
   ): Promise<boolean> {
     const sysPost = new SysPost();
-    sysPost.postName = postName;
+    sysPost.post_name = post_name;
     const uniqueId = await this.sysPostRepository.checkUnique(sysPost);
-    if (uniqueId === postId) {
+    if (uniqueId === post_id) {
       return true;
     }
     return uniqueId === 0;
@@ -121,18 +121,18 @@ export class SysPostService {
 
   /**
    * 检查岗位编码是否唯一
-   * @param postCode 岗位名称
-   * @param postId 岗位ID
+   * @param post_code 岗位名称
+   * @param post_id 岗位ID
    * @returns 数量
    */
   public async checkUniqueByCode(
-    postCode: string,
-    postId: number
+    post_code: string,
+    post_id: number
   ): Promise<boolean> {
     const sysPost = new SysPost();
-    sysPost.postCode = postCode;
+    sysPost.post_code = post_code;
     const uniqueId = await this.sysPostRepository.checkUnique(sysPost);
-    if (uniqueId === postId) {
+    if (uniqueId === post_id) {
       return true;
     }
     return uniqueId === 0;
@@ -140,11 +140,11 @@ export class SysPostService {
 
   /**
    * 根据用户ID获取岗位选择框列表
-   * @param userId 用户ID
+   * @param user_id 用户ID
    * @returns 数量
    */
-  public async findByUserId(userId: number): Promise<SysPost[]> {
-    return await this.sysPostRepository.selectByUserId(userId);
+  public async findByUserId(user_id: number): Promise<SysPost[]> {
+    return await this.sysPostRepository.selectByUserId(user_id);
   }
 
   /**
@@ -161,14 +161,14 @@ export class SysPostService {
     for (const row of rows) {
       // 状态
       let statusValue = '停用';
-      if (row.postStatus === '1') {
+      if (row.post_status === '1') {
         statusValue = '正常';
       }
       data.push([
         `${row.id ?? 0}`,
-        row.postCode ?? '',
-        row.postName ?? '',
-        `${row.postSort ?? 0}`,
+        row.post_code ?? '',
+        row.post_name ?? '',
+        `${row.post_sort ?? 0}`,
         statusValue,
       ]);
     }

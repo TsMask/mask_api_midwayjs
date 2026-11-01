@@ -50,7 +50,7 @@ export class SysConfigController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysConfigService.findByPage(query);
-    return Resp.okData({ rows, total });
+    return Resp.okData({ rows: rows, total });
   }
 
   /**参数配置信息 */
@@ -88,15 +88,9 @@ export class SysConfigController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id not is empty');
     }
-    const bindErr = this.validateConfigBody(body);
-    if (bindErr) {
-      this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, bindErr);
-    }
-
     const valueTypeErr = this.sysConfigService.checkValidateValueType(
-      body.configValueType,
-      body.configValue
+      body.config_value_type,
+      body.config_value
     );
     if (valueTypeErr) {
       this.c.status = 422;
@@ -105,16 +99,16 @@ export class SysConfigController {
 
     // 检查属性值唯一
     const uniqueConfigKey = await this.sysConfigService.checkUniqueByKey(
-      body.configKey,
+      body.config_key,
       0
     );
     if (!uniqueConfigKey) {
       return Resp.errMsg(
-        `参数配置新增【${body.configKey}】失败，参数键名已存在`
+        `参数配置新增【${body.config_key}】失败，参数键名已存在`
       );
     }
 
-    body.createBy = loginUserToUserName(this.c);
+    body.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysConfigService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -137,21 +131,15 @@ export class SysConfigController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
     }
-    const bindErr = this.validateConfigBody(body);
-    if (bindErr) {
-      this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, bindErr);
-    }
-
     // 检查是否存在
     const configInfo = await this.sysConfigService.findById(body.id);
     if (configInfo.id !== body.id) {
-      return Resp.errMsg('没有权限访问参数配置数据！');
+      return Resp.errMsg('没有权限访问参数配置数据');
     }
 
     const valueTypeErr = this.sysConfigService.checkValidateValueType(
-      body.configValueType,
-      body.configValue
+      body.config_value_type,
+      body.config_value
     );
     if (valueTypeErr) {
       this.c.status = 422;
@@ -160,24 +148,24 @@ export class SysConfigController {
 
     // 检查属性值唯一
     const uniqueConfigKey = await this.sysConfigService.checkUniqueByKey(
-      body.configKey,
+      body.config_key,
       body.id
     );
     if (!uniqueConfigKey) {
       return Resp.errMsg(
-        `参数配置修改【${body.configKey}】失败，参数键名已存在`
+        `参数配置修改【${body.config_key}】失败，参数键名已存在`
       );
     }
 
-    configInfo.configValueType = body.configValueType;
-    configInfo.configGroup = body.configGroup;
-    configInfo.configSort = body.configSort;
-    configInfo.configStatus = body.configStatus;
-    configInfo.configName = body.configName;
-    configInfo.configKey = body.configKey;
-    configInfo.configValue = body.configValue;
+    configInfo.config_value_type = body.config_value_type;
+    configInfo.config_group = body.config_group;
+    configInfo.config_sort = body.config_sort;
+    configInfo.config_status = body.config_status;
+    configInfo.config_name = body.config_name;
+    configInfo.config_key = body.config_key;
+    configInfo.config_value = body.config_value;
     configInfo.remark = body.remark;
-    configInfo.updateBy = loginUserToUserName(this.c);
+    configInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysConfigService.update(configInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -212,7 +200,7 @@ export class SysConfigController {
     if (err) {
       return Resp.errMsg(err);
     }
-    return Resp.okMsg(`删除成功: ${rows}`);
+    return Resp.okMsg(`删除成功！${rows}`);
   }
 
   /**参数配置刷新缓存 */
@@ -242,14 +230,14 @@ export class SysConfigController {
       }),
     ],
   })
-  public async configKey(
-    @Valid(Joi.string().allow('')) @Param('config_key') configKey: string
+  public async config_key(
+    @Valid(Joi.string().allow('')) @Param('config_key') config_key: string
   ): Promise<Resp> {
-    if (configKey === '') {
+    if (config_key === '') {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: configKey is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: config_key is empty');
     }
-    const key = await this.sysConfigService.findValueByKey(configKey);
+    const key = await this.sysConfigService.findValueByKey(config_key);
     if (key) {
       return Resp.okData(key);
     }
@@ -278,12 +266,5 @@ export class SysConfigController {
     this.c.set('content-Type', 'text/csv; charset=utf-8');
     this.c.set('content-disposition', `attachment; filename="${fileName}"`);
     return await this.sysConfigService.exportData(rows, fileName);
-  }
-
-  private validateConfigBody(body: SysConfig): string {
-    if (!body.configName) return 'bind err: configName is required';
-    if (!body.configKey) return 'bind err: configKey is required';
-    if (!body.configValue) return 'bind err: configValue is required';
-    return '';
   }
 }

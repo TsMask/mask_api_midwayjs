@@ -13,11 +13,11 @@ export class SysUserPostRepository {
 
   /**
    * 存在用户使用数量
-   * @param postId 岗位ID
+   * @param post_id 岗位ID
    * @returns 数量
    */
-  public async existUserByPostId(postId: number): Promise<number> {
-    if (postId <= 0) {
+  public async existUserByPostId(post_id: number): Promise<number> {
+    if (post_id <= 0) {
       return 0;
     }
     const count = await this.db
@@ -25,7 +25,7 @@ export class SysUserPostRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUserPost, 's')
-      .andWhere('s.post_id = :postId', { postId })
+      .andWhere('s.post_id = :post_id', { post_id })
       .getCount();
     return count;
   }
@@ -45,7 +45,7 @@ export class SysUserPostRepository {
     }
     if (entityManager) {
       const result: DeleteResult = await entityManager.delete(SysUserPost, {
-        userId: In(userIds),
+        user_id: In(userIds),
       });
       return result.affected ?? 0;
     }

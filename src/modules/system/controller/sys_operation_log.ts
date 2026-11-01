@@ -10,7 +10,7 @@ import { loginUserToDataScopeSQL } from '../../../internal/web/reqctx/auth';
 import { Resp } from '../../../internal/web/resp/api';
 import { SysOperationLogService } from '../service/sys_operation_log';
 
-/**系统操作日志信息 控制层处�*/
+/**系统操作日志信息 控制层处理 */
 @Controller('/api/v1/system/logs/operation')
 export class SysOperationLogController {
   @Inject('ctx')
@@ -32,7 +32,7 @@ export class SysOperationLogController {
       query,
       filter
     );
-    return Resp.okData({ rows, total });
+    return Resp.okData({ rows: rows, total });
   }
 
   @Del('/clean', {

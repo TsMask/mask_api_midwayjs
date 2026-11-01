@@ -26,14 +26,16 @@ import {
   OperateLogMiddleware,
 } from '../../../internal/web/middleware/operate_log';
 import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/authorize_user';
-import { STATUS_NO, STATUS_YES } from '../../../internal/shared/constants/common';
+import {
+  STATUS_NO,
+  STATUS_YES,
+} from '../../../internal/shared/constants/common';
 import { validHttp } from '../../../internal/shared/regular/regular';
 import { GlobalConfig } from '../../../internal/config/config';
 import { Resp } from '../../../internal/web/resp/api';
 import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
 import { SysMenuService } from '../service/sys_menu';
 import { SysMenu } from '../model/sys_menu';
-import { serializeSysMenu } from '../model/vo/response';
 
 /** Menu management controller. */
 @Controller('/api/v1/system/menus')
@@ -52,30 +54,30 @@ export class SysMenuController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const sysMenu = new SysMenu();
-    if (query.menu_name) sysMenu.menuName = query.menu_name;
-    if (query.menu_status) sysMenu.menuStatus = query.menu_status;
+    if (query.menu_name) sysMenu.menu_name = query.menu_name;
+    if (query.menu_status) sysMenu.menu_status = query.menu_status;
 
-    let userId = loginUserToUserID(this.c);
-    if (this.config.isSystemUser(userId)) {
-      userId = 0;
+    let user_id = loginUserToUserID(this.c);
+    if (this.config.isSystemUser(user_id)) {
+      user_id = 0;
     }
-    const data = await this.sysMenuService.find(sysMenu, userId);
-    return Resp.okData(data.map(serializeSysMenu));
+    const data = await this.sysMenuService.find(sysMenu, user_id);
+    return Resp.okData(data);
   }
 
   @Get('/:id', {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:menu:query'] })],
   })
   public async info(
-    @Valid(Joi.number()) @Param('id') menuId: number
+    @Valid(Joi.number()) @Param('id') menu_id: number
   ): Promise<Resp> {
-    if (menuId <= 0) {
+    if (menu_id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
     }
-    const data = await this.sysMenuService.findById(menuId);
-    if (data.id === menuId) {
-      return Resp.okData(serializeSysMenu(data));
+    const data = await this.sysMenuService.findById(menu_id);
+    if (data.id === menu_id) {
+      return Resp.okData(data);
     }
     return Resp.err();
   }
@@ -89,50 +91,48 @@ export class SysMenuController {
       }),
     ],
   })
-  public async add(@Body() rawBody: Record<string, any>): Promise<Resp> {
-    const body = this.parseBody(rawBody);
+  public async add(@Body() body: SysMenu): Promise<Resp> {
     if (body.id > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: menuId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: menu_id not is empty');
     }
-
-    if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(body.menuType)) {
+    if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(body.menu_type)) {
       if (
-        !validHttp(body.menuPath) &&
-        (body.menuPath === '' || !body.menuPath.startsWith('/'))
+        !validHttp(body.menu_path) &&
+        (body.menu_path === '' || !body.menu_path.startsWith('/'))
       ) {
         return Resp.errMsg(
-          `菜单新增【${body.menuName}】失败，菜单路由地址已存在`
+          `菜单新增【${body.menu_name}】失败，普通路由地址必须以 / 开头`
         );
       }
       const uniqueMenuPath = await this.sysMenuService.checkUniqueMenuPath(
-        body.menuPath,
+        body.menu_path,
         0
       );
       if (!uniqueMenuPath) {
         return Resp.errMsg(
-          `菜单新增【${body.menuName}】失败，菜单路由地址已存在`
+          `菜单新增【${body.menu_name}】失败，菜单路由地址已存在`
         );
       }
     }
 
     const uniqueMenuName =
       await this.sysMenuService.checkUniqueParentIdByMenuName(
-        body.parentId,
-        body.menuName,
+        body.parent_id,
+        body.menu_name,
         0
       );
     if (!uniqueMenuName) {
-      return Resp.errMsg(`菜单新增【${body.menuName}】失败，菜单名称已存在`);
+      return Resp.errMsg(`菜单新增【${body.menu_name}】失败，菜单名称已存在`);
     }
 
-    if (body.menuExternal === STATUS_YES && !validHttp(body.menuPath)) {
+    if (body.menu_external === STATUS_YES && !validHttp(body.menu_path)) {
       return Resp.errMsg(
-        `菜单新增【${body.menuName}】失败，非内部地址必须以http(s)://开头`
+        `菜单新增【${body.menu_name}】失败，非内部地址必须以http(s)://开头`
       );
     }
 
-    body.createBy = loginUserToUserName(this.c);
+    body.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysMenuService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -149,15 +149,14 @@ export class SysMenuController {
       }),
     ],
   })
-  public async edit(@Body() rawBody: Record<string, any>): Promise<Resp> {
-    const body = this.parseBody(rawBody);
+  public async edit(@Body() body: SysMenu): Promise<Resp> {
     if (body.id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: menuId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: menu_id is empty');
     }
-    if (body.id === body.parentId) {
+    if (body.id === body.parent_id) {
       return Resp.errMsg(
-        `菜单修改【${body.menuName}】失败，上级菜单不能选择自己`
+        `菜单修改【${body.menu_name}】失败，上级菜单不能选择自己`
       );
     }
 
@@ -165,56 +164,56 @@ export class SysMenuController {
     if (menuInfo.id !== body.id) {
       return Resp.errMsg('没有权限访问菜单数据');
     }
-    if (body.parentId > 0) {
-      const menuParent = await this.sysMenuService.findById(body.parentId);
-      if (menuParent.id !== body.parentId) {
+    if (body.parent_id > 0) {
+      const menuParent = await this.sysMenuService.findById(body.parent_id);
+      if (menuParent.id !== body.parent_id) {
         return Resp.errMsg('没有权限访问菜单数据');
       }
       if (
-        body.menuStatus === STATUS_YES &&
-        menuParent.menuStatus === STATUS_NO
+        body.menu_status === STATUS_YES &&
+        menuParent.menu_status === STATUS_NO
       ) {
         return Resp.errMsg('上级菜单未启用！');
       }
     }
 
-    if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(body.menuType)) {
+    if ([MENU_TYPE_DIR, MENU_TYPE_MENU].includes(body.menu_type)) {
       if (
-        !validHttp(body.menuPath) &&
-        (body.menuPath === '' || !body.menuPath.startsWith('/'))
+        !validHttp(body.menu_path) &&
+        (body.menu_path === '' || !body.menu_path.startsWith('/'))
       ) {
         return Resp.errMsg(
-          `菜单修改【${body.menuName}】失败，菜单路由地址已存在`
+          `菜单修改【${body.menu_name}】失败，普通路由地址必须以 / 开头`
         );
       }
       const uniqueMenuPath = await this.sysMenuService.checkUniqueMenuPath(
-        body.menuPath,
+        body.menu_path,
         body.id
       );
       if (!uniqueMenuPath) {
         return Resp.errMsg(
-          `菜单修改【${body.menuName}】失败，菜单路由地址已存在`
+          `菜单修改【${body.menu_name}】失败，菜单路由地址已存在`
         );
       }
     }
 
     const uniqueMenuName =
       await this.sysMenuService.checkUniqueParentIdByMenuName(
-        body.parentId,
-        body.menuName,
+        body.parent_id,
+        body.menu_name,
         body.id
       );
     if (!uniqueMenuName) {
-      return Resp.errMsg(`菜单修改【${body.menuName}】失败，菜单名称已存在`);
+      return Resp.errMsg(`菜单修改【${body.menu_name}】失败，菜单名称已存在`);
     }
 
-    if (body.menuExternal === STATUS_YES && !validHttp(body.menuPath)) {
+    if (body.menu_external === STATUS_YES && !validHttp(body.menu_path)) {
       return Resp.errMsg(
-        `菜单修改【${body.menuName}】失败，上级菜单不能选择自己`
+        `菜单修改【${body.menu_name}】失败，非内部地址必须以http(s)://开头`
       );
     }
 
-    if (body.menuStatus === STATUS_NO) {
+    if (body.menu_status === STATUS_NO) {
       const hasStatus =
         await this.sysMenuService.existChildrenByMenuIdAndStatus(
           body.id,
@@ -225,20 +224,20 @@ export class SysMenuController {
       }
     }
 
-    menuInfo.parentId = body.parentId;
-    menuInfo.menuName = body.menuName;
-    menuInfo.menuType = body.menuType;
-    menuInfo.menuSort = body.menuSort;
-    menuInfo.menuPath = body.menuPath;
-    menuInfo.menuComponent = body.menuComponent;
-    menuInfo.menuExternal = body.menuExternal;
-    menuInfo.menuCache = body.menuCache;
-    menuInfo.menuVisible = body.menuVisible;
-    menuInfo.menuStatus = body.menuStatus;
-    menuInfo.menuPerms = body.menuPerms;
-    menuInfo.menuIcon = body.menuIcon;
+    menuInfo.parent_id = body.parent_id;
+    menuInfo.menu_name = body.menu_name;
+    menuInfo.menu_type = body.menu_type;
+    menuInfo.menu_sort = body.menu_sort;
+    menuInfo.menu_path = body.menu_path;
+    menuInfo.menu_component = body.menu_component;
+    menuInfo.menu_external = body.menu_external;
+    menuInfo.menu_cache = body.menu_cache;
+    menuInfo.menu_visible = body.menu_visible;
+    menuInfo.menu_status = body.menu_status;
+    menuInfo.menu_perms = body.menu_perms;
+    menuInfo.menu_icon = body.menu_icon;
     menuInfo.remark = body.remark;
-    menuInfo.updateBy = loginUserToUserName(this.c);
+    menuInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysMenuService.update(menuInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -256,31 +255,31 @@ export class SysMenuController {
     ],
   })
   public async remove(
-    @Valid(Joi.number()) @Param('id') menuId: number
+    @Valid(Joi.number()) @Param('id') menu_id: number
   ): Promise<Resp> {
-    if (menuId <= 0) {
+    if (menu_id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: id is empty');
     }
 
-    const menu = await this.sysMenuService.findById(menuId);
-    if (menu.id !== menuId) {
-      return Resp.errMsg('没有权限访问菜单数据');
+    const menu = await this.sysMenuService.findById(menu_id);
+    if (menu.id !== menu_id) {
+      return Resp.errMsg('没有权限访问菜单数据！');
     }
     const hasChild = await this.sysMenuService.existChildrenByMenuIdAndStatus(
-      menuId,
+      menu_id,
       ''
     );
     if (hasChild > 0) {
       return Resp.errMsg(`不允许删除，存在子菜单数：${hasChild}`);
     }
-    const existRole = await this.sysMenuService.existRoleByMenuId(menuId);
+    const existRole = await this.sysMenuService.existRoleByMenuId(menu_id);
     if (existRole > 0) {
       return Resp.errMsg(`不允许删除，菜单已分配给角色数：${existRole}`);
     }
-    const rows = await this.sysMenuService.deleteById(menuId);
+    const rows = await this.sysMenuService.deleteById(menu_id);
     if (rows > 0) {
-      return Resp.okMsg(`删除成功�{rows}`);
+      return Resp.okMsg(`删除成功：${rows}`);
     }
     return Resp.err();
   }
@@ -294,16 +293,16 @@ export class SysMenuController {
   })
   public async tree(@Query() query: Record<string, string>): Promise<Resp> {
     const sysMenu = new SysMenu();
-    if (query.menu_name) sysMenu.menuName = query.menu_name;
-    if (query.menu_status) sysMenu.menuStatus = query.menu_status;
+    if (query.menu_name) sysMenu.menu_name = query.menu_name;
+    if (query.menu_status) sysMenu.menu_status = query.menu_status;
 
-    let userId = loginUserToUserID(this.c);
-    if (this.config.isSystemUser(userId)) {
-      userId = 0;
+    let user_id = loginUserToUserID(this.c);
+    if (this.config.isSystemUser(user_id)) {
+      user_id = 0;
     }
     const trees = await this.sysMenuService.buildTreeSelectByUserId(
       sysMenu,
-      userId
+      user_id
     );
     return Resp.okData(trees);
   }
@@ -316,48 +315,29 @@ export class SysMenuController {
     ],
   })
   public async treeRole(
-    @Param('role_id') roleId: number,
+    @Param('role_id') role_id: number,
     @Query() query: Record<string, string>
   ): Promise<Resp> {
-    if (roleId <= 0) {
+    if (role_id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
     }
     const sysMenu = new SysMenu();
-    if (query.menu_name) sysMenu.menuName = query.menu_name;
-    if (query.menu_status) sysMenu.menuStatus = query.menu_status;
+    if (query.menu_name) sysMenu.menu_name = query.menu_name;
+    if (query.menu_status) sysMenu.menu_status = query.menu_status;
 
-    let userId = loginUserToUserID(this.c);
-    if (this.config.isSystemUser(userId)) {
-      userId = 0;
+    let user_id = loginUserToUserID(this.c);
+    if (this.config.isSystemUser(user_id)) {
+      user_id = 0;
     }
     const menus = await this.sysMenuService.buildTreeSelectByUserId(
       sysMenu,
-      userId
+      user_id
     );
-    const checkedKeys = await this.sysMenuService.findByRoleId(roleId);
+    const checkedKeys = await this.sysMenuService.findByRoleId(role_id);
     return Resp.okData({
       menus,
       checked_keys: checkedKeys,
     });
-  }
-
-  private parseBody(body: Record<string, any>): SysMenu {
-    const menu = new SysMenu();
-    menu.id = Number(body?.id ?? 0) || 0;
-    menu.parentId = Number(body?.parent_id ?? 0) || 0;
-    menu.menuName = String(body?.menu_name ?? '');
-    menu.menuSort = Number(body?.menu_sort ?? 0) || 0;
-    menu.menuPath = String(body?.menu_path ?? '');
-    menu.menuComponent = String(body?.menu_component ?? '');
-    menu.menuPerms = String(body?.menu_perms ?? '');
-    menu.menuIcon = String(body?.menu_icon ?? '');
-    menu.menuExternal = String(body?.menu_external ?? '0');
-    menu.menuCache = String(body?.menu_cache ?? '1');
-    menu.menuType = String(body?.menu_type ?? '');
-    menu.menuVisible = String(body?.menu_visible ?? '1');
-    menu.menuStatus = String(body?.menu_status ?? '1');
-    menu.remark = String(body?.remark ?? '');
-    return menu;
   }
 }

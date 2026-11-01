@@ -1,5 +1,11 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import {
+  DeleteResult,
+  EntityManager,
+  In,
+  InsertResult,
+  UpdateResult,
+} from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../internal/infra/database/db';
@@ -23,18 +29,18 @@ export class SysRoleRepository {
       .from(SysRole, 's')
       .andWhere("s.role_del = '0'");
     if (query.role_name) {
-      tx.andWhere('s.role_name like :roleName', {
-        roleName: query.role_name + '%',
+      tx.andWhere('s.role_name like :role_name', {
+        role_name: query.role_name + '%',
       });
     }
     if (query.role_key) {
-      tx.andWhere('s.role_key like :roleKey', {
-        roleKey: query.role_key + '%',
+      tx.andWhere('s.role_key like :role_key', {
+        role_key: query.role_key + '%',
       });
     }
     if (query.role_status) {
-      tx.andWhere('s.role_status = :roleStatus', {
-        roleStatus: query.role_status,
+      tx.andWhere('s.role_status = :role_status', {
+        role_status: query.role_status,
       });
     }
     if (query.create_time_begin) {
@@ -59,16 +65,16 @@ export class SysRoleRepository {
         });
       }
     }
-    const deptId = query.dept_id ?? query.deptId;
-    if (deptId) {
+    const dept_id = query.dept_id;
+    if (dept_id) {
       tx.andWhere(
         `s.id in (
           select distinct role_id from sys_role_dept
           where sys_role_dept.dept_id in (
-            select descendant_id from sys_dept_closure where ancestor_id = :deptId
+            select descendant_id from sys_dept_closure where ancestor_id = :dept_id
           )
         )`,
-        { deptId }
+        { dept_id }
       );
     }
 
@@ -78,10 +84,12 @@ export class SysRoleRepository {
     }
 
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.page_num ?? query.pageNum,
-      query.page_size ?? query.pageSize
+      query.page_num,
+      query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
+
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       create_time: 's.create_time',
@@ -92,17 +100,11 @@ export class SysRoleRepository {
       role_status: 's.role_status',
       role_data_scope: 's.role_data_scope',
     };
-    if (query.sort) {
-      for (const item of query.sort.split(',')) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        tx.addOrderBy(column, dir === 'asc' ? 'ASC' : 'DESC');
-      }
-    } else {
-      tx.addOrderBy('s.role_sort', 'ASC');
-    }
-    return [await tx.getMany(), total];
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.role_sort ASC');
+
+    const rows = await tx.getMany();
+    return [rows, total];
   }
 
   public async select(sysRole: SysRole): Promise<SysRole[]> {
@@ -112,26 +114,26 @@ export class SysRoleRepository {
       .select('s')
       .from(SysRole, 's')
       .andWhere("s.role_del = '0'");
-    if (sysRole.roleKey) {
-      tx.andWhere('s.role_key like :roleKey', {
-        roleKey: sysRole.roleKey + '%',
+    if (sysRole.role_key) {
+      tx.andWhere('s.role_key like :role_key', {
+        role_key: sysRole.role_key + '%',
       });
     }
-    if (sysRole.roleName) {
-      tx.andWhere('s.role_name like :roleName', {
-        roleName: sysRole.roleName + '%',
+    if (sysRole.role_name) {
+      tx.andWhere('s.role_name like :role_name', {
+        role_name: sysRole.role_name + '%',
       });
     }
-    if (sysRole.roleStatus) {
-      tx.andWhere('s.role_status = :roleStatus', {
-        roleStatus: sysRole.roleStatus,
+    if (sysRole.role_status) {
+      tx.andWhere('s.role_status = :role_status', {
+        role_status: sysRole.role_status,
       });
     }
     return await tx.addOrderBy('s.role_sort', 'ASC').getMany();
   }
 
-  public async selectByIds(roleIds: number[]): Promise<SysRole[]> {
-    if (roleIds.length <= 0) {
+  public async selectByIds(role_ids: number[]): Promise<SysRole[]> {
+    if (role_ids.length <= 0) {
       return [];
     }
     return await this.db
@@ -139,17 +141,25 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere("s.id in (:roleIds) and s.role_del = '0'", { roleIds })
+      .andWhere("s.id in (:role_ids) and s.role_del = '0'", { role_ids })
       .getMany();
   }
 
-  public async insert(sysRole: SysRole): Promise<number> {
-    sysRole.roleDel = '0';
-    if (sysRole.createBy) {
-      const ms = Date.now().valueOf();
-      sysRole.updateBy = sysRole.createBy;
-      sysRole.updateTime = ms;
-      sysRole.createTime = ms;
+  public async insert(
+    sysRole: SysRole,
+    entityManager?: EntityManager
+  ): Promise<number> {
+    sysRole.role_del = '0';
+    if (sysRole.create_by) {
+      const ms = Date.now();
+      sysRole.update_by = sysRole.create_by;
+      sysRole.update_time = ms;
+      sysRole.create_time = ms;
+    }
+    if (entityManager) {
+      const result: InsertResult = await entityManager.insert(SysRole, sysRole);
+      const raw: ResultSetHeader = result.raw;
+      return raw.insertId > 0 ? raw.insertId : 0;
     }
     const tx: InsertResult = await this.db
       .queryBuilder('')
@@ -161,20 +171,31 @@ export class SysRoleRepository {
     return raw.insertId > 0 ? raw.insertId : 0;
   }
 
-  public async update(sysRole: SysRole): Promise<number> {
+  public async update(
+    sysRole: SysRole,
+    entityManager?: EntityManager
+  ): Promise<number> {
     if (sysRole.id <= 0) {
       return 0;
     }
-    if (sysRole.updateBy) {
-      sysRole.updateTime = Date.now().valueOf();
+    if (sysRole.update_by) {
+      sysRole.update_time = Date.now();
     }
     const data = Object.assign({}, sysRole);
     delete (data as Partial<SysRole>).id;
-    delete (data as Partial<SysRole>).roleDel;
-    delete (data as Partial<SysRole>).createBy;
-    delete (data as Partial<SysRole>).createTime;
-    delete (data as Partial<SysRole>).deptIds;
-    delete (data as Partial<SysRole>).menuIds;
+    delete (data as Partial<SysRole>).role_del;
+    delete (data as Partial<SysRole>).create_by;
+    delete (data as Partial<SysRole>).create_time;
+    delete (data as Partial<SysRole>).dept_ids;
+    delete (data as Partial<SysRole>).menu_ids;
+    if (entityManager) {
+      const result: UpdateResult = await entityManager.update(
+        SysRole,
+        sysRole.id,
+        data
+      );
+      return result.affected ?? 0;
+    }
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
@@ -185,13 +206,24 @@ export class SysRoleRepository {
     return tx.affected ?? 0;
   }
 
-  public async deleteByIds(roleIds: number[]): Promise<number> {
-    if (roleIds.length === 0) return 0;
+  public async deleteByIds(
+    role_ids: number[],
+    entityManager?: EntityManager
+  ): Promise<number> {
+    if (role_ids.length === 0) return 0;
+    if (entityManager) {
+      const result: DeleteResult = await entityManager.update(
+        SysRole,
+        { id: In(role_ids) },
+        { role_del: '1' }
+      );
+      return result.affected ?? 0;
+    }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .update(SysRole)
-      .set({ roleDel: '1' })
-      .andWhere('id in (:roleIds)', { roleIds })
+      .set({ role_del: '1' })
+      .andWhere('id in (:role_ids)', { role_ids })
       .execute();
     return tx.affected ?? 0;
   }
@@ -203,18 +235,18 @@ export class SysRoleRepository {
       .select('s.id', 'id')
       .from(SysRole, 's')
       .andWhere("s.role_del = '0'");
-    if (sysRole.roleName) {
-      tx.andWhere('s.role_name = :roleName', { roleName: sysRole.roleName });
+    if (sysRole.role_name) {
+      tx.andWhere('s.role_name = :role_name', { role_name: sysRole.role_name });
     }
-    if (sysRole.roleKey) {
-      tx.andWhere('s.role_key = :roleKey', { roleKey: sysRole.roleKey });
+    if (sysRole.role_key) {
+      tx.andWhere('s.role_key = :role_key', { role_key: sysRole.role_key });
     }
     const row = await tx.getRawOne();
     return Number(row?.id ?? 0);
   }
 
-  public async selectByUserId(userId: number): Promise<SysRole[]> {
-    if (userId <= 0) {
+  public async selectByUserId(user_id: number): Promise<SysRole[]> {
+    if (user_id <= 0) {
       return [];
     }
     return await this.db
@@ -226,9 +258,9 @@ export class SysRoleRepository {
       .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
       .leftJoin('sys_user', 'u', 'u.id = ur.user_id')
       .andWhere(
-        "u.user_del = '0' and r.role_del = '0' and ur.user_id = :userId",
+        "u.user_del = '0' and r.role_del = '0' and ur.user_id = :user_id",
         {
-          userId,
+          user_id,
         }
       )
       .getMany();
@@ -244,16 +276,16 @@ export class SysRoleRepository {
     const rows = await this.db
       .queryBuilder('')
       .createQueryBuilder()
-      .select('ur.user_id', 'userId')
+      .select('ur.user_id', 'user_id')
       .addSelect('r.id', 'id')
-      .addSelect('r.role_name', 'roleName')
-      .addSelect('r.role_key', 'roleKey')
-      .addSelect('r.role_sort', 'roleSort')
-      .addSelect('r.role_data_scope', 'roleDataScope')
-      .addSelect('r.role_menu_check_strictly', 'roleMenuCheckStrictly')
-      .addSelect('r.role_dept_check_strictly', 'roleDeptCheckStrictly')
-      .addSelect('r.role_status', 'roleStatus')
-      .addSelect('r.role_del', 'roleDel')
+      .addSelect('r.role_name', 'role_name')
+      .addSelect('r.role_key', 'role_key')
+      .addSelect('r.role_sort', 'role_sort')
+      .addSelect('r.role_data_scope', 'role_data_scope')
+      .addSelect('r.role_menu_check_strictly', 'role_menu_check_strictly')
+      .addSelect('r.role_dept_check_strictly', 'role_dept_check_strictly')
+      .addSelect('r.role_status', 'role_status')
+      .addSelect('r.role_del', 'role_del')
       .from(SysRole, 'r')
       .innerJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
       .andWhere("r.role_del = '0' and ur.user_id in (:userIds)", { userIds })
@@ -262,19 +294,19 @@ export class SysRoleRepository {
     for (const row of rows) {
       const role = new SysRole();
       role.id = Number(row.id);
-      role.roleName = row.roleName;
-      role.roleKey = row.roleKey;
-      role.roleSort = Number(row.roleSort);
-      role.roleDataScope = row.roleDataScope;
-      role.roleMenuCheckStrictly = row.roleMenuCheckStrictly;
-      role.roleDeptCheckStrictly = row.roleDeptCheckStrictly;
-      role.roleStatus = row.roleStatus;
-      role.roleDel = row.roleDel;
+      role.role_name = row.role_name;
+      role.role_key = row.role_key;
+      role.role_sort = Number(row.role_sort);
+      role.role_data_scope = row.role_data_scope;
+      role.role_menu_check_strictly = row.role_menu_check_strictly;
+      role.role_dept_check_strictly = row.role_dept_check_strictly;
+      role.role_status = row.role_status;
+      role.role_del = row.role_del;
 
-      const userId = Number(row.userId);
-      const existing = roleMap.get(userId) || [];
+      const user_id = Number(row.user_id);
+      const existing = roleMap.get(user_id) || [];
       existing.push(role);
-      roleMap.set(userId, existing);
+      roleMap.set(user_id, existing);
     }
     return roleMap;
   }

@@ -32,7 +32,7 @@ export class SysLoginLogController {
       query,
       filter
     );
-    return Resp.okData({ rows, total });
+    return Resp.okData({ rows: rows, total });
   }
 
   @Del('/clean', {

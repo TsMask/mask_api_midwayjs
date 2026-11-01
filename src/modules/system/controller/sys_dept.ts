@@ -42,19 +42,20 @@ export class SysDeptController {
   })
   public async list(
     @Valid(Joi.number()) @Query('id') id: number,
-    @Valid(Joi.number()) @Query('parent_id') parentId: number,
-    @Valid(Joi.string()) @Query('dept_name') deptName: string,
+    @Valid(Joi.number()) @Query('parent_id') parent_id: number,
+    @Valid(Joi.string()) @Query('dept_name') dept_name: string,
     @Valid(Joi.string().pattern(/^[01]$/))
     @Query('dept_status')
-    deptStatus: string
+    dept_status: string
   ): Promise<Resp> {
     const sysDept = new SysDept();
     sysDept.id = id;
-    sysDept.parentId = parentId;
-    sysDept.deptName = deptName;
-    sysDept.deptStatus = deptStatus;
+    sysDept.parent_id = parent_id;
+    sysDept.dept_name = dept_name;
+    sysDept.dept_status = dept_status;
     const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
-    return Resp.okData(await this.sysDeptService.find(sysDept, filter));
+    const rows = await this.sysDeptService.find(sysDept, filter);
+    return Resp.okData(rows);
   }
 
   @Get('/:id', {
@@ -80,37 +81,31 @@ export class SysDeptController {
       }),
     ],
   })
-  public async add(@Body() body: Record<string, any>): Promise<Resp> {
-    const dept = this.parseBody(body);
+  public async add(@Body() dept: SysDept): Promise<Resp> {
     if (dept.id > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dept_id not is empty');
     }
-    if (!dept.deptName) {
-      this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dept_name is required');
-    }
-
-    if (dept.parentId > 0) {
-      const parent = await this.sysDeptService.findById(dept.parentId);
-      if (parent.id !== dept.parentId) {
+    if (dept.parent_id > 0) {
+      const parent = await this.sysDeptService.findById(dept.parent_id);
+      if (parent.id !== dept.parent_id) {
         return Resp.errMsg('没有权限访问部门数据！');
       }
-      if (parent.deptStatus === STATUS_NO) {
-        return Resp.errMsg(`上级部门�{parent.deptName}】停用，不允许新增`);
+      if (parent.dept_status === STATUS_NO) {
+        return Resp.errMsg(`上级部门【${parent.dept_name}】停用，不允许新增`);
       }
     }
     if (
       !(await this.sysDeptService.checkUniqueParentIdByDeptName(
-        dept.parentId,
-        dept.deptName,
+        dept.parent_id,
+        dept.dept_name,
         0
       ))
     ) {
-      return Resp.errMsg(`部门新增【${body.deptName}】失败，部门名称已存在`);
+      return Resp.errMsg(`部门新增【${dept.dept_name}】失败，部门名称已存在`);
     }
 
-    dept.createBy = loginUserToUserName(this.c);
+    dept.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysDeptService.insert(dept);
     return insertId > 0 ? Resp.okData(insertId) : Resp.err();
   }
@@ -124,15 +119,14 @@ export class SysDeptController {
       }),
     ],
   })
-  public async edit(@Body() body: Record<string, any>): Promise<Resp> {
-    const dept = this.parseBody(body);
+  public async edit(@Body() dept: SysDept): Promise<Resp> {
     if (dept.id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dept_id is empty');
     }
-    if (dept.id === dept.parentId) {
+    if (dept.id === dept.parent_id) {
       return Resp.errMsg(
-        `部门修改【${body.deptName}】失败，上级部门不能是自己`
+        `部门修改【${dept.dept_name}】失败，上级部门不能是自己`
       );
     }
 
@@ -140,34 +134,37 @@ export class SysDeptController {
     if (oldDept.id !== dept.id) {
       return Resp.errMsg('没有权限访问部门数据！');
     }
-    if (dept.parentId > 0) {
-      const parent = await this.sysDeptService.findById(dept.parentId);
-      if (parent.id !== dept.parentId) {
+    if (dept.parent_id > 0) {
+      const parent = await this.sysDeptService.findById(dept.parent_id);
+      if (parent.id !== dept.parent_id) {
         return Resp.errMsg('没有权限访问部门数据！');
       }
     }
     if (
       !(await this.sysDeptService.checkUniqueParentIdByDeptName(
-        dept.parentId,
-        dept.deptName,
+        dept.parent_id,
+        dept.dept_name,
         dept.id
       ))
     ) {
-      return Resp.errMsg(`部门修改【${body.deptName}】失败，部门名称已存在`);
+      return Resp.errMsg(`部门修改【${dept.dept_name}】失败，部门名称已存在`);
     }
-    if (dept.deptStatus === STATUS_NO) {
-      const hasChild = await this.sysDeptService.existChildrenByDeptId(
-        dept.id
-      );
+    if (dept.dept_status === STATUS_NO) {
+      const hasChild = await this.sysDeptService.existChildrenByDeptId(dept.id);
       if (hasChild > 0) {
         return Resp.errMsg(`该部门包含未停用的子部门数量：${hasChild}`);
       }
     }
 
-    dept.createBy = '';
-    dept.createTime = 0;
-    dept.updateBy = loginUserToUserName(this.c);
-    const rows = await this.sysDeptService.update(dept);
+    oldDept.dept_name = dept.dept_name;
+    oldDept.parent_id = dept.parent_id;
+    oldDept.dept_sort = dept.dept_sort;
+    oldDept.dept_leader = dept.dept_leader;
+    oldDept.dept_phone = dept.dept_phone;
+    oldDept.dept_email = dept.dept_email;
+    oldDept.dept_status = dept.dept_status;
+    oldDept.update_by = loginUserToUserName(this.c);
+    const rows = await this.sysDeptService.update(oldDept);
     return rows > 0 ? Resp.ok() : Resp.err();
   }
 
@@ -200,22 +197,22 @@ export class SysDeptController {
       return Resp.errMsg(`不允许删除，部门已分配给用户数：${userCount}`);
     }
     const rows = await this.sysDeptService.deleteById(id);
-    return rows > 0 ? Resp.okMsg(`删除成功�{rows}`) : Resp.err();
+    return rows > 0 ? Resp.okMsg(`删除成功：${rows}`) : Resp.err();
   }
 
   @Get('/list/exclude/:dept_id', {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:dept:list'] })],
   })
   public async excludeChild(
-    @Valid(Joi.number()) @Param('dept_id') deptId: number
+    @Valid(Joi.number()) @Param('dept_id') dept_id: number
   ): Promise<Resp> {
-    if (deptId <= 0) {
+    if (dept_id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: deptId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dept_id is empty');
     }
     const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
     return Resp.okData(
-      await this.sysDeptService.findExcludeChildren(deptId, filter)
+      await this.sysDeptService.findExcludeChildren(dept_id, filter)
     );
   }
 
@@ -228,17 +225,17 @@ export class SysDeptController {
   })
   public async tree(
     @Valid(Joi.number().allow(0)) @Query('dept_id') id: number,
-    @Valid(Joi.number().allow(0)) @Query('parent_id') parentId: number,
-    @Valid(Joi.string().allow('')) @Query('dept_name') deptName: string,
+    @Valid(Joi.number().allow(0)) @Query('parent_id') parent_id: number,
+    @Valid(Joi.string().allow('')) @Query('dept_name') dept_name: string,
     @Valid(Joi.string().pattern(/^[01]$/))
     @Query('dept_status')
-    deptStatus: string
+    dept_status: string
   ): Promise<Resp> {
     const sysDept = new SysDept();
     sysDept.id = id;
-    sysDept.parentId = parentId;
-    sysDept.deptName = deptName;
-    sysDept.deptStatus = deptStatus;
+    sysDept.parent_id = parent_id;
+    sysDept.dept_name = dept_name;
+    sysDept.dept_status = dept_status;
     const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
     return Resp.okData(
       await this.sysDeptService.buildTreeSelect(sysDept, filter)
@@ -253,33 +250,18 @@ export class SysDeptController {
     ],
   })
   public async treeRole(
-    @Valid(Joi.number().required()) @Param('role_id') roleId: number
+    @Valid(Joi.number().required()) @Param('role_id') role_id: number
   ): Promise<Resp> {
-    if (roleId <= 0) {
+    if (role_id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
     }
     const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
     const depts = await this.sysDeptService.buildTreeSelect(
       new SysDept(),
       filter
     );
-    const checkedKeys = await this.sysDeptService.findDeptIdsByRoleId(roleId);
+    const checkedKeys = await this.sysDeptService.findDeptIdsByRoleId(role_id);
     return Resp.okData({ depts, checked_keys: checkedKeys });
-  }
-
-  private parseBody(body: Record<string, any>): SysDept {
-    const dept = new SysDept();
-    dept.id = Number(body?.id ?? body?.ID ?? 0) || 0;
-    dept.parentId =
-      Number(body?.parent_id ?? body?.parentId ?? body?.ParentId ?? 0) || 0;
-    dept.deptName = String(body?.dept_name ?? body?.deptName ?? '');
-    dept.deptLeader = String(body?.dept_leader ?? body?.leader ?? '');
-    dept.deptPhone = String(body?.dept_phone ?? body?.phone ?? '');
-    dept.deptEmail = String(body?.dept_email ?? body?.email ?? '');
-    dept.deptSort = Number(body?.dept_sort ?? body?.deptSort ?? 0) || 0;
-    dept.deptStatus = String(body?.dept_status ?? body?.statusFlag ?? '0');
-    dept.remark = String(body?.remark ?? '');
-    return dept;
   }
 }

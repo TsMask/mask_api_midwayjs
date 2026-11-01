@@ -1,5 +1,10 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import {
+  DeleteResult,
+  EntityManager,
+  InsertResult,
+  UpdateResult,
+} from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../internal/infra/database/db';
@@ -29,18 +34,18 @@ export class SysDictTypeRepository {
       .from(SysDictType, 's');
     // 查询条件拼接
     if (query.dict_name) {
-      tx.andWhere('s.dict_name like :dictName', {
-        dictName: query.dict_name + '%',
+      tx.andWhere('s.dict_name like :dict_name', {
+        dict_name: query.dict_name + '%',
       });
     }
     if (query.dict_type) {
-      tx.andWhere('s.dict_type like :dictType', {
-        dictType: query.dict_type + '%',
+      tx.andWhere('s.dict_type like :dict_type', {
+        dict_type: query.dict_type + '%',
       });
     }
     if (query.dict_status) {
-      tx.andWhere('s.dict_status = :dictStatus', {
-        dictStatus: query.dict_status,
+      tx.andWhere('s.dict_status = :dict_status', {
+        dict_status: query.dict_status,
       });
     }
     if (query.create_time_begin) {
@@ -78,7 +83,8 @@ export class SysDictTypeRepository {
       query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=createTime,dictName:asc（不加方向默认 DESC）
+
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       create_time: 's.create_time',
@@ -87,18 +93,8 @@ export class SysDictTypeRepository {
       dict_type: 's.dict_type',
       dict_status: 's.dict_status',
     };
-    if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-      }
-    } else {
-      tx.addOrderBy('s.id', 'DESC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.id DESC');
 
     const rows = await tx.getMany();
     return [rows, total];
@@ -117,19 +113,19 @@ export class SysDictTypeRepository {
       .select('s')
       .from(SysDictType, 's');
     // 构建查询条件
-    if (sysDictType.dictName) {
-      tx.andWhere('s.dict_name like :dictName', {
-        dictName: sysDictType.dictName + '%',
+    if (sysDictType.dict_name) {
+      tx.andWhere('s.dict_name like :dict_name', {
+        dict_name: sysDictType.dict_name + '%',
       });
     }
-    if (sysDictType.dictType) {
-      tx.andWhere('s.dict_type like :dictType', {
-        dictType: sysDictType.dictType + '%',
+    if (sysDictType.dict_type) {
+      tx.andWhere('s.dict_type like :dict_type', {
+        dict_type: sysDictType.dict_type + '%',
       });
     }
-    if (sysDictType.dictStatus) {
-      tx.andWhere('s.dict_status = :dictStatus', {
-        dictStatus: sysDictType.dictStatus,
+    if (sysDictType.dict_status) {
+      tx.andWhere('s.dict_status = :dict_status', {
+        dict_status: sysDictType.dict_status,
       });
     }
     // 查询数据
@@ -167,11 +163,11 @@ export class SysDictTypeRepository {
    * @return ID
    */
   public async insert(sysDictType: SysDictType): Promise<number> {
-    if (sysDictType.createBy) {
-      const ms = Date.now().valueOf();
-      sysDictType.updateBy = sysDictType.createBy;
-      sysDictType.updateTime = ms;
-      sysDictType.createTime = ms;
+    if (sysDictType.create_by) {
+      const ms = Date.now();
+      sysDictType.update_by = sysDictType.create_by;
+      sysDictType.update_time = ms;
+      sysDictType.create_time = ms;
     }
     // 执行插入
     const tx: InsertResult = await this.db
@@ -193,17 +189,28 @@ export class SysDictTypeRepository {
    * @param sysDictType 信息
    * @return 影响记录数
    */
-  public async update(sysDictType: SysDictType): Promise<number> {
+  public async update(
+    sysDictType: SysDictType,
+    entityManager?: EntityManager
+  ): Promise<number> {
     if (sysDictType.id <= 0) {
       return 0;
     }
-    if (sysDictType.updateBy) {
-      sysDictType.updateTime = Date.now().valueOf();
+    if (sysDictType.update_by) {
+      sysDictType.update_time = Date.now();
     }
     const data = Object.assign({}, sysDictType);
     delete (data as Partial<SysDictType>).id;
-    delete (data as Partial<SysDictType>).createBy;
-    delete (data as Partial<SysDictType>).createTime;
+    delete (data as Partial<SysDictType>).create_by;
+    delete (data as Partial<SysDictType>).create_time;
+    if (entityManager) {
+      const result: UpdateResult = await entityManager.update(
+        SysDictType,
+        sysDictType.id,
+        data
+      );
+      return result.affected ?? 0;
+    }
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -245,14 +252,14 @@ export class SysDictTypeRepository {
       .select('s')
       .from(SysDictType, 's');
     // 查询条件拼接
-    if (sysDictType.dictName) {
-      tx.andWhere('s.dict_name = :dictName', {
-        dictName: sysDictType.dictName,
+    if (sysDictType.dict_name) {
+      tx.andWhere('s.dict_name = :dict_name', {
+        dict_name: sysDictType.dict_name,
       });
     }
-    if (sysDictType.dictType) {
-      tx.andWhere('s.dict_type = :dictType', {
-        dictType: sysDictType.dictType,
+    if (sysDictType.dict_type) {
+      tx.andWhere('s.dict_type = :dict_type', {
+        dict_type: sysDictType.dict_type,
       });
     }
     // 查询数据
@@ -266,11 +273,11 @@ export class SysDictTypeRepository {
   /**
    * 通过字典类型查询信息
    *
-   * @param dictType 字典类型
+   * @param dict_type 字典类型
    * @return 数量
    */
-  public async selectByType(dictType: string): Promise<SysDictType> {
-    if (!dictType) {
+  public async selectByType(dict_type: string): Promise<SysDictType> {
+    if (!dict_type) {
       return new SysDictType();
     }
     // 查询数据
@@ -279,7 +286,7 @@ export class SysDictTypeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictType, 's')
-      .andWhere('s.dict_type = :dictType', { dictType })
+      .andWhere('s.dict_type = :dict_type', { dict_type })
       .getOne();
     if (!item) {
       return new SysDictType();

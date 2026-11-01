@@ -27,26 +27,26 @@ export class SysNoticeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysNotice, 's')
-      .andWhere("notice_del = '0'");
+      .andWhere("s.notice_del = '0'");
     // 查询条件拼接
     if (query.notice_title) {
-      tx.andWhere('s.notice_title like :noticeTitle', {
-        noticeTitle: query.notice_title + '%',
+      tx.andWhere('s.notice_title like :notice_title', {
+        notice_title: query.notice_title + '%',
       });
     }
     if (query.notice_type) {
-      tx.andWhere('s.notice_type = :noticeType', {
-        noticeType: query.notice_type,
+      tx.andWhere('s.notice_type = :notice_type', {
+        notice_type: query.notice_type,
       });
     }
     if (query.create_by) {
-      tx.andWhere('s.create_by like :createBy', {
-        createBy: query.create_by + '%',
+      tx.andWhere('s.create_by like :create_by', {
+        create_by: query.create_by + '%',
       });
     }
     if (query.notice_status) {
-      tx.andWhere('s.notice_status = :noticeStatus', {
-        noticeStatus: query.notice_status,
+      tx.andWhere('s.notice_status = :notice_status', {
+        notice_status: query.notice_status,
       });
     }
     if (query.begin_time) {
@@ -84,7 +84,8 @@ export class SysNoticeRepository {
       query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=createTime,noticeTitle:asc（不加方向默认 DESC）
+
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       create_by: 's.create_by',
@@ -94,18 +95,8 @@ export class SysNoticeRepository {
       notice_type: 's.notice_type',
       notice_status: 's.notice_status',
     };
-    if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-      }
-    } else {
-      tx.addOrderBy('s.id', 'DESC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.id DESC');
 
     const rows = await tx.getMany();
     return [rows, total];
@@ -125,24 +116,24 @@ export class SysNoticeRepository {
       .from(SysNotice, 's')
       .andWhere("notice_del = '0'");
     // 构建查询条件
-    if (sysNotice.noticeTitle) {
-      tx.andWhere('s.notice_title like :noticeTitle', {
-        noticeTitle: sysNotice.noticeTitle + '%',
+    if (sysNotice.notice_title) {
+      tx.andWhere('s.notice_title like :notice_title', {
+        notice_title: sysNotice.notice_title + '%',
       });
     }
-    if (sysNotice.noticeType) {
-      tx.andWhere('s.notice_type = :noticeType', {
-        noticeType: sysNotice.noticeType,
+    if (sysNotice.notice_type) {
+      tx.andWhere('s.notice_type = :notice_type', {
+        notice_type: sysNotice.notice_type,
       });
     }
-    if (sysNotice.createBy) {
-      tx.andWhere('s.create_by like :createBy', {
-        createBy: sysNotice.createBy + '%',
+    if (sysNotice.create_by) {
+      tx.andWhere('s.create_by like :create_by', {
+        create_by: sysNotice.create_by + '%',
       });
     }
-    if (sysNotice.noticeStatus) {
-      tx.andWhere('s.notice_status = :noticeStatus', {
-        noticeStatus: sysNotice.noticeStatus,
+    if (sysNotice.notice_status) {
+      tx.andWhere('s.notice_status = :notice_status', {
+        notice_status: sysNotice.notice_status,
       });
     }
     // 查询数据
@@ -182,12 +173,12 @@ export class SysNoticeRepository {
    * @return ID
    */
   public async insert(sysNotice: SysNotice): Promise<number> {
-    sysNotice.noticeDel = '0';
-    if (sysNotice.createBy) {
-      const ms = Date.now().valueOf();
-      sysNotice.updateBy = sysNotice.createBy;
-      sysNotice.updateTime = ms;
-      sysNotice.createTime = ms;
+    sysNotice.notice_del = '0';
+    if (sysNotice.create_by) {
+      const ms = Date.now();
+      sysNotice.update_by = sysNotice.create_by;
+      sysNotice.update_time = ms;
+      sysNotice.create_time = ms;
     }
     // 执行插入
     const tx: InsertResult = await this.db
@@ -213,14 +204,14 @@ export class SysNoticeRepository {
     if (sysNotice.id <= 0) {
       return 0;
     }
-    if (sysNotice.updateBy) {
-      sysNotice.updateTime = Date.now().valueOf();
+    if (sysNotice.update_by) {
+      sysNotice.update_time = Date.now();
     }
     const data = Object.assign({}, sysNotice);
     delete (data as Partial<SysNotice>).id;
-    delete (data as Partial<SysNotice>).noticeDel;
-    delete (data as Partial<SysNotice>).createBy;
-    delete (data as Partial<SysNotice>).createTime;
+    delete (data as Partial<SysNotice>).notice_del;
+    delete (data as Partial<SysNotice>).create_by;
+    delete (data as Partial<SysNotice>).create_time;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -244,7 +235,7 @@ export class SysNoticeRepository {
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .update(SysNotice)
-      .set({ noticeDel: '1' })
+      .set({ notice_del: '1' })
       .andWhere('id in (:noticeIds)', { noticeIds })
       .execute();
     return tx.affected ?? 0;

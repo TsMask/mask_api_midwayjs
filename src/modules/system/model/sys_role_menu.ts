@@ -8,10 +8,10 @@ export class SysRoleMenu {
   /**角色ID */
   @Rule(Joi.number().allow(0))
   @PrimaryColumn({ name: 'role_id' })
-  roleId: number;
+  role_id: number;
 
   /**菜单ID */
   @Rule(Joi.number().allow(0))
   @PrimaryColumn({ name: 'menu_id' })
-  menuId: number;
+  menu_id: number;
 }

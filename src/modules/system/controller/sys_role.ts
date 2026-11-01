@@ -37,7 +37,6 @@ import { SYS_ROLE_SYSTEM_ID } from '../../../internal/shared/constants/system';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';
 import { SysRole } from '../model/sys_role';
-import { serializeSysRole, serializeSysUser } from '../model/vo/response';
 
 /**角色信息 控制层处理 */
 @Controller('/api/v1/system/roles')
@@ -60,7 +59,7 @@ export class SysRoleController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysRoleService.findByPage(query);
-    return Resp.okData({ rows: rows.map(serializeSysRole), total });
+    return Resp.okData({ rows: rows, total });
   }
 
   /**角色信息详情 */
@@ -68,15 +67,15 @@ export class SysRoleController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:role:query'] })],
   })
   public async info(
-    @Valid(Joi.number()) @Param('id') roleId: number
+    @Valid(Joi.number()) @Param('id') role_id: number
   ): Promise<Resp> {
-    if (roleId <= 0) {
+    if (role_id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
     }
-    const data = await this.sysRoleService.findById(roleId);
-    if (data.id === roleId) {
-      return Resp.okData(serializeSysRole(data));
+    const data = await this.sysRoleService.findById(role_id);
+    if (data.id === role_id) {
+      return Resp.okData(data);
     }
     return Resp.err();
   }
@@ -92,31 +91,29 @@ export class SysRoleController {
     ],
   })
   public async add(@Body() body: SysRole): Promise<Resp> {
-    Object.assign(body, this.parseBody(body as unknown as Record<string, any>));
     if (body.id > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id not is empty');
     }
-
     // 判断角色名称是否唯一
     const uniqueName = await this.sysRoleService.checkUniqueByName(
-      body.roleName,
+      body.role_name,
       0
     );
     if (!uniqueName) {
-      return Resp.errMsg(`角色新增【${body.roleName}】失败，角色名称已存在`);
+      return Resp.errMsg(`角色新增【${body.role_name}】失败，角色名称已存在`);
     }
 
     // 判断角色键值是否唯一
     const uniqueKey = await this.sysRoleService.checkUniqueByKey(
-      body.roleKey,
+      body.role_key,
       0
     );
     if (!uniqueKey) {
-      return Resp.errMsg(`角色新增【${body.roleName}】失败，角色名称已存在`);
+      return Resp.errMsg(`角色新增【${body.role_name}】失败，角色键值已存在`);
     }
 
-    body.createBy = loginUserToUserName(this.c);
+    body.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysRoleService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -135,10 +132,20 @@ export class SysRoleController {
     ],
   })
   public async edit(@Body() body: SysRole): Promise<Resp> {
-    Object.assign(body, this.parseBody(body as unknown as Record<string, any>));
     if (body.id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
+    }
+    // 检查是否分配给当前用户
+    const [info, err] = loginUser(this.c);
+    if (err) {
+      this.c.status = 401;
+      return Resp.codeMsg(CODE_AUTH_INVALID, err);
+    }
+    if (Array.isArray(info.user.role_ids) && info.user.role_ids.length > 0) {
+      if (info.user.role_ids.includes(body.id)) {
+        return Resp.errMsg('不允许操作分配给自己的角色');
+      }
     }
 
     // 检查是否系统管理员角色
@@ -146,34 +153,22 @@ export class SysRoleController {
       return Resp.errMsg('不允许操作系统管理员角色');
     }
 
-    // 检查是否分配给当前用户
-    const [info, err] = loginUser(this.c);
-    if (err) {
-      this.c.status = 401;
-      return Resp.codeMsg(CODE_AUTH_INVALID, err);
-    }
-    if (Array.isArray(info.user.roleIds) && info.user.roleIds.length > 0) {
-      if (info.user.roleIds.includes(body.id)) {
-        return Resp.errMsg('不允许操作分配给自己的角色');
-      }
-    }
-
     // 判断角色名称是否唯一
     const uniqueName = await this.sysRoleService.checkUniqueByName(
-      body.roleName,
+      body.role_name,
       body.id
     );
     if (!uniqueName) {
-      return Resp.errMsg(`角色修改【${body.roleName}】失败，角色名称已存在`);
+      return Resp.errMsg(`角色修改【${body.role_name}】失败，角色名称已存在`);
     }
 
     // 判断角色键值是否唯一
     const uniqueKey = await this.sysRoleService.checkUniqueByKey(
-      body.roleKey,
+      body.role_key,
       body.id
     );
     if (!uniqueKey) {
-      return Resp.errMsg(`角色修改【${body.roleName}】失败，角色名称已存在`);
+      return Resp.errMsg(`角色修改【${body.role_name}】失败，角色键值已存在`);
     }
 
     // 检查是否存在
@@ -182,17 +177,17 @@ export class SysRoleController {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
-    roleInfo.roleName = body.roleName;
-    roleInfo.roleKey = body.roleKey;
-    roleInfo.roleSort = body.roleSort;
-    roleInfo.roleDataScope = body.roleDataScope;
-    roleInfo.roleMenuCheckStrictly = body.roleMenuCheckStrictly;
-    roleInfo.roleDeptCheckStrictly = body.roleDeptCheckStrictly;
-    roleInfo.roleStatus = body.roleStatus;
+    roleInfo.role_name = body.role_name;
+    roleInfo.role_key = body.role_key;
+    roleInfo.role_sort = body.role_sort;
+    roleInfo.role_data_scope = body.role_data_scope;
+    roleInfo.role_menu_check_strictly = body.role_menu_check_strictly;
+    roleInfo.role_dept_check_strictly = body.role_dept_check_strictly;
+    roleInfo.role_status = body.role_status;
     roleInfo.remark = body.remark;
-    roleInfo.updateBy = loginUserToUserName(this.c);
-    roleInfo.menuIds = body.menuIds;
-    roleInfo.deptIds = body.deptIds;
+    roleInfo.update_by = loginUserToUserName(this.c);
+    roleInfo.menu_ids = body.menu_ids;
+    roleInfo.dept_ids = body.dept_ids;
     const rows = await this.sysRoleService.update(roleInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -211,22 +206,22 @@ export class SysRoleController {
     ],
   })
   public async remove(
-    @Valid(Joi.string().allow('')) @Param('id') roleId: string
+    @Valid(Joi.string().allow('')) @Param('id') role_id: string
   ): Promise<Resp> {
-    if (roleId === '') {
+    if (role_id === '') {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
     }
 
     // 处理字符转id数组后去重
-    const uniqueIDs = parseRemoveDuplicatesToArray(roleId, ',');
+    const uniqueIDs = parseRemoveDuplicatesToArray(role_id, ',');
     // 转换成number数组类型
     const ids = uniqueIDs.map(id => parseNumber(id));
 
     // 检查是否管理员角色
     for (const id of ids) {
       if (id === SYS_ROLE_SYSTEM_ID) {
-        return Resp.errMsg('不允许操作管理员角色');
+        return Resp.errMsg('不允许操作系统管理员角色');
       }
     }
 
@@ -234,7 +229,7 @@ export class SysRoleController {
     if (err) {
       return Resp.errMsg(err);
     }
-    return Resp.okMsg(`删除成功: ${rows}`);
+    return Resp.okMsg(`删除成功：${rows}`);
   }
 
   /**角色状态变更 */
@@ -249,28 +244,28 @@ export class SysRoleController {
     ],
   })
   public async status(
-    @Valid(Joi.number().required()) @Body('role_id') roleId: number,
-    @Valid(Joi.string().required()) @Body('role_status') roleStatus: string
+    @Valid(Joi.number().required()) @Body('role_id') role_id: number,
+    @Valid(Joi.string().required()) @Body('role_status') role_status: string
   ): Promise<Resp> {
     // 检查是否管理员角色
-    if (roleId === SYS_ROLE_SYSTEM_ID) {
-      return Resp.errMsg('不允许操作管理员角色');
+    if (role_id === SYS_ROLE_SYSTEM_ID) {
+      return Resp.errMsg('不允许操作系统管理员角色');
     }
 
     // 检查是否存在
-    const role = await this.sysRoleService.findById(roleId);
-    if (role.id !== roleId) {
+    const role = await this.sysRoleService.findById(role_id);
+    if (role.id !== role_id) {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
     // 与旧值相等不变更
-    if (role.roleStatus === roleStatus) {
+    if (role.role_status === role_status) {
       return Resp.errMsg('变更状态与旧值相等！');
     }
 
     // 更新状态不刷新缓存
-    role.roleStatus = roleStatus;
-    role.updateBy = loginUserToUserName(this.c);
+    role.role_status = role_status;
+    role.update_by = loginUserToUserName(this.c);
     const rows = await this.sysRoleService.update(role);
     if (rows > 0) {
       return Resp.ok();
@@ -290,8 +285,8 @@ export class SysRoleController {
     ],
   })
   public async dataScope(
-    @Valid(Joi.number().required()) @Body('role_id') roleId: number,
-    @Valid(Joi.array<number>()) @Body('dept_ids') deptIds: number[],
+    @Valid(Joi.number().required()) @Body('role_id') role_id: number,
+    @Valid(Joi.array<number>()) @Body('dept_ids') dept_ids: number[],
     @Valid(
       Joi.string()
         .pattern(/^[12345]$/)
@@ -307,24 +302,24 @@ export class SysRoleController {
     @Body('role_dept_check_strictly')
     deptCheckStrictly: string
   ): Promise<Resp> {
-    if (roleId <= 0) {
+    if (role_id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
     }
     // 检查是否系统管理员角色
-    if (roleId === SYS_ROLE_SYSTEM_ID) {
+    if (role_id === SYS_ROLE_SYSTEM_ID) {
       return Resp.errMsg('不允许操作系统管理员角色');
     }
     // 检查是否存在
-    const roleInfo = await this.sysRoleService.findById(roleId);
-    if (roleInfo.id !== roleId) {
+    const roleInfo = await this.sysRoleService.findById(role_id);
+    if (roleInfo.id !== role_id) {
       return Resp.errMsg('没有权限访问角色数据！');
     }
     // 更新数据权限
-    roleInfo.deptIds = deptIds;
-    roleInfo.roleDataScope = dataScope;
-    roleInfo.roleDeptCheckStrictly = deptCheckStrictly;
-    roleInfo.updateBy = loginUserToUserName(this.c);
+    roleInfo.dept_ids = dept_ids;
+    roleInfo.role_data_scope = dataScope;
+    roleInfo.role_dept_check_strictly = deptCheckStrictly;
+    roleInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysRoleService.updateAndDataScope(roleInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -339,15 +334,15 @@ export class SysRoleController {
   public async userAuthList(
     @Query() query: Record<string, string>
   ): Promise<Resp> {
-    const roleId = parseNumber(query.role_id);
-    if (roleId <= 0) {
+    const role_id = parseNumber(query.role_id);
+    if (role_id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: roleId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
     }
 
     // 检查是否存在
-    const role = await this.sysRoleService.findById(roleId);
-    if (role.id !== roleId) {
+    const role = await this.sysRoleService.findById(role_id);
+    if (role.id !== role_id) {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
@@ -356,7 +351,7 @@ export class SysRoleController {
       query,
       filter
     );
-    return Resp.okData({ rows: rows.map(serializeSysUser), total });
+    return Resp.okData({ rows: rows, total });
   }
 
   /**角色分配选择授权 */
@@ -370,7 +365,7 @@ export class SysRoleController {
     ],
   })
   public async userAuthChecked(
-    @Valid(Joi.number().required()) @Body('role_id') roleId: number,
+    @Valid(Joi.number().required()) @Body('role_id') role_id: number,
     @Valid(Joi.array<number>().required())
     @Body('user_ids')
     userIds: number[],
@@ -382,16 +377,16 @@ export class SysRoleController {
     }
 
     // 检查是否存在
-    const role = await this.sysRoleService.findById(roleId);
-    if (role.id !== roleId) {
+    const role = await this.sysRoleService.findById(role_id);
+    if (role.id !== role_id) {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
     let rows: number;
     if (auth) {
-      rows = await this.sysRoleService.insertAuthUsers(roleId, userIds);
+      rows = await this.sysRoleService.insertAuthUsers(role_id, userIds);
     } else {
-      rows = await this.sysRoleService.deleteAuthUsers(roleId, userIds);
+      rows = await this.sysRoleService.deleteAuthUsers(role_id, userIds);
     }
     if (rows > 0) {
       return Resp.ok();
@@ -421,25 +416,5 @@ export class SysRoleController {
     this.c.set('content-Type', 'text/csv; charset=utf-8');
     this.c.set('content-disposition', `attachment; filename="${fileName}"`);
     return await this.sysRoleService.exportData(rows, fileName);
-  }
-
-  private parseBody(body: Record<string, any>): Partial<SysRole> {
-    return {
-      id: Number(body?.id ?? body?.ID ?? 0) || 0,
-      roleName: String(body?.role_name ?? body?.roleName ?? ''),
-      roleKey: String(body?.role_key ?? body?.roleKey ?? ''),
-      roleSort: Number(body?.role_sort ?? body?.roleSort ?? 0) || 0,
-      roleStatus: String(body?.role_status ?? body?.statusFlag ?? '0'),
-      roleDataScope: String(body?.role_data_scope ?? body?.dataScope ?? '5'),
-      roleMenuCheckStrictly: String(
-        body?.role_menu_check_strictly ?? body?.menuCheckStrictly ?? '1'
-      ),
-      roleDeptCheckStrictly: String(
-        body?.role_dept_check_strictly ?? body?.deptCheckStrictly ?? '1'
-      ),
-      remark: String(body?.remark ?? ''),
-      menuIds: body?.menu_ids ?? body?.menuIds ?? [],
-      deptIds: body?.dept_ids ?? body?.deptIds ?? [],
-    };
   }
 }

@@ -23,6 +23,9 @@ export class SysOperationLogService {
   }
 
   public async insert(operationLog: SysOperationLog): Promise<number> {
+    if (operationLog.create_by) {
+      operationLog.create_time = Date.now();
+    }
     return await this.sysOperationLogRepository.insert(operationLog);
   }
 
@@ -51,22 +54,22 @@ export class SysOperationLogService {
       ],
     ];
     for (const row of rows) {
-      const statusValue = row.operationStatus === '1' ? '成功' : '失败';
+      const statusValue = row.operation_status === '1' ? '成功' : '失败';
       data.push([
         `${row.id ?? 0}`,
         row.title ?? '',
         '',
-        row.operationUrl ?? '',
-        row.operationMethod ?? '',
-        row.operationIp ?? '',
-        row.operationLocation ?? '',
-        row.operationParam ?? '',
-        row.operationMsg ?? '',
-        row.operationFunction ?? '',
-        row.createBy ?? '',
-        parseDateToRFC3339(row.createTime ?? 0),
+        row.operation_url ?? '',
+        row.operation_method ?? '',
+        row.operation_ip ?? '',
+        row.operation_location ?? '',
+        row.operation_param ?? '',
+        row.operation_msg ?? '',
+        row.operation_function ?? '',
+        row.create_by ?? '',
+        parseDateToRFC3339(row.create_time ?? 0),
         statusValue,
-        `${row.operationCostTime ?? 0}`,
+        `${row.operation_cost_time ?? 0}`,
       ]);
     }
     return await this.fileUtil.csvWriteRecord(data, fileName);

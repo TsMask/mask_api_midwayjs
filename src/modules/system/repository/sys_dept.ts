@@ -4,7 +4,7 @@ import { EntityManager, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { ResultSetHeader } from '../../../typings/commont';
 import { SysDept } from '../model/sys_dept';
-import { SysDeptClosure } from '../model/sys_dept_closure';
+import { SysDeptClosure } from '../model/sys_dept';
 import { SysUser } from '../model/sys_user';
 
 interface ClosureRow {
@@ -28,19 +28,19 @@ export class SysDeptRepository {
     if (sysDept.id) {
       tx.andWhere('s.id = :id', { id: sysDept.id });
     }
-    if (sysDept.parentId) {
-      tx.andWhere('parent.ancestor_id = :parentId', {
-        parentId: sysDept.parentId,
+    if (sysDept.parent_id) {
+      tx.andWhere('parent.ancestor_id = :parent_id', {
+        parent_id: sysDept.parent_id,
       });
     }
-    if (sysDept.deptName) {
-      tx.andWhere('s.dept_name like :deptName', {
-        deptName: sysDept.deptName + '%',
+    if (sysDept.dept_name) {
+      tx.andWhere('s.dept_name like :dept_name', {
+        dept_name: sysDept.dept_name + '%',
       });
     }
-    if (sysDept.deptStatus) {
-      tx.andWhere('s.dept_status = :deptStatus', {
-        deptStatus: sysDept.deptStatus,
+    if (sysDept.dept_status) {
+      tx.andWhere('s.dept_status = :dept_status', {
+        dept_status: sysDept.dept_status,
       });
     }
     if (filter?.sql) {
@@ -51,21 +51,21 @@ export class SysDeptRepository {
   }
 
   public async selectExcludeChildren(
-    deptId: number,
+    dept_id: number,
     filter: { sql: string; params: Record<string, any> }
   ): Promise<SysDept[]> {
-    if (deptId <= 0) {
+    if (dept_id <= 0) {
       return [];
     }
     const tx = this.selectWithParent()
-      .andWhere('s.id <> :excludeId', { excludeId: deptId })
+      .andWhere('s.id <> :excludeId', { excludeId: dept_id })
       .andWhere(
         `not exists (
           select 1 from sys_dept_closure exclude_rel
           where exclude_rel.ancestor_id = :excludeAncestorId
             and exclude_rel.descendant_id = s.id
         )`,
-        { excludeAncestorId: deptId }
+        { excludeAncestorId: dept_id }
       );
     if (filter?.sql) {
       tx.andWhere(filter.sql, filter.params);
@@ -74,65 +74,63 @@ export class SysDeptRepository {
     return await this.getManyWithParent(tx);
   }
 
-  public async selectById(deptId: number): Promise<SysDept> {
-    if (deptId <= 0) {
+  public async selectById(dept_id: number): Promise<SysDept> {
+    if (dept_id <= 0) {
       return new SysDept();
     }
-    const tx = this.selectWithParent().andWhere('s.id = :id', { id: deptId });
+    const tx = this.selectWithParent().andWhere('s.id = :id', { id: dept_id });
     const rows = await this.getManyWithParent(tx);
     return rows[0] ?? new SysDept();
   }
 
-  public async selectByIds(deptIds: number[]): Promise<SysDept[]> {
-    if (deptIds.length <= 0) {
+  public async selectByIds(dept_ids: number[]): Promise<SysDept[]> {
+    if (dept_ids.length <= 0) {
       return [];
     }
     const tx = this.selectWithParent().andWhere('s.id in (:ids)', {
-      ids: deptIds,
+      ids: dept_ids,
     });
     return await this.getManyWithParent(tx);
   }
 
   public async insert(sysDept: SysDept): Promise<number> {
-    if (sysDept.createBy) {
+    if (sysDept.create_by) {
       const ms = Date.now();
-      sysDept.updateBy = sysDept.createBy;
-      sysDept.updateTime = ms;
-      sysDept.createTime = ms;
+      sysDept.update_by = sysDept.create_by;
+      sysDept.update_time = ms;
+      sysDept.create_time = ms;
     }
 
     return await this.db.transaction('', async manager => {
-      const {
-        id: _id,
-        parentId: _parentId,
-        children: _children,
-        ...data
-      } = sysDept;
+      const data: Partial<SysDept> = { ...sysDept };
+      delete data.id;
+      delete data.parent_id;
+      delete data.children;
       const tx = await manager.insert(SysDept, data);
       const raw = tx.raw as ResultSetHeader;
-      const deptId = raw.insertId;
-      if (deptId <= 0) {
+      const dept_id = raw.insertId;
+      if (dept_id <= 0) {
         throw new Error('dept insert failed');
       }
 
       const parentRows =
-        sysDept.parentId > 0
-          ? await this.selectClosureRowsForUpdate(manager, sysDept.parentId)
+        sysDept.parent_id > 0
+          ? await this.selectClosureRowsForUpdate(manager, sysDept.parent_id)
           : [];
-      if (sysDept.parentId > 0 && parentRows.length === 0) {
-        throw new Error(`parent dept closure not found: ${sysDept.parentId}`);
+      if (sysDept.parent_id > 0 && parentRows.length === 0) {
+        throw new Error(`parent dept closure not found: ${sysDept.parent_id}`);
       }
 
       const relations = [
-        { ancestorId: deptId, descendantId: deptId, depth: 0 },
+        { ancestor_id: dept_id, descendant_id: dept_id, depth: 0 },
         ...parentRows.map(row => ({
-          ancestorId: Number(row.ancestor_id),
-          descendantId: deptId,
+          ancestor_id: Number(row.ancestor_id),
+          descendant_id: dept_id,
           depth: Number(row.depth) + 1,
         })),
       ];
       await manager.insert(SysDeptClosure, relations);
-      return deptId;
+      return dept_id;
     });
   }
 
@@ -144,12 +142,12 @@ export class SysDeptRepository {
       if (sysDept.id <= 0) {
         return 0;
       }
-      if (sysDept.updateBy) {
-        sysDept.updateTime = Date.now();
+      if (sysDept.update_by) {
+        sysDept.update_time = Date.now();
       }
       const data: Partial<SysDept> = Object.assign({}, sysDept);
       delete data.id;
-      delete data.parentId;
+      delete data.parent_id;
       delete data.children;
       const tx: UpdateResult = await manager.update(SysDept, sysDept.id, data);
       return tx.affected ?? 0;
@@ -162,10 +160,10 @@ export class SysDeptRepository {
 
   public async moveDeptSubtree(
     manager: EntityManager,
-    deptId: number,
+    dept_id: number,
     newParentId: number
   ): Promise<string> {
-    if (deptId <= 0) {
+    if (dept_id <= 0) {
       return 'dept id is empty';
     }
 
@@ -173,7 +171,7 @@ export class SysDeptRepository {
       `SELECT ancestor_id FROM sys_dept_closure
        WHERE descendant_id = ? AND depth = 1 AND ancestor_id <> descendant_id
        FOR UPDATE`,
-      [deptId]
+      [dept_id]
     );
     const currentParentId =
       currentParentRows.length > 0
@@ -187,7 +185,7 @@ export class SysDeptRepository {
       const descendantRows = await manager.query(
         `SELECT COUNT(*) AS count FROM sys_dept_closure
          WHERE ancestor_id = ? AND descendant_id = ? AND depth > 0`,
-        [deptId, newParentId]
+        [dept_id, newParentId]
       );
       if (Number(descendantRows[0]?.count ?? 0) > 0) {
         return 'new parent dept is a descendant of the moving dept';
@@ -196,11 +194,11 @@ export class SysDeptRepository {
 
     const subtree = await this.selectClosureRowsForUpdate(
       manager,
-      deptId,
+      dept_id,
       true
     );
     if (subtree.length === 0) {
-      return `dept closure not found: ${deptId}`;
+      return `dept closure not found: ${dept_id}`;
     }
     const subtreeIds = Array.from(
       new Set(subtree.map(row => Number(row.descendant_id)))
@@ -228,8 +226,8 @@ export class SysDeptRepository {
     for (const parent of parentRelations) {
       for (const descendant of subtree) {
         relations.push({
-          ancestorId: Number(parent.ancestor_id),
-          descendantId: Number(descendant.descendant_id),
+          ancestor_id: Number(parent.ancestor_id),
+          descendant_id: Number(descendant.descendant_id),
           depth: Number(parent.depth) + Number(descendant.depth) + 1,
         });
       }
@@ -240,35 +238,35 @@ export class SysDeptRepository {
 
   private async selectClosureRowsForUpdate(
     manager: EntityManager,
-    deptId: number,
+    dept_id: number,
     byAncestor = false
   ): Promise<ClosureRow[]> {
     const where = byAncestor ? 'ancestor_id' : 'descendant_id';
     const rows = await manager.query(
       `SELECT ancestor_id, descendant_id, depth
        FROM sys_dept_closure WHERE ${where} = ? FOR UPDATE`,
-      [deptId]
+      [dept_id]
     );
     return rows as ClosureRow[];
   }
 
   public async deleteById(
-    deptId: number,
+    dept_id: number,
     entityManager?: EntityManager
   ): Promise<number> {
     const run = async (manager: EntityManager) => {
-      if (deptId <= 0) return 0;
+      if (dept_id <= 0) return 0;
       const childRows = await manager.query(
         `SELECT COUNT(*) AS count FROM sys_dept_closure
          WHERE ancestor_id = ? AND depth = 1 AND ancestor_id <> descendant_id`,
-        [deptId]
+        [dept_id]
       );
       if (Number(childRows[0]?.count ?? 0) > 0) {
         return 0;
       }
-      await manager.delete(SysDeptClosure, { descendantId: deptId });
-      await manager.delete(SysDeptClosure, { ancestorId: deptId });
-      const tx = await manager.delete(SysDept, deptId);
+      await manager.delete(SysDeptClosure, { descendant_id: dept_id });
+      await manager.delete(SysDeptClosure, { ancestor_id: dept_id });
+      const tx = await manager.delete(SysDept, dept_id);
       return tx.affected ?? 0;
     };
     if (entityManager) {
@@ -279,12 +277,12 @@ export class SysDeptRepository {
 
   public async checkUnique(sysDept: SysDept): Promise<number> {
     const tx = this.selectWithParent().select('s.id', 'id');
-    if (sysDept.deptName) {
-      tx.andWhere('s.dept_name = :deptName', { deptName: sysDept.deptName });
+    if (sysDept.dept_name) {
+      tx.andWhere('s.dept_name = :dept_name', { dept_name: sysDept.dept_name });
     }
-    if (sysDept.parentId) {
-      tx.andWhere('parent.ancestor_id = :parentId', {
-        parentId: sysDept.parentId,
+    if (sysDept.parent_id) {
+      tx.andWhere('parent.ancestor_id = :parent_id', {
+        parent_id: sysDept.parent_id,
       });
     } else {
       tx.andWhere('parent.ancestor_id is null');
@@ -293,8 +291,8 @@ export class SysDeptRepository {
     return Number(row?.id ?? 0);
   }
 
-  public async existChildrenByDeptId(deptId: number): Promise<number> {
-    if (deptId <= 0) {
+  public async existChildrenByDeptId(dept_id: number): Promise<number> {
+    if (dept_id <= 0) {
       return 0;
     }
     return await this.db
@@ -303,12 +301,12 @@ export class SysDeptRepository {
       .select('s.id', 'id')
       .from(SysDept, 's')
       .innerJoin(SysDeptClosure, 'c', 'c.descendant_id = s.id and c.depth = 1')
-      .andWhere('c.ancestor_id = :id', { id: deptId })
+      .andWhere('c.ancestor_id = :id', { id: dept_id })
       .getCount();
   }
 
-  public async existUserByDeptId(deptId: number): Promise<number> {
-    if (deptId <= 0) {
+  public async existUserByDeptId(dept_id: number): Promise<number> {
+    if (dept_id <= 0) {
       return 0;
     }
     return await this.db
@@ -316,15 +314,15 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .select('s.id', 'id')
       .from(SysUser, 's')
-      .andWhere("s.user_del = '0' and s.dept_id = :id", { id: deptId })
+      .andWhere("s.user_del = '0' and s.dept_id = :id", { id: dept_id })
       .getCount();
   }
 
   public async selectDeptIdsByRoleId(
-    roleId: number,
+    role_id: number,
     deptCheckStrictly: boolean
   ): Promise<number[]> {
-    if (roleId <= 0) {
+    if (role_id <= 0) {
       return [];
     }
     const tx = this.db
@@ -333,8 +331,8 @@ export class SysDeptRepository {
       .select('distinct s.id', 'id')
       .from(SysDept, 's')
       .andWhere(
-        's.id in (SELECT DISTINCT dept_id FROM sys_role_dept WHERE role_id = :roleId)',
-        { roleId }
+        's.id in (SELECT DISTINCT dept_id FROM sys_role_dept WHERE role_id = :role_id)',
+        { role_id }
       );
     if (deptCheckStrictly) {
       tx.andWhere(
@@ -342,46 +340,46 @@ export class SysDeptRepository {
           SELECT c.ancestor_id
           FROM sys_dept_closure c
           INNER JOIN sys_role_dept rd ON rd.dept_id = c.descendant_id
-          WHERE rd.role_id = :roleId AND c.depth = 1
+          WHERE rd.role_id = :role_id AND c.depth = 1
         )`,
-        { roleId }
+        { role_id }
       );
     }
     const rows = await tx.getRawMany();
     return rows.map(row => Number(row.id));
   }
 
-  public async selectChildrenDeptById(deptId: number): Promise<SysDept[]> {
-    if (deptId <= 0) {
+  public async selectChildrenDeptById(dept_id: number): Promise<SysDept[]> {
+    if (dept_id <= 0) {
       return [];
     }
     const tx = this.selectWithParent().innerJoin(
       SysDeptClosure,
       'child',
       'child.descendant_id = s.id and child.ancestor_id = :id and child.depth > 0',
-      { id: deptId }
+      { id: dept_id }
     );
     tx.addOrderBy('s.dept_sort', 'ASC').addOrderBy('s.id', 'ASC');
     return await this.getManyWithParent(tx);
   }
 
-  public async selectDescendantIds(deptId: number): Promise<number[]> {
-    if (deptId <= 0) {
+  public async selectDescendantIds(dept_id: number): Promise<number[]> {
+    if (dept_id <= 0) {
       return [];
     }
     const rows = await this.db.execute(
       '',
       'SELECT descendant_id FROM sys_dept_closure WHERE ancestor_id = ?',
-      [deptId]
+      [dept_id]
     );
     return rows.map((row: any) => Number(row.descendant_id));
   }
 
   public async updateDeptStatusNormal(
-    deptId: number,
+    dept_id: number,
     entityManager?: EntityManager
   ): Promise<number> {
-    if (deptId <= 0) {
+    if (dept_id <= 0) {
       return 0;
     }
     const sql = `UPDATE sys_dept d
@@ -389,10 +387,10 @@ export class SysDeptRepository {
       SET d.dept_status = '1'
       WHERE c.ancestor_id <> c.descendant_id AND c.ancestor_id = ?`;
     if (entityManager) {
-      const rows = await entityManager.query(sql, [deptId]);
+      const rows = await entityManager.query(sql, [dept_id]);
       return Number(rows.affectedRows ?? 0);
     }
-    const rows = await this.db.execute('', sql, [deptId]);
+    const rows = await this.db.execute('', sql, [dept_id]);
     return Number(rows.affectedRows ?? 0);
   }
 
@@ -416,7 +414,7 @@ export class SysDeptRepository {
     const result = await tx.getRawAndEntities();
     result.entities.forEach((entity, index) => {
       const raw = result.raw[index] as Record<string, unknown> | undefined;
-      entity.parentId = Number(raw?.parent_id ?? raw?.parentId ?? 0);
+      entity.parent_id = Number(raw?.parent_id ?? 0);
     });
     return result.entities;
   }

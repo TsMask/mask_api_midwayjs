@@ -21,7 +21,7 @@ export class TreeSelect {
 export function sysMenuTreeSelect(sysMenu: SysMenu): TreeSelect {
   const t = new TreeSelect();
   t.id = sysMenu.id;
-  t.label = sysMenu.menuName;
+  t.label = sysMenu.menu_name;
   t.children = [];
   if (Array.isArray(sysMenu.children) && sysMenu.children.length > 0) {
     for (const menu of sysMenu.children) {
@@ -40,7 +40,7 @@ export function sysMenuTreeSelect(sysMenu: SysMenu): TreeSelect {
 export function sysDeptTreeSelect(sysDept: SysDept): TreeSelect {
   const t = new TreeSelect();
   t.id = sysDept.id;
-  t.label = sysDept.deptName;
+  t.label = sysDept.dept_name;
   t.children = [];
   if (Array.isArray(sysDept.children) && sysDept.children.length > 0) {
     for (const dept of sysDept.children) {

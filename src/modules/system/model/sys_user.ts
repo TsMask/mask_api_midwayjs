@@ -13,74 +13,89 @@ export class SysUser {
 
   @Rule(Joi.number().allow(0))
   @Column({ name: 'dept_id' })
-  deptId: number;
+  dept_id: number;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'user_name' })
-  userName: string;
+  user_name: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'user_nick' })
-  userNick: string;
+  user_nick: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'user_email' })
-  userEmail: string;
+  user_email: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'user_phone' })
-  userPhone: string;
+  user_phone: string;
 
   @Rule(Joi.string().pattern(/^[012]$/))
   @Column({ name: 'user_gender' })
-  userGender: string;
+  user_gender: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'user_avatar' })
-  userAvatar: string;
+  user_avatar: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'user_password', select: false })
-  userPassword: string;
+  user_password: string;
 
   @Rule(Joi.string().pattern(/^[01]$/))
   @Column({ name: 'user_status' })
-  userStatus: string;
+  user_status: string;
 
   @Rule(Joi.string().pattern(/^[01]$/))
   @Column({ name: 'user_del' })
-  userDel: string;
+  user_del: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'user_login_ip' })
-  userLoginIp: string;
+  user_login_ip: string;
 
   @Rule(Joi.number().allow(0))
   @Column({ name: 'user_login_time' })
-  userLoginTime: number;
+  user_login_time: number;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'create_by' })
-  createBy: string;
+  create_by: string;
 
   @Rule(Joi.number().allow(0))
   @Column({ name: 'create_time' })
-  createTime: number;
+  create_time: number;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'update_by' })
-  updateBy: string;
+  update_by: string;
 
   @Rule(Joi.number().allow(0))
   @Column({ name: 'update_time' })
-  updateTime: number;
+  update_time: number;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'remark', length: 200 })
   remark: string;
 
+  toJSON(): Record<string, unknown> {
+    const json = { ...this } as Partial<SysUser>;
+    delete json.user_password;
+    delete json.user_del;
+    delete json.role_ids;
+    delete json.post_ids;
+    return {
+      ...json,
+      dept: this.dept ?? null,
+      roles: this.roles ?? null,
+      ...(this.role_ids?.length ? { role_ids: this.role_ids } : {}),
+      ...(this.post_ids?.length ? { post_ids: this.post_ids } : {}),
+    };
+  }
+
   dept: SysDept;
   roles: SysRole[];
-  roleIds: number[];
-  postIds: number[];
+  role_ids: number[];
+  post_ids: number[];
 }

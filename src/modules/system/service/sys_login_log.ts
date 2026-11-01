@@ -23,19 +23,20 @@ export class SysLoginLogService {
   }
 
   public async insert(
-    userName: string,
+    user_name: string,
     status: string,
     msg: string,
     ilobArr: string[]
   ): Promise<number> {
     const loginLog = new SysLoginLog();
-    loginLog.loginIp = ilobArr[0] ?? '';
-    loginLog.loginLocation = ilobArr[1] ?? '';
-    loginLog.loginOs = ilobArr[2] ?? '';
-    loginLog.loginBrowser = ilobArr[3] ?? '';
-    loginLog.loginUserName = userName;
-    loginLog.loginStatus = status;
-    loginLog.loginMsg = msg;
+    loginLog.login_ip = ilobArr[0] ?? '';
+    loginLog.login_location = ilobArr[1] ?? '';
+    loginLog.login_os = ilobArr[2] ?? '';
+    loginLog.login_browser = ilobArr[3] ?? '';
+    loginLog.login_user_name = user_name;
+    loginLog.login_status = status;
+    loginLog.login_msg = msg;
+    loginLog.create_time = Date.now();
     return await this.sysLoginLogRepository.insert(loginLog);
   }
 
@@ -59,17 +60,17 @@ export class SysLoginLogService {
       ],
     ];
     for (const row of rows) {
-      const statusValue = row.loginStatus === '1' ? '成功' : '失败';
+      const statusValue = row.login_status === '1' ? '成功' : '失败';
       data.push([
         `${row.id ?? 0}`,
-        row.loginUserName ?? '',
+        row.login_user_name ?? '',
         statusValue,
-        row.loginIp ?? '',
-        row.loginLocation ?? '',
-        row.loginBrowser ?? '',
-        row.loginOs ?? '',
-        row.loginMsg ?? '',
-        parseDateToRFC3339(row.createTime ?? 0),
+        row.login_ip ?? '',
+        row.login_location ?? '',
+        row.login_browser ?? '',
+        row.login_os ?? '',
+        row.login_msg ?? '',
+        parseDateToRFC3339(row.create_time ?? 0),
       ]);
     }
     return await this.fileUtil.csvWriteRecord(data, fileName);

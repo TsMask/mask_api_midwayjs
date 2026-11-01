@@ -27,7 +27,6 @@ import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
 import { Resp } from '../../../internal/web/resp/api';
 import { SysDictTypeService } from '../service/sys_dict_type';
 import { SysDictType } from '../model/sys_dict_type';
-import { serializeSysDictType } from '../model/vo/response';
 
 /**字典类型信息 控制层处理 */
 @Controller('/api/v1/system/dict/types')
@@ -48,7 +47,7 @@ export class SysDictTypeController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysDictTypeService.findByPage(query);
-    return Resp.okData({ rows: rows.map(serializeSysDictType), total });
+    return Resp.okData({ rows: rows, total });
   }
 
   /**字典类型信息 */
@@ -65,7 +64,7 @@ export class SysDictTypeController {
 
     const data = await this.sysDictTypeService.findById(dictId);
     if (data.id === dictId) {
-      return Resp.okData(serializeSysDictType(data));
+      return Resp.okData(data);
     }
     return Resp.err();
   }
@@ -85,26 +84,25 @@ export class SysDictTypeController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId not is empty');
     }
-
     // 检查字典名称唯一
     const uniqueName = await this.sysDictTypeService.checkUniqueByName(
-      body.dictName,
+      body.dict_name,
       0
     );
     if (!uniqueName) {
-      return Resp.errMsg(`字典新增【${body.dictName}】失败，字典名称已存在`);
+      return Resp.errMsg(`字典新增【${body.dict_name}】失败，字典名称已存在`);
     }
 
     // 检查字典类型唯一
     const uniqueType = await this.sysDictTypeService.checkUniqueByType(
-      body.dictType,
+      body.dict_type,
       0
     );
     if (!uniqueType) {
-      return Resp.errMsg(`字典新增【${body.dictName}】失败，字典名称已存在`);
+      return Resp.errMsg(`字典新增【${body.dict_name}】失败，字典类型已存在`);
     }
 
-    body.createBy = loginUserToUserName(this.c);
+    body.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysDictTypeService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -127,37 +125,36 @@ export class SysDictTypeController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dictId is empty');
     }
-
     // 检查数据是否存在
-    const dictType = await this.sysDictTypeService.findById(body.id);
-    if (dictType.id !== body.id) {
+    const dict_type = await this.sysDictTypeService.findById(body.id);
+    if (dict_type.id !== body.id) {
       return Resp.errMsg('没有权限访问字典类型数据！');
     }
 
     // 检查字典名称唯一
     const uniqueName = await this.sysDictTypeService.checkUniqueByName(
-      body.dictName,
+      body.dict_name,
       body.id
     );
     if (!uniqueName) {
-      return Resp.errMsg(`字典修改【${body.dictName}】失败，字典名称已存在`);
+      return Resp.errMsg(`字典修改【${body.dict_name}】失败，字典名称已存在`);
     }
 
     // 检查字典类型唯一
     const uniqueType = await this.sysDictTypeService.checkUniqueByType(
-      body.dictType,
+      body.dict_type,
       body.id
     );
     if (!uniqueType) {
-      return Resp.errMsg(`字典修改【${body.dictName}】失败，字典名称已存在`);
+      return Resp.errMsg(`字典修改【${body.dict_name}】失败，字典类型已存在`);
     }
 
-    dictType.dictName = body.dictName;
-    dictType.dictType = body.dictType;
-    dictType.dictStatus = body.dictStatus;
-    dictType.remark = body.remark;
-    dictType.updateBy = loginUserToUserName(this.c);
-    const rows = await this.sysDictTypeService.update(dictType);
+    dict_type.dict_name = body.dict_name;
+    dict_type.dict_type = body.dict_type;
+    dict_type.dict_status = body.dict_status;
+    dict_type.remark = body.remark;
+    dict_type.update_by = loginUserToUserName(this.c);
+    const rows = await this.sysDictTypeService.update(dict_type);
     if (rows > 0) {
       return Resp.ok();
     }
@@ -191,7 +188,7 @@ export class SysDictTypeController {
     if (err) {
       return Resp.errMsg(err);
     }
-    return Resp.okMsg(`删除成功: ${rows}`);
+    return Resp.okMsg(`删除成功：${rows}`);
   }
 
   /**字典类型刷新缓存 */
@@ -224,8 +221,8 @@ export class SysDictTypeController {
     }
     // 数据组
     arr = data.map(item => ({
-      label: item.dictName,
-      value: item.dictType,
+      label: item.dict_name,
+      value: item.dict_type,
     }));
     return Resp.okData(arr);
   }

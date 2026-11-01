@@ -8,10 +8,10 @@ export class SysUserPost {
   /**用户ID */
   @Rule(Joi.number().allow(0))
   @PrimaryColumn({ name: 'user_id' })
-  userId: number;
+  user_id: number;
 
   /**岗位ID */
   @Rule(Joi.number().allow(0))
   @PrimaryColumn({ name: 'post_id' })
-  postId: number;
+  post_id: number;
 }

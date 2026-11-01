@@ -45,11 +45,6 @@ import { SysPostService } from '../service/sys_post';
 import { SysRole } from '../model/sys_role';
 import { SysUser } from '../model/sys_user';
 import { SysPost } from '../model/sys_post';
-import {
-  serializeSysPost,
-  serializeSysRole,
-  serializeSysUser,
-} from '../model/vo/response';
 
 /**用户信息 控制层处理 */
 @Controller('/api/v1/system/users')
@@ -89,7 +84,7 @@ export class SysUserController {
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
     const [rows, total] = await this.sysUserService.findByPage(query, filter);
-    return Resp.okData({ rows: rows.map(serializeSysUser), total });
+    return Resp.okData({ rows: rows, total });
   }
 
   /**用户信息详情 */
@@ -97,11 +92,11 @@ export class SysUserController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:query'] })],
   })
   public async info(
-    @Valid(Joi.number()) @Param('id') userId: number
+    @Valid(Joi.number()) @Param('id') user_id: number
   ): Promise<Resp> {
-    if (userId < 0) {
+    if (user_id < 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: user_id is empty');
     }
 
     // 查询系统角色列表
@@ -110,36 +105,36 @@ export class SysUserController {
     const posts = await this.sysPostService.find(new SysPost());
 
     // 新增用户时，用户ID为0
-    if (userId === 0) {
+    if (user_id === 0) {
       return Resp.okData({
         user: {},
         role_ids: [],
         post_ids: [],
-        roles: roles.map(serializeSysRole),
-        posts: posts.map(serializeSysPost),
+        roles: roles,
+        posts: posts,
       });
     }
 
     // 检查用户是否存在
-    const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.id !== userId) {
-      return Resp.errMsg('没有权限访问用户数据');
+    const userInfo = await this.sysUserService.findById(user_id);
+    if (userInfo.id !== user_id) {
+      return Resp.errMsg('没有权限访问用户数据！');
     }
-    delete (userInfo as Partial<SysUser>).userPassword;
+    delete (userInfo as Partial<SysUser>).user_password;
 
     // 角色ID组
-    const roleIds = userInfo.roles.map(r => r.id);
+    const role_ids = userInfo.roles.map(r => r.id);
 
     // 岗位ID组
     const userPosts = await this.sysPostService.findByUserId(userInfo.id);
-    const postIds = userPosts.map(p => p.id);
+    const post_ids = userPosts.map(p => p.id);
 
     return Resp.okData({
-      user: serializeSysUser(userInfo),
-      role_ids: roleIds,
-      post_ids: postIds,
-      roles: roles.map(serializeSysRole),
-      posts: posts.map(serializeSysPost),
+      user: userInfo,
+      role_ids: role_ids,
+      post_ids: post_ids,
+      roles: roles,
+      posts: posts,
     });
   }
 
@@ -153,80 +148,79 @@ export class SysUserController {
       }),
     ],
   })
-  public async add(@Body() rawBody: Record<string, any>): Promise<Resp> {
-    const body = this.parseBody(rawBody);
+  public async add(@Body() body: SysUser): Promise<Resp> {
     if (body.id > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: user_id not is empty');
     }
-    if (!validUsername(body.userName)) {
+    if (!validUsername(body.user_name)) {
       return Resp.errMsg(
-        `新增用户【${body.userName}】失败，登录账号用户账号只能包含大写小写字母，数字，且不少于4位`
+        `新增用户【${body.user_name}】失败，登录账号用户账号只能包含大写小写字母，数字，且不少于4位`
       );
     }
-    if (!validPassword(body.userPassword)) {
+    if (!validPassword(body.user_password)) {
       return Resp.errMsg(
-        `新增用户【${body.userName}】失败，登录账号用户账号只能包含大写小写字母，数字，且不少于4位`
+        `新增用户【${body.user_name}】失败，登录密码至少包含大小写字母、数字、特殊符号，且不少于6位`
       );
     }
 
     // 检查用户登录账号是否唯一
     const uniqueUserName = await this.sysUserService.checkUniqueByUserName(
-      body.userName,
+      body.user_name,
       0
     );
     if (!uniqueUserName) {
-      return Resp.errMsg(`新增用户【${body.userName}】失败，登录账号已存在`);
+      return Resp.errMsg(`新增用户【${body.user_name}】失败，登录账号已存在`);
     }
 
     // 检查手机号码格式并判断是否唯一
-    if (body.userPhone) {
-      if (validMobile(body.userPhone)) {
+    if (body.user_phone) {
+      if (validMobile(body.user_phone)) {
         const uniquePhone = await this.sysUserService.checkUniqueByPhone(
-          body.userPhone,
+          body.user_phone,
           0
         );
         if (!uniquePhone) {
           return Resp.errMsg(
-            `新增用户【${body.userName}】失败，手机号码已存在`
+            `新增用户【${body.user_name}】失败，手机号码已存在`
           );
         }
       } else {
         return Resp.errMsg(
-          `新增用户【${body.userName}】失败，手机号码格式错误`
+          `新增用户【${body.user_name}】失败，手机号码格式错误`
         );
       }
     }
 
     // 检查邮箱格式并判断是否唯一
-    if (body.userEmail) {
-      if (validEmail(body.userEmail)) {
+    if (body.user_email) {
+      if (validEmail(body.user_email)) {
         const uniqueEmail = await this.sysUserService.checkUniqueByEmail(
-          body.userEmail,
+          body.user_email,
           0
         );
         if (!uniqueEmail) {
-          return Resp.errMsg(`新增用户【${body.userName}】失败，邮箱已存在`);
+          return Resp.errMsg(`新增用户【${body.user_name}】失败，邮箱已存在`);
         }
       } else {
-        return Resp.errMsg(`新增用户【${body.userName}】失败，邮箱格式错误`);
+        return Resp.errMsg(`新增用户【${body.user_name}】失败，邮箱格式错误`);
       }
     }
 
     const sysUser = new SysUser();
-    sysUser.userName = body.userName;
-    sysUser.userPassword = body.userPassword;
-    sysUser.userNick = body.userNick;
-    sysUser.userEmail = body.userEmail;
-    sysUser.userPhone = body.userPhone;
-    sysUser.userGender = body.userGender;
-    sysUser.userStatus = body.userStatus;
+    sysUser.user_name = body.user_name;
+    sysUser.user_password = body.user_password;
+    sysUser.user_nick = body.user_nick;
+    sysUser.user_email = body.user_email;
+    sysUser.user_phone = body.user_phone;
+    sysUser.user_gender = body.user_gender;
+    sysUser.user_status = body.user_status;
     sysUser.remark = body.remark;
-    sysUser.deptId = body.deptId; // 部门ID
-    sysUser.roleIds = body.roleIds; // 角色ID组
-    sysUser.postIds = body.postIds; // 岗位ID组
-    sysUser.userAvatar = body.userAvatar;
-    sysUser.createBy = loginUserToUserName(this.c);
+    sysUser.dept_id = body.dept_id; // 部门ID
+    sysUser.role_ids = body.role_ids; // 角色ID组
+    sysUser.post_ids = body.post_ids; // 岗位ID组
+    sysUser.user_avatar = body.user_avatar;
+    sysUser.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysUserService.insert(sysUser);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -244,11 +238,10 @@ export class SysUserController {
       }),
     ],
   })
-  public async edit(@Body() rawBody: Record<string, any>): Promise<Resp> {
-    const body = this.parseBody(rawBody);
+  public async edit(@Body() body: SysUser): Promise<Resp> {
     if (body.id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: user_id is empty');
     }
 
     // 检查是否系统管理员用户
@@ -259,60 +252,60 @@ export class SysUserController {
     // 检查是否存在
     const userInfo = await this.sysUserService.findById(body.id);
     if (userInfo.id !== body.id) {
-      return Resp.errMsg('没有权限访问用户数据');
+      return Resp.errMsg('没有权限访问用户数据！');
     }
 
     // 检查手机号码格式并判断是否唯一
-    if (body.userPhone) {
-      if (validMobile(body.userPhone)) {
+    if (body.user_phone) {
+      if (validMobile(body.user_phone)) {
         const uniquePhone = await this.sysUserService.checkUniqueByPhone(
-          body.userPhone,
+          body.user_phone,
           body.id
         );
         if (!uniquePhone) {
           return Resp.errMsg(
-            `修改用户【${userInfo.userName}】失败，手机号码已存在`
+            `修改用户【${userInfo.user_name}】失败，手机号码已存在`
           );
         }
       } else {
         return Resp.errMsg(
-          `修改用户【${userInfo.userName}】失败，手机号码格式错误`
+          `修改用户【${userInfo.user_name}】失败，手机号码格式错误`
         );
       }
     }
 
     // 检查邮箱格式并判断是否唯一
-    if (body.userEmail) {
-      if (validEmail(body.userEmail)) {
+    if (body.user_email) {
+      if (validEmail(body.user_email)) {
         const uniqueEmail = await this.sysUserService.checkUniqueByEmail(
-          body.userEmail,
+          body.user_email,
           body.id
         );
         if (!uniqueEmail) {
           return Resp.errMsg(
-            `修改用户【${userInfo.userName}】失败，手机号码已存在`
+            `修改用户【${userInfo.user_name}】失败，邮箱已存在`
           );
         }
       } else {
         return Resp.errMsg(
-          `修改用户【${userInfo.userName}】失败，手机号码格式错误`
+          `修改用户【${userInfo.user_name}】失败，邮箱格式错误`
         );
       }
     }
 
-    if (body.userAvatar) {
-      userInfo.userAvatar = body.userAvatar;
+    if (body.user_avatar) {
+      userInfo.user_avatar = body.user_avatar;
     }
-    userInfo.userPhone = body.userPhone;
-    userInfo.userEmail = body.userEmail;
-    userInfo.userGender = body.userGender;
-    userInfo.userStatus = body.userStatus;
+    userInfo.user_phone = body.user_phone;
+    userInfo.user_email = body.user_email;
+    userInfo.user_gender = body.user_gender;
+    userInfo.user_status = body.user_status;
     userInfo.remark = body.remark;
-    userInfo.deptId = body.deptId;
-    userInfo.roleIds = body.roleIds;
-    userInfo.postIds = body.postIds;
-    userInfo.userPassword = ''; // 忽略修改密码
-    userInfo.updateBy = loginUserToUserName(this.c);
+    userInfo.dept_id = body.dept_id;
+    userInfo.role_ids = body.role_ids;
+    userInfo.post_ids = body.post_ids;
+    userInfo.user_password = ''; // 忽略修改密码
+    userInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysUserService.updateUserAndRolePost(userInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -331,15 +324,15 @@ export class SysUserController {
     ],
   })
   public async remove(
-    @Valid(Joi.string().allow('')) @Param('id') userId: string
+    @Valid(Joi.string().allow('')) @Param('id') user_id: string
   ): Promise<Resp> {
-    if (userId === '') {
+    if (user_id === '') {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: user_id is empty');
     }
 
     // 处理字符转id数组后去重
-    const uniqueIDs = parseRemoveDuplicatesToArray(userId, ',');
+    const uniqueIDs = parseRemoveDuplicatesToArray(user_id, ',');
     // 转换成number数组类型
     const ids = uniqueIDs.map(id => parseNumber(id));
 
@@ -350,7 +343,7 @@ export class SysUserController {
         return Resp.errMsg('当前用户不能删除');
       }
       if (this.config.isSystemUser(id)) {
-        return Resp.errMsg('不允许操作管理员用户');
+        return Resp.errMsg('不允许操作系统管理员用户');
       }
     }
 
@@ -358,7 +351,7 @@ export class SysUserController {
     if (err) {
       return Resp.errMsg(err);
     }
-    return Resp.okMsg(`删除成功: ${rows}`);
+    return Resp.okMsg(`删除成功：${rows}`);
   }
 
   /**用户密码修改 */
@@ -373,11 +366,11 @@ export class SysUserController {
     ],
   })
   public async password(
-    @Valid(Joi.number().required()) @Body('user_id') userId: number,
+    @Valid(Joi.number().required()) @Body('user_id') user_id: number,
     @Valid(Joi.string().required()) @Body('password') password: string
   ): Promise<Resp> {
     // 检查是否系统管理员用户
-    if (this.config.isSystemUser(userId)) {
+    if (this.config.isSystemUser(user_id)) {
       return Resp.errMsg('不允许操作系统管理员用户');
     }
 
@@ -388,13 +381,13 @@ export class SysUserController {
     }
 
     // 检查是否存在
-    const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.id !== userId) {
-      return Resp.errMsg('没有权限访问用户数据');
+    const userInfo = await this.sysUserService.findById(user_id);
+    if (userInfo.id !== user_id) {
+      return Resp.errMsg('没有权限访问用户数据！');
     }
 
-    userInfo.userPassword = password;
-    userInfo.updateBy = loginUserToUserName(this.c);
+    userInfo.user_password = password;
+    userInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -414,27 +407,27 @@ export class SysUserController {
     ],
   })
   public async status(
-    @Valid(Joi.number().required()) @Body('user_id') userId: number,
-    @Valid(Joi.string().required()) @Body('user_status') userStatus: string
+    @Valid(Joi.number().required()) @Body('user_id') user_id: number,
+    @Valid(Joi.string().required()) @Body('user_status') user_status: string
   ): Promise<Resp> {
     // 检查是否系统管理员用户
-    if (this.config.isSystemUser(userId)) {
+    if (this.config.isSystemUser(user_id)) {
       return Resp.errMsg('不允许操作系统管理员用户');
     }
     // 检查是否存在
-    const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.id !== userId) {
-      return Resp.errMsg('没有权限访问用户数据');
+    const userInfo = await this.sysUserService.findById(user_id);
+    if (userInfo.id !== user_id) {
+      return Resp.errMsg('没有权限访问用户数据！');
     }
 
     // 与旧值相等不变更
-    if (userInfo.userStatus === userStatus) {
+    if (userInfo.user_status === user_status) {
       return Resp.errMsg('变更状态与旧值相等！');
     }
 
-    userInfo.userStatus = userStatus;
-    userInfo.userPassword = ''; // 密码不更�
-    userInfo.updateBy = loginUserToUserName(this.c);
+    userInfo.user_status = user_status;
+    userInfo.user_password = ''; // 密码不更新
+    userInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -453,13 +446,13 @@ export class SysUserController {
     ],
   })
   public async unlock(
-    @Valid(Joi.string().allow('')) @Param('user_name') userName: string
+    @Valid(Joi.string().allow('')) @Param('user_name') user_name: string
   ): Promise<Resp> {
-    if (!userName) {
+    if (!user_name) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userName is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: user_name is empty');
     }
-    const ok = await this.accountService.clearLoginRecordCache(userName);
+    const ok = await this.accountService.clearLoginRecordCache(user_name);
     if (ok) {
       return Resp.okMsg('unlock success');
     }
@@ -546,23 +539,5 @@ export class SysUserController {
       update
     );
     return Resp.okMsg(message);
-  }
-
-  private parseBody(body: Record<string, any>): SysUser {
-    const user = new SysUser();
-    user.id = Number(body?.id ?? body?.userId ?? body?.ID ?? 0) || 0;
-    user.deptId = Number(body?.dept_id ?? body?.deptId ?? 0) || 0;
-    user.userName = String(body?.user_name ?? body?.userName ?? '');
-    user.userNick = String(body?.user_nick ?? body?.nickName ?? '');
-    user.userEmail = String(body?.user_email ?? body?.email ?? '');
-    user.userPhone = String(body?.user_phone ?? body?.phone ?? '');
-    user.userGender = String(body?.user_gender ?? body?.sex ?? '0');
-    user.userAvatar = String(body?.user_avatar ?? body?.avatar ?? '');
-    user.userPassword = String(body?.password ?? body?.userPassword ?? '');
-    user.userStatus = String(body?.user_status ?? body?.statusFlag ?? '0');
-    user.remark = String(body?.remark ?? '');
-    user.roleIds = body?.role_ids ?? body?.roleIds ?? [];
-    user.postIds = body?.post_ids ?? body?.postIds ?? [];
-    return user;
   }
 }

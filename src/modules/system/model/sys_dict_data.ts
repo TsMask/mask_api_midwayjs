@@ -13,57 +13,57 @@ export class SysDictData {
   /**字典类型 */
   @Rule(Joi.string().required())
   @Column({ name: 'dict_type' })
-  dictType: string;
+  dict_type: string;
 
   /**数据标签 */
   @Rule(Joi.string().required())
   @Column({ name: 'data_label' })
-  dataLabel: string;
+  data_label: string;
 
   /**数据键值 */
   @Rule(Joi.string().required())
   @Column({ name: 'data_value' })
-  dataValue: string;
+  data_value: string;
 
   /**数据排序 */
   @Rule(Joi.number().allow(0))
   @Column({ name: 'data_sort' })
-  dataSort: number;
+  data_sort: number;
 
   /**样式属性（样式扩展） */
   @Rule(Joi.string().allow(''))
   @Column({ name: 'tag_class' })
-  tagClass: string;
+  tag_class: string;
 
   /**标签类型（预设颜色） */
   @Rule(Joi.string().allow(''))
   @Column({ name: 'tag_type' })
-  tagType: string;
+  tag_type: string;
 
   /**状态（0停用 1正常） */
   @Rule(Joi.string().pattern(/^[01]$/))
   @Column({ name: 'data_status' })
-  dataStatus: string;
+  data_status: string;
 
   /**创建者 */
   @Rule(Joi.string().allow(''))
   @Column({ name: 'create_by' })
-  createBy: string;
+  create_by: string;
 
   /**创建时间 */
   @Rule(Joi.number().allow(0))
   @Column({ name: 'create_time' })
-  createTime: number;
+  create_time: number;
 
   /**更新者 */
   @Rule(Joi.string().allow(''))
   @Column({ name: 'update_by' })
-  updateBy: string;
+  update_by: string;
 
   /**更新时间 */
   @Rule(Joi.number().allow(0))
   @Column({ name: 'update_time' })
-  updateTime: number;
+  update_time: number;
 
   /**备注 */
   @Rule(Joi.string().allow(''))

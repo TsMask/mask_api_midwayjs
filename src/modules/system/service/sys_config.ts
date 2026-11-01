@@ -65,7 +65,7 @@ export class SysConfigService {
   public async insert(sysConfig: SysConfig): Promise<number> {
     const id = await this.sysConfigRepository.insert(sysConfig);
     if (id > 0) {
-      await this.cacheLoad(sysConfig.configKey);
+      await this.cacheLoad(sysConfig.config_key);
     }
     return id;
   }
@@ -78,7 +78,7 @@ export class SysConfigService {
   public async update(sysConfig: SysConfig): Promise<number> {
     const rows = await this.sysConfigRepository.update(sysConfig);
     if (rows > 0) {
-      await this.cacheLoad(sysConfig.configKey);
+      await this.cacheLoad(sysConfig.config_key);
     }
     return rows;
   }
@@ -96,7 +96,7 @@ export class SysConfigService {
     }
     for (const config of configs) {
       // 清除缓存
-      this.cacheClean(config.configKey);
+      await this.cacheClean(config.config_key);
     }
     if (configs.length === configIds.length) {
       const rows = await this.sysConfigRepository.deleteByIds(configIds);
@@ -131,17 +131,16 @@ export class SysConfigService {
 
   /**
    * 检查参数键名是否唯一
-   * @param configKey 配置Key
-   * @param legacyConfigKey 兼容旧命名Key
+   * @param config_key 配置Key
    * @param configId 配置ID
    * @returns 结果
    */
   public async checkUniqueByKey(
-    configKey: string,
+    config_key: string,
     configId: number
   ): Promise<boolean> {
     const sysConfig = new SysConfig();
-    sysConfig.configKey = configKey;
+    sysConfig.config_key = config_key;
     const uniqueId = await this.sysConfigRepository.checkUnique(sysConfig);
     if (uniqueId === configId) {
       return true;
@@ -151,57 +150,47 @@ export class SysConfigService {
 
   /**
    * 通过参数键名查询参数值
-   * @param configKey 配置Key
+   * @param config_key 配置Key
    * @returns 结果
    */
-  public async findValueByKey(
-    configKey: string,
-    legacyConfigKey = ''
-  ): Promise<string> {
-    const cacheKey = CACHE_SYS_CONFIG + ':' + configKey;
+  public async findValueByKey(config_key: string): Promise<string> {
+    const cacheKey = CACHE_SYS_CONFIG + ':' + config_key;
     // 从缓存中读取
     const cacheValue = await this.redisCache.get('', cacheKey);
     if (cacheValue) {
       return cacheValue;
     }
     // 无缓存时读取数据放入缓存中
-    const configValue =
-      await this.sysConfigRepository.selectValueByKey(configKey);
-    if (configValue) {
-      await this.redisCache.set('', cacheKey, configValue);
-      return configValue;
-    }
-
-    if (legacyConfigKey && legacyConfigKey !== configKey) {
-      const legacyValue = await this.findValueByKey(legacyConfigKey);
-      if (legacyValue) {
-        return legacyValue;
-      }
+    const config_value =
+      await this.sysConfigRepository.selectValueByKey(config_key);
+    if (config_value) {
+      await this.redisCache.set('', cacheKey, config_value);
+      return config_value;
     }
     return '';
   }
 
   /**
    * 加载参数缓存数据
-   * @param configKey 配置Key 传入*查询全部
+   * @param config_key 配置Key 传入*查询全部
    * @returns 结果
    */
-  public async cacheLoad(configKey: string): Promise<void> {
+  public async cacheLoad(config_key: string): Promise<void> {
     // 查询全部参数
-    if (configKey === '*' || configKey === '') {
+    if (config_key === '*' || config_key === '') {
       const sysConfigs = await this.sysConfigRepository.select(new SysConfig());
       for (const v of sysConfigs) {
-        const key = CACHE_SYS_CONFIG + ':' + v.configKey;
+        const key = CACHE_SYS_CONFIG + ':' + v.config_key;
         await this.redisCache.del('', key);
-        await this.redisCache.set('', key, v.configValue);
+        await this.redisCache.set('', key, v.config_value);
       }
       return;
     }
     // 指定参数
     const cacheValue =
-      await this.sysConfigRepository.selectValueByKey(configKey);
+      await this.sysConfigRepository.selectValueByKey(config_key);
     if (cacheValue) {
-      const key = CACHE_SYS_CONFIG + ':' + configKey;
+      const key = CACHE_SYS_CONFIG + ':' + config_key;
       await this.redisCache.del('', key);
       await this.redisCache.set('', key, cacheValue);
     }
@@ -209,11 +198,11 @@ export class SysConfigService {
 
   /**
    * 清空参数缓存数据
-   * @param configKey 配置Key 传入*清除全部
+   * @param config_key 配置Key 传入*清除全部
    * @returns 结果
    */
-  public async cacheClean(configKey: string): Promise<boolean> {
-    const key = CACHE_SYS_CONFIG + ':' + configKey;
+  public async cacheClean(config_key: string): Promise<boolean> {
+    const key = CACHE_SYS_CONFIG + ':' + config_key;
     const keys = await this.redisCache.getKeys('', key);
     const rows = await this.redisCache.delKeys('', keys);
     return rows > 0;
@@ -233,10 +222,10 @@ export class SysConfigService {
     for (const row of rows) {
       data.push([
         `${row.id ?? 0}`,
-        row.configName ?? '',
-        row.configKey ?? '',
-        row.configValue ?? '',
-        row.configValueType ?? '',
+        row.config_name ?? '',
+        row.config_key ?? '',
+        row.config_value ?? '',
+        row.config_value_type ?? '',
       ]);
     }
     return await this.fileUtil.csvWriteRecord(data, fileName);

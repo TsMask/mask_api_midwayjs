@@ -13,11 +13,11 @@ export class SysUserRoleRepository {
 
   /**
    * 存在用户使用数量
-   * @param roleId 角色ID
+   * @param role_id 角色ID
    * @returns 数量
    */
-  public async existUserByRoleId(roleId: number): Promise<number> {
-    if (roleId <= 0) {
+  public async existUserByRoleId(role_id: number): Promise<number> {
+    if (role_id <= 0) {
       return 0;
     }
     const count = await this.db
@@ -25,9 +25,28 @@ export class SysUserRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUserRole, 's')
-      .andWhere('s.role_id = :roleId', { roleId })
+      .andWhere('s.role_id = :role_id', { role_id })
       .getCount();
     return count;
+  }
+
+  /**
+   * 通过角色ID数组查询关联的用户ID（去重）
+   * @param role_ids 角色ID数组
+   * @returns 用户ID数组
+   */
+  public async selectUserIdsByRoleIds(role_ids: number[]): Promise<number[]> {
+    if (role_ids.length === 0) {
+      return [];
+    }
+    const rows = await this.db
+      .queryBuilder('')
+      .createQueryBuilder()
+      .select('DISTINCT s.user_id', 'user_id')
+      .from(SysUserRole, 's')
+      .andWhere('s.role_id IN (:...role_ids)', { role_ids })
+      .getRawMany();
+    return rows.map(row => Number(row.user_id));
   }
 
   /**
@@ -45,7 +64,7 @@ export class SysUserRoleRepository {
     }
     if (entityManager) {
       const result: DeleteResult = await entityManager.delete(SysUserRole, {
-        userId: In(userIds),
+        user_id: In(userIds),
       });
       return result.affected ?? 0;
     }
@@ -61,21 +80,29 @@ export class SysUserRoleRepository {
   /**
    * 批量删除关联By角色
    *
-   * @param roleId 角色ID
+   * @param role_id 角色ID
    * @param userIds ID数组
    * @return 影响记录数
    */
   public async deleteByRoleId(
-    roleId: number,
-    userIds: number[]
+    role_id: number,
+    userIds: number[],
+    entityManager?: EntityManager
   ): Promise<number> {
-    if (roleId <= 0 || userIds.length <= 0) return 0;
+    if (role_id <= 0 || userIds.length <= 0) return 0;
+    if (entityManager) {
+      const result: DeleteResult = await entityManager.delete(SysUserRole, {
+        role_id: role_id,
+        user_id: In(userIds),
+      });
+      return result.affected ?? 0;
+    }
     // 执行删除
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .delete()
       .from(SysUserRole)
-      .andWhere('role_id = :roleId', { roleId })
+      .andWhere('role_id = :role_id', { role_id })
       .andWhere('user_id in (:userIds)', { userIds })
       .execute();
     return tx.affected ?? 0;

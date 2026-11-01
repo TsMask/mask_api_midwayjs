@@ -28,18 +28,18 @@ export class SysPostRepository {
       .from(SysPost, 's');
     // 查询条件拼接
     if (query.post_code) {
-      tx.andWhere('s.post_code like :postCode', {
-        postCode: query.post_code + '%',
+      tx.andWhere('s.post_code like :post_code', {
+        post_code: query.post_code + '%',
       });
     }
     if (query.post_name) {
-      tx.andWhere('s.post_name like :postName', {
-        postName: query.post_name + '%',
+      tx.andWhere('s.post_name like :post_name', {
+        post_name: query.post_name + '%',
       });
     }
     if (query.post_status) {
-      tx.andWhere('s.post_status = :postStatus', {
-        postStatus: query.post_status,
+      tx.andWhere('s.post_status = :post_status', {
+        post_status: query.post_status,
       });
     }
 
@@ -55,7 +55,8 @@ export class SysPostRepository {
       query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=postSort,postName:asc（不加方向默认 DESC）
+
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       post_code: 's.post_code',
@@ -63,19 +64,10 @@ export class SysPostRepository {
       post_sort: 's.post_sort',
       post_status: 's.post_status',
       create_time: 's.create_time',
+      update_time: 's.update_time',
     };
-    if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-      }
-    } else {
-      tx.addOrderBy('s.post_sort', 'ASC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.post_sort ASC');
 
     const rows = await tx.getMany();
     return [rows, total];
@@ -94,19 +86,19 @@ export class SysPostRepository {
       .select('s')
       .from(SysPost, 's');
     // 构建查询条件
-    if (sysPost.postCode) {
-      tx.andWhere('s.post_code like :postCode', {
-        postCode: sysPost.postCode + '%',
+    if (sysPost.post_code) {
+      tx.andWhere('s.post_code like :post_code', {
+        post_code: sysPost.post_code + '%',
       });
     }
-    if (sysPost.postName) {
-      tx.andWhere('s.post_name like :postName', {
-        postName: sysPost.postName + '%',
+    if (sysPost.post_name) {
+      tx.andWhere('s.post_name like :post_name', {
+        post_name: sysPost.post_name + '%',
       });
     }
-    if (sysPost.postStatus) {
-      tx.andWhere('s.post_status = :postStatus', {
-        postStatus: sysPost.postStatus,
+    if (sysPost.post_status) {
+      tx.andWhere('s.post_status = :post_status', {
+        post_status: sysPost.post_status,
       });
     }
     // 查询数据
@@ -116,11 +108,11 @@ export class SysPostRepository {
   /**
    * 通过ID查询
    *
-   * @param postIds ID数组
+   * @param post_ids ID数组
    * @return 信息
    */
-  public async selectByIds(postIds: number[]): Promise<SysPost[]> {
-    if (postIds.length <= 0) {
+  public async selectByIds(post_ids: number[]): Promise<SysPost[]> {
+    if (post_ids.length <= 0) {
       return [];
     }
     // 查询数据
@@ -129,7 +121,7 @@ export class SysPostRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysPost, 's')
-      .andWhere('s.id in (:postIds)', { postIds })
+      .andWhere('s.id in (:post_ids)', { post_ids })
       .getMany();
     if (rows.length > 0) {
       return rows;
@@ -144,11 +136,11 @@ export class SysPostRepository {
    * @return ID
    */
   public async insert(sysPost: SysPost): Promise<number> {
-    if (sysPost.createBy) {
-      const ms = Date.now().valueOf();
-      sysPost.updateBy = sysPost.createBy;
-      sysPost.updateTime = ms;
-      sysPost.createTime = ms;
+    if (sysPost.create_by) {
+      const ms = Date.now();
+      sysPost.update_by = sysPost.create_by;
+      sysPost.update_time = ms;
+      sysPost.create_time = ms;
     }
     // 执行插入
     const tx: InsertResult = await this.db
@@ -174,13 +166,13 @@ export class SysPostRepository {
     if (sysPost.id <= 0) {
       return 0;
     }
-    if (sysPost.updateBy) {
-      sysPost.updateTime = Date.now().valueOf();
+    if (sysPost.update_by) {
+      sysPost.update_time = Date.now();
     }
     const data = Object.assign({}, sysPost);
     delete (data as Partial<SysPost>).id;
-    delete (data as Partial<SysPost>).createBy;
-    delete (data as Partial<SysPost>).createTime;
+    delete (data as Partial<SysPost>).create_by;
+    delete (data as Partial<SysPost>).create_time;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -195,17 +187,17 @@ export class SysPostRepository {
   /**
    * 批量删除
    *
-   * @param postIds ID数组
+   * @param post_ids ID数组
    * @return 影响记录数
    */
-  public async deleteByIds(postIds: number[]): Promise<number> {
-    if (postIds.length === 0) return 0;
+  public async deleteByIds(post_ids: number[]): Promise<number> {
+    if (post_ids.length === 0) return 0;
     // Gin uses physical deletion for posts.
     const tx: DeleteResult = await this.db
       .queryBuilder('')
       .delete()
       .from(SysPost)
-      .andWhere('id in (:postIds)', { postIds })
+      .andWhere('id in (:post_ids)', { post_ids })
       .execute();
     return tx.affected ?? 0;
   }
@@ -223,14 +215,14 @@ export class SysPostRepository {
       .from(SysPost, 's')
       .andWhere("s.del_flag = '0'");
     // 查询条件拼接
-    if (sysPost.postName) {
-      tx.andWhere('s.post_name = :postName', {
-        postName: sysPost.postName,
+    if (sysPost.post_name) {
+      tx.andWhere('s.post_name = :post_name', {
+        post_name: sysPost.post_name,
       });
     }
-    if (sysPost.postCode) {
-      tx.andWhere('s.post_code = :postCode', {
-        postCode: sysPost.postCode,
+    if (sysPost.post_code) {
+      tx.andWhere('s.post_code = :post_code', {
+        post_code: sysPost.post_code,
       });
     }
     // 查询数据
@@ -243,11 +235,11 @@ export class SysPostRepository {
 
   /**
    * 根据用户ID获取岗位选择框列表
-   * @param configKey 数据Key
+   * @param config_key 数据Key
    * @returns
    */
-  public async selectByUserId(userId: number): Promise<SysPost[]> {
-    if (userId < 0) {
+  public async selectByUserId(user_id: number): Promise<SysPost[]> {
+    if (user_id < 0) {
       return [];
     }
     // 查询数据
@@ -257,8 +249,8 @@ export class SysPostRepository {
       .select('s')
       .from(SysPost, 's')
       .andWhere(
-        's.id in (select post_id from sys_user_post  where user_id = :userId)',
-        { userId }
+        's.id in (select post_id from sys_user_post  where user_id = :user_id)',
+        { user_id }
       )
       .addOrderBy('s.id', 'ASC')
       .getMany();

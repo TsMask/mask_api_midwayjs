@@ -1,4 +1,5 @@
 import { Provide, Inject, Singleton } from '@midwayjs/core';
+import { EntityManager } from 'typeorm';
 
 import {
   ROLE_SCOPE_CUSTOM,
@@ -6,6 +7,8 @@ import {
 } from '../../../internal/shared/constants/role_data_scope';
 import { FileUtil } from '../../../internal/shared/file/file';
 import { SYS_ROLE_SYSTEM_ID } from '../../../internal/shared/constants/system';
+import { DynamicDataSource } from '../../../internal/infra/database/db';
+import { UserTokenService } from '../../../internal/web/token/user_token';
 import { SysUserRoleRepository } from '../repository/sys_user_role';
 import { SysRoleDeptRepository } from '../repository/sys_role_dept';
 import { SysRoleMenuRepository } from '../repository/sys_role_menu';
@@ -39,6 +42,14 @@ export class SysRoleService {
   @Inject()
   private fileUtil: FileUtil;
 
+  /**数据库事务 */
+  @Inject()
+  private db: DynamicDataSource;
+
+  /**令牌服务 */
+  @Inject()
+  private token: UserTokenService;
+
   /**
    * 分页查询列表数据
    * @param query 参数
@@ -69,14 +80,14 @@ export class SysRoleService {
 
   /**
    * 通过ID查询信息
-   * @param roleId ID
+   * @param role_id ID
    * @returns 结果
    */
-  public async findById(roleId: number): Promise<SysRole> {
-    if (roleId < 0) {
+  public async findById(role_id: number): Promise<SysRole> {
+    if (role_id < 0) {
       return new SysRole();
     }
-    const rows = await this.sysRoleRepository.selectByIds([roleId]);
+    const rows = await this.sysRoleRepository.selectByIds([role_id]);
     if (rows.length > 0) {
       return rows[0];
     }
@@ -89,15 +100,17 @@ export class SysRoleService {
    * @returns ID
    */
   public async insert(sysRole: SysRole): Promise<number> {
-    const insertId = await this.sysRoleRepository.insert(sysRole);
-    if (
-      insertId > 0 &&
-      Array.isArray(sysRole.menuIds) &&
-      sysRole.menuIds.length > 0
-    ) {
-      await this.insertRoleMenu(insertId, sysRole.menuIds);
-    }
-    return insertId;
+    return await this.db.transaction('', async manager => {
+      const insertId = await this.sysRoleRepository.insert(sysRole, manager);
+      if (
+        insertId > 0 &&
+        Array.isArray(sysRole.menu_ids) &&
+        sysRole.menu_ids.length > 0
+      ) {
+        await this.insertRoleMenu(insertId, sysRole.menu_ids, manager);
+      }
+      return insertId;
+    });
   }
 
   /**
@@ -106,43 +119,53 @@ export class SysRoleService {
    * @returns 影响记录数
    */
   public async update(sysRole: SysRole): Promise<number> {
-    const rows = await this.sysRoleRepository.update(sysRole);
-    if (
-      rows > 0 &&
-      Array.isArray(sysRole.menuIds) &&
-      sysRole.menuIds.length >= 0
-    ) {
-      // 删除角色与菜单关联
-      await this.sysRoleMenuRepository.deleteByRoleIds([sysRole.id]);
-      await this.insertRoleMenu(sysRole.id, sysRole.menuIds);
+    const rows = await this.db.transaction('', async manager => {
+      const affected = await this.sysRoleRepository.update(sysRole, manager);
+      if (affected > 0) {
+        // 删除角色与菜单关联
+        await this.sysRoleMenuRepository.deleteByRoleIds([sysRole.id], manager);
+        await this.insertRoleMenu(sysRole.id, sysRole.menu_ids, manager);
+      }
+      return affected;
+    });
+    if (rows > 0) {
+      // 角色菜单权限变更后清理持有该角色的用户 Token 缓存
+      const userIds = await this.sysUserRoleRepository.selectUserIdsByRoleIds([
+        sysRole.id,
+      ]);
+      await this.token?.removeByUserIds(userIds);
     }
     return rows;
   }
 
   /**
    * 新增角色菜单信息
-   * @param roleId 角色ID
-   * @param menuIds 菜单ID数组
+   * @param role_id 角色ID
+   * @param menu_ids 菜单ID数组
    * @returns 影响记录数
    */
   private async insertRoleMenu(
-    roleId: number,
-    menuIds: number[]
+    role_id: number,
+    menu_ids: number[],
+    entityManager?: EntityManager
   ): Promise<number> {
-    if (roleId <= 0 || menuIds.length <= 0) {
+    if (role_id <= 0 || !menu_ids?.length) {
       return 0;
     }
     const sysRoleMenus: SysRoleMenu[] = [];
-    for (const menuId of menuIds) {
-      if (menuId <= 0) {
+    for (const menu_id of menu_ids) {
+      if (menu_id <= 0) {
         continue;
       }
       const sysRoleMenu = new SysRoleMenu();
-      sysRoleMenu.roleId = roleId;
-      sysRoleMenu.menuId = menuId;
+      sysRoleMenu.role_id = role_id;
+      sysRoleMenu.menu_id = menu_id;
       sysRoleMenus.push(sysRoleMenu);
     }
-    return await this.sysRoleMenuRepository.batchInsert(sysRoleMenus);
+    return await this.sysRoleMenuRepository.batchInsert(
+      sysRoleMenus,
+      entityManager
+    );
   }
 
   /**
@@ -150,29 +173,27 @@ export class SysRoleService {
    * @param configIds ID数组
    * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(roleIds: number[]): Promise<[number, string]> {
+  public async deleteByIds(role_ids: number[]): Promise<[number, string]> {
     // 检查是否存在
-    const roles = await this.sysRoleRepository.selectByIds(roleIds);
+    const roles = await this.sysRoleRepository.selectByIds(role_ids);
     if (roles.length <= 0) {
       return [0, '没有权限访问角色数据！'];
     }
     for (const role of roles) {
-      // 检查是否为内置参数
-      if (role.roleDel === '1') {
-        return [0, `ID:${role.id} 角色信息已经删除！`];
-      }
       // 检查分配用户
       const useCount = await this.sysUserRoleRepository.existUserByRoleId(
         role.id
       );
       if (useCount > 0) {
-        return [0, `【${role.roleName}】已分配给用户,不能删除`];
+        return [0, `【${role.role_name}】已分配给用户,不能删除`];
       }
     }
-    if (roles.length === roleIds.length) {
-      this.sysRoleMenuRepository.deleteByRoleIds(roleIds); // 删除角色与菜单关联
-      this.sysRoleDeptRepository.deleteByRoleIds(roleIds); // 删除角色与部门关联
-      const rows = await this.sysRoleRepository.deleteByIds(roleIds);
+    if (roles.length === role_ids.length) {
+      const rows = await this.db.transaction('', async manager => {
+        await this.sysRoleMenuRepository.deleteByRoleIds(role_ids, manager); // 删除角色与菜单关联
+        await this.sysRoleDeptRepository.deleteByRoleIds(role_ids, manager); // 删除角色与部门关联
+        return await this.sysRoleRepository.deleteByIds(role_ids, manager);
+      });
       return [rows, ''];
     }
     return [0, '删除角色信息失败！'];
@@ -180,27 +201,27 @@ export class SysRoleService {
 
   /**
    * 根据用户ID获取角色选择框列表
-   * @param userId 用户ID
+   * @param user_id 用户ID
    * @returns 结果
    */
-  public async findByUserId(userId: number): Promise<SysRole[]> {
-    return this.sysRoleRepository.selectByUserId(userId);
+  public async findByUserId(user_id: number): Promise<SysRole[]> {
+    return this.sysRoleRepository.selectByUserId(user_id);
   }
 
   /**
    * 检查角色名称是否唯一
-   * @param dictName 字典名称
+   * @param dict_name 字典名称
    * @param dictId 字典ID
    * @returns 结果
    */
   public async checkUniqueByName(
-    roleName: string,
-    roleId: number
+    role_name: string,
+    role_id: number
   ): Promise<boolean> {
     const sysRole = new SysRole();
-    sysRole.roleName = roleName;
+    sysRole.role_name = role_name;
     const uniqueId = await this.sysRoleRepository.checkUnique(sysRole);
-    if (uniqueId === roleId) {
+    if (uniqueId === role_id) {
       return true;
     }
     return uniqueId === 0;
@@ -208,18 +229,18 @@ export class SysRoleService {
 
   /**
    * 检查角色权限是否唯一
-   * @param roleKey 角色键值
+   * @param role_key 角色键值
    * @param dictId 字典ID
    * @returns 结果
    */
   public async checkUniqueByKey(
-    roleKey: string,
-    roleId: number
+    role_key: string,
+    role_id: number
   ): Promise<boolean> {
     const sysRole = new SysRole();
-    sysRole.roleKey = roleKey;
+    sysRole.role_key = role_key;
     const uniqueId = await this.sysRoleRepository.checkUnique(sysRole);
-    if (uniqueId === roleId) {
+    if (uniqueId === role_id) {
       return true;
     }
     return uniqueId === 0;
@@ -231,69 +252,84 @@ export class SysRoleService {
    * @returns 结果
    */
   public async updateAndDataScope(sysRole: SysRole): Promise<number> {
-    // 修改角色信息
-    const rows = await this.sysRoleRepository.update(sysRole);
-    if (rows > 0) {
-      // 删除角色与部门关联
-      await this.sysRoleDeptRepository.deleteByRoleIds([sysRole.id]);
-      // 新增角色和部门信息
-      if (
-        sysRole.roleDataScope === ROLE_SCOPE_CUSTOM &&
-        sysRole.deptIds.length > 0
-      ) {
-        const arr: SysRoleDept[] = [];
-        for (const deptId of sysRole.deptIds) {
-          if (deptId <= 0) {
-            continue;
+    return await this.db.transaction('', async manager => {
+      // 修改角色信息
+      const rows = await this.sysRoleRepository.update(sysRole, manager);
+      if (rows > 0) {
+        // 删除角色与部门关联
+        await this.sysRoleDeptRepository.deleteByRoleIds([sysRole.id], manager);
+        // 新增角色和部门信息
+        if (
+          sysRole.role_data_scope === ROLE_SCOPE_CUSTOM &&
+          sysRole.dept_ids?.length > 0
+        ) {
+          const arr: SysRoleDept[] = [];
+          for (const dept_id of sysRole.dept_ids) {
+            if (dept_id <= 0) {
+              continue;
+            }
+            const sysRoleDept = new SysRoleDept();
+            sysRoleDept.role_id = sysRole.id;
+            sysRoleDept.dept_id = dept_id;
+            arr.push(sysRoleDept);
           }
-          const sysRoleDept = new SysRoleDept();
-          sysRoleDept.roleId = sysRole.id;
-          sysRoleDept.deptId = deptId;
-          arr.push(sysRoleDept);
+          await this.sysRoleDeptRepository.batchInsert(arr, manager);
         }
-        await this.sysRoleDeptRepository.batchInsert(arr);
       }
+      return rows;
+    });
+  }
+
+  /**
+   * 批量新增授权用户角色
+   * @param role_id 角色ID
+   * @param userIds 用户ID数组
+   * @returns 结果
+   */
+  public async insertAuthUsers(
+    role_id: number,
+    userIds: number[]
+  ): Promise<number> {
+    if (role_id <= 0 || userIds.length <= 0) {
+      return 0;
+    }
+    const sysUserRoles: SysUserRole[] = [];
+    for (const user_id of userIds) {
+      if (user_id <= 0) {
+        continue;
+      }
+      const sysUserRole = new SysUserRole();
+      sysUserRole.user_id = user_id;
+      sysUserRole.role_id = role_id;
+      sysUserRoles.push(sysUserRole);
+    }
+    const rows = await this.sysUserRoleRepository.batchInsert(sysUserRoles);
+    if (rows > 0) {
+      // 授权关系变更后清理相关用户的 Token 缓存
+      await this.token?.removeByUserIds(userIds);
     }
     return rows;
   }
 
   /**
-   * 批量新增授权用户角色
-   * @param roleId 角色ID
-   * @param userIds 用户ID数组
-   * @returns 结果
-   */
-  public async insertAuthUsers(
-    roleId: number,
-    userIds: number[]
-  ): Promise<number> {
-    if (roleId <= 0 || userIds.length <= 0) {
-      return 0;
-    }
-    const sysUserRoles: SysUserRole[] = [];
-    for (const userId of userIds) {
-      if (userId <= 0) {
-        continue;
-      }
-      const sysUserRole = new SysUserRole();
-      sysUserRole.userId = userId;
-      sysUserRole.roleId = roleId;
-      sysUserRoles.push(sysUserRole);
-    }
-    return await this.sysUserRoleRepository.batchInsert(sysUserRoles);
-  }
-
-  /**
    * 批量取消授权用户角色
-   * @param roleId 角色ID
+   * @param role_id 角色ID
    * @param userIds 用户ID数组
    * @returns 结果
    */
   public async deleteAuthUsers(
-    roleId: number,
+    role_id: number,
     userIds: number[]
   ): Promise<number> {
-    return await this.sysUserRoleRepository.deleteByRoleId(roleId, userIds);
+    const rows = await this.sysUserRoleRepository.deleteByRoleId(
+      role_id,
+      userIds
+    );
+    if (rows > 0) {
+      // 取消授权后清理相关用户的 Token 缓存
+      await this.token?.removeByUserIds(userIds);
+    }
+    return rows;
   }
 
   /**
@@ -310,21 +346,21 @@ export class SysRoleService {
     for (const row of rows) {
       // 数据范围
       let dataScope = (ROLE_SCOPE_DATA as Record<string, string>)[
-        row.roleDataScope
+        row.role_data_scope
       ];
       if (!dataScope) {
         dataScope = '空';
       }
       // 角色状态
       let statusValue = '停用';
-      if (row.roleStatus === '1') {
+      if (row.role_status === '1') {
         statusValue = '正常';
       }
       data.push([
         `${row.id ?? 0}`,
-        row.roleName ?? '',
-        row.roleKey ?? '',
-        `${row.roleSort ?? 0}`,
+        row.role_name ?? '',
+        row.role_key ?? '',
+        `${row.role_sort ?? 0}`,
         dataScope,
         statusValue,
       ]);

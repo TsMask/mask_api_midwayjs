@@ -11,37 +11,37 @@ export class SysLoginLog {
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'create_by' })
-  createBy: string;
+  create_by: string;
 
   @Rule(Joi.number().allow(0))
   @Column({ name: 'create_time' })
-  createTime: number;
+  create_time: number;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'login_user_name' })
-  loginUserName: string;
+  login_user_name: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'login_ip' })
-  loginIp: string;
+  login_ip: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'login_location' })
-  loginLocation: string;
+  login_location: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'login_browser' })
-  loginBrowser: string;
+  login_browser: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'login_os' })
-  loginOs: string;
+  login_os: string;
 
   @Rule(Joi.string().pattern(/^[01]$/))
   @Column({ name: 'login_status' })
-  loginStatus: string;
+  login_status: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'login_msg' })
-  loginMsg: string;
+  login_msg: string;
 }

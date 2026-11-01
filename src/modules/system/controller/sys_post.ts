@@ -27,7 +27,6 @@ import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/author
 import { loginUserToUserName } from '../../../internal/web/reqctx/auth';
 import { SysPostService } from '../service/sys_post';
 import { SysPost } from '../model/sys_post';
-import { serializeSysPost } from '../model/vo/response';
 
 /**岗位信息 控制层处理*/
 @Controller('/api/v1/system/posts')
@@ -46,7 +45,7 @@ export class SysPostController {
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
     const [rows, total] = await this.sysPostService.findByPage(query);
-    return Resp.okData({ rows: rows.map(serializeSysPost), total });
+    return Resp.okData({ rows: rows, total });
   }
 
   /**岗位信息 */
@@ -54,15 +53,15 @@ export class SysPostController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:post:query'] })],
   })
   public async info(
-    @Valid(Joi.number()) @Param('id') postId: number
+    @Valid(Joi.number()) @Param('id') post_id: number
   ): Promise<Resp> {
-    if (postId <= 0) {
+    if (post_id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: post_id is empty');
     }
-    const data = await this.sysPostService.findById(postId);
-    if (data.id === postId) {
-      return Resp.okData(serializeSysPost(data));
+    const data = await this.sysPostService.findById(post_id);
+    if (data.id === post_id) {
+      return Resp.okData(data);
     }
     return Resp.err();
   }
@@ -80,26 +79,26 @@ export class SysPostController {
   public async add(@Body() body: SysPost): Promise<Resp> {
     if (body.id > 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId not is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: post_id not is empty');
     }
     // 检查名称唯一
     const uniqueuName = await this.sysPostService.checkUniqueByName(
-      body.postName,
+      body.post_name,
       0
     );
     if (!uniqueuName) {
-      return Resp.errMsg(`岗位新增【${body.postName}】失败，岗位名称已存在`);
+      return Resp.errMsg(`岗位新增【${body.post_name}】失败，岗位名称已存在`);
     }
     // 检查编码属性值唯一
     const uniqueCode = await this.sysPostService.checkUniqueByCode(
-      body.postCode,
+      body.post_code,
       0
     );
     if (!uniqueCode) {
-      return Resp.errMsg(`岗位新增【${body.postName}】失败，岗位名称已存在`);
+      return Resp.errMsg(`岗位新增【${body.post_code}】失败，岗位编码已存在`);
     }
 
-    body.createBy = loginUserToUserName(this.c);
+    body.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysPostService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -120,9 +119,8 @@ export class SysPostController {
   public async edit(@Body() body: SysPost): Promise<Resp> {
     if (body.id <= 0) {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: post_id is empty');
     }
-
     // 检查是否存在
     const postInfo = await this.sysPostService.findById(body.id);
     if (postInfo.id !== body.id) {
@@ -131,28 +129,28 @@ export class SysPostController {
 
     // 检查名称属性值唯一
     const uniqueuName = await this.sysPostService.checkUniqueByName(
-      body.postName,
+      body.post_name,
       body.id
     );
     if (!uniqueuName) {
-      return Resp.errMsg(`岗位修改【${body.postName}】失败，岗位名称已存在`);
+      return Resp.errMsg(`岗位修改【${body.post_name}】失败，岗位名称已存在`);
     }
 
     // 检查编码属性值唯一
     const uniqueCode = await this.sysPostService.checkUniqueByCode(
-      body.postCode,
+      body.post_code,
       body.id
     );
     if (!uniqueCode) {
-      return Resp.errMsg(`岗位修改【${body.postName}】失败，岗位名称已存在`);
+      return Resp.errMsg(`岗位修改【${body.post_code}】失败，岗位编码已存在`);
     }
 
-    postInfo.postCode = body.postCode;
-    postInfo.postName = body.postName;
-    postInfo.postSort = body.postSort;
-    postInfo.postStatus = body.postStatus;
+    postInfo.post_code = body.post_code;
+    postInfo.post_name = body.post_name;
+    postInfo.post_sort = body.post_sort;
+    postInfo.post_status = body.post_status;
     postInfo.remark = body.remark;
-    postInfo.updateBy = loginUserToUserName(this.c);
+    postInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysPostService.update(postInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -171,15 +169,15 @@ export class SysPostController {
     ],
   })
   public async remove(
-    @Valid(Joi.string().allow('')) @Param('id') postId: string
+    @Valid(Joi.string().allow('')) @Param('id') post_id: string
   ): Promise<Resp> {
-    if (postId === '') {
+    if (post_id === '') {
       this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: postId is empty');
+      return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: post_id is empty');
     }
 
     // 处理字符转id数组后去重
-    const uniqueIDs = parseRemoveDuplicatesToArray(postId, ',');
+    const uniqueIDs = parseRemoveDuplicatesToArray(post_id, ',');
     // 转换成number数组类型
     const ids = uniqueIDs.map(id => parseNumber(id));
 
@@ -187,7 +185,7 @@ export class SysPostController {
     if (err) {
       return Resp.errMsg(err);
     }
-    return Resp.okMsg(`删除成功: ${rows}`);
+    return Resp.okMsg(`删除成功：${rows}`);
   }
 
   /**导出岗位信息 */

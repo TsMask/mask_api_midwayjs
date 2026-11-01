@@ -23,8 +23,6 @@ import { loginUser } from '../../../internal/web/reqctx/auth';
 import { SysPostService } from '../service/sys_post';
 import { SysRoleService } from '../service/sys_role';
 import { SysUserService } from '../service/sys_user';
-import { SysUser } from '../model/sys_user';
-import { serializeSysUser } from '../model/vo/response';
 
 /**个人信息 控制层处理 */
 @Controller('/api/v1/system/users/profile')
@@ -62,20 +60,20 @@ export class SysProfileController {
 
     // 查询用户所属角色组
     const roleGroup: string[] = [];
-    const roles = await this.sysRoleService.findByUserId(info.userId);
+    const roles = await this.sysRoleService.findByUserId(info.user_id);
     for (const role of roles) {
-      roleGroup.push(role.roleName);
+      roleGroup.push(role.role_name);
     }
 
     // 查询用户所属岗位组
     const postGroup: string[] = [];
-    const posts = await this.sysPostService.findByUserId(info.userId);
+    const posts = await this.sysPostService.findByUserId(info.user_id);
     for (const post of posts) {
-      postGroup.push(post.postName);
+      postGroup.push(post.post_name);
     }
 
     return Resp.okData({
-      user: serializeSysUser(info.user as SysUser),
+      user: info.user,
       role_group: [...new Set(roleGroup)],
       post_group: [...new Set(postGroup)],
     });
@@ -92,15 +90,15 @@ export class SysProfileController {
     ],
   })
   public async updateProfile(
-    @Valid(Joi.string().required()) @Body('user_nick') userNick: string,
+    @Valid(Joi.string().required()) @Body('user_nick') user_nick: string,
     @Valid(Joi.string().pattern(/^[012]$/))
     @Body('user_gender')
-    userGender: string,
-    @Valid(Joi.string().allow('')) @Body('user_phone') userPhone: string,
-    @Valid(Joi.string().allow('')) @Body('user_email') userEmail: string,
-    @Valid(Joi.string().allow('')) @Body('user_avatar') userAvatar: string
+    user_gender: string,
+    @Valid(Joi.string().allow('')) @Body('user_phone') user_phone: string,
+    @Valid(Joi.string().allow('')) @Body('user_email') user_email: string,
+    @Valid(Joi.string().allow('')) @Body('user_avatar') user_avatar: string
   ): Promise<Resp> {
-    if (userNick === '' || userGender === '') {
+    if (user_nick === '' || user_gender === '') {
       this.c.status = 422;
       return Resp.codeMsg(
         CODE_PARAM_CHEACK,
@@ -114,14 +112,14 @@ export class SysProfileController {
       this.c.status = 401;
       return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
-    const userId = info.userId;
+    const user_id = info.user_id;
 
     // 检查手机号码格式并判断是否唯一
-    if (userPhone !== '') {
-      if (validMobile(userPhone)) {
+    if (user_phone !== '') {
+      if (validMobile(user_phone)) {
         const uniquePhone = await this.sysUserService.checkUniqueByPhone(
-          userPhone,
-          userId
+          user_phone,
+          user_id
         );
         if (!uniquePhone) {
           return Resp.errMsg('抱歉，手机号码已存在');
@@ -132,11 +130,11 @@ export class SysProfileController {
     }
 
     // 检查邮箱格式并判断是否唯一
-    if (userEmail) {
-      if (validEmail(userEmail)) {
+    if (user_email) {
+      if (validEmail(user_email)) {
         const uniqueEmail = await this.sysUserService.checkUniqueByEmail(
-          userEmail,
-          userId
+          user_email,
+          user_id
         );
         if (!uniqueEmail) {
           return Resp.errMsg('抱歉，邮箱已存在');
@@ -147,19 +145,19 @@ export class SysProfileController {
     }
 
     // 查询当前登录用户信息
-    const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.id !== userId) {
+    const userInfo = await this.sysUserService.findById(user_id);
+    if (userInfo.id !== user_id) {
       return Resp.errMsg('没有权限访问用户数据！');
     }
 
     // 用户基本资料
-    userInfo.userNick = userNick;
-    userInfo.userPhone = userPhone;
-    userInfo.userEmail = userEmail;
-    userInfo.userGender = userGender;
-    userInfo.userAvatar = userAvatar;
-    userInfo.userPassword = ''; // 密码不更�
-    userInfo.updateBy = userInfo.userName;
+    userInfo.user_nick = user_nick;
+    userInfo.user_phone = user_phone;
+    userInfo.user_email = user_email;
+    userInfo.user_gender = user_gender;
+    userInfo.user_avatar = user_avatar;
+    userInfo.user_password = ''; // 密码不更新
+    userInfo.update_by = userInfo.user_name;
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
       // 更新缓存用户信息
@@ -197,27 +195,33 @@ export class SysProfileController {
       this.c.status = 401;
       return Resp.codeMsg(CODE_AUTH_INVALID, err);
     }
-    const userId = info.userId;
+    const user_id = info.user_id;
 
     // 查询当前登录用户信息得到密码值
-    const userInfo = await this.sysUserService.findById(userId);
-    if (userInfo.id !== userId) {
+    const userInfo = await this.sysUserService.findById(user_id);
+    if (userInfo.id !== user_id) {
       return Resp.errMsg('没有权限访问用户数据！');
     }
 
     // 检查匹配用户密码
-    const oldCompare = await passwordVerify(oldPassword, userInfo.userPassword);
+    const oldCompare = await passwordVerify(
+      oldPassword,
+      userInfo.user_password
+    );
     if (!oldCompare) {
       return Resp.errMsg('修改密码失败，旧密码错误');
     }
-    const newCompare = await passwordVerify(newPassword, userInfo.userPassword);
+    const newCompare = await passwordVerify(
+      newPassword,
+      userInfo.user_password
+    );
     if (newCompare) {
       return Resp.errMsg('新密码不能与旧密码相同');
     }
 
     // 修改新密码
-    userInfo.userPassword = newPassword;
-    userInfo.updateBy = userInfo.userName;
+    userInfo.user_password = newPassword;
+    userInfo.update_by = userInfo.user_name;
     const rows = await this.sysUserService.update(userInfo);
     if (rows > 0) {
       return Resp.ok();

@@ -8,10 +8,10 @@ export class SysUserRole {
   /**用户ID */
   @Rule(Joi.number().allow(0))
   @PrimaryColumn({ name: 'user_id' })
-  userId: number;
+  user_id: number;
 
   /**角色ID */
   @Rule(Joi.number().allow(0))
   @PrimaryColumn({ name: 'role_id' })
-  roleId: number;
+  role_id: number;
 }

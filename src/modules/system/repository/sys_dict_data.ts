@@ -1,5 +1,10 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import {
+  DeleteResult,
+  EntityManager,
+  InsertResult,
+  UpdateResult,
+} from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../internal/infra/database/db';
@@ -28,18 +33,18 @@ export class SysDictDataRepository {
       .from(SysDictData, 's');
     // 查询条件拼接
     if (query.dict_type) {
-      tx.andWhere('s.dict_type = :dictType', {
-        dictType: query.dict_type,
+      tx.andWhere('s.dict_type = :dict_type', {
+        dict_type: query.dict_type,
       });
     }
     if (query.data_label) {
-      tx.andWhere('s.data_label like :dataLabel', {
-        dataLabel: query.data_label + '%',
+      tx.andWhere('s.data_label like :data_label', {
+        data_label: query.data_label + '%',
       });
     }
     if (query.data_status) {
-      tx.andWhere('s.data_status = :dataStatus', {
-        dataStatus: query.data_status,
+      tx.andWhere('s.data_status = :data_status', {
+        data_status: query.data_status,
       });
     }
 
@@ -55,7 +60,8 @@ export class SysDictDataRepository {
       query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
-    // 排序，格式: sort=dataSort,dataLabel:asc（不加方向默认 DESC）
+
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       create_time: 's.create_time',
@@ -66,18 +72,8 @@ export class SysDictDataRepository {
       tag_type: 's.tag_type',
       data_status: 's.data_status',
     };
-    if (query.sort) {
-      const items = query.sort.split(',');
-      for (const item of items) {
-        const [field, dir] = item.split(':');
-        const column = columnMap[field];
-        if (!column) continue;
-        const order: 'ASC' | 'DESC' = dir === 'asc' ? 'ASC' : 'DESC';
-        tx.addOrderBy(column, order);
-      }
-    } else {
-      tx.addOrderBy('s.data_sort', 'ASC');
-    }
+    const orders = this.db.sortParse(query.sort, columnMap);
+    this.db.sortOrDefault(tx, orders, 's.data_sort ASC');
 
     const rows = await tx.getMany();
     return [rows, total];
@@ -96,19 +92,19 @@ export class SysDictDataRepository {
       .select('s')
       .from(SysDictData, 's');
     // 构建查询条件
-    if (sysDictData.dataLabel) {
-      tx.andWhere('s.data_label like :dataLabel', {
-        dataLabel: sysDictData.dataLabel + '%',
+    if (sysDictData.data_label) {
+      tx.andWhere('s.data_label like :data_label', {
+        data_label: sysDictData.data_label + '%',
       });
     }
-    if (sysDictData.dictType) {
-      tx.andWhere('s.dict_type = :dictType', {
-        dictType: sysDictData.dictType,
+    if (sysDictData.dict_type) {
+      tx.andWhere('s.dict_type = :dict_type', {
+        dict_type: sysDictData.dict_type,
       });
     }
-    if (sysDictData.dataStatus) {
-      tx.andWhere('s.data_status = :dataStatus', {
-        dataStatus: sysDictData.dataStatus,
+    if (sysDictData.data_status) {
+      tx.andWhere('s.data_status = :data_status', {
+        data_status: sysDictData.data_status,
       });
     }
     // 查询数据
@@ -146,11 +142,11 @@ export class SysDictDataRepository {
    * @return ID
    */
   public async insert(sysDictData: SysDictData): Promise<number> {
-    if (sysDictData.createBy) {
-      const ms = Date.now().valueOf();
-      sysDictData.updateBy = sysDictData.createBy;
-      sysDictData.updateTime = ms;
-      sysDictData.createTime = ms;
+    if (sysDictData.create_by) {
+      const ms = Date.now();
+      sysDictData.update_by = sysDictData.create_by;
+      sysDictData.update_time = ms;
+      sysDictData.create_time = ms;
     }
     // 执行插入
     const tx: InsertResult = await this.db
@@ -176,13 +172,13 @@ export class SysDictDataRepository {
     if (sysDictData.id <= 0) {
       return 0;
     }
-    if (sysDictData.updateBy) {
-      sysDictData.updateTime = Date.now().valueOf();
+    if (sysDictData.update_by) {
+      sysDictData.update_time = Date.now();
     }
     const data = Object.assign({}, sysDictData);
     delete (data as Partial<SysDictData>).id;
-    delete (data as Partial<SysDictData>).createBy;
-    delete (data as Partial<SysDictData>).createTime;
+    delete (data as Partial<SysDictData>).create_by;
+    delete (data as Partial<SysDictData>).create_time;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -224,19 +220,19 @@ export class SysDictDataRepository {
       .select('s')
       .from(SysDictData, 's');
     // 查询条件拼接
-    if (sysDictData.dictType) {
-      tx.andWhere('s.dict_type = :dictType', {
-        dictType: sysDictData.dictType,
+    if (sysDictData.dict_type) {
+      tx.andWhere('s.dict_type = :dict_type', {
+        dict_type: sysDictData.dict_type,
       });
     }
-    if (sysDictData.dataLabel) {
-      tx.andWhere('s.data_label = :dataLabel', {
-        dataLabel: sysDictData.dataLabel,
+    if (sysDictData.data_label) {
+      tx.andWhere('s.data_label = :data_label', {
+        data_label: sysDictData.data_label,
       });
     }
-    if (sysDictData.dataValue) {
-      tx.andWhere('s.data_value = :dataValue', {
-        dataValue: sysDictData.dataValue,
+    if (sysDictData.data_value) {
+      tx.andWhere('s.data_value = :data_value', {
+        data_value: sysDictData.data_value,
       });
     }
     // 查询数据
@@ -250,11 +246,11 @@ export class SysDictDataRepository {
   /**
    * 存在数据数量
    *
-   * @param dictType 字典类型
+   * @param dict_type 字典类型
    * @return 数量
    */
-  public async existDataByDictType(dictType: string): Promise<number> {
-    if (!dictType) {
+  public async existDataByDictType(dict_type: string): Promise<number> {
+    if (!dict_type) {
       return 0;
     }
     // 查询数据
@@ -263,7 +259,7 @@ export class SysDictDataRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysDictData, 's')
-      .andWhere('s.dict_type = :dictType', { dictType })
+      .andWhere('s.dict_type = :dict_type', { dict_type })
       .getCount();
     return count;
   }
@@ -277,17 +273,26 @@ export class SysDictDataRepository {
    */
   public async updateDataByDictType(
     oldDictType: string,
-    newDictType: string
+    newDictType: string,
+    entityManager?: EntityManager
   ): Promise<number> {
     if (!oldDictType || !newDictType) {
       return 0;
+    }
+    if (entityManager) {
+      const result: UpdateResult = await entityManager.update(
+        SysDictData,
+        { dict_type: oldDictType },
+        { dict_type: newDictType }
+      );
+      return result.affected ?? 0;
     }
     // 执行更新状态标记
     const tx: UpdateResult = await this.db
       .queryBuilder('')
       .createQueryBuilder()
       .update(SysDictData)
-      .set({ dictType: newDictType })
+      .set({ dict_type: newDictType })
       .andWhere('dict_type = :oldDictType', { oldDictType })
       .execute();
     return tx.affected ?? 0;
