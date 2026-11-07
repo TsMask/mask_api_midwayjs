@@ -11,7 +11,7 @@ import {
   STATUS_YES,
 } from '../../../internal/shared/constants/common';
 import { FileUtil } from '../../../internal/shared/file/file';
-import { parseDateToRFC3339 } from '../../../internal/shared/date/data';
+import { parseDateToRFC3339 } from '../../../internal/shared/date/date';
 import { parseNumber } from '../../../internal/shared/parse/parse';
 import { passwordHash } from '../../../internal/shared/crypto/password';
 import { DynamicDataSource } from '../../../internal/infra/database/db';

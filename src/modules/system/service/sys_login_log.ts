@@ -1,7 +1,7 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
 
 import { FileUtil } from '../../../internal/shared/file/file';
-import { parseDateToRFC3339 } from '../../../internal/shared/date/data';
+import { parseDateToRFC3339 } from '../../../internal/shared/date/date';
 import { SysLoginLogRepository } from '../repository/sys_login_log';
 import { SysLoginLog } from '../model/sys_login_log';
 

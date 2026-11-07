@@ -27,7 +27,7 @@ import {
   UPLOAD_IMPORT,
 } from '../constants/upload_sub_path';
 import { assetsPath } from './assets_path';
-import { parseDatePath } from '../date/data';
+import { parseDatePath } from '../date/date';
 import { readSheet, writeSheet } from './execl';
 import { csvReadAll, encodeCsv } from './csv';
 import { generateCode } from '../generate/generate';

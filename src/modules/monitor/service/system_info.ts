@@ -27,7 +27,7 @@ import {
 } from '@midwayjs/core';
 import type { Application } from '@midwayjs/koa';
 
-import { parseDateToStr } from '../../../internal/shared/date/data';
+import { parseDateToStr } from '../../../internal/shared/date/date';
 import { parseBit } from '../../../internal/shared/parse/parse';
 
 /**服务器系统相关信息 服务层处理 */
