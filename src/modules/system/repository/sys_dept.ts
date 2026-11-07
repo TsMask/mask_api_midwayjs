@@ -314,7 +314,7 @@ export class SysDeptRepository {
       .createQueryBuilder()
       .select('s.id', 'id')
       .from(SysUser, 's')
-      .andWhere('s.deleted_at is null and s.dept_id = :id', { id: dept_id })
+      .andWhere('s.deleted_at = 0 and s.dept_id = :id', { id: dept_id })
       .getCount();
   }
 

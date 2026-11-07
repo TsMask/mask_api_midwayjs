@@ -21,7 +21,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere('s.deleted_at is null');
+      .andWhere('s.deleted_at = 0');
     if (query.role_name) {
       tx.andWhere('s.role_name like :role_name', {
         role_name: query.role_name + '%',
@@ -107,7 +107,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere('s.deleted_at is null');
+      .andWhere('s.deleted_at = 0');
     if (sysRole.role_key) {
       tx.andWhere('s.role_key like :role_key', {
         role_key: sysRole.role_key + '%',
@@ -135,7 +135,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere('s.id in (:role_ids) and s.deleted_at is null', { role_ids })
+      .andWhere('s.id in (:role_ids) and s.deleted_at = 0', { role_ids })
       .getMany();
   }
 
@@ -235,7 +235,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s.id', 'id')
       .from(SysRole, 's')
-      .andWhere('s.deleted_at is null');
+      .andWhere('s.deleted_at = 0');
     if (sysRole.role_name) {
       tx.andWhere('s.role_name = :role_name', { role_name: sysRole.role_name });
     }
@@ -259,7 +259,7 @@ export class SysRoleRepository {
       .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
       .leftJoin('sys_user', 'u', 'u.id = ur.user_id')
       .andWhere(
-        "u.deleted_at is null and r.deleted_at is null and ur.user_id = :user_id",
+        "u.deleted_at = 0 and r.deleted_at = 0 and ur.user_id = :user_id",
         {
           user_id,
         }
@@ -288,7 +288,7 @@ export class SysRoleRepository {
       .addSelect('r.role_status', 'role_status')
       .from(SysRole, 'r')
       .innerJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
-      .andWhere('r.deleted_at is null and ur.user_id in (:userIds)', {
+      .andWhere('r.deleted_at = 0 and ur.user_id in (:userIds)', {
         userIds,
       })
       .getRawMany();

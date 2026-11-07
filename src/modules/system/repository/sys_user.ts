@@ -40,7 +40,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere('s.deleted_at is null');
+      .andWhere('s.deleted_at = 0');
     if (query.id) {
       tx.andWhere('s.id = :id', { id: query.id });
     }
@@ -117,7 +117,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere('s.deleted_at is null');
+      .andWhere('s.deleted_at = 0');
     if (sysUser.user_name) {
       tx.andWhere('s.user_name like :user_name', {
         user_name: sysUser.user_name + '%',
@@ -149,7 +149,7 @@ export class SysUserRepository {
       .select('s')
       .addSelect('s.user_password')
       .from(SysUser, 's')
-      .andWhere('s.id in (:userIds) and s.deleted_at is null', { userIds })
+      .andWhere('s.id in (:userIds) and s.deleted_at = 0', { userIds })
       .getMany();
   }
 
@@ -253,7 +253,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s.id', 'id')
       .from(SysUser, 's')
-      .andWhere('s.deleted_at is null');
+      .andWhere('s.deleted_at = 0');
     if (sysUser.user_name) {
       tx.andWhere('s.user_name = :user_name', { user_name: sysUser.user_name });
     }
@@ -281,7 +281,7 @@ export class SysUserRepository {
       .select('s')
       .addSelect('s.user_password')
       .from(SysUser, 's')
-      .andWhere('s.user_name = :user_name and s.deleted_at is null', {
+      .andWhere('s.user_name = :user_name and s.deleted_at = 0', {
         user_name,
       })
       .getOne();
@@ -298,7 +298,7 @@ export class SysUserRepository {
       .select('s')
       .addSelect('s.user_password')
       .from(SysUser, 's')
-      .andWhere('s.user_phone = :phone and s.deleted_at is null', { phone })
+      .andWhere('s.user_phone = :phone and s.deleted_at = 0', { phone })
       .getOne();
     return item ?? new SysUser();
   }
@@ -312,7 +312,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere('s.deleted_at is null');
+      .andWhere('s.deleted_at = 0');
     if (query.user_name) {
       tx.andWhere('s.user_name like :user_name', {
         user_name: query.user_name + '%',

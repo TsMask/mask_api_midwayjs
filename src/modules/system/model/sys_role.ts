@@ -25,9 +25,9 @@ export class SysRole {
   @Column({ name: 'role_status' })
   role_status: string;
 
-  @Rule(Joi.number().allow(0, null))
-  @Column({ name: 'deleted_at', nullable: true })
-  deleted_at: number;
+  @Rule(Joi.number().min(0))
+  @Column({ name: 'deleted_at' })
+  deleted_at: number = 0;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'deleted_by' })

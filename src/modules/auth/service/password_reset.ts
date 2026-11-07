@@ -194,7 +194,7 @@ export class PasswordResetService {
     if (
       user.user_name !== username ||
       user.id <= 0 ||
-      (user.deleted_at ?? 0) > 0 ||
+      user.deleted_at > 0 ||
       user.user_status === STATUS_NO
     ) {
       return '用户不存在或账号不可自助找回密码';
