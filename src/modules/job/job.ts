@@ -45,7 +45,7 @@ export class JobModule {
     this.cronManager.createQueue('test_job', basicProcessor);
     this.cronManager.createQueue('test_progress', progressProcessor);
     this.cronManager.createQueue('test_error', errorProcessor);
-  
+
     // 初始化定时任务
     await this.sysJobService.reset();
   }

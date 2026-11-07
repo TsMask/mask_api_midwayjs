@@ -29,19 +29,19 @@ export class SysJobLogRepository {
       .from(SysJobLog, 's');
     // 查询条件拼接
     if (query.job_name) {
-      tx.andWhere('s.job_name = :jobName', { jobName: query.job_name });
+      tx.andWhere('s.job_name = :job_name', { job_name: query.job_name });
     }
     if (query.job_group) {
-      tx.andWhere('s.job_group = :jobGroup', { jobGroup: query.job_group });
+      tx.andWhere('s.job_group = :job_group', { job_group: query.job_group });
     }
     if (query.log_status) {
-      tx.andWhere('s.log_status = :logStatus', {
-        logStatus: query.log_status,
+      tx.andWhere('s.log_status = :log_status', {
+        log_status: query.log_status,
       });
     }
     if (query.job_invoke_target) {
-      tx.andWhere('s.job_invoke_target like :jobInvokeTarget', {
-        jobInvokeTarget: query.job_invoke_target + '%',
+      tx.andWhere('s.job_invoke_target like :job_invoke_target', {
+        job_invoke_target: query.job_invoke_target + '%',
       });
     }
     if (query.create_time_begin) {
@@ -58,7 +58,7 @@ export class SysJobLogRepository {
     if (query.create_time_end) {
       if (`${query.create_time_end}`.length === 10) {
         tx.andWhere('s.create_time <= :endTime', {
-          endTime: parseNumber(`${query.create_time_end}000`),
+          endTime: parseNumber(`${query.create_time_end}999`),
         });
       } else if (`${query.create_time_end}`.length === 13) {
         tx.andWhere('s.create_time <= :endTime', {
@@ -75,12 +75,12 @@ export class SysJobLogRepository {
 
     // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num,
+      query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
-    // 排序，格式: sort=createTime,id:asc（不加方向默认 DESC）
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       job_name: 's.job_name',
@@ -109,22 +109,24 @@ export class SysJobLogRepository {
       .select('s')
       .from(SysJobLog, 's');
     // 构建查询条件
-    if (sysJobLog.jobName) {
-      tx.andWhere('s.job_name like :jobName', {
-        jobName: sysJobLog.jobName + '%',
+    if (sysJobLog.job_name) {
+      tx.andWhere('s.job_name like :job_name', {
+        job_name: sysJobLog.job_name + '%',
       });
     }
-    if (sysJobLog.jobGroup) {
-      tx.andWhere('s.job_group = :jobGroup', { jobGroup: sysJobLog.jobGroup });
-    }
-    if (sysJobLog.logStatus) {
-      tx.andWhere('s.log_status = :logStatus', {
-        logStatus: sysJobLog.logStatus,
+    if (sysJobLog.job_group) {
+      tx.andWhere('s.job_group = :job_group', {
+        job_group: sysJobLog.job_group,
       });
     }
-    if (sysJobLog.jobInvokeTarget) {
-      tx.andWhere('s.job_invoke_target like :jobInvokeTarget', {
-        jobInvokeTarget: sysJobLog.jobInvokeTarget + '%',
+    if (sysJobLog.log_status) {
+      tx.andWhere('s.log_status = :log_status', {
+        log_status: sysJobLog.log_status,
+      });
+    }
+    if (sysJobLog.job_invoke_target) {
+      tx.andWhere('s.job_invoke_target like :job_invoke_target', {
+        job_invoke_target: sysJobLog.job_invoke_target + '%',
       });
     }
     // 查询数据

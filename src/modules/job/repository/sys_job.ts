@@ -28,21 +28,21 @@ export class SysJobRepository {
       .from(SysJob, 's');
     // 查询条件拼接
     if (query.job_name) {
-      tx.andWhere('s.job_name like :jobName', {
-        jobName: query.job_name + '%',
+      tx.andWhere('s.job_name like :job_name', {
+        job_name: query.job_name + '%',
       });
     }
     if (query.job_group) {
-      tx.andWhere('s.job_group = :jobGroup', { jobGroup: query.job_group });
+      tx.andWhere('s.job_group = :job_group', { job_group: query.job_group });
     }
     if (query.job_invoke_target) {
-      tx.andWhere('s.job_invoke_target like :jobInvokeTarget', {
-        jobInvokeTarget: query.job_invoke_target + '%',
+      tx.andWhere('s.job_invoke_target like :job_invoke_target', {
+        job_invoke_target: query.job_invoke_target + '%',
       });
     }
     if (query.job_status) {
-      tx.andWhere('s.job_status = :jobStatus', {
-        jobStatus: query.job_status,
+      tx.andWhere('s.job_status = :job_status', {
+        job_status: query.job_status,
       });
     }
 
@@ -54,12 +54,12 @@ export class SysJobRepository {
 
     // 查询数据分页
     const [pageNum, pageSize] = this.db.pageNumSize(
-      query.pageNum,
-      query.pageSize
+      query.page_num,
+      query.page_size
     );
     tx.skip(pageSize * pageNum).take(pageSize);
 
-    // 排序，格式: sort=createTime,id:asc（不加方向默认 DESC）
+    // 排序，格式: sort=create_time,id:asc（不加方向默认 DESC）
     const columnMap: Record<string, string> = {
       id: 's.id',
       job_name: 's.job_name',
@@ -92,26 +92,26 @@ export class SysJobRepository {
       .select('s')
       .from(SysJob, 's');
     // 构建查询条件
-    if (sysJob.jobName) {
-      tx.andWhere('s.job_name like :jobName', {
-        v: sysJob.jobName + '%',
+    if (sysJob.job_name) {
+      tx.andWhere('s.job_name like :job_name', {
+        v: sysJob.job_name + '%',
       });
     }
-    if (sysJob.jobGroup) {
-      tx.andWhere('s.job_group = :jobGroup', { jobGroup: sysJob.jobGroup });
+    if (sysJob.job_group) {
+      tx.andWhere('s.job_group = :job_group', { job_group: sysJob.job_group });
     }
-    if (sysJob.jobInvokeTarget) {
-      tx.andWhere('s.job_invoke_target like :jobInvokeTarget', {
-        jobInvokeTarget: sysJob.jobInvokeTarget + '%',
+    if (sysJob.job_invoke_target) {
+      tx.andWhere('s.job_invoke_target like :job_invoke_target', {
+        job_invoke_target: sysJob.job_invoke_target + '%',
       });
     }
-    if (sysJob.jobStatus) {
-      tx.andWhere('s.job_status = :jobStatus', {
-        jobStatus: sysJob.jobStatus,
+    if (sysJob.job_status) {
+      tx.andWhere('s.job_status = :job_status', {
+        job_status: sysJob.job_status,
       });
     }
     // 查询数据
-    return await tx.getMany();
+    return await tx.orderBy('s.id', 'ASC').getMany();
   }
 
   /**
@@ -145,11 +145,11 @@ export class SysJobRepository {
    * @return ID
    */
   public async insert(sysJob: SysJob): Promise<number> {
-    if (sysJob.createBy) {
+    if (sysJob.create_by) {
       const ms = Date.now().valueOf();
-      sysJob.updateBy = sysJob.createBy;
-      sysJob.createTime = ms;
-      sysJob.updateTime = ms;
+      sysJob.update_by = sysJob.create_by;
+      sysJob.create_time = ms;
+      sysJob.update_time = ms;
     }
     // 执行插入
     const tx: InsertResult = await this.db
@@ -175,13 +175,13 @@ export class SysJobRepository {
     if (sysJob.id <= 0) {
       return 0;
     }
-    if (sysJob.updateBy) {
-      sysJob.updateTime = Date.now().valueOf();
+    if (sysJob.update_by) {
+      sysJob.update_time = Date.now().valueOf();
     }
     const data = Object.assign({}, sysJob);
     delete (data as Partial<SysJob>).id;
-    delete (data as Partial<SysJob>).createBy;
-    delete (data as Partial<SysJob>).createTime;
+    delete (data as Partial<SysJob>).create_by;
+    delete (data as Partial<SysJob>).create_time;
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -224,11 +224,11 @@ export class SysJobRepository {
       .select('s')
       .from(SysJob, 's');
     // 查询条件拼接
-    if (sysJob.jobName) {
-      tx.andWhere('s.job_name = :jobName', { jobName: sysJob.jobName });
+    if (sysJob.job_name) {
+      tx.andWhere('s.job_name = :job_name', { job_name: sysJob.job_name });
     }
-    if (sysJob.jobGroup) {
-      tx.andWhere('s.job_group = :jobGroup', { jobGroup: sysJob.jobGroup });
+    if (sysJob.job_group) {
+      tx.andWhere('s.job_group = :job_group', { job_group: sysJob.job_group });
     }
     // 查询数据
     const item = await tx.getOne();

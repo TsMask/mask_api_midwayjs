@@ -95,25 +95,25 @@ export class SysJobLogService {
       // 任务组名
       let sysJobGroup = '';
       for (const v of dictSysJobGroup) {
-        if (item.jobGroup === v.data_value) {
+        if (item.job_group === v.data_value) {
           sysJobGroup = v.data_label;
           break;
         }
       }
       // 状态
       let statusValue = '失败';
-      if (item.logStatus === '1') {
+      if (item.log_status === '1') {
         statusValue = '成功';
       }
       data.push([
         `${item.id ?? 0}`,
-        item.jobName ?? '',
+        item.job_name ?? '',
         sysJobGroup,
-        item.jobInvokeTarget ?? '',
-        item.jobTargetParams ?? '',
-        item.logMsg ?? '',
+        item.job_invoke_target ?? '',
+        item.job_target_params ?? '',
+        item.log_msg ?? '',
         statusValue,
-        parseDateToRFC3339(item.createTime ?? 0),
+        parseDateToRFC3339(item.create_time ?? 0),
       ]);
     }
     return await this.fileUtil.csvWriteRecord(data, fileName);

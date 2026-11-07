@@ -11,9 +11,9 @@ export async function progressProcessor(
   }
 
   return {
-    job_name: data?.jobName,
-    invoke_target: data?.jobInvokeTarget,
-    target_params: data?.jobTargetParams,
+    job_name: data?.job_name,
+    invoke_target: data?.job_invoke_target,
+    target_params: data?.job_target_params,
   };
 }
 

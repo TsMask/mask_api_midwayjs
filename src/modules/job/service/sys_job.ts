@@ -81,7 +81,7 @@ export class SysJobService {
    */
   public async insert(sysJob: SysJob): Promise<number> {
     const insertId = await this.sysJobRepository.insert(sysJob);
-    if (insertId && sysJob.jobStatus === STATUS_YES) {
+    if (insertId && sysJob.job_status === STATUS_YES) {
       sysJob.id = insertId;
       await this.insertQueueJob(sysJob, true);
     }
@@ -96,11 +96,12 @@ export class SysJobService {
   public async update(sysJob: SysJob): Promise<number> {
     const rows = await this.sysJobRepository.update(sysJob);
     if (rows > 0) {
-      // 更新时始终先移除旧的队列任务
-      await this.deleteQueueJob(sysJob);
-      // 状态正常时重新添加队列任务
-      if (sysJob.jobStatus === STATUS_YES) {
+      if (sysJob.job_status === STATUS_YES) {
         await this.insertQueueJob(sysJob, true);
+      }
+      // 状态暂停时移除队列任务
+      if (sysJob.job_status === STATUS_NO) {
+        await this.deleteQueueJob(sysJob);
       }
     }
     return rows;
@@ -130,19 +131,19 @@ export class SysJobService {
 
   /**
    * 校验调度任务名称和组是否唯一
-   * @param jobName 调度任务名称
-   * @param jobGroup 调度任务组
+   * @param job_name 调度任务名称
+   * @param job_group 调度任务组
    * @param jobId 调度任务ID
    * @returns true 唯一，false 不唯一
    */
   public async checkUniqueJobName(
-    jobName: string,
-    jobGroup: string,
+    job_name: string,
+    job_group: string,
     jobId: number
   ): Promise<boolean> {
     const sysJob = new SysJob();
-    sysJob.jobName = jobName;
-    sysJob.jobGroup = jobGroup;
+    sysJob.job_name = job_name;
+    sysJob.job_group = job_group;
     const uniqueId = await this.sysJobRepository.checkUnique(sysJob);
     if (uniqueId === jobId) {
       return true;
@@ -161,12 +162,12 @@ export class SysJobService {
     sysJob: SysJob,
     repeat: boolean
   ): Promise<boolean> {
-    const queue = this.cronManager.getQueue<SysJob>(sysJob.jobInvokeTarget);
+    const queue = this.cronManager.getQueue<SysJob>(sysJob.job_invoke_target);
     if (!queue) return false;
     const state = await queue.runJob(sysJob, {
       id: String(sysJob.id),
-      cron: repeat ? sysJob.jobCron : undefined,
-      concurrent: sysJob.jobConcurrent === '1',
+      cron: repeat ? sysJob.job_cron : undefined,
+      concurrent: sysJob.job_concurrent === '1',
     });
     return state === CronJobState.Waiting || state === CronJobState.Active;
   }
@@ -178,7 +179,7 @@ export class SysJobService {
    */
   private async deleteQueueJob(sysJob: SysJob): Promise<void> {
     await this.cronManager
-      .getQueue<SysJob>(sysJob.jobInvokeTarget)
+      .getQueue<SysJob>(sysJob.job_invoke_target)
       ?.removeJob(String(sysJob.id));
   }
 
@@ -192,7 +193,7 @@ export class SysJobService {
     const sysJob = record.data;
 
     // 任务日志不需要记录
-    if (sysJob.jobSaveLog === '' || sysJob.jobSaveLog === STATUS_NO) {
+    if (sysJob.job_save_log === '' || sysJob.job_save_log === STATUS_NO) {
       return;
     }
 
@@ -204,8 +205,8 @@ export class SysJobService {
 
     // 结果信息序列化字符串
     let jobMsg = JSON.stringify({
-      cron: sysJob.jobCron,
-      invoke_target: sysJob.jobInvokeTarget,
+      cron: sysJob.job_cron,
+      invoke_target: sysJob.job_invoke_target,
       result: resultName,
       message: record.result,
     });
@@ -216,14 +217,14 @@ export class SysJobService {
     // 创建日志对象
     const now = Date.now().valueOf();
     const sysJobLog = new SysJobLog();
-    sysJobLog.jobName = sysJob.jobName;
-    sysJobLog.jobGroup = sysJob.jobGroup;
-    sysJobLog.jobInvokeTarget = sysJob.jobInvokeTarget;
-    sysJobLog.jobTargetParams = sysJob.jobTargetParams;
-    sysJobLog.logStatus = record.status;
-    sysJobLog.logMsg = jobMsg;
-    sysJobLog.logCostTime = now - record.timestamp;
-    sysJobLog.createTime = now;
+    sysJobLog.job_name = sysJob.job_name;
+    sysJobLog.job_group = sysJob.job_group;
+    sysJobLog.job_invoke_target = sysJob.job_invoke_target;
+    sysJobLog.job_target_params = sysJob.job_target_params;
+    sysJobLog.log_status = record.status;
+    sysJobLog.log_msg = jobMsg;
+    sysJobLog.log_cost_time = now - record.timestamp;
+    sysJobLog.create_time = now;
     // 插入数据
     await this.sysJobLogRepository.insert(sysJobLog);
   }
@@ -239,10 +240,11 @@ export class SysJobService {
     }
     // 查询系统中定义状态为正常启用的任务
     const sysJob = new SysJob();
-    sysJob.jobStatus = STATUS_YES;
+    sysJob.job_status = STATUS_YES;
     const sysJobs = await this.sysJobRepository.select(sysJob);
     for (const sysJob of sysJobs) {
-      if (queueList.includes(sysJob.jobInvokeTarget)) {
+      if (queueList.includes(sysJob.job_invoke_target)) {
+        await this.deleteQueueJob(sysJob);
         await this.insertQueueJob(sysJob, true);
       }
     }
@@ -286,33 +288,33 @@ export class SysJobService {
       // 任务组名
       let sysJobGroup = '';
       for (const v of dictSysJobGroup) {
-        if (item.jobGroup === v.data_value) {
+        if (item.job_group === v.data_value) {
           sysJobGroup = v.data_label;
           break;
         }
       }
       let misfirePolicy = '放弃执行';
-      if (item.jobMisfirePolicy === '1') {
+      if (item.job_misfire_policy === '1') {
         misfirePolicy = '立即执行';
-      } else if (item.jobMisfirePolicy === '2') {
+      } else if (item.job_misfire_policy === '2') {
         misfirePolicy = '执行一次';
       }
       let concurrent = '禁止';
-      if (item.jobConcurrent === '1') {
+      if (item.job_concurrent === '1') {
         concurrent = '允许';
       }
       // 状态
       let statusValue = '失败';
-      if (item.jobStatus === '1') {
+      if (item.job_status === '1') {
         statusValue = '成功';
       }
       data.push([
         `${item.id ?? 0}`,
-        item.jobName ?? '',
+        item.job_name ?? '',
         sysJobGroup,
-        item.jobInvokeTarget ?? '',
-        item.jobTargetParams ?? '',
-        item.jobCron ?? '',
+        item.job_invoke_target ?? '',
+        item.job_target_params ?? '',
+        item.job_cron ?? '',
         misfirePolicy,
         concurrent,
         statusValue,

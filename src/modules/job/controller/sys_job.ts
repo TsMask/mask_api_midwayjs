@@ -86,19 +86,19 @@ export class SysJobController {
     }
 
     // 检查cron表达式格式
-    if (parseCronExpression(body.jobCron) === 0) {
+    if (parseCronExpression(body.job_cron) === 0) {
       return Resp.errMsg(
-        `调度任务新增【${body.jobName}】失败，Cron表达式不正确`
+        `调度任务新增【${body.job_name}】失败，Cron表达式不正确`
       );
     }
 
     // 检查任务调用传入参数是否json格式
-    if (body.jobTargetParams !== '') {
-      const msg = `调度任务新增【${body.jobName}】失败，任务传入参数json字符串不正确`;
-      if (body.jobTargetParams.length < 7) {
+    if (body.job_target_params !== '') {
+      const msg = `调度任务新增【${body.job_name}】失败，任务传入参数json字符串不正确`;
+      if (body.job_target_params.length < 7) {
         return Resp.errMsg(msg);
       }
-      const params = parseStringToObject(body.jobTargetParams);
+      const params = parseStringToObject(body.job_target_params);
       if (!params) {
         return Resp.errMsg(msg);
       }
@@ -106,17 +106,17 @@ export class SysJobController {
 
     // 检查属性唯一
     const uniqueJob = await this.sysJobService.checkUniqueJobName(
-      body.jobName,
-      body.jobGroup,
+      body.job_name,
+      body.job_group,
       0
     );
     if (!uniqueJob) {
       return Resp.errMsg(
-        `调度任务新增【${body.jobName}】失败，Cron表达式不正确`
+        `调度任务新增【${body.job_name}】失败，同任务组内有相同任务名`
       );
     }
 
-    body.createBy = loginUserToUserName(this.c);
+    body.create_by = loginUserToUserName(this.c);
     const insertId = await this.sysJobService.insert(body);
     if (insertId > 0) {
       return Resp.okData(insertId);
@@ -141,19 +141,19 @@ export class SysJobController {
     }
 
     // 检查cron表达式格式
-    if (parseCronExpression(body.jobCron) === 0) {
+    if (parseCronExpression(body.job_cron) === 0) {
       return Resp.errMsg(
-        `调度任务修改【${body.jobName}】失败，Cron表达式不正确`
+        `调度任务修改【${body.job_name}】失败，Cron表达式不正确`
       );
     }
 
     // 检查任务调用传入参数是否json格式
-    if (body.jobTargetParams) {
-      const msg = `调度任务修改【${body.jobName}】失败，任务传入参数json字符串不正确`;
-      if (body.jobTargetParams.length < 7) {
+    if (body.job_target_params) {
+      const msg = `调度任务修改【${body.job_name}】失败，任务传入参数json字符串不正确`;
+      if (body.job_target_params.length < 7) {
         return Resp.errMsg(msg);
       }
-      const params = parseStringToObject(body.jobTargetParams);
+      const params = parseStringToObject(body.job_target_params);
       if (!params) {
         return Resp.errMsg(msg);
       }
@@ -161,13 +161,13 @@ export class SysJobController {
 
     // 检查属性唯一
     const uniqueJob = await this.sysJobService.checkUniqueJobName(
-      body.jobName,
-      body.jobGroup,
+      body.job_name,
+      body.job_group,
       body.id
     );
     if (!uniqueJob) {
       return Resp.errMsg(
-        `调度任务修改【${body.jobName}】失败，Cron表达式不正确`
+        `调度任务修改【${body.job_name}】失败，同任务组内有相同任务名`
       );
     }
 
@@ -177,17 +177,17 @@ export class SysJobController {
       return Resp.errMsg('没有权限访问调度任务数据！');
     }
 
-    jobInfo.jobName = body.jobName;
-    jobInfo.jobGroup = body.jobGroup;
-    jobInfo.jobInvokeTarget = body.jobInvokeTarget;
-    jobInfo.jobTargetParams = body.jobTargetParams;
-    jobInfo.jobCron = body.jobCron;
-    jobInfo.jobMisfirePolicy = body.jobMisfirePolicy;
-    jobInfo.jobConcurrent = body.jobConcurrent;
-    jobInfo.jobStatus = body.jobStatus;
-    jobInfo.jobSaveLog = body.jobSaveLog;
+    jobInfo.job_name = body.job_name;
+    jobInfo.job_group = body.job_group;
+    jobInfo.job_invoke_target = body.job_invoke_target;
+    jobInfo.job_target_params = body.job_target_params;
+    jobInfo.job_cron = body.job_cron;
+    jobInfo.job_misfire_policy = body.job_misfire_policy;
+    jobInfo.job_concurrent = body.job_concurrent;
+    jobInfo.job_status = body.job_status;
+    jobInfo.job_save_log = body.job_save_log;
     jobInfo.remark = body.remark;
-    jobInfo.updateBy = loginUserToUserName(this.c);
+    jobInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysJobService.update(jobInfo);
     if (rows > 0) {
       return Resp.ok();
@@ -252,11 +252,11 @@ export class SysJobController {
       return Resp.errMsg('没有权限访问调度任务数据！');
     }
     // 与旧值相等不变更
-    if (jobInfo.jobStatus === statusFlag) {
+    if (jobInfo.job_status === statusFlag) {
       return Resp.errMsg('变更状态与旧值相等！');
     }
-    jobInfo.jobStatus = statusFlag;
-    jobInfo.updateBy = loginUserToUserName(this.c);
+    jobInfo.job_status = statusFlag;
+    jobInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysJobService.update(jobInfo);
     if (rows > 0) {
       return Resp.ok();
