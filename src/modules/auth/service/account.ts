@@ -12,7 +12,6 @@ import {
 } from '../../../internal/shared/constants/system';
 import {
   STATUS_NO,
-  STATUS_YES,
 } from '../../../internal/shared/constants/common';
 import {
   parseBoolean,
@@ -141,7 +140,7 @@ export class AccountService {
     if (sysUser.user_name !== username) {
       return [info, 'user does not exist or password is incorrect'];
     }
-    if (sysUser.user_del === STATUS_YES) {
+    if ((sysUser.deleted_at ?? 0) > 0) {
       return [info, 'sorry, your account has been deleted'];
     }
     if (sysUser.user_status === STATUS_NO) {
@@ -301,7 +300,7 @@ export class AccountService {
    */
   private async buildUserInfo(sysUser: SysUser): Promise<[UserInfo, string]> {
     const info = new UserInfo();
-    if (sysUser.user_del === STATUS_YES) {
+    if ((sysUser.deleted_at ?? 0) > 0) {
       return [
         info,
         'sorry, your account has been deleted. Sorry, your account has been deleted',

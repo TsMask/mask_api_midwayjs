@@ -104,7 +104,8 @@ export class SysUserService {
     }
     for (const v of rows) {
       delete (v as Partial<SysUser>).user_password;
-      delete (v as Partial<SysUser>).user_del;
+      delete (v as Partial<SysUser>).deleted_at;
+      delete (v as Partial<SysUser>).deleted_by;
       delete (v as Partial<SysUser>).post_ids;
       v.dept = deptMap.get(v.dept_id)!;
       v.roles = roleMap.get(v.id) || [];
@@ -265,7 +266,10 @@ export class SysUserService {
    * @param userIds ID数组
    * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(userIds: number[]): Promise<[number, string]> {
+  public async deleteByIds(
+    userIds: number[],
+    deletedBy: string = ''
+  ): Promise<[number, string]> {
     const users = await this.sysUserRepository.selectByIds(userIds);
     if (users.length <= 0) {
       return [0, '没有权限访问用户数据！'];
@@ -274,7 +278,11 @@ export class SysUserService {
       const rows = await this.db.transaction('', async manager => {
         await this.sysUserRoleRepository.deleteByUserIds(userIds, manager);
         await this.sysUserPostRepository.deleteByUserIds(userIds, manager);
-        return await this.sysUserRepository.deleteByIds(userIds, manager);
+        return await this.sysUserRepository.deleteByIds(
+          userIds,
+          deletedBy,
+          manager
+        );
       });
       if (rows > 0) {
         await this.token?.removeByUserIds(userIds);
@@ -427,7 +435,8 @@ export class SysUserService {
     }
     for (const v of rows) {
       delete (v as Partial<SysUser>).user_password;
-      delete (v as Partial<SysUser>).user_del;
+      delete (v as Partial<SysUser>).deleted_at;
+      delete (v as Partial<SysUser>).deleted_by;
       delete (v as Partial<SysUser>).post_ids;
       v.dept = deptMap.get(v.dept_id)!;
       v.roles = roleMap.get(v.id) || [];

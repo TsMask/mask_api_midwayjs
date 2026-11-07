@@ -173,7 +173,10 @@ export class SysRoleService {
    * @param configIds ID数组
    * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(role_ids: number[]): Promise<[number, string]> {
+  public async deleteByIds(
+    role_ids: number[],
+    deletedBy: string = ''
+  ): Promise<[number, string]> {
     // 检查是否存在
     const roles = await this.sysRoleRepository.selectByIds(role_ids);
     if (roles.length <= 0) {
@@ -192,7 +195,11 @@ export class SysRoleService {
       const rows = await this.db.transaction('', async manager => {
         await this.sysRoleMenuRepository.deleteByRoleIds(role_ids, manager); // 删除角色与菜单关联
         await this.sysRoleDeptRepository.deleteByRoleIds(role_ids, manager); // 删除角色与部门关联
-        return await this.sysRoleRepository.deleteByIds(role_ids, manager);
+        return await this.sysRoleRepository.deleteByIds(
+          role_ids,
+          deletedBy,
+          manager
+        );
       });
       return [rows, ''];
     }

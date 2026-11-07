@@ -77,13 +77,9 @@ export class SysMenu {
   @Column({ name: 'menu_status' })
   menu_status: string;
 
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'menu_del' })
-  menu_del: string;
 
   toJSON(): Record<string, unknown> {
     const json = { ...this } as Partial<SysMenu>;
-    delete json.menu_del;
     delete json.children;
     return {
       ...json,

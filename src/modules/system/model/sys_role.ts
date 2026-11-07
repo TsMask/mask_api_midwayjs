@@ -25,9 +25,13 @@ export class SysRole {
   @Column({ name: 'role_status' })
   role_status: string;
 
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'role_del' })
-  role_del: string;
+  @Rule(Joi.number().allow(0, null))
+  @Column({ name: 'deleted_at', nullable: true })
+  deleted_at: number;
+
+  @Rule(Joi.string().allow(''))
+  @Column({ name: 'deleted_by' })
+  deleted_by: string;
 
   @Rule(Joi.string().pattern(/^[12345]$/))
   @Column({ name: 'role_data_scope' })
@@ -63,7 +67,8 @@ export class SysRole {
 
   toJSON(): Record<string, unknown> {
     const json = { ...this } as Partial<SysRole>;
-    delete json.role_del;
+    delete json.deleted_at;
+    delete json.deleted_by;
     delete json.menu_ids;
     delete json.dept_ids;
     return {

@@ -1,9 +1,10 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import { DeleteResult, InsertResult, UpdateResult } from 'typeorm';
+import { InsertResult, UpdateResult } from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { parseNumber } from '../../../internal/shared/parse/parse';
+import { NOTICE_STATUS_DELETED } from '../../../internal/shared/constants/notice';
 import { SysNotice } from '../model/sys_notice';
 
 /**通知公告表 数据层处理 */
@@ -26,8 +27,7 @@ export class SysNoticeRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysNotice, 's')
-      .andWhere("s.notice_del = '0'");
+      .from(SysNotice, 's');
     // 查询条件拼接
     if (query.notice_title) {
       tx.andWhere('s.notice_title like :notice_title', {
@@ -113,8 +113,7 @@ export class SysNoticeRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysNotice, 's')
-      .andWhere("notice_del = '0'");
+      .from(SysNotice, 's');
     // 构建查询条件
     if (sysNotice.notice_title) {
       tx.andWhere('s.notice_title like :notice_title', {
@@ -156,7 +155,7 @@ export class SysNoticeRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysNotice, 's')
-      .andWhere("s.id in (:noticeIds) and s.notice_del = '0'", {
+      .andWhere('s.id in (:noticeIds)', {
         noticeIds,
       })
       .getMany();
@@ -173,7 +172,6 @@ export class SysNoticeRepository {
    * @return ID
    */
   public async insert(sysNotice: SysNotice): Promise<number> {
-    sysNotice.notice_del = '0';
     if (sysNotice.create_by) {
       const ms = Date.now();
       sysNotice.update_by = sysNotice.create_by;
@@ -200,8 +198,8 @@ export class SysNoticeRepository {
    * @param sysNotice 信息
    * @return 影响记录数
    */
-  public async update(sysNotice: SysNotice): Promise<number> {
-    if (sysNotice.id <= 0) {
+  public async update(sysNotice: Partial<SysNotice>): Promise<number> {
+    if (!sysNotice.id || sysNotice.id <= 0) {
       return 0;
     }
     if (sysNotice.update_by) {
@@ -209,9 +207,11 @@ export class SysNoticeRepository {
     }
     const data = Object.assign({}, sysNotice);
     delete (data as Partial<SysNotice>).id;
-    delete (data as Partial<SysNotice>).notice_del;
     delete (data as Partial<SysNotice>).create_by;
     delete (data as Partial<SysNotice>).create_time;
+    if (data.notice_status === undefined) {
+      delete (data as Partial<SysNotice>).notice_status;
+    }
     // 执行更新
     const tx: UpdateResult = await this.db
       .queryBuilder('')
@@ -229,14 +229,23 @@ export class SysNoticeRepository {
    * @param configIds ID数组
    * @return 影响记录数
    */
-  public async deleteByIds(noticeIds: number[]): Promise<number> {
+  public async deleteByIds(
+    noticeIds: number[],
+    updateBy: string = ''
+  ): Promise<number> {
     if (noticeIds.length === 0) return 0;
     // 执行更新删除标记
-    const tx: DeleteResult = await this.db
+    const tx: UpdateResult = await this.db
       .queryBuilder('')
       .update(SysNotice)
-      .set({ notice_del: '1' })
+      .set({
+        notice_status: NOTICE_STATUS_DELETED,
+        ...(updateBy ? { update_by: updateBy } : {}),
+      })
       .andWhere('id in (:noticeIds)', { noticeIds })
+      .andWhere('notice_status <> :notDeletedStatus', {
+        notDeletedStatus: NOTICE_STATUS_DELETED,
+      })
       .execute();
     return tx.affected ?? 0;
   }

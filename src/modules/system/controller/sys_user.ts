@@ -148,7 +148,11 @@ export class SysUserController {
       }),
     ],
   })
-  public async add(@Body() body: SysUser): Promise<Resp> {
+  public async add(
+    @Body() body: SysUser,
+    @Valid(Joi.string().required()) @Body('password') password: string
+  ): Promise<Resp> {
+    body.user_password = password;
     if (body.id > 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: user_id not is empty');
@@ -347,7 +351,10 @@ export class SysUserController {
       }
     }
 
-    const [rows, err] = await this.sysUserService.deleteByIds(ids);
+    const [rows, err] = await this.sysUserService.deleteByIds(
+      ids,
+      loginUserToUserName(this.c)
+    );
     if (err) {
       return Resp.errMsg(err);
     }

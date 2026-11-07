@@ -1,11 +1,5 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import {
-  DeleteResult,
-  EntityManager,
-  In,
-  InsertResult,
-  UpdateResult,
-} from 'typeorm';
+import { EntityManager, In, InsertResult, UpdateResult } from 'typeorm';
 import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../internal/infra/database/db';
@@ -27,7 +21,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere("s.role_del = '0'");
+      .andWhere('s.deleted_at is null');
     if (query.role_name) {
       tx.andWhere('s.role_name like :role_name', {
         role_name: query.role_name + '%',
@@ -113,7 +107,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere("s.role_del = '0'");
+      .andWhere('s.deleted_at is null');
     if (sysRole.role_key) {
       tx.andWhere('s.role_key like :role_key', {
         role_key: sysRole.role_key + '%',
@@ -141,7 +135,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere("s.id in (:role_ids) and s.role_del = '0'", { role_ids })
+      .andWhere('s.id in (:role_ids) and s.deleted_at is null', { role_ids })
       .getMany();
   }
 
@@ -149,7 +143,8 @@ export class SysRoleRepository {
     sysRole: SysRole,
     entityManager?: EntityManager
   ): Promise<number> {
-    sysRole.role_del = '0';
+    delete (sysRole as Partial<SysRole>).deleted_at;
+    delete (sysRole as Partial<SysRole>).deleted_by;
     if (sysRole.create_by) {
       const ms = Date.now();
       sysRole.update_by = sysRole.create_by;
@@ -183,7 +178,8 @@ export class SysRoleRepository {
     }
     const data = Object.assign({}, sysRole);
     delete (data as Partial<SysRole>).id;
-    delete (data as Partial<SysRole>).role_del;
+    delete (data as Partial<SysRole>).deleted_at;
+    delete (data as Partial<SysRole>).deleted_by;
     delete (data as Partial<SysRole>).create_by;
     delete (data as Partial<SysRole>).create_time;
     delete (data as Partial<SysRole>).dept_ids;
@@ -208,21 +204,26 @@ export class SysRoleRepository {
 
   public async deleteByIds(
     role_ids: number[],
+    deletedBy: string,
     entityManager?: EntityManager
   ): Promise<number> {
     if (role_ids.length === 0) return 0;
+    const now = Date.now();
     if (entityManager) {
-      const result: DeleteResult = await entityManager.update(
+      const result: UpdateResult = await entityManager.update(
         SysRole,
         { id: In(role_ids) },
-        { role_del: '1' }
+        { deleted_at: now, ...(deletedBy ? { deleted_by: deletedBy } : {}) }
       );
       return result.affected ?? 0;
     }
-    const tx: DeleteResult = await this.db
+    const tx: UpdateResult = await this.db
       .queryBuilder('')
       .update(SysRole)
-      .set({ role_del: '1' })
+      .set({
+        deleted_at: now,
+        ...(deletedBy ? { deleted_by: deletedBy } : {}),
+      })
       .andWhere('id in (:role_ids)', { role_ids })
       .execute();
     return tx.affected ?? 0;
@@ -234,7 +235,7 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s.id', 'id')
       .from(SysRole, 's')
-      .andWhere("s.role_del = '0'");
+      .andWhere('s.deleted_at is null');
     if (sysRole.role_name) {
       tx.andWhere('s.role_name = :role_name', { role_name: sysRole.role_name });
     }
@@ -258,7 +259,7 @@ export class SysRoleRepository {
       .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
       .leftJoin('sys_user', 'u', 'u.id = ur.user_id')
       .andWhere(
-        "u.user_del = '0' and r.role_del = '0' and ur.user_id = :user_id",
+        "u.deleted_at is null and r.deleted_at is null and ur.user_id = :user_id",
         {
           user_id,
         }
@@ -285,10 +286,11 @@ export class SysRoleRepository {
       .addSelect('r.role_menu_check_strictly', 'role_menu_check_strictly')
       .addSelect('r.role_dept_check_strictly', 'role_dept_check_strictly')
       .addSelect('r.role_status', 'role_status')
-      .addSelect('r.role_del', 'role_del')
       .from(SysRole, 'r')
       .innerJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
-      .andWhere("r.role_del = '0' and ur.user_id in (:userIds)", { userIds })
+      .andWhere('r.deleted_at is null and ur.user_id in (:userIds)', {
+        userIds,
+      })
       .getRawMany();
 
     for (const row of rows) {
@@ -301,7 +303,6 @@ export class SysRoleRepository {
       role.role_menu_check_strictly = row.role_menu_check_strictly;
       role.role_dept_check_strictly = row.role_dept_check_strictly;
       role.role_status = row.role_status;
-      role.role_del = row.role_del;
 
       const user_id = Number(row.user_id);
       const existing = roleMap.get(user_id) || [];

@@ -2,6 +2,7 @@ import { Provide, Inject, Singleton } from '@midwayjs/core';
 
 import { SysNotice } from '../model/sys_notice';
 import { SysNoticeRepository } from '../repository/sys_notice';
+import { NOTICE_STATUS_DELETED } from '../../../internal/shared/constants/notice';
 /**公告 服务层处理 */
 @Provide()
 @Singleton()
@@ -60,21 +61,30 @@ export class SysNoticeService {
    * @param noticeIds ID数组
    * @returns [影响记录数, 错误信息]
    */
-  public async deleteByIds(noticeIds: number[]): Promise<[number, string]> {
+  public async deleteByIds(
+    noticeIds: number[],
+    updateBy: string = ''
+  ): Promise<[number, string]> {
     // 检查是否存在
     const notices = await this.sysNoticeRepository.selectByIds(noticeIds);
     if (notices.length <= 0) {
       return [0, '没有权限访问公告信息数据！'];
     }
-    for (const notice of notices) {
-      // 检查是否为已删除
-      if (notice.notice_del === '1') {
-        return [0, `ID:${notice.id} 公告信息已经删除！`];
-      }
-    }
     if (notices.length === noticeIds.length) {
-      const rows = await this.sysNoticeRepository.deleteByIds(noticeIds);
-      return [rows, ''];
+      const deletableIds = notices
+        .filter(notice => notice.notice_status !== NOTICE_STATUS_DELETED)
+        .map(notice => notice.id);
+      if (deletableIds.length === 0) {
+        return [0, '公告已是已删除状态，无需重复删除'];
+      }
+
+      const rows = await this.sysNoticeRepository.deleteByIds(
+        deletableIds,
+        updateBy
+      );
+      if (rows === deletableIds.length) {
+        return [rows, ''];
+      }
     }
     return [0, '删除公告信息失败！'];
   }

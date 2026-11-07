@@ -25,6 +25,7 @@ import { AuthorizeUserMiddleware } from '../../../internal/web/middleware/author
 import { loginUserToUserName } from '../../../internal/web/reqctx/auth';
 import { CODE_PARAM_CHEACK } from '../../../internal/web/resp/code';
 import { Resp } from '../../../internal/web/resp/api';
+import { NOTICE_STATUS_DELETED } from '../../../internal/shared/constants/notice';
 import { SysNoticeService } from '../service/sys_notice';
 import { SysNotice } from '../model/sys_notice';
 
@@ -111,12 +112,33 @@ export class SysNoticeController {
     if (noticeInfo.id !== body.id) {
       return Resp.errMsg('没有权限访问公告信息数据！');
     }
+    if (body.notice_status === NOTICE_STATUS_DELETED) {
+      return Resp.errMsg('公告状态不能选择已删除，请使用删除操作');
+    }
 
+    const noticeChanged = (
+      [
+        ['notice_title', body.notice_title],
+        ['notice_type', body.notice_type],
+        ['notice_content', body.notice_content],
+        ['notice_status', body.notice_status],
+        ['remark', body.remark],
+      ] as Array<[keyof SysNotice, SysNotice[keyof SysNotice]]>
+    ).some(([field, value]) => value !== undefined && noticeInfo[field] !== value);
+    if (!noticeChanged) {
+      return Resp.ok();
+    }
+
+    const noticeStatusUnchanged =
+      body.notice_status === noticeInfo.notice_status;
     noticeInfo.notice_title = body.notice_title;
     noticeInfo.notice_type = body.notice_type;
     noticeInfo.notice_content = body.notice_content;
     noticeInfo.notice_status = body.notice_status;
     noticeInfo.remark = body.remark;
+    if (noticeStatusUnchanged) {
+      delete (noticeInfo as Partial<SysNotice>).notice_status;
+    }
     noticeInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysNoticeService.update(noticeInfo);
     if (rows > 0) {
@@ -148,7 +170,10 @@ export class SysNoticeController {
     // 转换成number数组类型
     const ids = uniqueIDs.map(id => parseNumber(id));
 
-    const [rows, err] = await this.sysNoticeService.deleteByIds(ids);
+    const [rows, err] = await this.sysNoticeService.deleteByIds(
+      ids,
+      loginUserToUserName(this.c)
+    );
     if (err) {
       return Resp.errMsg(err);
     }

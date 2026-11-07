@@ -25,15 +25,10 @@ export class SysNotice {
   @Column({ name: 'notice_content' })
   notice_content: string;
 
-  /**公告状态（0关闭 1正常） */
-  @Rule(Joi.string().pattern(/^[01]$/))
+  /**公告状态（0关闭 1正常 2审核 3已删除） */
+  @Rule(Joi.string().pattern(/^[0123]$/))
   @Column({ name: 'notice_status' })
   notice_status: string;
-
-  /**删除标记（0存在 1删除） */
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'notice_del' })
-  notice_del: string;
 
   /**创建者 */
   @Rule(Joi.string().allow(''))
@@ -65,7 +60,6 @@ export class SysNotice {
 
   toJSON(): Record<string, unknown> {
     const json = { ...this } as Partial<SysNotice>;
-    delete json.notice_del;
     return json;
   }
 }

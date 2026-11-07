@@ -1,11 +1,5 @@
 import { Inject, Provide, Singleton } from '@midwayjs/core';
-import {
-  DeleteResult,
-  EntityManager,
-  In,
-  InsertResult,
-  UpdateResult,
-} from 'typeorm';
+import { EntityManager, In, InsertResult, UpdateResult } from 'typeorm';
 
 import {
   parseBoolean,
@@ -46,7 +40,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere("s.user_del = '0'");
+      .andWhere('s.deleted_at is null');
     if (query.id) {
       tx.andWhere('s.id = :id', { id: query.id });
     }
@@ -123,7 +117,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere("s.user_del = '0'");
+      .andWhere('s.deleted_at is null');
     if (sysUser.user_name) {
       tx.andWhere('s.user_name like :user_name', {
         user_name: sysUser.user_name + '%',
@@ -155,7 +149,7 @@ export class SysUserRepository {
       .select('s')
       .addSelect('s.user_password')
       .from(SysUser, 's')
-      .andWhere("s.id in (:userIds) and s.user_del = '0'", { userIds })
+      .andWhere('s.id in (:userIds) and s.deleted_at is null', { userIds })
       .getMany();
   }
 
@@ -163,7 +157,8 @@ export class SysUserRepository {
     sysUser: SysUser,
     entityManager?: EntityManager
   ): Promise<number> {
-    sysUser.user_del = '0';
+    delete (sysUser as Partial<SysUser>).deleted_at;
+    delete (sysUser as Partial<SysUser>).deleted_by;
     if (sysUser.create_by) {
       const ms = Date.now();
       sysUser.update_by = sysUser.create_by;
@@ -199,7 +194,8 @@ export class SysUserRepository {
       delete (sysUser as Partial<SysUser>).user_password;
     }
     const data = Object.assign({}, sysUser);
-    delete (data as Partial<SysUser>).user_del;
+    delete (data as Partial<SysUser>).deleted_at;
+    delete (data as Partial<SysUser>).deleted_by;
     delete (data as Partial<SysUser>).create_by;
     delete (data as Partial<SysUser>).create_time;
     delete (data as Partial<SysUser>).dept;
@@ -226,21 +222,26 @@ export class SysUserRepository {
 
   public async deleteByIds(
     userIds: number[],
+    deletedBy: string,
     entityManager?: EntityManager
   ): Promise<number> {
     if (userIds.length === 0) return 0;
+    const now = Date.now();
     if (entityManager) {
       const result: UpdateResult = await entityManager.update(
         SysUser,
         { id: In(userIds) },
-        { user_del: '1' }
+        { deleted_at: now, ...(deletedBy ? { deleted_by: deletedBy } : {}) }
       );
       return result.affected ?? 0;
     }
-    const tx: DeleteResult = await this.db
+    const tx: UpdateResult = await this.db
       .queryBuilder('')
       .update(SysUser)
-      .set({ user_del: '1' })
+      .set({
+        deleted_at: now,
+        ...(deletedBy ? { deleted_by: deletedBy } : {}),
+      })
       .andWhere('id in (:userIds)', { userIds })
       .execute();
     return tx.affected ?? 0;
@@ -252,7 +253,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s.id', 'id')
       .from(SysUser, 's')
-      .andWhere("s.user_del = '0'");
+      .andWhere('s.deleted_at is null');
     if (sysUser.user_name) {
       tx.andWhere('s.user_name = :user_name', { user_name: sysUser.user_name });
     }
@@ -280,7 +281,9 @@ export class SysUserRepository {
       .select('s')
       .addSelect('s.user_password')
       .from(SysUser, 's')
-      .andWhere("s.user_name = :user_name and s.user_del = '0'", { user_name })
+      .andWhere('s.user_name = :user_name and s.deleted_at is null', {
+        user_name,
+      })
       .getOne();
     return item ?? new SysUser();
   }
@@ -295,7 +298,7 @@ export class SysUserRepository {
       .select('s')
       .addSelect('s.user_password')
       .from(SysUser, 's')
-      .andWhere("s.user_phone = :phone and s.user_del = '0'", { phone })
+      .andWhere('s.user_phone = :phone and s.deleted_at is null', { phone })
       .getOne();
     return item ?? new SysUser();
   }
@@ -309,7 +312,7 @@ export class SysUserRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysUser, 's')
-      .andWhere("s.user_del = '0'");
+      .andWhere('s.deleted_at is null');
     if (query.user_name) {
       tx.andWhere('s.user_name like :user_name', {
         user_name: query.user_name + '%',

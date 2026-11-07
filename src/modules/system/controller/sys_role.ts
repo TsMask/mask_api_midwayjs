@@ -225,7 +225,10 @@ export class SysRoleController {
       }
     }
 
-    const [rows, err] = await this.sysRoleService.deleteByIds(ids);
+    const [rows, err] = await this.sysRoleService.deleteByIds(
+      ids,
+      loginUserToUserName(this.c)
+    );
     if (err) {
       return Resp.errMsg(err);
     }

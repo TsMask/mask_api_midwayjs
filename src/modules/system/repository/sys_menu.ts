@@ -26,8 +26,7 @@ export class SysMenuRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysMenu, 's')
-      .andWhere("s.menu_del = '0'");
+      .from(SysMenu, 's');
     if (sysMenu.menu_name) {
       tx.andWhere('s.menu_name like :menu_name', {
         menu_name: sysMenu.menu_name + '%',
@@ -67,7 +66,7 @@ export class SysMenuRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysMenu, 's')
-      .andWhere("s.id in (:menu_ids) and s.menu_del = '0'", { menu_ids })
+      .andWhere('s.id in (:menu_ids)', { menu_ids })
       .getMany();
   }
 
@@ -75,7 +74,6 @@ export class SysMenuRepository {
     sysMenu: SysMenu,
     entityManager?: EntityManager
   ): Promise<number> {
-    sysMenu.menu_del = '0';
     if (sysMenu.id > 0) {
       return 0;
     }
@@ -103,7 +101,6 @@ export class SysMenuRepository {
     }
     const data = Object.assign({}, sysMenu);
     delete (data as Partial<SysMenu>).id;
-    delete (data as Partial<SysMenu>).menu_del;
     delete (data as Partial<SysMenu>).create_by;
     delete (data as Partial<SysMenu>).create_time;
     delete (data as Partial<SysMenu>).children;
@@ -131,18 +128,14 @@ export class SysMenuRepository {
   ): Promise<number> {
     if (menu_id <= 0) return 0;
     if (entityManager) {
-      const result: UpdateResult = await entityManager.update(
-        SysMenu,
-        { id: menu_id },
-        { menu_del: '1' }
-      );
+      const result: DeleteResult = await entityManager.delete(SysMenu, menu_id);
       return result.affected ?? 0;
     }
     const tx: DeleteResult = await this.db
       .queryBuilder('')
-      .update(SysMenu)
-      .set({ menu_del: '1' })
-      .andWhere('id = :id', { id: menu_id })
+      .delete()
+      .from(SysMenu)
+      .where('id = :id', { id: menu_id })
       .execute();
     return tx.affected ?? 0;
   }
@@ -152,8 +145,7 @@ export class SysMenuRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s.id', 'id')
-      .from(SysMenu, 's')
-      .andWhere("s.menu_del = '0'");
+      .from(SysMenu, 's');
     if (sysMenu.parent_id >= 0) {
       tx.andWhere('s.parent_id = :parent_id', { parent_id: sysMenu.parent_id });
     }
@@ -180,7 +172,7 @@ export class SysMenuRepository {
       .select('s.id', 'id')
       .from(SysMenu, 's')
       .andWhere(
-        "s.menu_del = '0' and s.menu_type in (:menuTypes) and s.menu_path = :menu_path",
+        's.menu_type in (:menuTypes) and s.menu_path = :menu_path',
         { menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU], menu_path }
       )
       .getRawOne();
@@ -199,7 +191,7 @@ export class SysMenuRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .from(SysMenu, 's')
-      .andWhere("s.parent_id = :menu_id and s.menu_del = '0'", { menu_id });
+      .andWhere('s.parent_id = :menu_id', { menu_id });
     if (menu_status) {
       tx.andWhere(
         's.menu_status = :menu_status and s.menu_type in (:menuTypes)',
@@ -243,7 +235,6 @@ export class SysMenuRepository {
       .select('s.id', 'id')
       .distinct(true)
       .from(SysMenu, 's')
-      .andWhere("s.menu_del = '0'")
       .andWhere(
         's.id in (select menu_id from sys_role_menu where role_id = :role_id)',
         { role_id }
@@ -271,7 +262,6 @@ export class SysMenuRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysMenu, 's')
-      .andWhere("s.menu_del = '0'");
     if (user_id === 0) {
       tx.andWhere("s.menu_type in (:menuTypes) and s.menu_status = '1'", {
         menuTypes: [MENU_TYPE_DIR, MENU_TYPE_MENU],

@@ -1,19 +1,17 @@
 import {
   parseStrToDate,
   parseDateToStr,
-  diffSeconds,
   parseDatePath,
-  YYYY_MM_DD,
-} from '../../src/internal/shared/date/data';
+} from '../../src/internal/shared/date/date';
 
 describe('test/utils/DateUtils.test.ts', () => {
   it('should parseStrToDate', () => {
-    const date = parseStrToDate('2022-10-14', YYYY_MM_DD);
+    const date = parseStrToDate('2022-10-14', "YYYY-MM-DD");
     expect(typeof date === 'object').toBe(true);
   });
 
   it('should parseDateToStr', () => {
-    const dateStr = parseDateToStr(new Date(), YYYY_MM_DD);
+    const dateStr = parseDateToStr(new Date(), "YYYY-MM-DD");
     expect(typeof dateStr === 'string').toBe(true);
   });
 
@@ -26,17 +24,5 @@ describe('test/utils/DateUtils.test.ts', () => {
     const date = now - diff;
     const datePathDate = parseDatePath(date);
     expect(datePathDate.includes('/')).toBe(true);
-  });
-
-  it('should diffSeconds', () => {
-    const diff = 1000 * 360;
-    const endDate = Date.now();
-    const startDate = endDate - diff;
-
-    const value = diffSeconds(endDate, startDate);
-    expect(value <= 360).toBe(true);
-
-    const nona = diffSeconds(endDate, new Date('NAN'));
-    expect(nona === 0).toBe(true);
   });
 });

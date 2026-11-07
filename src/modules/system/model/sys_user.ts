@@ -47,9 +47,13 @@ export class SysUser {
   @Column({ name: 'user_status' })
   user_status: string;
 
-  @Rule(Joi.string().pattern(/^[01]$/))
-  @Column({ name: 'user_del' })
-  user_del: string;
+  @Rule(Joi.number().allow(0, null))
+  @Column({ name: 'deleted_at', nullable: true })
+  deleted_at: number;
+
+  @Rule(Joi.string().allow(''))
+  @Column({ name: 'deleted_by' })
+  deleted_by: string;
 
   @Rule(Joi.string().allow(''))
   @Column({ name: 'user_login_ip' })
@@ -82,7 +86,8 @@ export class SysUser {
   toJSON(): Record<string, unknown> {
     const json = { ...this } as Partial<SysUser>;
     delete json.user_password;
-    delete json.user_del;
+    delete json.deleted_at;
+    delete json.deleted_by;
     delete json.role_ids;
     delete json.post_ids;
     return {
