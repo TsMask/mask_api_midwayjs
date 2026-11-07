@@ -20,14 +20,20 @@ export class SystemInfoController {
     ],
   })
   public async info(): Promise<Resp> {
-    const disk = await this.systemInfoService.diskInfo();
+    const [cpu, memory, disk, time, system] = await Promise.all([
+      this.systemInfoService.cpuInfo(),
+      this.systemInfoService.memoryInfo(),
+      this.systemInfoService.diskInfo(),
+      this.systemInfoService.timeInfo(),
+      this.systemInfoService.systemInfo(),
+    ]);
     return Resp.okData({
       project: this.systemInfoService.projectInfo(),
-      cpu: this.systemInfoService.cpuInfo(),
-      memory: this.systemInfoService.memoryInfo(),
+      cpu,
+      memory,
       network: this.systemInfoService.networkInfo(),
-      time: this.systemInfoService.timeInfo(),
-      system: this.systemInfoService.systemInfo(),
+      time,
+      system,
       disk,
     });
   }

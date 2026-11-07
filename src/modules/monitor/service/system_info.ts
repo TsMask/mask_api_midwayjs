@@ -12,11 +12,8 @@ import {
   cpus,
   networkInterfaces,
 } from 'node:os';
-import { statfs, readFile } from 'node:fs/promises';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-
-const execAsync = promisify(exec);
+import * as systeminformation from 'systeminformation';
+import type { Systeminformation } from 'systeminformation';
 
 import {
   Inject,
@@ -34,6 +31,9 @@ import { parseBit } from '../../../internal/shared/parse/parse';
 @Provide()
 @Singleton()
 export class SystemInfoService {
+  private cachedOsInfo?: Systeminformation.OsData;
+  private cachedCpuInfo?: Systeminformation.CpuData;
+
   /**内置的信息服务，提供基础的项目数据 */
   @Inject()
   private midwayInformationService: MidwayInformationService;
@@ -46,7 +46,7 @@ export class SystemInfoService {
   public projectInfo(): Record<string, string> {
     const pkg = this.midwayInformationService.getPkg();
     return {
-      appDir: this.app.getAppDir(),
+      app_dir: this.app.getAppDir(),
       env: this.app.getEnv(),
       name: pkg.name || '-',
       version: pkg.version || '-',
@@ -54,85 +54,142 @@ export class SystemInfoService {
   }
 
   /**系统信息 */
-  public systemInfo(): Record<string, any> {
+  public async systemInfo(): Promise<Record<string, any>> {
+    let osInfo = this.cachedOsInfo;
+    let timeInfo: Systeminformation.TimeData | undefined;
+    if (!osInfo) {
+      try {
+        const [info, time] = await Promise.all([
+          systeminformation.osInfo(),
+          systeminformation.time(),
+        ]);
+        osInfo = info;
+        this.cachedOsInfo = info;
+        timeInfo = time;
+      } catch {
+        console.warn('Failed to get system info');
+      }
+    }
+    if (!timeInfo) {
+      try {
+        timeInfo = await systeminformation.time();
+      } catch {
+        timeInfo = undefined;
+      }
+    }
     const runTime: number = this.app.getAttr('runTime');
     return {
-      platform: platform(),
-      platformVersion: type(),
-      arch: arch(),
-      archVersion: release(),
-      os: version(),
-      hostname: hostname(),
-      bootTime: Math.ceil(uptime()),
-      processId: process.pid,
-      runArch: process.arch,
-      runVersion: process.version,
-      runTime: Math.ceil((Date.now() - runTime) / 1000),
-      homeDir: homedir(),
+      platform: osInfo?.platform || platform(),
+      platform_version: osInfo?.distro || type(),
+      arch: osInfo?.arch || arch(),
+      arch_version: osInfo?.kernel || release(),
+      os: osInfo?.release || version(),
+      hostname: osInfo?.hostname || hostname(),
+      boot_time: Math.ceil(timeInfo?.uptime ?? uptime()),
+      process_id: process.pid,
+      run_arch: process.arch,
+      run_version: process.version,
+      run_time: Math.ceil((Date.now() - runTime) / 1000),
+      home_dir: homedir(),
       cmd: process.cwd(),
-      execCommand: ([] as string[])
+      exec_command: ([] as string[])
         .concat(process.argv, process.execArgv)
         .join(' '),
     };
   }
 
   /**系统时间信息 */
-  public timeInfo(): Record<string, string> {
+  public async timeInfo(): Promise<Record<string, string>> {
     const now = new Date();
-    const t = now.toString().split(' ');
     // 获取当前时间
     const current = parseDateToStr(now);
-    // 获取时区
     let timezone = '';
-    // 获取时区名称
-    let timezoneName = '';
-    if (t.length >= 7) {
-      timezone = t[5];
-      timezoneName = t.slice(6).join(' ').replace(/\(/g, '').replace(/\)/g, '');
+    let timezone_name = '';
+    try {
+      const time = await systeminformation.time();
+      timezone = time.timezone;
+      timezone_name = time.timezoneName;
+    } catch {
+      const t = now.toString().split(' ');
+      if (t.length >= 7) {
+        timezone = t[5];
+        timezone_name = t
+          .slice(6)
+          .join(' ')
+          .replace(/\(/g, '')
+          .replace(/\)/g, '');
+      }
     }
-    return { current, timezone, timezoneName };
+    return { current, timezone, timezone_name };
   }
 
   /**内存信息 */
-  public memoryInfo(): Record<string, string> {
+  public async memoryInfo(): Promise<Record<string, string>> {
     const memory = process.memoryUsage();
-    const total = totalmem();
-    const free = freemem();
+    let total = totalmem();
+    let available = freemem();
+    try {
+      const memInfo = await systeminformation.mem();
+      total = memInfo.total;
+      available = memInfo.available;
+    } catch {
+      console.warn('Failed to get memory info');
+    }
     return {
-      usage: ((1 - free / total) * 100).toFixed(2), // 内存利用率
-      freemem: parseBit(free), // 可用内存大小（GB）
+      usage: total > 0 ? ((1 - available / total) * 100).toFixed(2) : '0.00',
+      freemem: parseBit(available),
       totalmem: parseBit(total), // 总内存大小（GB）
       rss: parseBit(memory.rss), // 常驻内存大小（RSS）
-      heapTotal: parseBit(memory.heapTotal), // 堆总大小
-      heapUsed: parseBit(memory.heapUsed), // 堆已使用大小
+      heap_total: parseBit(memory.heapTotal), // 堆总大小
+      heap_used: parseBit(memory.heapUsed), // 堆已使用大小
       external: parseBit(memory.external), // 外部内存大小（非堆）
     };
   }
 
   /**CPU信息 */
-  public cpuInfo(): Record<string, any> {
+  public async cpuInfo(): Promise<Record<string, any>> {
     let model = '-';
     let speed = '-';
     let core = 0;
-    const cpuInfo = cpus();
-    if (cpuInfo.length > 0 && cpuInfo[0]) {
-      core = cpuInfo.length;
-      speed = `${cpuInfo[0].speed}MHz`;
-      model = cpuInfo[0].model.trim();
-    }
-
     const used: string[] = [];
-    for (const item of cpuInfo) {
-      const v = item.times;
-      const value = v.idle + v.user + v.nice + v.sys + v.irq;
-      used.push(Number((1 - v.idle / value) * 100).toFixed(2));
+    try {
+      const [info, currentLoad] = await Promise.all([
+        this.cachedCpuInfo
+          ? Promise.resolve(this.cachedCpuInfo)
+          : systeminformation.cpu(),
+        systeminformation.currentLoad(),
+      ]);
+      const cpuInfo = info;
+      this.cachedCpuInfo = info;
+      core = cpuInfo.cores || currentLoad.cpus.length;
+      model = cpuInfo.brand.trim();
+      speed =
+        cpuInfo.speed > 0 ? `${Math.round(cpuInfo.speed * 1000)}MHz` : '-';
+      used.push(
+        ...currentLoad.cpus.map((item: { load: number }) =>
+          item.load.toFixed(2)
+        )
+      );
+    } catch {
+      console.warn('Failed to get cpu info');
+      const cpuInfo = cpus();
+      if (cpuInfo.length > 0 && cpuInfo[0]) {
+        core = cpuInfo.length;
+        speed = `${cpuInfo[0].speed}MHz`;
+        model = cpuInfo[0].model.trim();
+      }
+      for (const item of cpuInfo) {
+        const v = item.times;
+        const value = v.idle + v.user + v.nice + v.sys + v.irq;
+        used.push(Number((1 - v.idle / value) * 100).toFixed(2));
+      }
     }
 
     return {
       model: model,
       speed: speed,
       core: core,
-      coreUsed: used,
+      core_used: used,
     };
   }
 
@@ -171,87 +228,18 @@ export class SystemInfoService {
 
   /**磁盘信息 */
   public async diskInfo(): Promise<Record<string, string>[]> {
-    const results: Record<string, string>[] = [];
-
-    // 获取磁盘分区列表
-    const platform = process.platform;
-    let drives: string[];
-    if (platform === 'win32') {
-      drives = await this.getWindowsDrives();
-    } else {
-      drives = await this.getLinuxDrives();
-    }
-
-    for (const drive of drives) {
-      try {
-        const stat = await statfs(drive);
-        const statAny = stat as Record<string, any>;
-        const blockSize = statAny.bsize || statAny.frsize || 4096;
-        const total = (stat.blocks || 0) * blockSize;
-        const free = (stat.bfree || 0) * blockSize;
-        const available = (stat.bavail || 0) * blockSize;
-        const used = total - free;
-
-        results.push({
-          size: parseBit(total),
-          used: parseBit(used),
-          avail: parseBit(available),
-          percent: ((used / total) * 100).toFixed(2),
-          target: drive,
-        });
-      } catch {
-        console.warn(`Failed to get disk info for drive: ${drive}`);
-      }
-    }
-
-    return results;
-  }
-
-  /**获取 Windows 磁盘分区列表 */
-  private async getWindowsDrives(): Promise<string[]> {
     try {
-      const { stdout } = await execAsync('wmic logicaldisk get name');
-      const drives: string[] = [];
-      const lines = stdout.split('\n');
-      for (const line of lines) {
-        const match = line.match(/([A-Z]:)/);
-        if (match) {
-          drives.push(match[1]);
-        }
-      }
-      return drives.length > 0 ? drives : ['C:\\'];
+      const disks = await systeminformation.fsSize();
+      return disks.map(disk => ({
+        size: parseBit(disk.size),
+        used: parseBit(disk.used),
+        avail: parseBit(disk.available),
+        percent: disk.use.toFixed(2),
+        target: disk.mount || disk.fs,
+      }));
     } catch {
-      return ['C:\\'];
-    }
-  }
-
-  /**获取 Linux 磁盘分区列表 */
-  private async getLinuxDrives(): Promise<string[]> {
-    try {
-      const content = await readFile('/proc/mounts', 'utf8');
-      const drives: string[] = [];
-      const lines = content.split('\n');
-      for (const line of lines) {
-        const parts = line.split(/\s+/);
-        if (parts.length >= 2) {
-          const mountPoint = parts[1];
-          if (
-            mountPoint.startsWith('/') &&
-            !mountPoint.startsWith('/proc') &&
-            !mountPoint.startsWith('/sys') &&
-            !mountPoint.startsWith('/dev') &&
-            !mountPoint.startsWith('/run') &&
-            !mountPoint.startsWith('/snap')
-          ) {
-            if (!drives.includes(mountPoint)) {
-              drives.push(mountPoint);
-            }
-          }
-        }
-      }
-      return drives.length > 0 ? drives : ['/'];
-    } catch {
-      return ['/'];
+      console.warn('Failed to get disk info');
+      return [];
     }
   }
 }

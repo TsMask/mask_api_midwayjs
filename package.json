@@ -51,6 +51,7 @@
     "mysql2": "3.22.3",
     "nanoid": "3.3.12",
     "svg-captcha-fixed": "1.5.2",
+    "systeminformation": "5.33.19",
     "typeorm": "0.3.29",
     "ua-parser-js": "2.0.9"
   },
