@@ -64,6 +64,25 @@ export class FileUtil {
     );
   }
 
+  private getUploadFileSizeLimit(): number {
+    const sizeBytes = Number(this.config.get<number>('busboy.limits.fileSize'));
+    if (Number.isFinite(sizeBytes) && sizeBytes > 0) {
+      return sizeBytes;
+    }
+    return 10 * 1024 * 1024;
+  }
+
+  private async isAllowedFileSize(
+    filePath: string,
+    limit: number
+  ): Promise<string> {
+    const fileSize = await getFileSize(filePath);
+    if (fileSize > limit) {
+      return `file size ${fileSize} bytes exceeds limit ${limit} bytes`;
+    }
+    return '';
+  }
+
   private getUploadResourceDir(): { prefix: string; dir: string } {
     return this.config.get<{ prefix: string; dir: string }>(
       'staticFile.dirs.upload'
@@ -212,7 +231,7 @@ export class FileUtil {
     result.fileSize = fileSize;
 
     let start = Math.max(startOffset, 0);
-    let end =
+    const end =
       endOffset <= 0 || endOffset >= fileSize ? fileSize - 1 : endOffset;
     if (start > end) {
       start = end;
@@ -249,6 +268,13 @@ export class FileUtil {
     const subPathErr = this.isSafePathSegment(subPath, 'sub path');
     if (subPathErr) {
       return ['', subPathErr];
+    }
+    const sizeErr = await this.isAllowedFileSize(
+      file.data,
+      this.getUploadFileSizeLimit()
+    );
+    if (sizeErr) {
+      return ['', sizeErr];
     }
 
     const { prefix, dir } = this.getUploadResourceDir();

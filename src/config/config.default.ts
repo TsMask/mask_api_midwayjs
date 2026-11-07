@@ -46,10 +46,12 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
     busboy: {
       /**上传模式 */
       mode: 'file',
-      /**最大上传文件大小，默认 10mb */
+      /**单次上传请求的文件大小 */
       limits: {
-        fileSize: 10 * 1024 * 1024, // 10mb
+        fileSize: 10 * 1024 * 1024, // 10MB
       },
+      /**浏览器 multipart filename 使用 UTF-8 字节，需要显式指定解码方式 */
+      defParamCharset: 'utf8',
       /**文件扩展名白名单 */
       whitelist: [
         // 图片
@@ -119,7 +121,15 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
       // 设置 Access-Control-Max-Age
       maxAge: 31536000,
       // 允许跨域的方法，【默认值】为 GET,HEAD,PUT,POST,DELETE,PATCH
-      allowMethods: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+      allowMethods: [
+        'OPTIONS',
+        'HEAD',
+        'GET',
+        'POST',
+        'PUT',
+        'DELETE',
+        'PATCH',
+      ],
       // 设置 Access-Control-Allow-Headers 的值，【默认值】会获取请求头上的 Access-Control-Request-Headers
       allowHeaders: [
         'X-App-Code',

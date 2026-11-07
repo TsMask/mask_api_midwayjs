@@ -7,7 +7,7 @@ import {
   Files,
   Get,
   Inject,
-  Param,
+  Query,
   Post,
 } from '@midwayjs/core';
 import { UploadFileInfo, UploadMiddleware } from '@midwayjs/busboy';
@@ -36,31 +36,25 @@ export class FileController {
   private fileUtil: FileUtil;
 
   /**下载文件 */
-  @Get('/download/:file_path', {
+  @Get('/download', {
     middleware: [AuthorizeUserMiddleware()],
   })
   public async download(
-    @Valid(Joi.string().required()) @Param('file_path') filePath: string
+    @Valid(Joi.string().required()) @Query('file_path') filePath: string
   ) {
-    if (filePath.length < 8) {
+    if (!filePath || filePath.length > 500) {
       this.c.status = 422;
       return Resp.codeMsg(
         CODE_PARAM_CHEACK,
-        'bind err: filePath not is base64 string'
+        'bind err: filePath must be set and not exceed 500 characters'
       );
-    }
-    // base64解析出地址
-    const [routerPath, decodeErr] = this.decodeFilePath(filePath);
-    if (decodeErr) {
-      this.c.status = 422;
-      return Resp.codeMsg(CODE_PARAM_CHEACK, decodeErr);
     }
 
     // 断点续传
     const headerRange = this.c.headers.range;
     let start = 0;
     let end = 0;
-    let rangeErr = '';
+    let rangeErr: string;
     if (headerRange) {
       [start, end, rangeErr] = this.fileUtil.parseByteRange(headerRange);
       if (rangeErr) {
@@ -70,7 +64,7 @@ export class FileController {
     }
 
     const [resultMap, errMsg] = await this.fileUtil.readUploadFileStream(
-      routerPath,
+      filePath,
       start,
       end
     );
@@ -83,7 +77,7 @@ export class FileController {
     this.c.set('Content-Type', 'application/octet-stream');
     this.c.set(
       'Content-Disposition',
-      `attachment; filename="${encodeURIComponent(basename(routerPath))}"`
+      `attachment; filename="${encodeURIComponent(basename(filePath))}"`
     );
 
     if (headerRange) {
@@ -238,21 +232,5 @@ export class FileController {
     await this.c.cleanupRequestFiles?.();
     this.c.status = 206;
     return Resp.okData(chunkFilePath);
-  }
-
-  private decodeFilePath(value: string): [string, string] {
-    const decodedBytes = Buffer.from(value, 'base64');
-    const isValidBase64 =
-      /^[A-Za-z0-9+/]+={0,2}$/.test(value) &&
-      decodedBytes.toString('base64') === value;
-    if (!isValidBase64) {
-      return ['', 'decode err: filePath not is base64 string'];
-    }
-
-    const decodedPath = decodedBytes.toString('utf-8');
-    if (decodedPath.length > 500) {
-      return ['', 'file path too long'];
-    }
-    return [decodedPath, ''];
   }
 }

@@ -11,6 +11,8 @@ import {
   rmdir,
   type FileHandle,
 } from 'node:fs/promises';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { pipeline } from 'node:stream/promises';
 import type { Stats } from 'node:fs';
 import { normalize, join } from 'node:path';
 
@@ -56,7 +58,7 @@ export async function checkDirPathExists(dirPath: string): Promise<string> {
   try {
     await access(dirPath, constants.F_OK);
     return '';
-  } catch (error: any) {
+  } catch {
     try {
       await mkdir(dirPath, { recursive: true });
       return '';
@@ -235,7 +237,11 @@ export async function mergeToNewFile(
     return '读取合并目标文件失败';
   }
 
-  fileNameList.sort((a, b) => parseInt(a) - parseInt(b));
+  const chunkFileNameList = fileNameList.filter(name => /^\d+$/.test(name));
+  if (chunkFileNameList.length <= 0) {
+    return 'no chunk files found';
+  }
+  chunkFileNameList.sort((a, b) => Number(a) - Number(b));
 
   const errMsg = await checkDirPathExists(writePath);
   if (errMsg) {
@@ -246,19 +252,24 @@ export async function mergeToNewFile(
   const newFilePath = normalize(join(writePath, fileName));
 
   try {
-    // 逐个读取文件组合数据块
-    const fileBuffers = [];
-    for (const fileName of fileNameList) {
-      const chunkPath = normalize(join(dirPath, fileName));
-      const buffer = await readFile(chunkPath);
-      fileBuffers.push(buffer);
+    const chunkPaths = chunkFileNameList.map(name =>
+      normalize(join(dirPath, name))
+    );
+
+    const output = createWriteStream(newFilePath);
+    for (const chunkPath of chunkPaths) {
+      await pipeline(createReadStream(chunkPath), output, { end: false });
+    }
+    await new Promise<void>((resolve, reject) => {
+      output.end((error?: Error | null) => (error ? reject(error) : resolve()));
+    });
+    for (const chunkPath of chunkPaths) {
       await deleteFile(chunkPath);
     }
-    // 写入新文件
-    await writeFile(newFilePath, Buffer.concat(fileBuffers));
     return '';
   } catch (error: any) {
     console.error(`failed merge file "${newFilePath}": ${error.message}`);
+    await deleteFile(newFilePath);
     return error.message;
   } finally {
     await deleteFile(dirPath);

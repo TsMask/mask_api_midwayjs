@@ -27,6 +27,7 @@ export class ErrorCatch {
       { k: 'QueryFailedError', v: '访问数据权限错误' },
       { k: 'CSRFError', v: '无效的请求来源' },
       { k: 'PayloadTooLargeError', v: '超出最大上传文件大小范围' },
+      { k: 'MultipartFileSizeLimitError', v: '超出最大上传文件大小范围' },
       { k: 'MultipartInvalidFilenameError', v: '上传文件拓展格式不支持' },
     ];
     const msgItem = errMsgs.find(n => n.k === err.name);
