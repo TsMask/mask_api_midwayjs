@@ -4,6 +4,7 @@ import { ResultSetHeader } from '../../../typings/commont';
 
 import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { parseNumber } from '../../../internal/shared/parse/parse';
+import { SYS_ROLE_SYSTEM_ID } from '../../../internal/shared/constants/system';
 import { SysRole } from '../model/sys_role';
 
 /** Role data access. */
@@ -21,7 +22,10 @@ export class SysRoleRepository {
       .createQueryBuilder()
       .select('s')
       .from(SysRole, 's')
-      .andWhere('s.deleted_at = 0');
+      .andWhere('s.deleted_at = 0')
+      .andWhere('s.id != :systemRoleId', {
+        systemRoleId: SYS_ROLE_SYSTEM_ID,
+      });
     if (query.role_name) {
       tx.andWhere('s.role_name like :role_name', {
         role_name: query.role_name + '%',

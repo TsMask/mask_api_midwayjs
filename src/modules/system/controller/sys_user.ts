@@ -24,9 +24,9 @@ import {
   parseRemoveDuplicatesToArray,
 } from '../../../internal/shared/parse/parse';
 import {
-  loginUserToDataScopeSQL,
   loginUserToUserID,
   loginUserToUserName,
+  loginUserToUserVisibleSQL,
 } from '../../../internal/web/reqctx/auth';
 import {
   OperateLogMiddleware,
@@ -82,7 +82,7 @@ export class SysUserController {
     middleware: [AuthorizeUserMiddleware({ hasPerms: ['system:user:list'] })],
   })
   public async list(@Query() query: Record<string, string>): Promise<Resp> {
-    const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
+    const filter = loginUserToUserVisibleSQL(this.c, 's');
     const [rows, total] = await this.sysUserService.findByPage(query, filter);
     return Resp.okData({ rows: rows, total });
   }
@@ -97,6 +97,13 @@ export class SysUserController {
     if (user_id < 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: user_id is empty');
+    }
+
+    if (
+      this.config.isSystemUser(user_id) &&
+      !this.config.isSystemUser(loginUserToUserID(this.c))
+    ) {
+      return Resp.errMsg('没有权限访问用户数据！');
     }
 
     // 查询系统角色列表
@@ -478,7 +485,7 @@ export class SysUserController {
   })
   public async export(@Query() query: Record<string, string>) {
     // 查询结果，根据查询条件结果，单页最大值限制
-    const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
+    const filter = loginUserToUserVisibleSQL(this.c, 's');
     const [rows, total] = await this.sysUserService.findByPage(query, filter);
     if (total === 0) {
       return Resp.errMsg('export data record as empty');

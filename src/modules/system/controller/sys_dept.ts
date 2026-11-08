@@ -53,7 +53,7 @@ export class SysDeptController {
     sysDept.parent_id = parent_id;
     sysDept.dept_name = dept_name;
     sysDept.dept_status = dept_status;
-    const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
+    const filter = loginUserToDataScopeSQL(this.c, 's', '');
     const rows = await this.sysDeptService.find(sysDept, filter);
     return Resp.okData(rows);
   }
@@ -210,7 +210,7 @@ export class SysDeptController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: dept_id is empty');
     }
-    const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
+    const filter = loginUserToDataScopeSQL(this.c, 's', '');
     return Resp.okData(
       await this.sysDeptService.findExcludeChildren(dept_id, filter)
     );
@@ -236,7 +236,7 @@ export class SysDeptController {
     sysDept.parent_id = parent_id;
     sysDept.dept_name = dept_name;
     sysDept.dept_status = dept_status;
-    const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
+    const filter = loginUserToDataScopeSQL(this.c, 's', '');
     return Resp.okData(
       await this.sysDeptService.buildTreeSelect(sysDept, filter)
     );
@@ -256,7 +256,7 @@ export class SysDeptController {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
     }
-    const filter = loginUserToDataScopeSQL(this.c, 'sys_dept', '');
+    const filter = loginUserToDataScopeSQL(this.c, 's', '');
     const depts = await this.sysDeptService.buildTreeSelect(
       new SysDept(),
       filter

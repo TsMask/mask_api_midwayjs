@@ -19,8 +19,8 @@ import {
 } from '../../../internal/shared/parse/parse';
 import {
   loginUser,
-  loginUserToDataScopeSQL,
   loginUserToUserName,
+  loginUserToUserVisibleSQL,
 } from '../../../internal/web/reqctx/auth';
 import {
   OperateLogMiddleware,
@@ -72,6 +72,9 @@ export class SysRoleController {
     if (role_id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
+    }
+    if (role_id === SYS_ROLE_SYSTEM_ID) {
+      return Resp.errMsg('没有权限访问角色数据！');
     }
     const data = await this.sysRoleService.findById(role_id);
     if (data.id === role_id) {
@@ -356,7 +359,7 @@ export class SysRoleController {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
-    const filter = loginUserToDataScopeSQL(this.c, 'sys_user', 'sys_user');
+    const filter = loginUserToUserVisibleSQL(this.c, 's');
     const [rows, total] = await this.sysUserService.findAuthUsersPage(
       query,
       filter

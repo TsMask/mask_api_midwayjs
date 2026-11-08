@@ -118,7 +118,7 @@ export function loginUserToDataScopeSQL(
     return empty;
   }
   const userInfo = info.user;
-  const deptRefCol = deptAlias === 'sys_dept' ? 'id' : 'dept_id';
+  const deptRefCol = userAlias === '' ? 'id' : 'dept_id';
 
   // 如果是系统管理员，则不过滤数据
   if (isSystemUser(c, userInfo.id)) {
@@ -203,4 +203,41 @@ export function loginUserToDataScopeSQL(
     };
   }
   return empty;
+}
+
+/**
+ * 登录用户信息-用户查询可见范围过滤SQL
+ * @param c 上下文对象
+ * @param userAlias 用户表别名
+ * @return 参数化过滤对象{sql, params}
+ */
+export function loginUserToUserVisibleSQL(
+  c: Context,
+  userAlias: string
+): DataScopeFilter {
+  const filter = loginUserToDataScopeSQL(c, userAlias, userAlias);
+  const loginUserId = loginUserToUserID(c);
+  if (loginUserId <= 0 || isSystemUser(c, loginUserId)) {
+    return filter;
+  }
+
+  const configUsers = c.app.getConfig('systemUser');
+  const hiddenUserIds = Array.isArray(configUsers)
+    ? configUsers.map(Number).filter(id => Number.isInteger(id) && id > 0)
+    : [];
+  if (hiddenUserIds.length <= 0) {
+    return filter;
+  }
+
+  const hiddenFilter: DataScopeFilter = {
+    sql: `${userAlias}.id not in (:hiddenSystemUserIds)`,
+    params: { hiddenSystemUserIds: hiddenUserIds },
+  };
+  if (!filter.sql) {
+    return hiddenFilter;
+  }
+  return {
+    sql: `(${filter.sql} and ${hiddenFilter.sql})`,
+    params: { ...filter.params, ...hiddenFilter.params },
+  };
 }

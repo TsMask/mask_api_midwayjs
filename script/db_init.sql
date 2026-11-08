@@ -125,11 +125,11 @@ create table sys_role (
   primary key (id)
 ) engine=innodb auto_increment=50 comment='系统_角色信息表' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 初始化-角色示例数据
+-- 初始化-内置角色数据（system 角色仅作兜底，不在角色管理界面显示）
 insert into sys_role (id, create_by, create_time, update_by, update_time, remark, role_name, role_key, role_sort, role_status, role_data_scope, role_menu_check_strictly, role_dept_check_strictly) values
-(1, 'system', 1700000000000, '', 0, '系统内置超级管理员，免鉴权可见全部',   '系统管理员', 'system', 1, '1', '1', '1', '1'),
-(2, 'system', 1700000000000, '', 0, '管理员角色，菜单控制全部+全部数据权限','管理员',     'admin',  2, '1', '1', '1', '1'),
-(3, 'system', 1700000000000, '', 0, '普通角色，仅可见部分菜单+自定数据权限','普通角色',   'common', 3, '1', '2', '1', '1');
+(1, 'system', 1700000000000, '', 0, '内置隐藏角色，仅供 system 账号兜底使用',       '系统管理员', 'system', 1, '1', '1', '1', '1'),
+(2, 'system', 1700000000000, '', 0, '日常管理员角色，菜单全部+全部数据权限',       '管理员',     'admin',  2, '1', '1', '1', '1'),
+(3, 'system', 1700000000000, '', 0, '普通默认角色，分配给默认 user 账号，自定数据权限', '普通角色',   'common', 3, '1', '2', '1', '1');
 
 -- ----------------------------------------------------------------
 -- 4、菜单权限表 sys_menu（树形: parent_id 自关联；menu_type: D目录 M菜单 A权限）
@@ -262,7 +262,7 @@ insert into sys_menu (id, create_by, create_time, update_by, update_time, remark
 (4,   'system', 1700000000000, '', 0, '外部链接跳转', 0, '开源仓库', 7, 'https://gitee.com/TsMask', '', '', '#', '1', '0', 'D', '1', '1');
 
 -- ----------------------------------------------------------------
--- 5、用户信息表 sys_user（用户 N:1 部门 dept_id；密码 bcrypt 存储）
+-- 5、用户信息表 sys_user（用户 N:1 部门 dept_id；密码 Argon2id 存储）
 -- ----------------------------------------------------------------
 drop table if exists sys_user;
 create table sys_user (
@@ -296,11 +296,12 @@ create table sys_user (
   primary key (id)
 ) engine=innodb auto_increment=100 comment='系统_用户信息表' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 初始化-用户示例数据（明文密码均为 Abcd@1234.., bcrypt cost=10）
+-- 初始化-内置用户数据（system 为隐藏兜底账号；admin 日常管理；user 默认普通账号）
+-- 明文密码均为 Abcd@1234..，使用 Argon2id 存储
 insert into sys_user (id, create_by, create_time, update_by, update_time, remark, user_name, user_nick, user_email, user_phone, user_gender, user_avatar, user_password, user_login_ip, user_login_time, user_status, dept_id) values
-(1, 'system', 1700000000000, '', 0, '超级管理员', 'system', '超级管理员', 'system@163.com', '15888888888', '1', '', '$argon2id$v=19$m=65536,t=3,p=2$1EvSi8zBVy6mfMcPtVSQlg$eEZRm1SZsdQc6jURocWg+lmY25syZDdm9QPlZ5MszLE', '127.0.0.1', 1700000000000, '1', 100),
-(2, 'system', 1700000000000, '', 0, '管理员',     'admin',  '管理员',     'admin@qq.com',  '15800000001', '1', '', '$argon2id$v=19$m=65536,t=3,p=2$1EvSi8zBVy6mfMcPtVSQlg$eEZRm1SZsdQc6jURocWg+lmY25syZDdm9QPlZ5MszLE', '127.0.0.1', 1700000000000, '1', 101),
-(3, 'system', 1700000000000, '', 0, '普通用户',   'user',   '普通用户',   'user@gmail.com',   '15666666666', '0', '', '$argon2id$v=19$m=65536,t=3,p=2$1EvSi8zBVy6mfMcPtVSQlg$eEZRm1SZsdQc6jURocWg+lmY25syZDdm9QPlZ5MszLE', '127.0.0.1', 1700000000000, '1', 103);
+(1, 'system', 1700000000000, '', 0, '内置隐藏账号，仅超级管理员兜底使用', 'system', '超级管理员', 'system@163.com', '15888888888', '1', '', '$argon2id$v=19$m=65536,t=3,p=2$1EvSi8zBVy6mfMcPtVSQlg$eEZRm1SZsdQc6jURocWg+lmY25syZDdm9QPlZ5MszLE', '127.0.0.1', 1700000000000, '1', 100),
+(2, 'system', 1700000000000, '', 0, '日常管理员账号',                   'admin',  '管理员',     'admin@qq.com',  '15800000001', '1', '', '$argon2id$v=19$m=65536,t=3,p=2$1EvSi8zBVy6mfMcPtVSQlg$eEZRm1SZsdQc6jURocWg+lmY25syZDdm9QPlZ5MszLE', '127.0.0.1', 1700000000000, '1', 101),
+(3, 'system', 1700000000000, '', 0, '默认普通账号',                     'user',   '普通用户',   'user@gmail.com',   '15666666666', '0', '', '$argon2id$v=19$m=65536,t=3,p=2$1EvSi8zBVy6mfMcPtVSQlg$eEZRm1SZsdQc6jURocWg+lmY25syZDdm9QPlZ5MszLE', '127.0.0.1', 1700000000000, '1', 103);
 
 -- ================================================================
 -- 二、关联表（多对多）
@@ -317,7 +318,7 @@ create table sys_user_role (
   primary key(user_id, role_id)
 ) engine=innodb comment='系统_用户和角色关联表' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 初始化-用户角色示例数据
+-- 初始化-内置用户角色数据
 insert into sys_user_role (user_id, role_id) values
 (1, 1),
 (2, 2),
