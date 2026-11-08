@@ -267,9 +267,11 @@ export class SysRoleController {
     }
 
     // 更新状态不刷新缓存
-    role.role_status = role_status;
-    role.update_by = loginUserToUserName(this.c);
-    const rows = await this.sysRoleService.update(role);
+    const rows = await this.sysRoleService.updateStatus(
+      role_id,
+      role_status,
+      loginUserToUserName(this.c)
+    );
     if (rows > 0) {
       return Resp.ok();
     }
@@ -288,40 +290,45 @@ export class SysRoleController {
     ],
   })
   public async dataScope(
-    @Valid(Joi.number().required()) @Body('role_id') role_id: number,
-    @Valid(Joi.array<number>()) @Body('dept_ids') dept_ids: number[],
     @Valid(
-      Joi.string()
-        .pattern(/^[12345]$/)
-        .required()
+      Joi.object({
+        role_id: Joi.number().integer().positive().required(),
+        dept_ids: Joi.array()
+          .items(Joi.number().integer().positive())
+          .required(),
+        role_data_scope: Joi.string()
+          .pattern(/^[12345]$/)
+          .required(),
+        role_dept_check_strictly: Joi.string()
+          .pattern(/^[01]$/)
+          .required(),
+      })
     )
-    @Body('role_data_scope')
-    dataScope: string,
-    @Valid(
-      Joi.string()
-        .pattern(/^[01]$/)
-        .required()
-    )
-    @Body('role_dept_check_strictly')
-    deptCheckStrictly: string
+    @Body()
+    body: {
+      role_id: number;
+      dept_ids: number[];
+      role_data_scope: string;
+      role_dept_check_strictly: string;
+    }
   ): Promise<Resp> {
-    if (role_id <= 0) {
+    if (body.role_id <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: role_id is empty');
     }
     // 检查是否系统管理员角色
-    if (role_id === SYS_ROLE_SYSTEM_ID) {
+    if (body.role_id === SYS_ROLE_SYSTEM_ID) {
       return Resp.errMsg('不允许操作系统管理员角色');
     }
     // 检查是否存在
-    const roleInfo = await this.sysRoleService.findById(role_id);
-    if (roleInfo.id !== role_id) {
+    const roleInfo = await this.sysRoleService.findById(body.role_id);
+    if (roleInfo.id !== body.role_id) {
       return Resp.errMsg('没有权限访问角色数据！');
     }
     // 更新数据权限
-    roleInfo.dept_ids = dept_ids;
-    roleInfo.role_data_scope = dataScope;
-    roleInfo.role_dept_check_strictly = deptCheckStrictly;
+    roleInfo.dept_ids = body.dept_ids;
+    roleInfo.role_data_scope = body.role_data_scope;
+    roleInfo.role_dept_check_strictly = body.role_dept_check_strictly;
     roleInfo.update_by = loginUserToUserName(this.c);
     const rows = await this.sysRoleService.updateAndDataScope(roleInfo);
     if (rows > 0) {
@@ -368,28 +375,45 @@ export class SysRoleController {
     ],
   })
   public async userAuthChecked(
-    @Valid(Joi.number().required()) @Body('role_id') role_id: number,
-    @Valid(Joi.array<number>().required())
-    @Body('user_ids')
-    userIds: number[],
-    @Valid(Joi.boolean().required()) @Body('auth') auth: boolean
+    @Valid(
+      Joi.object({
+        role_id: Joi.number().integer().positive().required(),
+        user_ids: Joi.array()
+          .items(Joi.number().integer().positive())
+          .min(1)
+          .required(),
+        auth: Joi.boolean().required(),
+      })
+    )
+    @Body()
+    body: {
+      role_id: number;
+      user_ids: number[];
+      auth: boolean;
+    }
   ): Promise<Resp> {
-    if (userIds.length <= 0) {
+    if (body.user_ids.length <= 0) {
       this.c.status = 422;
       return Resp.codeMsg(CODE_PARAM_CHEACK, 'bind err: userIds is empty');
     }
 
     // 检查是否存在
-    const role = await this.sysRoleService.findById(role_id);
-    if (role.id !== role_id) {
+    const role = await this.sysRoleService.findById(body.role_id);
+    if (role.id !== body.role_id) {
       return Resp.errMsg('没有权限访问角色数据！');
     }
 
     let rows: number;
-    if (auth) {
-      rows = await this.sysRoleService.insertAuthUsers(role_id, userIds);
+    if (body.auth) {
+      rows = await this.sysRoleService.insertAuthUsers(
+        body.role_id,
+        body.user_ids
+      );
     } else {
-      rows = await this.sysRoleService.deleteAuthUsers(role_id, userIds);
+      rows = await this.sysRoleService.deleteAuthUsers(
+        body.role_id,
+        body.user_ids
+      );
     }
     if (rows > 0) {
       return Resp.ok();

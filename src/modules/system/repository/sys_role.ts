@@ -202,6 +202,28 @@ export class SysRoleRepository {
     return tx.affected ?? 0;
   }
 
+  public async updateStatus(
+    role_id: number,
+    role_status: string,
+    update_by: string
+  ): Promise<number> {
+    if (role_id <= 0) {
+      return 0;
+    }
+    const result: UpdateResult = await this.db
+      .queryBuilder('')
+      .createQueryBuilder()
+      .update(SysRole)
+      .set({
+        role_status,
+        update_by,
+        update_time: Date.now(),
+      })
+      .andWhere('id = :role_id and deleted_at = 0', { role_id })
+      .execute();
+    return result.affected ?? 0;
+  }
+
   public async deleteByIds(
     role_ids: number[],
     deletedBy: string,
@@ -259,7 +281,7 @@ export class SysRoleRepository {
       .leftJoin('sys_user_role', 'ur', 'ur.role_id = r.id')
       .leftJoin('sys_user', 'u', 'u.id = ur.user_id')
       .andWhere(
-        "u.deleted_at = 0 and r.deleted_at = 0 and ur.user_id = :user_id",
+        'u.deleted_at = 0 and r.deleted_at = 0 and ur.user_id = :user_id',
         {
           user_id,
         }

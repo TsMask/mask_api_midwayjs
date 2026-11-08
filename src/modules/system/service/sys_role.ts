@@ -139,6 +139,28 @@ export class SysRoleService {
   }
 
   /**
+   * 修改角色状态。状态切换不携带菜单组，不能走全量更新避免清空角色菜单。
+   */
+  public async updateStatus(
+    role_id: number,
+    role_status: string,
+    update_by: string
+  ): Promise<number> {
+    const rows = await this.sysRoleRepository.updateStatus(
+      role_id,
+      role_status,
+      update_by
+    );
+    if (rows > 0) {
+      const userIds = await this.sysUserRoleRepository.selectUserIdsByRoleIds([
+        role_id,
+      ]);
+      await this.token?.removeByUserIds(userIds);
+    }
+    return rows;
+  }
+
+  /**
    * 新增角色菜单信息
    * @param role_id 角色ID
    * @param menu_ids 菜单ID数组
@@ -259,7 +281,7 @@ export class SysRoleService {
    * @returns 结果
    */
   public async updateAndDataScope(sysRole: SysRole): Promise<number> {
-    return await this.db.transaction('', async manager => {
+    const rows = await this.db.transaction('', async manager => {
       // 修改角色信息
       const rows = await this.sysRoleRepository.update(sysRole, manager);
       if (rows > 0) {
@@ -285,6 +307,13 @@ export class SysRoleService {
       }
       return rows;
     });
+    if (rows > 0) {
+      const userIds = await this.sysUserRoleRepository.selectUserIdsByRoleIds([
+        sysRole.id,
+      ]);
+      await this.token?.removeByUserIds(userIds);
+    }
+    return rows;
   }
 
   /**
