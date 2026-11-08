@@ -240,13 +240,11 @@ export class SysMenuRepository {
         { role_id }
       );
     if (menuCheckStrictly) {
+      // 父子互相关联显示时只返回叶子节点，父级状态由前端树推导。
       tx.andWhere(
         `s.id not in (
-          select m.parent_id from sys_menu m
-          inner join sys_role_menu rm on m.id = rm.menu_id
-          and rm.role_id = :role_id
-        )`,
-        { role_id }
+          select m.parent_id from sys_menu m where m.parent_id <> 0
+        )`
       );
     }
     const rows = await tx.getRawMany();

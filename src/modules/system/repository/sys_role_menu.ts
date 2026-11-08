@@ -12,20 +12,6 @@ export class SysRoleMenuRepository {
   @Inject()
   private db: DynamicDataSource;
 
-  public async existRoleByMenuId(menu_id: number): Promise<number> {
-    if (menu_id <= 0) {
-      return 0;
-    }
-    const count = await this.db
-      .queryBuilder('')
-      .createQueryBuilder()
-      .select('s')
-      .from(SysRoleMenu, 's')
-      .andWhere('s.menu_id = :menu_id', { menu_id })
-      .getCount();
-    return count;
-  }
-
   public async deleteByRoleIds(
     role_ids: number[],
     entityManager?: EntityManager

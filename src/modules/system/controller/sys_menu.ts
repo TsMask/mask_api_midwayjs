@@ -273,10 +273,6 @@ export class SysMenuController {
     if (hasChild > 0) {
       return Resp.errMsg(`不允许删除，存在子菜单数：${hasChild}`);
     }
-    const existRole = await this.sysMenuService.existRoleByMenuId(menu_id);
-    if (existRole > 0) {
-      return Resp.errMsg(`不允许删除，菜单已分配给角色数：${existRole}`);
-    }
     const rows = await this.sysMenuService.deleteById(menu_id);
     if (rows > 0) {
       return Resp.okMsg(`删除成功：${rows}`);

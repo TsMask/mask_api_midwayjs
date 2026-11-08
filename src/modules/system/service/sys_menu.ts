@@ -82,10 +82,6 @@ export class SysMenuService {
     );
   }
 
-  public async existRoleByMenuId(menu_id: number): Promise<number> {
-    return await this.sysRoleMenuRepository.existRoleByMenuId(menu_id);
-  }
-
   public async checkUniqueParentIdByMenuName(
     parent_id: number,
     menu_name: string,
