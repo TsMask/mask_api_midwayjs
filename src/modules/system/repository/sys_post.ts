@@ -212,8 +212,7 @@ export class SysPostRepository {
       .queryBuilder('')
       .createQueryBuilder()
       .select('s')
-      .from(SysPost, 's')
-      .andWhere("s.del_flag = '0'");
+      .from(SysPost, 's');
     // 查询条件拼接
     if (sysPost.post_name) {
       tx.andWhere('s.post_name = :post_name', {
