@@ -23,6 +23,7 @@ import { checkDirPathExists } from './internal/shared/file/utils';
 import { ReportMiddleware } from './internal/web/middleware/report';
 import { ErrorCatchFilters } from './internal/web/middleware/error_filter';
 import { JobConfiguration } from './modules/job/job';
+import { SystemConfiguration } from './modules/system/system';
 
 @Configuration({
   imports: [
@@ -35,6 +36,7 @@ import { JobConfiguration } from './modules/job/job';
     typeorm, // 数据库ORM
     redis, // 缓存数据Redis
     JobConfiguration, // 调度任务模块
+    SystemConfiguration, // 系统模块
   ],
   detector: new CommonJSFileDetector({ conflictCheck: false }),
   importConfigs: [

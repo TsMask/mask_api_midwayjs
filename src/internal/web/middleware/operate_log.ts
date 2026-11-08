@@ -10,7 +10,7 @@ import { clientIP, realAddressByIp } from '../../infra/ip2region/ip2region';
 import { STATUS_NO, STATUS_YES } from '../../shared/constants/common';
 import { parseSafeContent } from '../../shared/parse/parse';
 import { loginUserToUserName } from '../reqctx/auth';
-import { CODE_AUTH_INVALID, CODE_SUCCESS } from '../resp/code';
+import { CODE_AUTH_INVALID } from '../resp/code';
 import { Resp } from '../resp/api';
 
 /**操作日志-业务操作类型枚举 */
@@ -108,6 +108,33 @@ function maskSensitiveData(obj: Record<string, any>, depth = 0): Record<string, 
   return result;
 }
 
+function isHTTPSuccess(status: number): boolean {
+  return status >= 200 && status < 300;
+}
+
+function responseSize(res: any): number {
+  if (!res) return 0;
+  if (res instanceof Uint8Array) return res.byteLength;
+  return Buffer.byteLength(JSON.stringify(res), 'utf8');
+}
+
+function buildOperationMsg(
+  status: number,
+  size: number,
+  contentType: string,
+  contentDisposition = ''
+): string {
+  const msg: Record<string, string | number> = {
+    status,
+    size,
+    content_type: contentType,
+  };
+  if (contentDisposition) {
+    msg.content_disposition = contentDisposition;
+  }
+  return JSON.stringify(msg).substring(0, 2000);
+}
+
 @Middleware()
 export class OperateLog implements IMiddleware<Context, NextFunction> {
   resolve(_: any, options: Options) {
@@ -129,7 +156,7 @@ export class OperateLog implements IMiddleware<Context, NextFunction> {
         title: options.title,
         operationType: options.businessType,
         operationFunction: funcName,
-        operationUrl: c.path,
+        operationUrl: c.url.substring(0, 200),
         operationMethod: c.method,
         operationIp: ipaddr,
         operationLocation: location,
@@ -143,17 +170,33 @@ export class OperateLog implements IMiddleware<Context, NextFunction> {
         const params: Record<string, any> = Object.assign({}, c.request.body, c.request.query);
         operLog.operationParam = JSON.stringify(maskSensitiveData(params)).substring(0, 2000);
       }
-      const res = await next();
-      const status = res.code;
-      operLog.operationStatus = status === CODE_SUCCESS ? STATUS_YES : STATUS_NO;
-      if (options.isSaveResponseData) {
-        const contentDisposition = c.get('Content-Disposition');
-        const contentType = c.get('Content-Type') || 'application/json; charset=utf-8';
-        operLog.operationMsg = JSON.stringify({ status: String(status), size: JSON.stringify(res).length, content_type: contentType + contentDisposition });
+      const finishLog = async (status: number, res?: any) => {
+        operLog.operationStatus = isHTTPSuccess(status) ? STATUS_YES : STATUS_NO;
+        if (options.isSaveResponseData) {
+          const contentDisposition = c.get('Content-Disposition');
+          const contentType = c.get('Content-Type') || 'application/json; charset=utf-8';
+          operLog.operationMsg = buildOperationMsg(
+            status,
+            responseSize(res),
+            contentType,
+            contentDisposition
+          );
+        }
+        operLog.operationCostTime = Date.now() - c.startTime;
+        if (onOperationLog) await onOperationLog(operLog);
+      };
+
+      let res: any;
+      try {
+        res = await next();
+        // Koa keeps a default 404 until the framework writes the returned body.
+        const status = c.status >= 400 && c.status !== 404 ? c.status : 200;
+        await finishLog(status, res);
+        return res;
+      } catch (error) {
+        await finishLog(500);
+        throw error;
       }
-      operLog.operationCostTime = Date.now() - c.startTime;
-      if (onOperationLog) await onOperationLog(operLog);
-      return res;
     };
   }
 
