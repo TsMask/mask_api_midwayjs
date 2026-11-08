@@ -463,7 +463,7 @@ export class SysUserController {
     if (ok) {
       return Resp.okMsg('unlock success');
     }
-    return Resp.errMsg('not found unlock user');
+    return Resp.errMsg('not found lock');
   }
 
   /**用户信息列表导出 */

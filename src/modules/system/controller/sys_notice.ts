@@ -112,6 +112,9 @@ export class SysNoticeController {
     if (noticeInfo.id !== body.id) {
       return Resp.errMsg('没有权限访问公告信息数据！');
     }
+    if (noticeInfo.notice_status === NOTICE_STATUS_DELETED) {
+      return Resp.errMsg('已删除公告不能修改！');
+    }
     if (body.notice_status === NOTICE_STATUS_DELETED) {
       return Resp.errMsg('公告状态不能选择已删除，请使用删除操作');
     }
