@@ -80,6 +80,8 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         '.gz',
         '.tgz',
         '.gzip',
+        // 可执行文件
+        '.exe',
         // 音视频格式
         '.mp3',
         '.mp4',
@@ -143,7 +145,13 @@ export default (appInfo: MidwayAppInfo): MidwayConfig => {
         'Range',
       ],
       // 设置 Access-Control-Expose-Headers 的值
-      exposeHeaders: ['X-RepeatSubmit-Reset'],
+      exposeHeaders: [
+        'X-RepeatSubmit-Reset',
+        'Accept-Ranges',
+        'Content-Disposition',
+        'Content-Length',
+        'Content-Range',
+      ],
       // 是否在执行报错的时候，把跨域的 header 信息写入到 error 对的 headers 属性中，【默认值】false
       keepHeadersOnError: false,
     },
