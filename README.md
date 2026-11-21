@@ -13,7 +13,7 @@
 
 ## 项目文档
 
-- 项目代码进行服务器部署的网站 => [在线预览](http://124.223.91.248:8102/#/)
+- 项目代码进行服务器部署的网站 => [在线预览](https://gitee.com/TsMask/mask_api_midwayjs/wikis/Home)
 - `Apifox` 提供mock服务和程序接口文档 => [接口文档](https://mask-api-midwayjs.apifox.cn/)
 - `Mask管理系统` 文档专栏，相关使用和开发升级文档。 => [专栏](https://juejin.cn/column/7188761626017792056/)
 

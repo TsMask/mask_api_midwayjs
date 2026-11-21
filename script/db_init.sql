@@ -256,7 +256,7 @@ insert into sys_menu (id, create_by, create_time, update_by, update_time, remark
 (481, 'system', 1700000000000, '', 0, '文件上传菜单',  3, '文件上传', 1, '/tool/files', 'tool/upload/UploadIndex', '', '#', '0', '1', 'M', '1', '1'),
 (483, 'system', 1700000000000, '', 0, '生成构建菜单',  3, '生成构建', 3, '/tool/build', 'tool/build/BuildIndex', '', '#', '0', '1', 'M', '1', '1'),
 (485, 'system', 1700000000000, '', 0, '系统接口菜单',  3, '系统接口', 5, '/tool/api-docs', 'tool/swagger/SwaggerIndex', '', '#', '0', '1', 'M', '1', '1'),
-(487, 'system', 1700000000000, '', 0, '链接菜单打开',  3, '接口文档', 7,  'https://mask-api-midwayjs.apifox.cn', '', '', '#', '0', '1', 'M', '1', '1'),
+(487, 'system', 1700000000000, '', 0, '链接菜单打开',  3, '接口文档', 7,  'https://mask-api.apifox.cn/', '', '', '#', '0', '1', 'M', '1', '1'),
 (489, 'system', 1700000000000, '', 0, '链接新窗打开',  3, '开源仓库', 9,  'https://gitee.com/TsMask/projects', '', '', '#', '1', '1', 'M', '1', '1'),
 
 (4,   'system', 1700000000000, '', 0, '外部链接跳转', 0, '开源仓库', 7, 'https://gitee.com/TsMask', '', '', '#', '1', '0', 'D', '1', '1');
