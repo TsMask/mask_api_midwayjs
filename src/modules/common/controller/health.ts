@@ -1,6 +1,12 @@
-import { Controller, Get, Inject } from '@midwayjs/core';
+import {
+  Controller,
+  Get,
+  Inject,
+  MidwayInformationService,
+} from '@midwayjs/core';
 import type { Context } from '@midwayjs/koa';
 
+import { GlobalConfig } from '../../../internal/config/config';
 import { DynamicDataSource } from '../../../internal/infra/database/db';
 import { RedisCache } from '../../../internal/infra/cache/redis';
 import { Resp } from '../../../internal/web/resp/api';
@@ -17,10 +23,20 @@ export class HealthController {
   @Inject()
   private redisCache: RedisCache;
 
+  @Inject()
+  private config: GlobalConfig;
+
+  @Inject()
+  private midwayInformationService: MidwayInformationService;
+
   /** 进程存活检查，不访问外部依赖。 */
   @Get('/healthz')
   public async live(): Promise<Resp> {
-    return Resp.okData({ status: 'up' });
+    return Resp.okData({
+      status: 'up',
+      version: this.midwayInformationService.getPkg().version,
+      uptime: uptimeSeconds(this.config.getRunTime()),
+    });
   }
 
   /** 默认数据库与 Redis 就绪检查。 */
@@ -48,8 +64,17 @@ export class HealthController {
       );
     }
 
-    return Resp.okData({ status: 'ready' });
+    return Resp.okData({
+      status: 'ready',
+      version: this.midwayInformationService.getPkg().version,
+      uptime: uptimeSeconds(this.config.getRunTime()),
+    });
   }
+}
+
+/** 进程已运行秒数 */
+function uptimeSeconds(runTime: Date): number {
+  return Math.floor((Date.now() - runTime.getTime()) / 1000);
 }
 
 function withTimeout<T>(task: Promise<T>, message: string): Promise<T> {
